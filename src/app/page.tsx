@@ -540,31 +540,35 @@ export default function Home() {
                 최적의 플랜을 선택하세요.
               </h2>
               <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">
-                Afterm은 당신의 소중한 메시지를 안전하게 보관하고,
+                에프텀은 당신의 소중한 메시지를 안전하게 보관하고,
                 지정된 시점에 전달합니다.
               </p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Standard Plan */}
+              {/* Basic Plan */}
               <div className="rounded-3xl p-8 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300">
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Standard</h3>
-                <div className="text-4xl font-extrabold text-slate-900 mb-6">₩0 <span className="text-base font-normal text-slate-500">/ 월</span></div>
-                <ul className="space-y-4 mb-8">
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Basic (무료체험)</h3>
+                <div className="text-4xl font-extrabold text-slate-900 mb-6">무료</div>
+                <ul className="space-y-4 mb-8 text-left pl-4">
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✓</span>
-                    메시지 1개 전송
+                    메시지 전송: 딱 1개 전송
                   </li>
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✓</span>
-                    파일 저장 공간 10MB
+                    저장공간: 10mb (텍스트 위주)
                   </li>
-                  <li className="flex items-center gap-3 text-slate-700 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✗</span>
-                    프리미엄 템플릿 (미제공)
+                  <li className="flex items-center gap-3 text-slate-400 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">x</span>
+                    추모 공간 x
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-400 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">x</span>
+                    부가기능 x
                   </li>
                 </ul>
-                <Button onClick={() => handleSubscribe("Standard", "₩0")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
+                <Button onClick={() => handleSubscribe("Standard", "무료")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
                   지금 시작하기
                 </Button>
               </div>
@@ -572,24 +576,28 @@ export default function Home() {
               {/* Pro Plan */}
               <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
                 <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-2">Pro</h3>
-                <div className="text-4xl font-extrabold text-slate-900 mb-6">₩4,900 <span className="text-base font-normal text-slate-500">/ 월</span></div>
-                <ul className="space-y-4 mb-8">
+                <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
+                <div className="text-4xl font-extrabold text-slate-900 mb-6">100원 <span className="text-base font-normal text-slate-500">/ 월</span></div>
+                <ul className="space-y-4 mb-8 text-left pl-4">
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    무제한 메시지 전송
+                    메시지 전송: 무제한 전송
                   </li>
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    파일 저장 공간 100GB
+                    저장공간: 1GB (사진, 음성, 영상)
                   </li>
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    프리미엄 템플릿 제공
+                    온라인 추모관 생성
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
+                    추모 댓글, 사진 남기기 기능
                   </li>
                 </ul>
-                <Button onClick={() => handleSubscribe("Pro", "₩4,900")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
-                  Pro로 업그레이드
+                <Button onClick={() => handleSubscribe("Pro", "100원")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
+                  PRO로 업그레이드
                 </Button>
               </div>
             </div>
@@ -598,9 +606,9 @@ export default function Home() {
 
         {/* Closing Section */}
         <section className="w-full py-24 bg-slate-900 text-center border-t border-slate-800">
-          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose">
             당신의 이야기는<br />
-            <span className="text-blue-500">끝나지 않아야 합니다.</span>
+            <span className="block mt-4 md:mt-2 text-blue-500">계속 기억됩니다.</span>
           </h2>
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -619,7 +627,7 @@ export default function Home() {
               size="lg"
               className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
             >
-              무료로 기억 남기기
+              시작하기
             </Button>
           </motion.div>
         </section>
