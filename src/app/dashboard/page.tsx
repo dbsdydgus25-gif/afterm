@@ -4,19 +4,35 @@ import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Send, Image as ImageIcon, Video, User, LogOut, CreditCard, Settings, Trash2, ChevronDown } from "lucide-react";
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { message, recipient } = useMemoryStore();
+    const { message, setMessage, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Initial check for user (simplified protection)
+    // useEffect(() => {
+    //     if (!user) router.push("/");
+    // }, [user, router]);
 
     const handleEdit = () => {
         router.push("/create");
     };
 
     const handleLogout = () => {
-        // In a real app, clear auth tokens here
+        setUser(null); // Clear user state
         router.push("/");
+    };
+
+    const handleDeleteAccount = () => {
+        if (confirm("정말로 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.")) {
+            setUser(null);
+            router.push("/");
+        }
     };
 
     return (
@@ -24,13 +40,55 @@ export default function DashboardPage() {
             {/* Header */}
             <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-50">
                 <Link href="/" className="text-xl font-black text-blue-600 tracking-tighter">AFTERM</Link>
-                <div className="flex items-center gap-4">
-                    <Button onClick={handleLogout} variant="ghost" className="text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50">
-                        로그아웃
-                    </Button>
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600">
-                        ME
-                    </div>
+                <div className="relative">
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                            {user?.name?.[0] || "U"}
+                        </div>
+                        <span className="text-sm font-bold text-slate-700 hidden sm:block">{user?.name || "사용자"}</span>
+                        {plan === 'pro' && (
+                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">PRO</span>
+                        )}
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isMenuOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
+                            >
+                                <div className="p-3 border-b border-slate-50">
+                                    <p className="text-sm font-bold text-slate-900">{user?.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                                </div>
+                                <div className="p-1">
+                                    <button className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                        <User className="w-4 h-4" /> 내 정보
+                                    </button>
+                                    <button className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                        <CreditCard className="w-4 h-4" /> 플랜 관리
+                                        {plan === 'pro' && <span className="ml-auto text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded font-bold">PRO</span>}
+                                    </button>
+                                </div>
+                                <div className="p-1 border-t border-slate-50">
+                                    <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg flex items-center gap-2 transition-colors">
+                                        <LogOut className="w-4 h-4" /> 로그아웃
+                                    </button>
+                                </div>
+                                <div className="p-1 border-t border-slate-50">
+                                    <button onClick={handleDeleteAccount} className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 hover:text-slate-500 rounded-lg flex items-center gap-2 transition-colors">
+                                        <Trash2 className="w-3 h-3" /> 회원 탈퇴
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </header>
 

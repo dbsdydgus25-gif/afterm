@@ -5,19 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { PaymentModal } from "@/components/payment/PaymentModal";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { message, setMessage, recipient, setRecipient } = useMemoryStore(); // Added recipient store
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
+
+  const { message, setMessage, recipient, setRecipient, user } = useMemoryStore();
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
-  // Background slideshow logic (placeholder colors/gradients for now)
+  // Background slideshow logic
   const backgrounds = [
-    "bg-gradient-to-br from-orange-50 to-amber-50", // Warm/Family
-    "bg-gradient-to-br from-blue-50 to-indigo-50",   // Calm/Friends
-    "bg-gradient-to-br from-rose-50 to-pink-50",      // Loving/Couple
+    "bg-gradient-to-br from-orange-50 to-amber-50",
+    "bg-gradient-to-br from-blue-50 to-indigo-50",
+    "bg-gradient-to-br from-rose-50 to-pink-50",
   ];
 
   useEffect(() => {
@@ -27,28 +31,35 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  const handleSubscribe = (plan: "Standard" | "Pro", price: string) => {
+    setSelectedPlan({ name: plan, price });
+    setIsPaymentOpen(true);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 selection:bg-blue-100 selection:text-blue-900 font-sans">
       {/* Header */}
       <header className="fixed top-0 z-50 w-full transition-all duration-300 bg-white/60 backdrop-blur-xl border-b border-white/20">
         <div className="max-w-7xl mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
-          <Link
-            href="/"
-            className="flex items-center hover:opacity-80 transition-opacity"
-          >
-            {/* Text Logo: Blue, Big, No background */}
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
             <span className="text-xl md:text-3xl font-black tracking-tighter text-blue-600">
               AFTERM
             </span>
           </Link>
-          <nav>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="rounded-lg px-4 h-9 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
-            >
-              로그인
-            </Button>
-            <Link href="/dashboard" className="ml-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+          <nav className="flex items-center gap-6">
+            {!user ? (
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
+              >
+                로그인
+              </Button>
+            ) : (
+              <Link href="/dashboard" className="text-sm font-bold text-slate-700 hover:text-blue-600 transition-colors flex items-center gap-2 bg-slate-100/50 px-4 py-2 rounded-full border border-slate-200/50">
+                <span>👋 {user.name}님</span>
+              </Link>
+            )}
+            <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
               내 정보
             </Link>
           </nav>
@@ -71,7 +82,6 @@ export default function Home() {
                 className={`absolute inset-0 ${backgrounds[currentBgIndex]}`}
               />
             </AnimatePresence>
-            {/* Overlay for text readability */}
             <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
           </div>
 
@@ -98,16 +108,16 @@ export default function Home() {
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
                 <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1 p-2">
-                  {/* To Input */}
-                  <div className="px-4 pt-4 pb-2">
-                    <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                      <span className="text-slate-400 font-serif italic text-lg">To.</span>
+                  {/* To Input (Modern Design) */}
+                  <div className="px-6 pt-6 pb-2">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                      <span className="bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">TO</span>
                       <input
                         type="text"
                         value={recipient.name}
                         onChange={(e) => setRecipient({ name: e.target.value })}
-                        placeholder="받는 사람 (예: 엄마, 철수)"
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0"
+                        placeholder="받는 사람 입력 (예: 엄마, 철수)"
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0"
                       />
                     </div>
                   </div>
@@ -115,7 +125,7 @@ export default function Home() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="여기에 당신의 마음을 남기세요..."
-                    className="min-h-[160px] sm:min-h-[200px] w-full p-4 text-lg leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-400 text-gray-800"
+                    className="min-h-[160px] sm:min-h-[200px] w-full p-6 text-xl leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-300 text-gray-800 font-medium"
                   />
 
                   {/* Media Upload Area */}
@@ -155,6 +165,78 @@ export default function Home() {
                 스크롤하여 더 알아보기
               </p>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section className="w-full bg-white py-24">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="mb-16 space-y-4"
+            >
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">PRICING</span>
+              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
+                당신의 기억을 위한<br className="sm:hidden" />
+                최적의 플랜을 선택하세요.
+              </h2>
+              <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">
+                Afterm은 당신의 소중한 메시지를 안전하게 보관하고,
+                지정된 시점에 전달합니다.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Standard Plan */}
+              <div className="rounded-3xl p-8 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300">
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Standard</h3>
+                <div className="text-4xl font-extrabold text-slate-900 mb-6">₩0 <span className="text-base font-normal text-slate-500">/ 월</span></div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✓</span>
+                    메시지 1개 전송
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✓</span>
+                    파일 저장 공간 10MB
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✗</span>
+                    프리미엄 템플릿 (미제공)
+                  </li>
+                </ul>
+                <Button onClick={() => handleSubscribe("Standard", "₩0")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
+                  지금 시작하기
+                </Button>
+              </div>
+
+              {/* Pro Plan */}
+              <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
+                <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
+                <h3 className="text-2xl font-bold text-blue-900 mb-2">Pro</h3>
+                <div className="text-4xl font-extrabold text-slate-900 mb-6">₩4,900 <span className="text-base font-normal text-slate-500">/ 월</span></div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
+                    무제한 메시지 전송
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
+                    파일 저장 공간 100GB
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-700 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
+                    프리미엄 템플릿 제공
+                  </li>
+                </ul>
+                <Button onClick={() => handleSubscribe("Pro", "₩4,900")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
+                  Pro로 업그레이드
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -367,6 +449,12 @@ export default function Home() {
       </main>
 
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        planName={selectedPlan.name}
+        price={selectedPlan.price}
+      />
 
       {/* Footer */}
       <footer className="py-12 border-t border-slate-100 bg-white">

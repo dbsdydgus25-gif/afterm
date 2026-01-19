@@ -9,6 +9,15 @@ interface MemoryStore {
         relationship: string;
     };
     setRecipient: (recipient: Partial<MemoryStore['recipient']>) => void;
+
+    user: {
+        name: string;
+        email: string;
+    } | null;
+    setUser: (user: MemoryStore['user']) => void;
+
+    plan: 'free' | 'pro';
+    setPlan: (plan: 'free' | 'pro') => void;
 }
 
 export const useMemoryStore = create<MemoryStore>((set) => ({
@@ -23,4 +32,12 @@ export const useMemoryStore = create<MemoryStore>((set) => ({
         set((state) => ({
             recipient: { ...state.recipient, ...recipient }
         })),
+
+    // User State
+    user: null,
+    setUser: (user) => set({ user }),
+
+    // Plan State
+    plan: 'free',
+    setPlan: (plan) => set({ plan }),
 }));
