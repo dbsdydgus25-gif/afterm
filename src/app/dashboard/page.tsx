@@ -95,7 +95,10 @@ export default function DashboardPage() {
             <main className="max-w-3xl mx-auto p-6 lg:p-10 space-y-10">
 
                 {/* Profile Section (Editable) */}
-                <section className="group relative flex items-center gap-6 pb-8 border-b border-slate-200 hover:bg-slate-100/50 p-4 rounded-2xl transition-colors cursor-pointer">
+                <section
+                    onClick={() => router.push('/dashboard/edit')}
+                    className="group relative flex items-center gap-6 pb-8 border-b border-slate-200 hover:bg-slate-100/50 p-4 rounded-2xl transition-colors cursor-pointer"
+                >
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="sm" className="text-slate-400">수정하기 ›</Button>
                     </div>
@@ -103,7 +106,7 @@ export default function DashboardPage() {
                         😊
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 mb-1">반가워요, 다니엘님</h1>
+                        <h1 className="text-2xl font-bold text-slate-900 mb-1">반가워요, {user?.name || "다니엘"}님</h1>
                         <p className="text-slate-500">Free Plan 이용 중</p>
                     </div>
                 </section>
@@ -124,7 +127,7 @@ export default function DashboardPage() {
                 <section className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-slate-900">나의 기억 보관함</h2>
-                        <Button variant="ghost" size="sm" className="text-slate-500">전체보기</Button>
+                        <Button onClick={() => router.push('/dashboard/memories')} variant="ghost" size="sm" className="text-slate-500">전체보기</Button>
                     </div>
 
                     {message ? (
