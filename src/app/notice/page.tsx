@@ -15,7 +15,7 @@ export default function NoticePage() {
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
             <Header />
-            <main className="flex-1 max-w-4xl mx-auto px-6 py-20 w-full animate-fade-in">
+            <main className="flex-1 max-w-4xl mx-auto px-6 pt-32 pb-20 w-full animate-fade-in">
                 <h1 className="text-4xl font-bold text-slate-900 mb-12">공지사항</h1>
                 <div className="divide-y divide-slate-100">
                     {notices.map((notice) => (

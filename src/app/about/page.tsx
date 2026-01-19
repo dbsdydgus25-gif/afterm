@@ -9,7 +9,7 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
             <Header />
-            <main className="flex-1 max-w-4xl mx-auto px-6 py-20 w-full animate-fade-in">
+            <main className="flex-1 max-w-4xl mx-auto px-6 pt-32 pb-20 w-full animate-fade-in">
                 <h1 className="text-4xl font-bold text-slate-900 mb-8">회사 소개</h1>
                 <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
                     <p>

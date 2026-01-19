@@ -11,7 +11,7 @@ export default function ContactPage() {
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
             <Header />
-            <main className="flex-1 max-w-2xl mx-auto px-6 py-20 w-full animate-fade-in">
+            <main className="flex-1 max-w-2xl mx-auto px-6 pt-32 pb-20 w-full animate-fade-in">
                 <div className="text-center mb-12">
                     <span className="text-blue-600 font-bold tracking-wide text-sm bg-blue-50 px-3 py-1 rounded-full">CONTACT US</span>
                     <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-6 mb-6">
