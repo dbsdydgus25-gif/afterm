@@ -196,18 +196,15 @@ export default function Home() {
 
                 <ul className="space-y-6 pt-4">
                   {[
-                    {
-                      [
-                      "클라우드 기반의 안전한 데이터 영구 보관",
-                      "원하는 시점(생일, 기념일 등)에 예약 전송",
-                      "가족, 연인, 친구별 맞춤 메시지 설정"
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-start gap-4 text-slate-300 group">
-                          <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 group-hover:scale-125 transition-transform" />
-                          <span className="text-lg leading-snug group-hover:text-blue-200 transition-colors">{item}</span>
-                        </li>
-                      ))
-                    }
+                    "클라우드 기반의 안전한 데이터 영구 보관",
+                    "원하는 시점(생일, 기념일 등)에 예약 전송",
+                    "가족, 연인, 친구별 맞춤 메시지 설정"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-4 text-slate-300 group">
+                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 group-hover:scale-125 transition-transform" />
+                      <span className="text-lg leading-snug group-hover:text-blue-200 transition-colors">{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
