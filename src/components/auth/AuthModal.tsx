@@ -128,20 +128,37 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                             </Button>
                                         </div>
 
-                                        <div className="relative my-2">
+                                        <div className="relative my-4">
                                             <div className="absolute inset-0 flex items-center">
                                                 <span className="w-full border-t border-slate-200" />
                                             </div>
                                             <div className="relative flex justify-center text-xs uppercase">
-                                                <span className="bg-background px-2 text-muted-foreground">
-                                                    또는
+                                                <span className="bg-background px-2 text-muted-foreground whitespace-nowrap">
+                                                    또는 소셜 계정으로 시작
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <Button variant="outline" onClick={handleGoogleLogin} className="w-full rounded-xl h-12 text-base font-medium relative overflow-hidden group border-slate-300">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2">
-                                                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                        <div className="space-y-3">
+                                            {/* Kakao Login */}
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleKakaoLogin}
+                                                className="w-full rounded-xl h-12 text-base font-bold bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] border-none flex items-center justify-center gap-2"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 3C5.373 3 0 7.358 0 12.735c0 3.303 2.033 6.223 5.168 7.972-.239.878-.865 3.19-.99 3.738-.052.23.084.237.177.159.277-.23 3.868-2.613 4.496-3.057.377.054.763.083 1.149.083 6.627 0 12-4.358 12-9.735S16.627 3 12 3z" />
+                                                </svg>
+                                                카카오로 3초 만에 시작하기
+                                            </Button>
+
+                                            {/* Google Login */}
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleGoogleLogin}
+                                                className="w-full rounded-xl h-12 text-base font-medium bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center justify-center gap-2"
+                                            >
+                                                <svg className="w-5 h-5" viewBox="0 0 24 24">
                                                     <path
                                                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                                                         fill="#4285F4"
@@ -159,9 +176,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                                         fill="#EA4335"
                                                     />
                                                 </svg>
-                                            </span>
-                                            Google로 시작하기
-                                        </Button>
+                                                Google로 계속하기
+                                            </Button>
+                                        </div>
                                     </div>
                                 ) : (
                                     /* SIGN UP FORM */
