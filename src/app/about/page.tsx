@@ -13,7 +13,7 @@ export default function AboutPage() {
                 <h1 className="text-4xl font-bold text-slate-900 mb-8">회사 소개</h1>
                 <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
                     <p>
-                        <strong className="text-slate-900">AFTERM(애프터텀)</strong>은 "떠난 후에도 당신이 기억되도록"이라는 미션 아래 시작된 디지털 생애 데이터 플랫폼입니다.
+                        <strong className="text-slate-900">AFTERM(에프텀)</strong>은 "떠난 후에도 당신이 기억되도록"이라는 미션 아래 시작된 디지털 생애 데이터 플랫폼입니다.
                     </p>
                     <p>
                         우리는 기술을 통해 삶의 마무리를 더 따뜻하고 의미 있게 만들 수 있다고 믿습니다.

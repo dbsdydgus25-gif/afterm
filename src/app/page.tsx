@@ -606,9 +606,8 @@ export default function Home() {
 
         {/* Closing Section */}
         <section className="w-full py-24 bg-slate-900 text-center border-t border-slate-800">
-          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose">
-            당신의 이야기는<br />
-            <span className="block mt-4 md:mt-2 text-blue-500">계속 기억됩니다.</span>
+          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose px-4 break-keep">
+            당신의 이야기는 <span className="text-blue-500">계속 기억됩니다.</span>
           </h2>
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
