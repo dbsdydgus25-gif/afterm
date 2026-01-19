@@ -122,12 +122,18 @@ export default function Home() {
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-default">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-default"
+            >
               <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
               <p className="text-sm font-medium text-gray-500">
                 스크롤하여 더 알아보기
               </p>
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -140,20 +146,32 @@ export default function Home() {
 
               {/* Text Content */}
               <div className="md:col-span-5 space-y-10 text-left">
-                <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                  className="space-y-6"
+                >
                   <h2 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight">
                     남겨진 사람들에게<br />
                     <span className="text-blue-400">가장 소중한 선물</span>이<br />
                     됩니다.
                   </h2>
                   <div className="w-16 h-1.5 bg-blue-500 rounded-full"></div>
-                </div>
+                </motion.div>
 
-                <p className="text-lg text-slate-400 leading-relaxed break-keep">
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                  className="text-lg text-slate-400 leading-relaxed break-keep"
+                >
                   Afterm은 당신의 생애 데이터를 안전하게 보관하고,
                   지정된 시점에 소중한 사람들에게 전달합니다.
                   단순한 메시지를 넘어, 당신의 목소리와 온기를 전하세요.
-                </p>
+                </motion.p>
 
                 <ul className="space-y-6 pt-4">
                   {[
@@ -175,24 +193,37 @@ export default function Home() {
                   <div className="absolute -inset-10 bg-blue-500/20 blur-3xl rounded-full opacity-30 animate-pulse"></div>
 
                   <div className="grid gap-8">
-                    {/* Card 1 */}
-                    <div className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:translate-x-8 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-2xl shadow-inner">👨‍👩‍👧‍👦</div>
-                        <div>
-                          <div className="h-3 w-28 bg-slate-700 rounded-full mb-2" />
-                          <div className="h-2 w-20 bg-slate-700/50 rounded-full" />
+                    {/* Card 1: Friend Message */}
+                    <motion.div
+                      initial={{ opacity: 0, x: 50 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                      className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:translate-x-8 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-xl">🍺</div>
+                          <div>
+                            <span className="block text-xs text-indigo-400 mb-0.5">To. 내 친구 철수</span>
+                            <span className="text-base text-slate-200 font-bold">야 잘 지내냐?</span>
+                          </div>
                         </div>
+                        <span className="text-xs text-slate-500">2030.05.05</span>
                       </div>
-                      <div className="space-y-3">
-                        <div className="h-2 w-full bg-slate-700/50 rounded-full" />
-                        <div className="h-2 w-5/6 bg-slate-700/50 rounded-full" />
-                        <div className="h-2 w-4/6 bg-slate-700/50 rounded-full" />
-                      </div>
-                    </div>
+                      <p className="text-slate-400 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
+                        "이걸 볼 때쯤이면 난 아마... 그래도 웃으면서 봐라 임마."
+                      </p>
+                    </motion.div>
 
-                    {/* Card 2 */}
-                    <div className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:-translate-x-4 transform md:-rotate-1 transition hover:rotate-0 hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20">
+                    {/* Card 2: Daughter Message */}
+                    <motion.div
+                      initial={{ opacity: 0, x: 50 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                      className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:-translate-x-4 transform md:-rotate-1 transition hover:rotate-0 hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
+                    >
                       <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                           <span className="p-2.5 bg-blue-500/10 rounded-xl text-blue-400 text-xl border border-blue-500/20">💌</span>
@@ -204,13 +235,13 @@ export default function Home() {
                         <span className="px-3 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs text-slate-300 font-mono">2040.12.25</span>
                       </div>
                       <p className="text-slate-300 text-lg leading-loose pl-6 my-6 border-l-2 border-slate-700">
-                        "안녕, 우리 딸. 네가 이 편지를 읽을 때쯤이면 엄마는 아마...<br />
+                        "사랑하는 딸아 안녕? 엄마는...<br />
                         첫 입학하던 날의 그 설렘을 잊지 마."
                       </p>
                       <div className="flex justify-end pt-2">
                         <span className="text-sm text-slate-500 font-medium">From. 엄마가</span>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
@@ -222,7 +253,13 @@ export default function Home() {
         {/* Trend Section (Real News) */}
         <section className="w-full bg-slate-50 py-32">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="text-center mb-20 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-20 space-y-6"
+            >
               <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">TREND</span>
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
                 삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
@@ -231,9 +268,15 @@ export default function Home() {
                 웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
                 많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8"
+            >
               {/* Article 1 */}
               <a href="https://careyounews.org" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
                 <div className="w-10 h-10 md:w-14 md:h-14 bg-orange-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">📉</div>
@@ -275,7 +318,7 @@ export default function Home() {
                   자세히 보기 <span className="text-lg">→</span>
                 </span>
               </a>
-            </div>
+            </motion.div>
           </div>
         </section>
 
