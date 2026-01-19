@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
@@ -47,9 +49,18 @@ export default function Home() {
             </span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors hidden sm:block">
+            <button
+              onClick={() => {
+                if (user) {
+                  router.push("/dashboard");
+                } else {
+                  setIsModalOpen(true);
+                }
+              }}
+              className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors hidden sm:block"
+            >
               내 정보
-            </Link>
+            </button>
             {!user ? (
               <Button
                 onClick={() => setIsModalOpen(true)}
@@ -146,7 +157,7 @@ export default function Home() {
 
               <Button
                 size="lg"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => router.push('/create')}
                 className="w-full sm:w-auto px-12 py-6 text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
                 무료로 시작하기
@@ -440,7 +451,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => router.push('/create')}
               size="lg"
               className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
             >
