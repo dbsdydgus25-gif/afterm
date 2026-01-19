@@ -48,7 +48,19 @@ export default function Home() {
               AFTERM
             </span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6 mr-4">
+              <Link href="/about" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                회사소개
+              </Link>
+              <Link href="/notice" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                공지사항
+              </Link>
+              <Link href="/newsletter" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+                뉴스레터
+              </Link>
+            </div>
+
             <button
               onClick={() => {
                 if (user) {
