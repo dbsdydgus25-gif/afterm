@@ -548,7 +548,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {/* Basic Plan */}
               <div className="rounded-3xl p-8 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300">
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Basic (무료체험)</h3>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Basic</h3>
                 <div className="text-4xl font-extrabold text-slate-900 mb-6">무료</div>
                 <ul className="space-y-4 mb-8 text-left pl-4">
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
