@@ -14,12 +14,20 @@ export default function DashboardPage() {
         router.push("/create");
     };
 
+    const handleLogout = () => {
+        // In a real app, clear auth tokens here
+        router.push("/");
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             {/* Header */}
             <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-50">
                 <Link href="/" className="text-xl font-black text-blue-600 tracking-tighter">AFTERM</Link>
                 <div className="flex items-center gap-4">
+                    <Button onClick={handleLogout} variant="ghost" className="text-sm font-medium text-slate-500 hover:text-red-500 hover:bg-red-50">
+                        로그아웃
+                    </Button>
                     <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600">
                         ME
                     </div>
