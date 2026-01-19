@@ -75,7 +75,12 @@ export default function Home() {
           <div className="relative z-10 w-full max-w-2xl flex flex-col items-center text-center space-y-10 animate-fade-in">
 
             {/* Typography */}
-            <div className="space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="space-y-4"
+            >
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm">
                 당신의 기억을<br className="sm:hidden" />
                 <span className="text-blue-600 ml-2 sm:ml-3">1분 안에</span> 남겨보세요.
@@ -83,7 +88,7 @@ export default function Home() {
               <p className="text-sm sm:text-lg text-gray-600 font-medium tracking-normal break-keep">
                 떠난 후에도 당신이 기억되도록.
               </p>
-            </div>
+            </motion.div>
 
             {/* Core Feature (Card Input) */}
             <div className="w-full space-y-6 animate-fade-in delay-75">
@@ -147,10 +152,10 @@ export default function Home() {
               {/* Text Content */}
               <div className="md:col-span-5 space-y-10 text-left">
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.8 }}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
                   className="space-y-6"
                 >
                   <h2 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight">
@@ -162,10 +167,10 @@ export default function Home() {
                 </motion.div>
 
                 <motion.p
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
                   className="text-lg text-slate-400 leading-relaxed break-keep"
                 >
                   Afterm은 당신의 생애 데이터를 안전하게 보관하고,
@@ -195,10 +200,10 @@ export default function Home() {
                   <div className="grid gap-8">
                     {/* Card 1: Friend Message */}
                     <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                       className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:translate-x-8 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
                     >
                       <div className="flex items-center justify-between mb-4">
@@ -218,10 +223,10 @@ export default function Home() {
 
                     {/* Card 2: Daughter Message */}
                     <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.4 }}
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
                       className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:-translate-x-4 transform md:-rotate-1 transition hover:rotate-0 hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
                     >
                       <div className="flex items-center justify-between mb-8">
@@ -254,10 +259,10 @@ export default function Home() {
         <section className="w-full bg-slate-50 py-32">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-center mb-20 space-y-6"
             >
               <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">TREND</span>
@@ -271,10 +276,10 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8"
             >
               {/* Article 1 */}
@@ -328,13 +333,20 @@ export default function Home() {
             당신의 이야기는<br />
             <span className="text-blue-500">끝나지 않아야 합니다.</span>
           </h2>
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            size="lg"
-            className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            무료로 기억 남기기
-          </Button>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              size="lg"
+              className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
+            >
+              무료로 기억 남기기
+            </Button>
+          </motion.div>
         </section>
       </main>
 
