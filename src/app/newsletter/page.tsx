@@ -13,7 +13,7 @@ export default function NewsletterPage() {
             <main className="flex-1 max-w-4xl mx-auto px-6 py-20 w-full animate-fade-in text-center">
                 <span className="text-blue-600 font-bold tracking-wide text-sm bg-blue-50 px-3 py-1 rounded-full">NEWSLETTER</span>
                 <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-6 mb-8">
-                    월간 애프터텀
+                    월간 트렌드
                 </h1>
                 <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed mb-12">
                     웰다잉(Well-dying) 트렌드부터 디지털 유산 관리 팁까지.<br />

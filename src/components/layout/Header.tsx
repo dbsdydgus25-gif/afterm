@@ -33,8 +33,8 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
         <>
             <header
                 className={`fixed top-0 z-50 w-full transition-all duration-300 border-b ${isTransparent
-                        ? "bg-transparent border-transparent"
-                        : "bg-white/80 backdrop-blur-xl border-slate-200/50 shadow-sm"
+                    ? "bg-transparent border-transparent"
+                    : "bg-white/80 backdrop-blur-xl border-slate-200/50 shadow-sm"
                     }`}
             >
                 <div className="max-w-7xl mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
@@ -51,15 +51,15 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             {[
                                 { name: "회사소개", href: "/about" },
                                 { name: "공지사항", href: "/notice" },
-                                { name: "뉴스레터", href: "/newsletter" },
+                                { name: "월간 트렌드", href: "/newsletter" },
                                 { name: "추모관", href: "/memorial" },
                             ].map((link) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
                                     className={`text-sm font-medium transition-colors ${pathname === link.href
-                                            ? "text-blue-600 font-bold"
-                                            : "text-slate-500 hover:text-blue-600"
+                                        ? "text-blue-600 font-bold"
+                                        : "text-slate-500 hover:text-blue-600"
                                         }`}
                                 >
                                     {link.name}
