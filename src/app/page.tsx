@@ -536,7 +536,7 @@ export default function Home() {
             >
               <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">PRICING</span>
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
-                당신의 기억을 위한<br className="sm:hidden" />
+                당신을 위한<br className="sm:hidden" />
                 최적의 플랜을 선택하세요.
               </h2>
               <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">

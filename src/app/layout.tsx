@@ -15,9 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Afterm - 당신의 기억을 남기세요",
   description: "떠난 후에도 당신이 기억되도록. 생애 데이터 플랫폼 Afterm.",
-  icons: {
-    icon: "/logo.jpg",
-  },
 };
 
 export default function RootLayout({
