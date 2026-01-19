@@ -48,6 +48,9 @@ export default function Home() {
             >
               로그인
             </Button>
+            <Link href="/dashboard" className="ml-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
+              내 정보
+            </Link>
           </nav>
         </div>
       </header>
