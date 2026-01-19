@@ -276,79 +276,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Trend Section (Real News) */}
-        <section className="w-full bg-slate-50 py-32">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.3 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center mb-20 space-y-6"
-            >
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">TREND</span>
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
-                삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
-              </h2>
-              <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">
-                웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
-                많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.1 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8"
-            >
-              {/* Article 1 */}
-              <a href="https://careyounews.org" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-orange-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">📉</div>
-                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  '안녕을 준비하는 세 가지 색', 웰다잉 세미나 개최
-                </h3>
-                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
-                  삶과 죽음의 질 향상에 초점을 맞춘 2025년 웰다잉 세미나 소식. 유언장 작성 플랫폼과 엔딩노트 서비스 등 구체적인 실천 방안을 제시합니다.
-                </p>
-                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
-                  자세히 보기 <span className="text-lg">→</span>
-                </span>
-              </a>
-
-              {/* Article 2 */}
-              <a href="https://heirsearch.com" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-purple-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">🔐</div>
-                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  디지털 유산, 선택이 아닌 필수... AI 저작물까지 범위 확대
-                </h3>
-                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
-                  암호화폐부터 소셜 미디어 계정까지. 2025년 디지털 자산 상속 및 관리의 중요성이 대두되며 새로운 법적/사회적 준비가 요구되고 있습니다.
-                </p>
-                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
-                  자세히 보기 <span className="text-lg">→</span>
-                </span>
-              </a>
-
-              {/* Article 3 */}
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">🕊️</div>
-                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
-                  "존엄하게 죽고 싶다"... 연명의료 거부 신청 280만 명 돌파
-                </h3>
-                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
-                  웰다잉에 대한 사회적 관심 급증. 존엄한 마무리를 위한 제도적 장치와 실제 의료 현장의 변화를 다룬 심층 리포트.
-                </p>
-                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
-                  자세히 보기 <span className="text-lg">→</span>
-                </span>
-              </a>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Online Memorial Section (New) */}
+        {/* Online Memorial Section (Moved Up) */}
         <section className="w-full bg-slate-100/50 py-24 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
           <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
@@ -425,6 +353,172 @@ export default function Home() {
                     추모관 둘러보기
                   </Button>
                 </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trend Section (Real News - Infinite Rolling) */}
+        <section className="w-full bg-slate-50 py-32 overflow-hidden">
+          <div className="max-w-[1920px] mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="text-center mb-16 space-y-6 px-6"
+            >
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">TREND</span>
+              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
+                삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
+              </h2>
+              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
+                많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
+              </p>
+            </motion.div>
+
+            {/* Rolling Carousel */}
+            <div className="relative w-full flex overflow-hidden group">
+              <motion.div
+                className="flex gap-6 w-max"
+                animate={{ x: "-50%" }}
+                transition={{
+                  repeat: Infinity,
+                  ease: "linear",
+                  duration: 40,
+                }}
+                whileHover={{ animationPlayState: "paused" }}
+              >
+                {[
+                  ...[
+                    {
+                      source: "[매일경제]",
+                      title: "\"엄마, 저 없이도 잘 지내세요\"... 죽음 미리 준비하는 MZ들",
+                      desc: "최근 젊은 층 사이에서 유행하는 '유언장 미리 쓰기'와 웰다잉 트렌드 소개.",
+                      icon: "📝",
+                      color: "bg-orange-50",
+                      link: "https://www.google.com/search?q=site:mk.co.kr+%EC%97%84%EB%A7%88+%EC%A0%80+%EC%97%86%EC%9D%B4%EB%8F%84+%EC%9E%98+%EC%A7%80%EB%82%B4%EC%84%B8%EC%9A%94+%EC%A3%BD%EC%9D%8C+%EB%AF%B8%EB%A6%AC+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+MZ%EB%93%A4"
+                    },
+                    {
+                      source: "[YTN 사이언스]",
+                      title: "삶을 아름답게 마무리하는 '웰다잉' 문화",
+                      desc: "갑작스러운 죽음에 대비해 미리 엔딩노트를 작성하고 주변을 정리하는 문화 확산.",
+                      icon: "🌿",
+                      color: "bg-green-50",
+                      link: "https://www.google.com/search?q=site:ytn.co.kr+%EC%82%B6%EC%9D%84+%EC%95%84%EB%A6%84%EB%8B%B5%EA%B2%8C+%EB%A7%88%EB%AC%B4%EB%A6%AC%ED%95%98%EB%8A%94+%EC%9B%B0%EB%8B%A4%EC%9E%89+%EB%AC%B8%ED%99%94"
+                    },
+                    {
+                      source: "[시사저널]",
+                      title: "죽음 준비하는 사람이 늘고 있다",
+                      desc: "예고 없는 죽음이 남은 가족에게 주는 충격을 줄이기 위해 평소 준비가 필요하다는 전문가 인터뷰.",
+                      icon: "⏳",
+                      color: "bg-purple-50",
+                      link: "https://www.google.com/search?q=site:sisajournal.com+%EC%A3%BD%EC%9D%8C+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+%EC%82%AC%EB%9E%8C%EC%9D%B4+%EB%8A%98%EA%B3%A0+%EC%9E%88%EB%8B%A4"
+                    },
+                    {
+                      source: "[대학신문]",
+                      title: "사람은 죽어서 아이디를 남길까? 디지털 유산의 시대",
+                      desc: "싸이월드, SNS 등 고인이 남긴 디지털 기록을 가족에게 어떻게 전달할 것인가에 대한 이슈.",
+                      icon: "💻",
+                      color: "bg-blue-50",
+                      link: "https://www.google.com/search?q=site:snunews.com+%EC%82%AC%EB%9E%8C%EC%9D%80+%EC%A3%BD%EC%96%B4%EC%84%9C+%EC%95%84%EC%9D%B4%EB%94%94%EB%A5%BC+%EB%82%A8%EA%B8%B8%EA%B9%8C+%EB%94%94%EC%A7%80%ED%84%B8+%EC%9C%A0%EC%82%B0%EC%9D%98+%EC%8B%9C%EB%8C%80"
+                    },
+                    {
+                      source: "[한겨레]",
+                      title: "내 장례식은 축제처럼… 배우 박정자의 생전 장례식",
+                      desc: "장례식이 슬픈 이별식이 아니라, 소중한 사람들과 나누는 마지막 파티가 될 수 있음을 보여주는 사례.",
+                      icon: "🎉",
+                      color: "bg-red-50",
+                      link: "https://www.google.com/search?q=site:hani.co.kr+%EB%82%B4+%EC%9E%A5%EB%A1%80%EC%8B%9D%EC%9D%80+%EC%B6%95%EC%A0%9C%EC%B2%98%EB%9F%BC+%EB%B0%B0%EC%9A%B0+%EB%B0%95%EC%A0%95%EC%9E%90%EC%9D%98+%EC%83%9D%EC%A0%84+%EC%9E%A5%EB%A1%80%EC%8B%9D"
+                    },
+                    {
+                      source: "[동아일보]",
+                      title: "출산보다 많아진 죽음… 내 마지막은 내가 디자인한다",
+                      desc: "1인 가구 증가와 고령화로 인해 스스로 자신의 마지막을 계획하고 준비하는 사회적 변화.",
+                      icon: "📊",
+                      color: "bg-indigo-50",
+                      link: "https://www.google.com/search?q=site:donga.com+%EC%B6%9C%EC%82%B0%EB%B3%B4%EB%8B%A4+%EB%A7%8E%EC%95%84%EC%A7%84+%EC%A3%BD%EC%9D%8C+%EB%82%B4+%EB%A7%88%EC%A7%80%EB%A7%89%EC%9D%80+%EB%82%B4%EA%B0%80+%EB%94%94%EC%9E%90%EC%9D%B8%ED%95%9C%EB%8B%A4"
+                    }
+                  ],
+                  // Duplicate for infinite loop
+                  ...[
+                    {
+                      source: "[매일경제]",
+                      title: "\"엄마, 저 없이도 잘 지내세요\"... 죽음 미리 준비하는 MZ들",
+                      desc: "최근 젊은 층 사이에서 유행하는 '유언장 미리 쓰기'와 웰다잉 트렌드 소개.",
+                      icon: "📝",
+                      color: "bg-orange-50",
+                      link: "https://www.google.com/search?q=site:mk.co.kr+%EC%97%84%EB%A7%88+%EC%A0%80+%EC%97%86%EC%9D%B4%EB%8F%84+%EC%9E%98+%EC%A7%80%EB%82%B4%EC%84%B8%EC%9A%94+%EC%A3%BD%EC%9D%8C+%EB%AF%B8%EB%A6%AC+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+MZ%EB%93%A4"
+                    },
+                    {
+                      source: "[YTN 사이언스]",
+                      title: "삶을 아름답게 마무리하는 '웰다잉' 문화",
+                      desc: "갑작스러운 죽음에 대비해 미리 엔딩노트를 작성하고 주변을 정리하는 문화 확산.",
+                      icon: "🌿",
+                      color: "bg-green-50",
+                      link: "https://www.google.com/search?q=site:ytn.co.kr+%EC%82%B6%EC%9D%84+%EC%95%84%EB%A6%84%EB%8B%B5%EA%B2%8C+%EB%A7%88%EB%AC%B4%EB%A6%AC%ED%95%98%EB%8A%94+%EC%9B%B0%EB%8B%A4%EC%9E%89+%EB%AC%B8%ED%99%94"
+                    },
+                    {
+                      source: "[시사저널]",
+                      title: "죽음 준비하는 사람이 늘고 있다",
+                      desc: "예고 없는 죽음이 남은 가족에게 주는 충격을 줄이기 위해 평소 준비가 필요하다는 전문가 인터뷰.",
+                      icon: "⏳",
+                      color: "bg-purple-50",
+                      link: "https://www.google.com/search?q=site:sisajournal.com+%EC%A3%BD%EC%9D%8C+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+%EC%82%AC%EB%9E%8C%EC%9D%B4+%EB%8A%98%EA%B3%A0+%EC%9E%88%EB%8B%A4"
+                    },
+                    {
+                      source: "[대학신문]",
+                      title: "사람은 죽어서 아이디를 남길까? 디지털 유산의 시대",
+                      desc: "싸이월드, SNS 등 고인이 남긴 디지털 기록을 가족에게 어떻게 전달할 것인가에 대한 이슈.",
+                      icon: "💻",
+                      color: "bg-blue-50",
+                      link: "https://www.google.com/search?q=site:snunews.com+%EC%82%AC%EB%9E%8C%EC%9D%80+%EC%A3%BD%EC%96%B4%EC%84%9C+%EC%95%84%EC%9D%B4%EB%94%94%EB%A5%BC+%EB%82%A8%EA%B8%B8%EA%B9%8C+%EB%94%94%EC%A7%80%ED%84%B8+%EC%9C%A0%EC%82%B0%EC%9D%98+%EC%8B%9C%EB%8C%80"
+                    },
+                    {
+                      source: "[한겨레]",
+                      title: "내 장례식은 축제처럼… 배우 박정자의 생전 장례식",
+                      desc: "장례식이 슬픈 이별식이 아니라, 소중한 사람들과 나누는 마지막 파티가 될 수 있음을 보여주는 사례.",
+                      icon: "🎉",
+                      color: "bg-red-50",
+                      link: "https://www.google.com/search?q=site:hani.co.kr+%EB%82%B4+%EC%9E%A5%EB%A1%80%EC%8B%9D%EC%9D%80+%EC%B6%95%EC%A0%9C%EC%B2%98%EB%9F%BC+%EB%B0%B0%EC%9A%B0+%EB%B0%95%EC%A0%95%EC%9E%90%EC%9D%98+%EC%83%9D%EC%A0%84+%EC%9E%A5%EB%A1%80%EC%8B%9D"
+                    },
+                    {
+                      source: "[동아일보]",
+                      title: "출산보다 많아진 죽음… 내 마지막은 내가 디자인한다",
+                      desc: "1인 가구 증가와 고령화로 인해 스스로 자신의 마지막을 계획하고 준비하는 사회적 변화.",
+                      icon: "📊",
+                      color: "bg-indigo-50",
+                      link: "https://www.google.com/search?q=site:donga.com+%EC%B6%9C%EC%82%B0%EB%B3%B4%EB%8B%A4+%EB%A7%8E%EC%95%84%EC%A7%84+%EC%A3%BD%EC%9D%8C+%EB%82%B4+%EB%A7%88%EC%A7%80%EB%A7%89%EC%9D%80+%EB%82%B4%EA%B0%80+%EB%94%94%EC%9E%90%EC%9D%B8%ED%95%9C%EB%8B%A4"
+                    }
+                  ]
+                ].map((article, i) => (
+                  <a
+                    key={i}
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 w-[40vw] sm:w-[30vw] lg:w-[20rem] xl:w-[25rem] bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col h-full"
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 ${article.color} group-hover:scale-110 transition-transform`}>
+                      {article.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-blue-600 font-bold mb-2">{article.source}</div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm text-slate-500 leading-relaxed mb-4 line-clamp-3">
+                        {article.desc}
+                      </p>
+                    </div>
+                    <div className="pt-4 border-t border-slate-50">
+                      <span className="text-xs font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
+                        자세히 보기 <span className="text-lg">→</span>
+                      </span>
+                    </div>
+                  </a>
+                ))}
               </motion.div>
             </div>
           </div>
