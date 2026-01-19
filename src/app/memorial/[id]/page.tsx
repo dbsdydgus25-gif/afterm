@@ -1,0 +1,177 @@
+"use client";
+
+import { use, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Header } from "@/components/layout/Header";
+import { PostItem } from "@/components/memorial/PostItem";
+import { useMemorialStore } from "@/store/useMemorialStore";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+interface PageProps {
+    params: Promise<{ id: string }>;
+}
+
+export default function MemorialDetailPage({ params }: PageProps) {
+    const router = useRouter();
+    // Unwrap params using React.use()
+    const { id } = use(params);
+
+    const { getMemorial, addPost } = useMemorialStore();
+    const memorial = getMemorial(id);
+
+    const [newPostContent, setNewPostContent] = useState("");
+    const [authorName, setAuthorName] = useState("");
+
+    const handleSubmitPost = () => {
+        if (!newPostContent.trim() || !authorName.trim()) {
+            alert("이름과 내용을 모두 입력해주세요.");
+            return;
+        }
+
+        addPost(id, {
+            authorName,
+            content: newPostContent,
+        });
+
+        setNewPostContent("");
+        setAuthorName("");
+    };
+
+    if (!memorial) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-slate-900 mb-4">추모관을 찾을 수 없습니다.</h1>
+                    <Button onClick={() => router.push('/memorial')}>목록으로 돌아가기</Button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-100 font-sans">
+            <Header />
+
+            {/* Hero Profile Section */}
+            <div className="bg-white pb-8 shadow-sm relative pt-20">
+                {/* Cover Image */}
+                <div className="h-64 md:h-80 w-full overflow-hidden relative">
+                    <img
+                        src={memorial.coverImage}
+                        alt="cover"
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+                    <div className="flex flex-col md:flex-row items-end -mt-12 md:-mt-20 relative z-10 gap-6">
+                        {/* Profile Image */}
+                        <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white shadow-lg bg-white overflow-hidden shrink-0">
+                            <img
+                                src={memorial.profileImage}
+                                alt={memorial.name}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 pb-2 md:pb-6 text-center md:text-left">
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">
+                                {memorial.name}
+                            </h1>
+                            <p className="text-slate-500 font-medium text-lg">
+                                {memorial.birthDate} - {memorial.deathDate}
+                            </p>
+                        </div>
+
+                        <div className="pb-2 md:pb-6 w-full md:w-auto flex justify-center">
+                            <Button className="bg-slate-200 text-slate-800 hover:bg-slate-300 font-bold px-6">
+                                <span className="mr-2">🕯️</span> 추모하기
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 max-w-3xl">
+                        <h2 className="text-lg font-bold text-slate-800 mb-2">추모의 글</h2>
+                        <p className="text-slate-600 leading-relaxed text-lg">
+                            {memorial.bio}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content: Wall */}
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                    {/* Left Sidebar (Info) */}
+                    <div className="md:col-span-1 space-y-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 className="font-bold text-slate-900 mb-4 px-1">소개</h3>
+                            <ul className="space-y-3 text-sm text-slate-600">
+                                <li className="flex items-center gap-3">
+                                    <span className="w-6 text-center">🎂</span>
+                                    <span>{memorial.birthDate} 출생</span>
+                                </li>
+                                <li className="flex items-center gap-3">
+                                    <span className="w-6 text-center">🕊️</span>
+                                    <span>{memorial.deathDate} 영면</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {/* Right Content (Feed) */}
+                    <div className="md:col-span-2">
+                        {/* Write Post Box */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                            <div className="flex gap-4 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                    👤
+                                </div>
+                                <div className="flex-1 space-y-3">
+                                    <input
+                                        type="text"
+                                        placeholder="작성자 이름"
+                                        value={authorName}
+                                        onChange={(e) => setAuthorName(e.target.value)}
+                                        className="w-full md:w-1/2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <Textarea
+                                        placeholder={`${memorial.name}님에게 남기고 싶은 말을 적어주세요..`}
+                                        value={newPostContent}
+                                        onChange={(e) => setNewPostContent(e.target.value)}
+                                        className="w-full min-h-[100px] resize-none border-slate-200 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end pt-2 border-t border-slate-50">
+                                <Button
+                                    onClick={handleSubmitPost}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 rounded-lg"
+                                >
+                                    게시하기
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Posts Feed */}
+                        <div className="space-y-6">
+                            {memorial.posts.length === 0 ? (
+                                <div className="text-center py-10 text-slate-400">
+                                    첫 번째 추모 메시지를 남겨주세요.
+                                </div>
+                            ) : (
+                                memorial.posts.map((post) => (
+                                    <PostItem key={post.id} post={post} />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Header } from "@/components/layout/Header";
 
 export default function NoticePage() {
     const router = useRouter();
@@ -13,9 +14,7 @@ export default function NoticePage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
-            <header className="w-full h-20 border-b border-slate-100 flex items-center justify-between px-6 lg:px-8">
-                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
-            </header>
+            <Header />
             <main className="flex-1 max-w-4xl mx-auto px-6 py-20 w-full animate-fade-in">
                 <h1 className="text-4xl font-bold text-slate-900 mb-12">공지사항</h1>
                 <div className="divide-y divide-slate-100">

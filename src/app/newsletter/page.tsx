@@ -2,15 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/layout/Header";
 
 export default function NewsletterPage() {
     const router = useRouter();
 
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
-            <header className="w-full h-20 border-b border-slate-100 flex items-center justify-between px-6 lg:px-8">
-                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
-            </header>
+            <Header />
             <main className="flex-1 max-w-4xl mx-auto px-6 py-20 w-full animate-fade-in text-center">
                 <span className="text-blue-600 font-bold tracking-wide text-sm bg-blue-50 px-3 py-1 rounded-full">NEWSLETTER</span>
                 <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-6 mb-8">
