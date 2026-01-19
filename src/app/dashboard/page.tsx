@@ -7,7 +7,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Send, Image as ImageIcon, Video, User, LogOut, CreditCard, Settings, Trash2, ChevronDown } from "lucide-react";
+import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
 
 export default function DashboardPage() {
     const router = useRouter();
