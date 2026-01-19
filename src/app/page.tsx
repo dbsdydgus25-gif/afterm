@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { message, setMessage } = useMemoryStore();
+  const { message, setMessage, recipient, setRecipient } = useMemoryStore(); // Added recipient store
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   // Background slideshow logic (placeholder colors/gradients for now)
@@ -98,6 +98,19 @@ export default function Home() {
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
                 <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1 p-2">
+                  {/* To Input */}
+                  <div className="px-4 pt-4 pb-2">
+                    <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                      <span className="text-slate-400 font-serif italic text-lg">To.</span>
+                      <input
+                        type="text"
+                        value={recipient.name}
+                        onChange={(e) => setRecipient({ name: e.target.value })}
+                        placeholder="받는 사람 (예: 엄마, 철수)"
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-800 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0"
+                      />
+                    </div>
+                  </div>
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -183,15 +196,18 @@ export default function Home() {
 
                 <ul className="space-y-6 pt-4">
                   {[
-                    "블록체인 기반의 안전한 데이터 영구 보관",
-                    "원하는 시점(생일, 기념일 등)에 예약 전송",
-                    "가족, 연인, 친구별 맞춤 메시지 설정"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-start gap-4 text-slate-300 group">
-                      <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 group-hover:scale-125 transition-transform" />
-                      <span className="text-lg leading-snug group-hover:text-blue-200 transition-colors">{item}</span>
-                    </li>
-                  ))}
+                    {
+                      [
+                      "클라우드 기반의 안전한 데이터 영구 보관",
+                      "원하는 시점(생일, 기념일 등)에 예약 전송",
+                      "가족, 연인, 친구별 맞춤 메시지 설정"
+                      ].map((item, i) => (
+                        <li key={i} className="flex items-start gap-4 text-slate-300 group">
+                          <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 group-hover:scale-125 transition-transform" />
+                          <span className="text-lg leading-snug group-hover:text-blue-200 transition-colors">{item}</span>
+                        </li>
+                      ))
+                    }
                 </ul>
               </div>
 
