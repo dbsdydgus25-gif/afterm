@@ -72,12 +72,12 @@ export default function Home() {
               transition={{ duration: 1, ease: "easeOut" }}
               className="space-y-4"
             >
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm">
-                갑자기 떠나도<br className="sm:hidden" />
-                <span className="text-blue-600 ml-2 sm:ml-3">1분이면</span> 괜찮아
+              <h1 className="text-xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm whitespace-nowrap">
+                갑자기 떠나도 <span className="text-blue-600">1분이면</span> 괜찮아
               </h1>
-              <p className="text-sm sm:text-lg text-gray-600 font-medium tracking-normal break-keep">
-                소중한 사람들을 위한 마지막 센스 미리 저장하는 안부인사
+              <p className="text-xs sm:text-lg text-gray-500 font-medium tracking-normal break-keep">
+                소중한 사람들을 위한 마지막 센스<br />
+                미리 저장하는 안부인사
               </p>
             </motion.div>
 
@@ -104,7 +104,7 @@ export default function Home() {
                     setIsModalOpen(true);
                   }
                 }}
-                className="w-full sm:w-auto px-12 py-6 text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
+                className="w-full sm:w-auto px-12 py-6 text-lg sm:text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
                 저장하기
               </Button>
