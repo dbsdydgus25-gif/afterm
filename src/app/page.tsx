@@ -46,7 +46,10 @@ export default function Home() {
               AFTERM
             </span>
           </Link>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors hidden sm:block">
+              내 정보
+            </Link>
             {!user ? (
               <Button
                 onClick={() => setIsModalOpen(true)}
@@ -59,9 +62,6 @@ export default function Home() {
                 <span>👋 {user.name}님</span>
               </Link>
             )}
-            <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">
-              내 정보
-            </Link>
           </nav>
         </div>
       </header>
@@ -117,14 +117,14 @@ export default function Home() {
                         value={recipient.name}
                         onChange={(e) => setRecipient({ name: e.target.value })}
                         placeholder="받는 사람 입력 (예: 엄마, 철수)"
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0"
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0 font-sans"
                       />
                     </div>
                   </div>
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="여기에 당신의 마음을 남기세요..."
+                    placeholder="내용을 입력해주세요.."
                     className="min-h-[160px] sm:min-h-[200px] w-full p-6 text-xl leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-300 text-gray-800 font-medium"
                   />
 
@@ -422,6 +422,37 @@ export default function Home() {
                 </span>
               </a>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Final CTA Pricing Section */}
+        <section className="w-full py-20 bg-slate-50 border-t border-slate-200">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl font-bold text-slate-900">원하는 방식으로 시작해보세요</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Standard Plan Small */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-slate-300 transition-colors">
+                <div>
+                  <h3 className="font-bold text-slate-900">Standard</h3>
+                  <p className="text-sm text-slate-500">가볍게 시작하는 무료 플랜</p>
+                </div>
+                <Button onClick={() => handleSubscribe("Standard", "₩0")} variant="outline" className="font-bold">
+                  무료로 시작
+                </Button>
+              </div>
+              {/* Pro Plan Small */}
+              <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-colors relative overflow-hidden">
+                <div className="relative z-10">
+                  <h3 className="font-bold text-blue-900">Pro Upgrade</h3>
+                  <p className="text-sm text-blue-600">무제한 메시지 & 100GB</p>
+                </div>
+                <Button onClick={() => handleSubscribe("Pro", "₩4,900")} className="bg-blue-600 hover:bg-blue-700 text-white font-bold relative z-10">
+                  ₩4,900 / 월
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
