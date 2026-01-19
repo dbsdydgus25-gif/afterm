@@ -1,9 +1,11 @@
+```javascript
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react"; // Added useState import
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -12,11 +14,26 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false); // Added isLoading state
 
-    const handleCallback = () => {
-        // Mock login success
-        onClose();
-        router.push("/recipient");
+    const handleLogin = () => { // Renamed handleCallback to handleLogin
+        setIsLoading(true);
+        // Simulate successful login
+        setTimeout(() => {
+            setIsLoading(false);
+            onClose(); // Close modal
+            router.push("/create"); // Redirect to Create/Edit page first, not recipient
+        }, 1500);
+    };
+
+    const handleGoogleLogin = () => { // Added handleGoogleLogin
+        setIsLoading(true);
+        // Simulate Google login
+        setTimeout(() => {
+            setIsLoading(false);
+            onClose();
+            router.push("/create"); // Redirect to Create/Edit page
+        }, 1500);
     };
 
     return (
@@ -70,7 +87,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                         />
                                     </div>
 
-                                    <Button onClick={handleCallback} className="w-full rounded-xl h-12 text-base">
+                                    <Button onClick={handleLogin} className="w-full rounded-xl h-12 text-base">
                                         이메일로 계속하기
                                     </Button>
 
@@ -85,7 +102,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                         </div>
                                     </div>
 
-                                    <Button variant="outline" onClick={handleCallback} className="w-full rounded-xl h-12 text-base font-normal">
+                                    <Button variant="outline" onClick={handleGoogleLogin} className="w-full rounded-xl h-12 text-base font-normal">
                                         <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                                             <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
                                         </svg>

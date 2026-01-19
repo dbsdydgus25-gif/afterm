@@ -40,9 +40,10 @@ export default function RecipientPage() {
             relationship: formData.relationship
         });
 
-        // Mock completion
-        alert("기억이 소중하게 저장되었습니다.");
-        router.push("/");
+        // In a real app, we would save to database here
+
+        alert("소중한 기억이 안전하게 저장되었습니다.");
+        router.push("/dashboard");
     };
 
     return (
