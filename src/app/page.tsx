@@ -66,19 +66,41 @@ export default function Home() {
           <div className="relative z-10 w-full max-w-2xl flex flex-col items-center text-center space-y-10 animate-fade-in">
 
             {/* Typography */}
+            {/* Typography */}
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
               className="space-y-4"
             >
-              <h1 className="text-xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm whitespace-nowrap">
-                갑자기 떠나도 <span className="text-blue-600">1분이면</span> 괜찮아
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm whitespace-nowrap">
+                <motion.span
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                  className="inline-block mr-1.5 sm:mr-3"
+                >
+                  갑자기 떠나도
+                </motion.span>
+                <span className="text-blue-600 inline-block mr-1.5 sm:mr-3">1분이면</span>
+                <motion.span
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+                  className="inline-block"
+                >
+                  괜찮아
+                </motion.span>
               </h1>
-              <p className="text-xs sm:text-lg text-gray-500 font-medium tracking-normal break-keep">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+                className="text-xs sm:text-lg text-gray-500 font-medium tracking-normal break-keep"
+              >
                 소중한 사람들을 위한 마지막 센스<br />
                 미리 저장하는 안부인사
-              </p>
+              </motion.p>
             </motion.div>
 
             {/* Core Feature (Card Input) */}
