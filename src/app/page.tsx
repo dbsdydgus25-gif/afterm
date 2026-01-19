@@ -73,11 +73,11 @@ export default function Home() {
               className="space-y-4"
             >
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm">
-                당신의 기억을<br className="sm:hidden" />
-                <span className="text-blue-600 ml-2 sm:ml-3">1분 안에</span> 남겨보세요.
+                갑자기 떠나도<br className="sm:hidden" />
+                <span className="text-blue-600 ml-2 sm:ml-3">1분이면</span> 괜찮아
               </h1>
               <p className="text-sm sm:text-lg text-gray-600 font-medium tracking-normal break-keep">
-                떠난 후에도 당신이 기억되도록.
+                소중한 사람들을 위한 마지막 센스 미리 저장하는 안부인사
               </p>
             </motion.div>
 
@@ -86,39 +86,12 @@ export default function Home() {
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
                 <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1 p-2">
-                  {/* To Input (Modern Design) */}
-                  <div className="px-6 pt-6 pb-2">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <span className="bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wide">TO</span>
-                      <input
-                        type="text"
-                        value={recipient.name}
-                        onChange={(e) => setRecipient({ name: e.target.value })}
-                        placeholder="받는 사람 입력"
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 placeholder:font-normal text-lg p-0 font-sans"
-                      />
-                    </div>
-                  </div>
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="내용을 입력해주세요.."
-                    className="min-h-[160px] sm:min-h-[200px] w-full p-6 text-xl leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-300 text-gray-800 font-medium"
+                    className="min-h-[120px] sm:min-h-[160px] w-full p-6 text-lg leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-300 text-gray-800 font-medium"
                   />
-
-                  {/* Media Upload Area */}
-                  <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100 mt-2">
-                    <div className="flex items-center gap-2">
-                      <label
-                        htmlFor="file-upload"
-                        className="cursor-pointer p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-blue-500 flex items-center gap-2"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
-                        <span className="text-sm font-medium">사진/동영상 추가</span>
-                      </label>
-                      <input id="file-upload" type="file" className="hidden" accept="image/*,video/*" />
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -133,7 +106,7 @@ export default function Home() {
                 }}
                 className="w-full sm:w-auto px-12 py-6 text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
-                무료로 시작하기
+                저장하기
               </Button>
             </div>
 
