@@ -130,7 +130,13 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-default"
+            >
               transition={{ delay: 0.5 }}
               className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity cursor-default"
             >
@@ -154,7 +160,7 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
+                  viewport={{ once: false, margin: "-100px" }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className="space-y-6"
                 >
@@ -169,7 +175,7 @@ export default function Home() {
                 <motion.p
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
+                  viewport={{ once: false, margin: "-100px" }}
                   transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
                   className="text-lg text-slate-400 leading-relaxed break-keep"
                 >
@@ -202,7 +208,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
+                      viewport={{ once: false, amount: 0.2 }}
                       transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                       className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:translate-x-8 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
                     >
@@ -225,7 +231,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-100px" }}
+                      viewport={{ once: false, amount: 0.2 }}
                       transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
                       className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:-translate-x-4 transform md:-rotate-1 transition hover:rotate-0 hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
                     >
@@ -261,7 +267,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: false, amount: 0.3 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-center mb-20 space-y-6"
             >
@@ -278,7 +284,7 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
               className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8"
             >
@@ -336,7 +342,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: false, amount: 0.5 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Button
