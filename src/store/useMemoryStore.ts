@@ -35,9 +35,9 @@ export const useMemoryStore = create<MemoryStore>((set) => ({
 
     // User State
     user: null,
-    setUser: (user) => set({ user }),
+    setUser: (user: MemoryStore['user']) => set({ user }),
 
     // Plan State
     plan: 'free',
-    setPlan: (plan) => set({ plan }),
+    setPlan: (plan: 'free' | 'pro') => set({ plan }),
 }));
