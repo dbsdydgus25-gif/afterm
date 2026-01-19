@@ -157,7 +157,13 @@ export default function Home() {
 
               <Button
                 size="lg"
-                onClick={() => router.push('/create')}
+                onClick={() => {
+                  if (user) {
+                    router.push('/create');
+                  } else {
+                    setIsModalOpen(true);
+                  }
+                }}
                 className="w-full sm:w-auto px-12 py-6 text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
                 무료로 시작하기
@@ -451,7 +457,13 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Button
-              onClick={() => router.push('/create')}
+              onClick={() => {
+                if (user) {
+                  router.push('/create');
+                } else {
+                  setIsModalOpen(true);
+                }
+              }}
               size="lg"
               className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
             >
