@@ -158,7 +158,7 @@ export default function Home() {
                   transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
                   className="text-lg text-slate-400 leading-relaxed break-keep"
                 >
-                  Afterm은 당신의 생애 데이터를 안전하게 보관하고,
+                  AFTERM(에프텀)은 당신의 생애 데이터를 안전하게 보관하고,
                   지정된 시점에 소중한 사람들에게 전달합니다.
                   단순한 메시지를 넘어, 당신의 목소리와 온기를 전하세요.
                 </motion.p>
@@ -182,56 +182,70 @@ export default function Home() {
                 <div className="relative w-full max-w-md">
                   <div className="absolute -inset-10 bg-blue-500/20 blur-3xl rounded-full opacity-30 animate-pulse"></div>
 
-                  <div className="grid gap-8">
-                    {/* Card 1: Friend Message */}
+                  <div className="grid gap-6">
+                    {/* Card 1 */}
                     <motion.div
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: false, amount: 0.2 }}
                       transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                      className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:translate-x-8 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
+                      className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-xl">🍺</div>
+                          <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-xl">🎉</div>
                           <div>
-                            <span className="block text-xs text-indigo-400 mb-0.5">To. 내 친구</span>
-                            <span className="text-base text-slate-200 font-bold">야 잘 지내냐?</span>
+                            <span className="block text-xs text-indigo-400 mb-0.5">To. ooo</span>
                           </div>
                         </div>
-                        <span className="text-xs text-slate-500">2030.05.05</span>
                       </div>
-                      <p className="text-slate-400 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
-                        "이걸 볼 때쯤이면 난 아마... 그래도 웃으면서 봐라 임마."
+                      <p className="text-slate-300 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
+                        "내 장례식은 파티였음 좋겠음, 클럽 노래 틀고 즐기다가 가~"
                       </p>
                     </motion.div>
 
-                    {/* Card 2: Daughter Message */}
+                    {/* Card 2 */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: false, amount: 0.2 }}
+                      transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+                      className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-xl">📺</div>
+                          <div>
+                            <span className="block text-sm text-blue-400/80 mb-0.5">To. ooo</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-blue-50 text-base leading-relaxed pl-3 border-l-2 border-slate-700">
+                        "이번 생 재밌었다 넷플, 티빙 계정 남긴다. 나머지는 너가 내 ^^"
+                      </p>
+                    </motion.div>
+
+                    {/* Card 3 (New) */}
                     <motion.div
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: false, amount: 0.2 }}
                       transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                      className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:-translate-x-4 transform md:-rotate-1 transition hover:rotate-0 hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
+                      className="bg-slate-800/90 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:w-[95%] md:translate-x-4 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
                     >
-                      <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="p-2.5 bg-blue-500/10 rounded-xl text-blue-400 text-xl border border-blue-500/20">💌</span>
+                          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-xl">🍲</div>
                           <div>
-                            <span className="block text-sm text-blue-400/80 mb-0.5">To. 내 딸</span>
-                            <span className="text-lg text-blue-50 font-bold">사랑하는 지민이에게</span>
+                            <span className="block text-xs text-orange-400 mb-0.5">To. ooo</span>
                           </div>
                         </div>
-                        <span className="px-3 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs text-slate-300 font-mono">2040.12.25</span>
                       </div>
-                      <p className="text-slate-300 text-lg leading-loose pl-6 my-6 border-l-2 border-slate-700">
-                        "사랑하는 딸아 안녕? 엄마는...<br />
-                        첫 입학하던 날의 그 설렘을 잊지 마."
+                      <p className="text-slate-300 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
+                        "엄마 된찌 레시피 남겨놓을테니까 이대로만해~"
                       </p>
-                      <div className="flex justify-end pt-2">
-                        <span className="text-sm text-slate-500 font-medium">From. 엄마가</span>
-                      </div>
                     </motion.div>
+
                   </div>
                 </div>
               </div>
