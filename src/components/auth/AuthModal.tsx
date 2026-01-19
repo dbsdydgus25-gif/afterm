@@ -107,7 +107,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             <div className="flex flex-col items-center space-y-6 text-center">
                                 <div className="space-y-2">
                                     <h2 className="text-2xl font-bold tracking-tight">
-                                        {view === "login" ? "다시 만나서 반가워요!" : "Afterm 시작하기"}
+                                        {view === "login" ? "다시 만나서 반가워요!" : "AFTERM 시작하기"}
                                     </h2>
                                     <p className="text-muted-foreground">
                                         {view === "login" ? "나의 가장 소중한 이야기를 남겨보세요." : "당신의 기억을 영원히 보관해드립니다."}
