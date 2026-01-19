@@ -339,6 +339,88 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Online Memorial Section (New) */}
+        <section className="w-full bg-slate-100/50 py-24 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+                className="order-2 md:order-1 relative"
+              >
+                {/* Mockup / Visual */}
+                <div className="relative z-10 bg-white p-6 rounded-3xl shadow-2xl border border-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
+                  <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                    <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden">
+                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grandma" alt="Profile" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900">보고싶은 할머니</div>
+                      <div className="text-xs text-slate-500">2024.12.25 영면</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none">
+                      <p className="text-slate-600 text-sm leading-relaxed">
+                        "할머니, 오늘 첫눈이 왔어요. 할머니가 좋아하시던 군고구마 냄새가 나니까 더 보고싶네요.. 사랑해요."
+                      </p>
+                      <div className="mt-2 text-xs text-slate-400 font-medium">손녀 지민이가</div>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-xl rounded-tl-none">
+                      <p className="text-blue-900 text-sm leading-relaxed">
+                        "어머니, 편안하시죠? 저희들도 잘 지내고 있습니다. 꿈에서라도 한번 뵙고 싶습니다."
+                      </p>
+                      <div className="mt-2 text-blue-400 text-xs font-medium">아들 상훈 올림</div>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center">
+                    <Link href="/memorial" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      추모관 방문하기 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                    </Link>
+                  </div>
+                </div>
+                {/* Decorative Elements */}
+                <div className="absolute -top-10 -left-10 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl"></div>
+                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="order-1 md:order-2 space-y-8"
+              >
+                <div className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide">
+                  NEW SERVICE
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                  그리운 마음을<br />
+                  <span className="text-blue-600">온라인 추모관</span>에<br />
+                  남겨보세요.
+                </h2>
+                <p className="text-lg text-slate-500 leading-relaxed">
+                  시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.<br />
+                  소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과 함께<br />
+                  따뜻한 메시지를 나누세요.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    onClick={() => router.push('/memorial')}
+                    size="lg"
+                    className="px-8 h-14 text-lg bg-slate-900 text-white hover:bg-slate-800 rounded-xl shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
+                  >
+                    추모관 둘러보기
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         {/* Pricing Section (Moved) */}
         <section className="w-full bg-white py-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
