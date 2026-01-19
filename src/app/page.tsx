@@ -36,8 +36,8 @@ export default function Home() {
             href="/"
             className="flex items-center hover:opacity-80 transition-opacity"
           >
-            {/* Text Logo as requested: Blue, Big, No background */}
-            <span className="text-3xl font-black tracking-tighter text-blue-600">
+            {/* Text Logo: Blue, Big, No background */}
+            <span className="text-xl md:text-3xl font-black tracking-tighter text-blue-600">
               AFTERM
             </span>
           </Link>
@@ -76,11 +76,11 @@ export default function Home() {
 
             {/* Typography */}
             <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm">
                 당신의 기억을<br className="sm:hidden" />
                 <span className="text-blue-600 ml-2 sm:ml-3">1분 안에</span> 남겨보세요.
               </h1>
-              <p className="text-lg sm:text-xl text-gray-600 font-medium tracking-normal break-keep">
+              <p className="text-sm sm:text-lg text-gray-600 font-medium tracking-normal break-keep">
                 떠난 후에도 당신이 기억되도록.
               </p>
             </div>
@@ -233,45 +233,45 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               {/* Article 1 */}
-              <a href="https://careyounews.org" target="_blank" rel="noopener noreferrer" className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block">
-                <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform">📉</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <a href="https://careyounews.org" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-orange-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">📉</div>
+                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
                   '안녕을 준비하는 세 가지 색', 웰다잉 세미나 개최
                 </h3>
-                <p className="text-slate-500 leading-relaxed mb-6 line-clamp-3">
+                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
                   삶과 죽음의 질 향상에 초점을 맞춘 2025년 웰다잉 세미나 소식. 유언장 작성 플랫폼과 엔딩노트 서비스 등 구체적인 실천 방안을 제시합니다.
                 </p>
-                <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
+                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
                   자세히 보기 <span className="text-lg">→</span>
                 </span>
               </a>
 
               {/* Article 2 */}
-              <a href="https://heirsearch.com" target="_blank" rel="noopener noreferrer" className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block">
-                <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform">🔐</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <a href="https://heirsearch.com" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-purple-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">🔐</div>
+                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
                   디지털 유산, 선택이 아닌 필수... AI 저작물까지 범위 확대
                 </h3>
-                <p className="text-slate-500 leading-relaxed mb-6 line-clamp-3">
+                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
                   암호화폐부터 소셜 미디어 계정까지. 2025년 디지털 자산 상속 및 관리의 중요성이 대두되며 새로운 법적/사회적 준비가 요구되고 있습니다.
                 </p>
-                <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
+                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
                   자세히 보기 <span className="text-lg">→</span>
                 </span>
               </a>
 
               {/* Article 3 */}
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block">
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform">🕊️</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full">
+                <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-50 rounded-xl flex items-center justify-center text-xl md:text-3xl mb-4 md:mb-8 group-hover:scale-110 transition-transform">🕊️</div>
+                <h3 className="text-base md:text-xl font-bold text-slate-900 mb-2 md:mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
                   "존엄하게 죽고 싶다"... 연명의료 거부 신청 280만 명 돌파
                 </h3>
-                <p className="text-slate-500 leading-relaxed mb-6 line-clamp-3">
+                <p className="hidden md:block text-slate-500 leading-relaxed mb-6 line-clamp-3">
                   웰다잉에 대한 사회적 관심 급증. 존엄한 마무리를 위한 제도적 장치와 실제 의료 현장의 변화를 다룬 심층 리포트.
                 </p>
-                <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
+                <span className="text-xs md:text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1">
                   자세히 보기 <span className="text-lg">→</span>
                 </span>
               </a>
@@ -280,15 +280,15 @@ export default function Home() {
         </section>
 
         {/* Closing Section */}
-        <section className="w-full py-32 bg-white text-center border-t border-slate-100">
-          <h2 className="text-2xl md:text-4xl font-extrabold text-slate-900 mb-10">
+        <section className="w-full py-24 bg-slate-900 text-center border-t border-slate-800">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10">
             당신의 이야기는<br />
-            <span className="text-blue-600">끝나지 않아야 합니다.</span>
+            <span className="text-blue-500">끝나지 않아야 합니다.</span>
           </h2>
           <Button
             onClick={() => setIsModalOpen(true)}
             size="lg"
-            className="px-16 py-8 text-xl rounded-full bg-slate-900 text-white hover:bg-black shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1"
+            className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
           >
             무료로 기억 남기기
           </Button>
