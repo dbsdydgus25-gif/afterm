@@ -64,6 +64,17 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         }, 1500);
     };
 
+    const handleKakaoLogin = () => {
+        setIsLoading(true);
+        // Simulate Kakao login
+        setTimeout(() => {
+            setIsLoading(false);
+            setUser({ name: "다니엘", email: "daniel@example.com" });
+            onClose();
+            router.push("/");
+        }, 1500);
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
