@@ -44,7 +44,7 @@ export default function Home() {
           <nav>
             <Button
               onClick={() => setIsModalOpen(true)}
-              className="rounded-full w-16 h-16 p-0 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 transition-all font-bold text-sm tracking-tight flex items-center justify-center transform hover:scale-105"
+              className="rounded-lg px-4 h-9 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
             >
               로그인
             </Button>
@@ -54,7 +54,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex flex-col items-center w-full">
-        <section className="relative w-full flex flex-col items-center justify-center px-4 pt-32 pb-20 md:pt-40 md:pb-24 min-h-[90vh] overflow-hidden transition-colors duration-1000 ease-in-out">
+        <section className="relative w-full flex flex-col items-center justify-center px-4 pt-24 pb-12 md:pt-32 md:pb-16 min-h-[90vh] overflow-hidden transition-colors duration-1000 ease-in-out">
 
           {/* Background Slideshow */}
           <div className="absolute inset-0 z-0">
@@ -86,23 +86,37 @@ export default function Home() {
             </div>
 
             {/* Core Feature (Card Input) */}
-            <div className="w-full space-y-8 animate-fade-in delay-75">
+            <div className="w-full space-y-6 animate-fade-in delay-75">
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1">
+                <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1 p-2">
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="여기에 당신의 마음을 남기세요..."
-                    className="min-h-[220px] sm:min-h-[260px] w-full p-8 text-lg sm:text-xl leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-400 rounded-2xl text-gray-800"
+                    className="min-h-[160px] sm:min-h-[200px] w-full p-4 text-lg leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-400 text-gray-800"
                   />
+
+                  {/* Media Upload Area */}
+                  <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100 mt-2">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="file-upload"
+                        className="cursor-pointer p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-blue-500 flex items-center gap-2"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
+                        <span className="text-sm font-medium">사진/동영상 추가</span>
+                      </label>
+                      <input id="file-upload" type="file" className="hidden" accept="image/*,video/*" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <Button
                 size="lg"
                 onClick={() => setIsModalOpen(true)}
-                className="w-full sm:w-auto px-12 py-8 text-xl font-bold rounded-2xl bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
+                className="w-full sm:w-auto px-12 py-6 text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
                 무료로 시작하기
               </Button>
@@ -189,7 +203,7 @@ export default function Home() {
                         </div>
                         <span className="px-3 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs text-slate-300 font-mono">2040.12.25</span>
                       </div>
-                      <p className="text-slate-300 text-lg leading-loose font-serif italic border-l-2 border-slate-700 pl-6 my-6">
+                      <p className="text-slate-300 text-lg leading-loose pl-6 my-6 border-l-2 border-slate-700">
                         "안녕, 우리 딸. 네가 이 편지를 읽을 때쯤이면 엄마는 아마...<br />
                         첫 입학하던 날의 그 설렘을 잊지 마."
                       </p>
