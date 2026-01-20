@@ -99,6 +99,23 @@ export default function MemorialDetailPage({ params }: PageProps) {
                             {memorial.bio}
                         </p>
                     </div>
+
+                    {/* Gallery Section */}
+                    {memorial.galleryImages && memorial.galleryImages.length > 0 && (
+                        <div className="mt-10 pt-8 border-t border-slate-100">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <span>📸</span> 함께했던 추억들
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {memorial.galleryImages.map((img, idx) => (
+                                    <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-100 relative group cursor-pointer shadow-sm hover:shadow-md transition-all">
+                                        <img src={img} alt={`memory-${idx}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
