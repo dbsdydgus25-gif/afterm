@@ -170,23 +170,58 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
 
                                 {user && (
                                     <div className="pt-2 flex flex-col gap-3">
-                                        <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl">
+                                        {/* Clickable Profile Card */}
+                                        <div
+                                            onClick={() => {
+                                                router.push('/settings');
+                                                setIsMobileMenuOpen(false);
+                                            }}
+                                            className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors active:scale-[0.98]"
+                                        >
                                             {user.user_metadata?.avatar_url || user.image ? (
-                                                <img src={user.user_metadata?.avatar_url || user.image} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
+                                                <img src={user.user_metadata?.avatar_url || user.image} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
                                                     {user.name?.[0]}
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-bold text-slate-900">{user.name}</p>
-                                                <p className="text-xs text-slate-500">{user.email}</p>
+                                                <p className="font-bold text-slate-900 text-lg">{user.name}</p>
+                                                <p className="text-sm text-slate-500">{user.email}</p>
+                                            </div>
+                                            <div className="ml-auto opacity-50">
+                                                <span className="text-xl">›</span>
                                             </div>
                                         </div>
+
+                                        {/* Mobile User Actions */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Button
+                                                onClick={() => {
+                                                    router.push('/settings');
+                                                    setIsMobileMenuOpen(false);
+                                                }}
+                                                variant="outline"
+                                                className="h-12 border-slate-200 text-slate-700 bg-white"
+                                            >
+                                                내 정보
+                                            </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    router.push('/plans');
+                                                    setIsMobileMenuOpen(false);
+                                                }}
+                                                variant="outline"
+                                                className="h-12 border-slate-200 text-slate-700 bg-white"
+                                            >
+                                                플랜 관리
+                                            </Button>
+                                        </div>
+
                                         <Button
                                             onClick={handleLogout}
-                                            variant="outline"
-                                            className="w-full h-12 text-slate-600 border-slate-200"
+                                            variant="ghost"
+                                            className="w-full h-12 text-slate-400 hover:text-red-500 hover:bg-red-50"
                                         >
                                             로그아웃
                                         </Button>
