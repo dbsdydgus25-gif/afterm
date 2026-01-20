@@ -27,16 +27,27 @@ export async function POST(request: Request) {
 
         // 3. Admin Client Setup (Service Role Key Required)
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!serviceRoleKey) {
-            console.error("Missing SUPABASE_SERVICE_ROLE_KEY");
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+        if (!supabaseUrl) {
+            console.error("Error: NEXT_PUBLIC_SUPABASE_URL is missing");
             return NextResponse.json(
-                { error: "Server Configuration Error" },
+                { error: "서버 설정 오류: Supabase URL이 없습니다." },
+                { status: 500 }
+            );
+        }
+
+        if (!serviceRoleKey) {
+            console.error("Error: SUPABASE_SERVICE_ROLE_KEY is missing");
+            // Check if it's empty string
+            return NextResponse.json(
+                { error: "서버 설정 오류: Service Role Key가 없습니다. (환경변수 확인 필요)" },
                 { status: 500 }
             );
         }
 
         const adminAuthClient = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            supabaseUrl,
             serviceRoleKey,
             {
                 auth: {
@@ -45,7 +56,6 @@ export async function POST(request: Request) {
                 },
             }
         );
-
         // 4. Archive User Data to 'deleted_users'
         const { error: archiveError } = await adminAuthClient
             .from("deleted_users")
