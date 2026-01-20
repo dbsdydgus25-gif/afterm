@@ -27,6 +27,8 @@ export default function DashboardPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
+    // State for Signed URLs
+    const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -41,6 +43,21 @@ export default function DashboardPage() {
                 console.error("Error fetching messages:", error);
             } else {
                 setMessages(data || []);
+
+                // Fetch Signed URLs for all messages with files
+                const urls: { [key: string]: string } = {};
+                for (const msg of (data || [])) {
+                    if (msg.file_path) {
+                        const { data: signedData } = await supabase.storage
+                            .from('memories')
+                            .createSignedUrl(msg.file_path, 3600); // Valid for 1 hour
+
+                        if (signedData?.signedUrl) {
+                            urls[msg.id] = signedData.signedUrl;
+                        }
+                    }
+                }
+                setImageUrls(urls);
             }
             setLoading(false);
         };
@@ -275,9 +292,15 @@ export default function DashboardPage() {
                                         {msg.content}
                                     </p>
 
+                                    {imageUrls[msg.id] && (
+                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-100">
+                                            <img src={imageUrls[msg.id]} alt="Attachment" className="w-full h-auto max-h-64 object-cover" />
+                                        </div>
+                                    )}
+
                                     <div className="mt-4 flex items-center gap-4 text-xs text-slate-400 font-medium">
                                         <span className="flex items-center gap-1">📄 텍스트</span>
-                                        {/* <span className="flex items-center gap-1">📷 사진 0장</span> */}
+                                        {msg.file_path && <span className="flex items-center gap-1">📷 사진/영상 첨부됨</span>}
                                     </div>
                                 </motion.div>
                             ))}
