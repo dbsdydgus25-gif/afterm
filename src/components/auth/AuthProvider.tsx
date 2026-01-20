@@ -44,10 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 // Normal User
                 setUser({
-                    name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "사용자",
-                    email: session.user.email || "",
-                });
-                setIsRestoreModalOpen(false);
+                    id: session.user.id,
+                    name: session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자",
+                    email: session.user.email!,
+                    image: session.user.user_metadata.avatar_url,
+                    user_metadata: session.user.user_metadata
+                }); setIsRestoreModalOpen(false);
             }
         } else {
             setUser(null);

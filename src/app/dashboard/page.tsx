@@ -96,18 +96,38 @@ export default function DashboardPage() {
 
                 {/* Profile Section (Editable) */}
                 <section
-                    onClick={() => router.push('/dashboard/edit')}
-                    className="group relative flex items-center gap-6 pb-8 border-b border-slate-200 hover:bg-slate-100/50 p-4 rounded-2xl transition-colors cursor-pointer"
+                    onClick={() => router.push('/settings')}
+                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-6 pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer"
                 >
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="text-slate-400">수정하기 ›</Button>
+                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-blue-600">설정 ›</Button>
                     </div>
-                    <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl shadow-inner ring-4 ring-white">
-                        😊
+
+                    <div className="relative">
+                        {user?.image || user?.user_metadata?.avatar_url ? (
+                            <img src={user?.image || user?.user_metadata?.avatar_url} alt="Profile" className="w-20 h-20 rounded-full object-cover shadow-sm ring-4 ring-white" />
+                        ) : (
+                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl shadow-inner ring-4 ring-white">
+                                {user?.name?.[0] || "U"}
+                            </div>
+                        )}
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900 mb-1">반가워요, {user?.name || "다니엘"}님</h1>
-                        <p className="text-slate-500">Free Plan 이용 중</p>
+
+                    <div className="text-center sm:text-left">
+                        <h1 className="text-2xl font-bold text-slate-900 mb-1 flex items-center justify-center sm:justify-start gap-2">
+                            {user?.name || "사용자"}
+                            {user?.user_metadata?.nickname && (
+                                <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    @{user.user_metadata.nickname}
+                                </span>
+                            )}
+                        </h1>
+                        <p className="text-slate-600 mb-2 whitespace-pre-line text-sm max-w-lg">
+                            {user?.user_metadata?.bio || "자기소개를 입력해주세요."}
+                        </p>
+                        {plan === 'pro' && (
+                            <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">PRO MEMBER</span>
+                        )}
                     </div>
                 </section>
 
