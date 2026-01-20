@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { User, Phone, Heart, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { recipient, setRecipient } = useMemoryStore();
+    const { message, recipient, setRecipient, user } = useMemoryStore();
+    const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState({
         name: recipient.name,
@@ -30,20 +32,45 @@ export default function RecipientPage() {
         setFormData(prev => ({ ...prev, phone: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.agreed) return;
 
-        setRecipient({
-            name: formData.name,
-            phone: formData.phone,
-            relationship: formData.relationship
-        });
+        if (!user) {
+            alert("로그인이 필요한 서비스입니다.");
+            router.push('/login');
+            return;
+        }
 
-        // In a real app, we would save to database here
+        setIsSaving(true);
+        try {
+            setRecipient({
+                name: formData.name,
+                phone: formData.phone,
+                relationship: formData.relationship
+            });
 
-        alert("소중한 기억이 안전하게 저장되었습니다.");
-        router.push("/dashboard");
+            const supabase = createClient();
+            const { error } = await supabase
+                .from('messages')
+                .insert({
+                    user_id: user.id,
+                    content: message,
+                    recipient_name: formData.name,
+                    recipient_phone: formData.phone
+                    // relationship column might need to be added to schema if we want to save it
+                });
+
+            if (error) throw error;
+
+            alert("소중한 기억이 안전하게 저장되었습니다.");
+            router.push("/dashboard");
+        } catch (e) {
+            console.error(e);
+            alert("저장 중 오류가 발생했습니다.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -125,10 +152,10 @@ export default function RecipientPage() {
 
                     <Button
                         type="submit"
-                        disabled={!formData.agreed}
+                        disabled={!formData.agreed || isSaving}
                         className="w-full h-14 rounded-2xl text-lg gap-2"
                     >
-                        소중한 기억 저장하기 <ArrowRight className="w-4 h-4" />
+                        {isSaving ? "저장 중..." : "소중한 기억 저장하기"} <ArrowRight className="w-4 h-4" />
                     </Button>
 
                 </form>

@@ -41,38 +41,20 @@ export default function Home() {
     setIsPaymentOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleContinue = () => {
     if (!message.trim()) {
       alert("메시지를 입력해주세요.");
       return;
     }
 
     if (user) {
-      setIsSaving(true);
-      try {
-        const supabase = createClient();
-        const { error } = await supabase
-          .from('messages')
-          .insert({
-            user_id: user.id,
-            content: message,
-            recipient_name: recipient.name || null,
-            recipient_phone: recipient.phone || null
-          });
-
-        if (error) throw error;
-
-        alert("소중한 마음이 안전하게 저장되었습니다.");
-        router.push('/dashboard');
-      } catch (e) {
-        console.error(e);
-        alert("저장 중 오류가 발생했습니다.");
-      } finally {
-        setIsSaving(false);
-      }
+      // Logged in -> Go to step 2 (Create Page -> Recipient Page)
+      // Since we want to let them edit/add photos, we go to /create first
+      router.push('/create');
     } else {
       // Not logged in -> Persist happens auto via middleware
-      alert("로그인 후 안전하게 보관됩니다.");
+      // After login they should ideally be redirected to /create or stay on main then go there
+      alert("로그인 후 계속 작성이 가능합니다.");
       router.push('/login');
     }
   };
@@ -162,11 +144,10 @@ export default function Home() {
 
               <Button
                 size="lg"
-                disabled={isSaving}
-                onClick={handleSave}
+                onClick={handleContinue}
                 className="w-full sm:w-auto px-12 py-6 text-lg sm:text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
-                {isSaving ? "저장 중..." : "저장하기"}
+                계속 작성하기
               </Button>
             </div>
 
