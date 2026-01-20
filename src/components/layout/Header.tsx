@@ -8,6 +8,7 @@ import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { useMemoryStore } from "@/store/useMemoryStore";
 
 import { createClient } from "@/lib/supabase/client";
+import { WithdrawModal } from "@/components/auth/WithdrawModal";
 
 interface HeaderProps {
     transparentOnTop?: boolean;
@@ -18,6 +19,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const pathname = usePathname();
     const { user, setUser, plan } = useMemoryStore();
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -96,18 +98,15 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 user={user}
                                 plan={plan}
                                 onLogout={handleLogout}
-                                onDeleteAccount={() => {
-                                    if (confirm("정말로 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.")) {
-                                        setUser(null);
-                                        router.push("/");
-                                    }
-                                }}
+                                onDeleteAccount={() => setIsWithdrawModalOpen(true)}
                                 onNavigate={(path) => router.push(path)}
                             />
                         )}
                     </nav>
                 </div>
             </header>
+
+            <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} />
         </>
     );
 }
