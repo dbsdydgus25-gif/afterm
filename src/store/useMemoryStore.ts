@@ -11,8 +11,15 @@ interface MemoryStore {
     setRecipient: (recipient: Partial<MemoryStore['recipient']>) => void;
 
     user: {
-        name: string;
         email: string;
+        image?: string;
+        user_metadata?: {
+            avatar_url?: string;
+            name?: string;
+            nickname?: string;
+            bio?: string;
+            deleted_at?: string;
+        };
     } | null;
     setUser: (user: MemoryStore['user']) => void;
 
