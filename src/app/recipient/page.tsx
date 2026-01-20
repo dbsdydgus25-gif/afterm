@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan } = useMemoryStore();
+    const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan, file: messageFile, setFile } = useMemoryStore();
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -53,18 +53,53 @@ export default function RecipientPage() {
 
             const supabase = createClient();
 
+
+            let fileUrl = null;
+            let filePath = null;
+            let fileSize = 0;
+            const textBytes = new Blob([message]).size;
+
+            // 1. Upload File if exists
+            if (messageFile) {
+                const fileExt = messageFile.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const path = `${user.id}/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('memories')
+                    .upload(path, messageFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('memories')
+                    .getPublicUrl(path);
+
+                fileUrl = publicUrl;
+                filePath = path;
+                fileSize = messageFile.size;
+            }
+
+            // 2. Insert/Update Message
             if (messageId) {
-                // Update existing message -> OK regardless of plan (usually)
+                // Update existing message
                 const { error } = await supabase
                     .from('messages')
                     .update({
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
-                        updated_at: new Date().toISOString()
+                        updated_at: new Date().toISOString(),
+                        // Only update file info if a new file was uploaded
+                        ...(fileUrl && {
+                            file_url: fileUrl,
+                            file_path: filePath,
+                            file_size: fileSize,
+                            file_type: messageFile?.type
+                        })
                     })
                     .eq('id', messageId)
-                    .eq('user_id', user.id); // Security check
+                    .eq('user_id', user.id);
 
                 if (error) throw error;
             } else {
@@ -77,7 +112,6 @@ export default function RecipientPage() {
 
                     if (count !== null && count >= 1) {
                         alert("무료 플랜은 1개의 메시지만 저장할 수 있습니다. 프로 플랜으로 업그레이드 해주세요.");
-                        // Ideally show payment modal here, but for now alert and maybe redirect or block
                         setIsSaving(false);
                         return;
                     }
@@ -90,17 +124,48 @@ export default function RecipientPage() {
                         user_id: user.id,
                         content: message,
                         recipient_name: formData.name,
-                        recipient_phone: formData.phone
+                        recipient_phone: formData.phone,
+                        file_url: fileUrl,
+                        file_path: filePath,
+                        file_size: fileSize,
+                        file_type: messageFile?.type
                     });
 
                 if (error) throw error;
             }
+
+            // 3. Update Storage Usage in Profiles
+            // Note: Ideally this should be a DB trigger or RPC to be atomic, 
+            // but for now we do it client-side as requested standard approach.
+            const totalBytesToAdd = fileSize + textBytes; // Text is small but added for completeness
+
+            // We need to fetch current usage first or increment
+            // Supabase RPC 'increment' would be better, but doing simple read-update for MVP
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('storage_used')
+                .eq('id', user.id)
+                .single();
+
+            const currentUsage = profile?.storage_used || 0;
+
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    storage_used: currentUsage + totalBytesToAdd,
+                    updated_at: new Date().toISOString()
+                });
+
+            if (profileError) console.error("Failed to update storage usage:", profileError);
+
 
             alert("저장되었습니다.");
 
             // Clear store on success
             setMessage('');
             setMessageId(null);
+            setFile(null);
             setRecipient({ name: '', phone: '', relationship: '' });
 
             router.push('/dashboard');

@@ -31,6 +31,9 @@ interface MemoryStore {
 
     plan: 'free' | 'pro';
     setPlan: (plan: 'free' | 'pro') => void;
+
+    file: File | null;
+    setFile: (file: File | null) => void;
 }
 
 export const useMemoryStore = create<MemoryStore>()(
@@ -57,10 +60,14 @@ export const useMemoryStore = create<MemoryStore>()(
             // Plan State
             plan: 'free',
             setPlan: (plan: 'free' | 'pro') => set({ plan }),
+
+            // File State (Not persisted to localStorage to avoid serialize issues)
+            file: null,
+            setFile: (file) => set({ file }),
         }),
         {
             name: 'memory-storage', // unique name
-            partialize: (state) => ({ message: state.message, recipient: state.recipient, messageId: state.messageId }), // Only persist draft data
+            partialize: (state) => ({ message: state.message, recipient: state.recipient, messageId: state.messageId }), // Only persist draft data (exclude file)
         }
     )
 );

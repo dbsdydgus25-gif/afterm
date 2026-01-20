@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function CreatePage() {
     const router = useRouter();
-    const { message, setMessage } = useMemoryStore();
+    const { message, setMessage, file: messageStoreFile, setFile: setMessageStoreFile } = useMemoryStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // In a real app, we would check for authentication here
@@ -54,22 +54,38 @@ export default function CreatePage() {
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
                             >
                                 <span className="text-xl">📷</span>
-                                <span className="text-sm font-medium">사진/동영상</span>
+                                <span className="text-sm font-medium">
+                                    {messageStoreFile ? `파일 1개 선택됨` : "사진/동영상"}
+                                </span>
                             </button>
+                            {messageStoreFile && (
+                                <button
+                                    onClick={() => setMessageStoreFile(null)}
+                                    className="text-xs text-red-500 hover:text-red-600"
+                                >
+                                    삭제
+                                </button>
+                            )}
                             <input
                                 ref={fileInputRef}
                                 type="file"
                                 accept="image/*,video/*"
                                 className="hidden"
                                 onChange={(e) => {
-                                    if (e.target.files?.length) {
-                                        alert("파일이 선택되었습니다. (데모 기능)");
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        // Max 500MB check
+                                        if (file.size > 500 * 1024 * 1024) {
+                                            alert("파일 크기는 500MB 이하여야 합니다.");
+                                            return;
+                                        }
+                                        setMessageStoreFile(file);
                                     }
                                 }}
                             />
                         </div>
                         <div className="text-xs text-slate-300">
-                            최대 500MB
+                            {messageStoreFile ? `${(messageStoreFile.size / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 500MB
                         </div>
                     </div>
                 </div>

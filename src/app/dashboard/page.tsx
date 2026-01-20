@@ -10,11 +10,15 @@ import { useEffect, useState } from "react";
 import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+import { StorageWidget } from "@/components/dashboard/StorageWidget";
+
 interface Message {
     id: string;
     content: string;
     recipient_name: string;
     created_at: string;
+    file_path?: string;
+    file_size?: number;
 }
 
 export default function DashboardPage() {
@@ -54,16 +58,11 @@ export default function DashboardPage() {
         setMessageId(msg.id); // Set ID for update
         setRecipient({
             name: msg.recipient_name,
-            phone: '', // Need to fetch phone if we want to pre-fill it, current select * does fetch it but interface needed update? 
-            // actually table has recipient_phone. Let's assume user wants to edit it too.
-            // We can fetch it or just use what we have.
-            // Let's rely on 'select *' fetching everything.
-            // I'll update interface above briefly.
+            phone: '', // Need to fetch phone if we want to pre-fill it
             relationship: ''
         });
-        // We actually need recipient phone too for full edit.
-        // Let's improve the Message interface and logic in a second chunk or here.
-        // For now simple push.
+        // Note: File state is not currently restored for edit, 
+        // user would need to re-upload if they want to change it.
         router.push("/create");
     };
 
@@ -71,6 +70,15 @@ export default function DashboardPage() {
         if (!confirm("정말로 삭제하시겠습니까?")) return;
 
         const supabase = createClient();
+
+        // 1. Get message details first to find file info
+        const { data: msg } = await supabase
+            .from('messages')
+            .select('file_path, file_size, content')
+            .eq('id', id)
+            .single();
+
+        // 2. Delete Message
         const { error } = await supabase
             .from('messages')
             .delete()
@@ -79,9 +87,39 @@ export default function DashboardPage() {
         if (error) {
             alert("삭제 실패");
             console.error(error);
-        } else {
-            setMessages(prev => prev.filter(m => m.id !== id));
+            return;
         }
+
+        // 3. Cleanup Storage & Profile
+        if (msg) {
+            // Delete file if exists
+            if (msg.file_path) {
+                await supabase.storage
+                    .from('memories')
+                    .remove([msg.file_path]);
+            }
+
+            // Decrement Storage Usage
+            const textBytes = new Blob([msg.content]).size;
+            const totalBytesToRemove = (msg.file_size || 0) + textBytes;
+
+            // Fetch current usage
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('storage_used')
+                .eq('id', user?.id)
+                .single();
+
+            if (profile) {
+                const newUsage = Math.max(0, profile.storage_used - totalBytesToRemove);
+                await supabase
+                    .from('profiles')
+                    .update({ storage_used: newUsage, updated_at: new Date().toISOString() })
+                    .eq('id', user?.id);
+            }
+        }
+
+        setMessages(prev => prev.filter(m => m.id !== id));
     };
 
     const handleLogout = () => {
@@ -198,23 +236,7 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {/* Dashboard Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-28 md:h-32">
-                        <span className="text-sm font-bold text-slate-400">남은 메시지</span>
-                        <div className="text-2xl md:text-3xl font-black text-slate-900">
-                            {plan === 'pro' ? '∞' : Math.max(0, 1 - messages.length)}
-                            <span className="text-lg text-slate-400 font-medium ml-1">/ {plan === 'pro' ? '무제한' : '1건'}</span>
-                        </div>
-                    </div>
-                    <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-28 md:h-32">
-                        <span className="text-sm font-bold text-slate-400">남은 용량</span>
-                        <div className="text-2xl md:text-3xl font-black text-blue-600">
-                            {plan === 'pro' ? '1.0' : '0.01'}
-                            <span className="text-lg text-slate-400 font-medium ml-1">GB</span>
-                        </div>
-                    </div>
-                </div>
+                <StorageWidget plan={plan} userId={user?.id} />
 
                 {/* My Memories List (Text Centric) */}
                 <section className="space-y-6">
