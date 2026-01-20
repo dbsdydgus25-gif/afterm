@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { RestoreModal } from "@/components/auth/RestoreModal";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { setUser } = useMemoryStore();
@@ -12,6 +12,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [deletedAt, setDeletedAt] = useState<string>("");
     const [isRestoring, setIsRestoring] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         const supabase = createClient();
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => subscription.unsubscribe();
-    }, [setUser]);
+    }, [setUser, pathname]); // Depend on pathname to re-check on navigation
 
     const handleUserSession = async (session: any) => {
         if (session?.user) {
@@ -38,18 +39,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const deleted = session.user.user_metadata?.deleted_at;
             if (deleted) {
                 // If deleted, do NOT set user in store (blocks access)
-                // Show Restore Modal
                 setDeletedAt(deleted);
                 setIsRestoreModalOpen(true);
             } else {
                 // Normal User
+
+                // Check if Onboarding is needed (No nickname)
+                const hasNickname = session.user.user_metadata?.nickname;
+
+                // Allow access to /onboarding, /api/auth/callback, /logout
+                // Also, consider if we should block other pages? Yes, for UX.
+                // But let's be careful not to loop.
+                if (!hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
+                    console.log("Redirecting to onboarding due to missing nickname");
+                    router.replace("/onboarding"); // Use replace to prevent back button loop
+                    return;
+                }
+
                 setUser({
                     id: session.user.id,
                     name: session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자",
                     email: session.user.email!,
                     image: session.user.user_metadata.avatar_url,
                     user_metadata: session.user.user_metadata
-                }); setIsRestoreModalOpen(false);
+                });
+                setIsRestoreModalOpen(false);
             }
         } else {
             setUser(null);

@@ -107,13 +107,20 @@ export default function Home() {
             <div className="w-full space-y-6 animate-fade-in delay-75">
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                <div className="relative bg-white/90 backdrop-blur-sm rounded-xl shadow-xl shadow-slate-200/60 ring-1 ring-white/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:shadow-2xl focus-within:-translate-y-1 p-2">
+                <div className="relative mb-12">
                   <Textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="내용을 입력해주세요.."
-                    className="min-h-[120px] sm:min-h-[160px] w-full p-6 text-lg leading-relaxed resize-none border-none bg-transparent focus-visible:ring-0 placeholder:text-gray-300 text-gray-800 font-medium"
+                    onChange={(e) => {
+                      if (e.target.value.length <= 500) {
+                        setMessage(e.target.value);
+                      }
+                    }}
+                    placeholder="이곳에 당신의 이야기를 담아주세요..."
+                    className="w-full min-h-[320px] text-lg leading-relaxed p-8 rounded-3xl bg-white/60 backdrop-blur-md border border-white shadow-xl resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder:text-slate-400 text-slate-800 transition-all"
                   />
+                  <div className="absolute bottom-6 right-8 text-sm text-slate-400 font-medium">
+                    {message.length} / 500자
+                  </div>
                 </div>
               </div>
 

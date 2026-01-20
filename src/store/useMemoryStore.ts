@@ -18,6 +18,7 @@ interface MemoryStore {
         user_metadata?: {
             avatar_url?: string;
             name?: string;
+            full_name?: string;
             nickname?: string;
             bio?: string;
             deleted_at?: string;
