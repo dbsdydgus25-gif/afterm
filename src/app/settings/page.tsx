@@ -95,6 +95,8 @@ export default function SettingsPage() {
 
             if (error) throw error;
 
+            await supabase.auth.refreshSession();
+
             // Update local store
             setUser({
                 ...user,
@@ -105,10 +107,10 @@ export default function SettingsPage() {
                 }
             });
 
-            alert("프로필이 저장되었습니다.");
-        } catch (error) {
+            alert("프로필이 업데이트되었습니다.");
+        } catch (error: any) {
             console.error(error);
-            alert("프로필 저장에 실패했습니다.");
+            alert(`저장에 실패했습니다: ${error.message}`);
         } finally {
             setIsSaving(false);
         }
@@ -118,7 +120,8 @@ export default function SettingsPage() {
         const supabase = createClient();
         await supabase.auth.signOut();
         setUser(null);
-        router.push("/");
+        // Use window.location.href to force a full refresh and clear all states
+        window.location.href = "/";
     };
 
     if (!mounted) return null;

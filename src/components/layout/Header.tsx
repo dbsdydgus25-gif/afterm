@@ -84,7 +84,18 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             문의하기
                         </Link>
 
-                        {!user ? (
+                        {user ? (
+                            <ProfileDropdown
+                                user={{
+                                    name: user.name,
+                                    email: user.email,
+                                    image: user.user_metadata?.avatar_url || user.image
+                                }}
+                                plan={plan}
+                                onLogout={handleLogout}
+                                onNavigate={(path) => router.push(path)}
+                            />
+                        ) : (
                             <Link href="/login">
                                 <Button
                                     className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
@@ -92,13 +103,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     로그인
                                 </Button>
                             </Link>
-                        ) : (
-                            <ProfileDropdown
-                                user={user}
-                                plan={plan}
-                                onLogout={handleLogout}
-                                onNavigate={(path) => router.push(path)}
-                            />
                         )}
                     </nav>
                 </div>

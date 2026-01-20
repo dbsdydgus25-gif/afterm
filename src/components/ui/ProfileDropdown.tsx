@@ -9,9 +9,9 @@ interface ProfileDropdownProps {
     user: {
         name: string;
         email: string;
+        image?: string;
     };
     plan: string;
-    onLogout: () => void;
     onLogout: () => void;
     onNavigate: (path: string) => void;
 }
@@ -25,9 +25,13 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
             >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                    {user?.name?.[0] || "U"}
-                </div>
+                {user.image ? (
+                    <img src={user.image} alt="Profile" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                        {user?.name?.[0] || "U"}
+                    </div>
+                )}
                 <span className="text-sm font-bold text-slate-700 hidden sm:block">
                     {user?.name || "사용자"}
                 </span>

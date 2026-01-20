@@ -94,7 +94,10 @@ export default function OnboardingPage() {
 
             if (error) throw error;
 
-            // Update local store
+            // Force session refresh to ensure next page load gets updated metadata
+            await supabase.auth.refreshSession();
+
+            // Update local store immediately for visual feedback
             setUser({
                 ...user,
                 name: name,
@@ -105,9 +108,9 @@ export default function OnboardingPage() {
             });
 
             router.push("/dashboard"); // Go to dashboard after onboarding
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("저장에 실패했습니다.");
+            alert(`저장에 실패했습니다: ${error.message}`);
         } finally {
             setIsSaving(false);
         }
