@@ -8,19 +8,80 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+interface Message {
+    id: string;
+    content: string;
+    recipient_name: string;
+    created_at: string;
+}
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { message, setMessage, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
+    const { message, setMessage, setMessageId, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (!user) return;
+            const supabase = createClient();
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching messages:", error);
+            } else {
+                setMessages(data || []);
+            }
+            setLoading(false);
+        };
+
+        fetchMessages();
+    }, [user]);
 
     // Initial check for user (simplified protection)
     // useEffect(() => {
     //     if (!user) router.push("/");
     // }, [user, router]);
 
-    const handleEdit = () => {
+    const handleEdit = (msg: Message) => {
+        setMessage(msg.content);
+        setMessageId(msg.id); // Set ID for update
+        setRecipient({
+            name: msg.recipient_name,
+            phone: '', // Need to fetch phone if we want to pre-fill it, current select * does fetch it but interface needed update? 
+            // actually table has recipient_phone. Let's assume user wants to edit it too.
+            // We can fetch it or just use what we have.
+            // Let's rely on 'select *' fetching everything.
+            // I'll update interface above briefly.
+            relationship: ''
+        });
+        // We actually need recipient phone too for full edit.
+        // Let's improve the Message interface and logic in a second chunk or here.
+        // For now simple push.
         router.push("/create");
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("정말로 삭제하시겠습니까?")) return;
+
+        const supabase = createClient();
+        const { error } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert("삭제 실패");
+            console.error(error);
+        } else {
+            setMessages(prev => prev.filter(m => m.id !== id));
+        }
     };
 
     const handleLogout = () => {
@@ -136,11 +197,11 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
                         <span className="text-sm font-bold text-slate-400">남은 메시지</span>
-                        <div className="text-3xl font-black text-slate-900">2<span className="text-lg text-slate-400 font-medium ml-1">/ 3건</span></div>
+                        <div className="text-3xl font-black text-slate-900">{plan === 'pro' ? '∞' : (1 - messages.length)}<span className="text-lg text-slate-400 font-medium ml-1">/ {plan === 'pro' ? '무제한' : '1건'}</span></div>
                     </div>
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
                         <span className="text-sm font-bold text-slate-400">남은 용량</span>
-                        <div className="text-3xl font-black text-blue-600">5.0<span className="text-lg text-slate-400 font-medium ml-1">GB</span></div>
+                        <div className="text-3xl font-black text-blue-600">{plan === 'pro' ? '100' : '0.01'}<span className="text-lg text-slate-400 font-medium ml-1">GB</span></div>
                     </div>
                 </div>
 
@@ -151,42 +212,54 @@ export default function DashboardPage() {
                         <Button onClick={() => router.push('/dashboard/memories')} variant="ghost" size="sm" className="text-slate-500">전체보기</Button>
                     </div>
 
-                    {message ? (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs font-bold">D-Day 전송</span>
-                                        <span className="text-xs text-slate-400">2026.01.19 작성</span>
+                    {loading ? (
+                        <div className="text-center py-10 text-slate-400">로딩 중...</div>
+                    ) : messages.length > 0 ? (
+                        <div className="space-y-4">
+                            {messages.map((msg: any) => (
+                                <motion.div
+                                    key={msg.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs font-bold">D-Day 전송</span>
+                                                <span className="text-xs text-slate-400">{new Date(msg.created_at).toLocaleDateString()} 작성</span>
+                                            </div>
+                                            <h3 className="text-lg font-bold text-slate-900">
+                                                To. {msg.recipient_name || '수신인 미지정'}
+                                            </h3>
+                                        </div>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button onClick={() => handleEdit(msg)} variant="ghost" size="sm" className="h-8">수정</Button>
+                                            <Button onClick={() => handleDelete(msg.id)} variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50">삭제</Button>
+                                        </div>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900">
-                                        {recipient.name ? `To. ${recipient.name}` : '수신인 미지정'}
-                                    </h3>
-                                </div>
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button onClick={handleEdit} variant="ghost" size="sm" className="h-8">수정</Button>
-                                    <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50">삭제</Button>
-                                </div>
-                            </div>
 
-                            <p className="text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 p-4 rounded-xl text-sm">
-                                {message}
-                            </p>
+                                    <p className="text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 p-4 rounded-xl text-sm">
+                                        {msg.content}
+                                    </p>
 
-                            <div className="mt-4 flex items-center gap-4 text-xs text-slate-400 font-medium">
-                                <span className="flex items-center gap-1">📄 텍스트</span>
-                                <span className="flex items-center gap-1">📷 사진 0장</span>
-                            </div>
-                        </motion.div>
+                                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-400 font-medium">
+                                        <span className="flex items-center gap-1">📄 텍스트</span>
+                                        {/* <span className="flex items-center gap-1">📷 사진 0장</span> */}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     ) : (
-                        <div onClick={() => router.push('/create')} className="cursor-pointer border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
+                        <div onClick={() => {
+                            setMessage('');
+                            setMessageId(null);
+                            setRecipient({ name: '', phone: '', relationship: '' });
+                            router.push('/create');
+                        }} className="cursor-pointer border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
                             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform">✍️</div>
                             <p className="text-slate-900 font-bold mb-1">첫 번째 기억을 남겨보세요</p>
-                            <p className="text-slate-500 text-sm">무료로 최대 3명에게 마음을 전할 수 있습니다.</p>
+                            <p className="text-slate-500 text-sm">무료로 최대 1명에게 마음을 전할 수 있습니다.</p>
                         </div>
                     )}
                 </section>

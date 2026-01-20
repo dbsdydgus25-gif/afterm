@@ -3,7 +3,9 @@ import { persist } from 'zustand/middleware';
 
 interface MemoryStore {
     message: string;
+    messageId: string | null; // For tracking edits
     setMessage: (message: string) => void;
+    setMessageId: (id: string | null) => void;
     recipient: {
         name: string;
         phone: string;
@@ -35,7 +37,9 @@ export const useMemoryStore = create<MemoryStore>()(
     persist(
         (set) => ({
             message: '',
+            messageId: null,
             setMessage: (message) => set({ message }),
+            setMessageId: (messageId) => set({ messageId }),
             recipient: {
                 name: '',
                 phone: '',
@@ -56,7 +60,7 @@ export const useMemoryStore = create<MemoryStore>()(
         }),
         {
             name: 'memory-storage', // unique name
-            partialize: (state) => ({ message: state.message, recipient: state.recipient }), // Only persist draft data
+            partialize: (state) => ({ message: state.message, recipient: state.recipient, messageId: state.messageId }), // Only persist draft data
         }
     )
 );

@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { message, recipient, setRecipient, user } = useMemoryStore();
+    const { message, messageId, setMessageId, recipient, setRecipient, user } = useMemoryStore();
     const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -51,17 +51,38 @@ export default function RecipientPage() {
             });
 
             const supabase = createClient();
-            const { error } = await supabase
-                .from('messages')
-                .insert({
-                    user_id: user.id,
-                    content: message,
-                    recipient_name: formData.name,
-                    recipient_phone: formData.phone
-                    // relationship column might need to be added to schema if we want to save it
-                });
 
-            if (error) throw error;
+            if (messageId) {
+                // Update existing message
+                const { error } = await supabase
+                    .from('messages')
+                    .update({
+                        content: message,
+                        recipient_name: formData.name,
+                        recipient_phone: formData.phone,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', messageId)
+                    .eq('user_id', user.id); // Security check
+
+                if (error) throw error;
+            } else {
+                // Insert new message
+                const { error } = await supabase
+                    .from('messages')
+                    .insert({
+                        user_id: user.id,
+                        content: message,
+                        recipient_name: formData.name,
+                        recipient_phone: formData.phone
+                    });
+
+                if (error) throw error;
+            }
+
+            // Clear the ID after save so next time it's a new message (unless we want to stay in edit mode?)
+            // Usually simpler to clear it.
+            setMessageId(null);
 
             alert("소중한 기억이 안전하게 저장되었습니다.");
             router.push("/dashboard");
