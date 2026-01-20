@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { useMemoryStore } from "@/store/useMemoryStore";
-import { AuthModal } from "@/components/auth/AuthModal";
 
 interface HeaderProps {
     transparentOnTop?: boolean;
@@ -17,7 +16,14 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const pathname = usePathname();
     const { user, setUser, plan } = useMemoryStore();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const { createClient } = require("@/lib/supabase/client");
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        setUser(null);
+        router.push("/");
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -77,20 +83,18 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                         </Link>
 
                         {!user ? (
-                            <Button
-                                onClick={() => setIsAuthModalOpen(true)}
-                                className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
-                            >
-                                로그인
-                            </Button>
+                            <Link href="/login">
+                                <Button
+                                    className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
+                                >
+                                    로그인
+                                </Button>
+                            </Link>
                         ) : (
                             <ProfileDropdown
                                 user={user}
                                 plan={plan}
-                                onLogout={() => {
-                                    setUser(null);
-                                    router.push("/");
-                                }}
+                                onLogout={handleLogout}
                                 onDeleteAccount={() => {
                                     if (confirm("정말로 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다.")) {
                                         setUser(null);
@@ -103,8 +107,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                     </nav>
                 </div>
             </header>
-
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </>
     );
 }
