@@ -20,7 +20,7 @@ export default function Home() {
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
   const [messageCount, setMessageCount] = useState(0);
 
-  const { message, setMessage, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
+  const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   // Background slideshow logic
@@ -31,6 +31,19 @@ export default function Home() {
   ];
 
   useEffect(() => {
+    // Check for login redirect flag
+    const isReturningFromLogin = sessionStorage.getItem('login_redirect_active');
+
+    if (isReturningFromLogin) {
+      // Returning from login -> Keep data, clear flag
+      sessionStorage.removeItem('login_redirect_active');
+    } else {
+      // Fresh visit -> Clear data
+      setMessage('');
+      setMessageId(null);
+      setRecipient({ name: '', phone: '', relationship: '' });
+    }
+
     const timer = setInterval(() => {
       setCurrentBgIndex((prev) => (prev + 1) % backgrounds.length);
     }, 5000);
@@ -78,7 +91,9 @@ export default function Home() {
       router.push('/create');
     } else {
       // Not logged in -> Persist happens auto via middleware
-      // After login they should ideally be redirected to /create or stay on main then go there
+      // Set flag to preserve data during login redirect
+      sessionStorage.setItem('login_redirect_active', 'true');
+
       alert("로그인 후 계속 작성이 가능합니다.");
       router.push('/login');
     }
@@ -261,7 +276,7 @@ export default function Home() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-xl">🎉</div>
                           <div>
-                            <span className="block text-xs text-indigo-400 mb-0.5">To. ooo</span>
+                            <span className="block text-xs text-indigo-400 mb-0.5">To. 친구들에게</span>
                           </div>
                         </div>
                       </div>
@@ -282,7 +297,7 @@ export default function Home() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-xl">📺</div>
                           <div>
-                            <span className="block text-sm text-blue-400/80 mb-0.5">To. ooo</span>
+                            <span className="block text-sm text-blue-400/80 mb-0.5">To. 내 동생</span>
                           </div>
                         </div>
                       </div>
@@ -303,7 +318,7 @@ export default function Home() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-xl">🍲</div>
                           <div>
-                            <span className="block text-xs text-orange-400 mb-0.5">To. ooo</span>
+                            <span className="block text-xs text-orange-400 mb-0.5">To. 우리 딸</span>
                           </div>
                         </div>
                       </div>
@@ -670,6 +685,7 @@ export default function Home() {
                   }
                   router.push('/create');
                 } else {
+                  sessionStorage.setItem('login_redirect_active', 'true');
                   router.push('/login');
                 }
               }}
@@ -696,6 +712,6 @@ export default function Home() {
           <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v2.1)</p>
         </div>
       </footer>
-    </div>
+    </div >
   );
 }

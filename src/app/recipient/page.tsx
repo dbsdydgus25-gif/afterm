@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { message, messageId, setMessageId, recipient, setRecipient, user, plan } = useMemoryStore();
+    const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan } = useMemoryStore();
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -96,15 +96,17 @@ export default function RecipientPage() {
                 if (error) throw error;
             }
 
-            // Clear the ID after save so next time it's a new message (unless we want to stay in edit mode?)
-            // Usually simpler to clear it.
-            setMessageId(null);
+            alert("저장되었습니다.");
 
-            alert("소중한 기억이 안전하게 저장되었습니다.");
-            router.push("/dashboard");
-        } catch (e) {
-            console.error(e);
-            alert("저장 중 오류가 발생했습니다.");
+            // Clear store on success
+            setMessage('');
+            setMessageId(null);
+            setRecipient({ name: '', phone: '', relationship: '' });
+
+            router.push('/dashboard');
+        } catch (error: any) {
+            console.error(error);
+            alert("저장에 실패했습니다.");
         } finally {
             setIsSaving(false);
         }

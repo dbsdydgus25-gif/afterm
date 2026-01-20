@@ -62,7 +62,7 @@ export function PaymentModal({ isOpen, onClose, planName, price }: PaymentModalP
                                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-slate-600 font-medium">상품명</span>
-                                            <span className="text-slate-900 font-bold text-lg">Afterm {planName}</span>
+                                            <span className="text-slate-900 font-bold text-lg">AFTERM {planName}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-600 font-medium">결제 금액</span>
