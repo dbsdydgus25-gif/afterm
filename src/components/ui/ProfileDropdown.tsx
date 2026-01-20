@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
+import { User, LogOut, Settings, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 interface ProfileDropdownProps {
@@ -12,11 +12,11 @@ interface ProfileDropdownProps {
     };
     plan: string;
     onLogout: () => void;
-    onDeleteAccount: () => void;
+    onLogout: () => void;
     onNavigate: (path: string) => void;
 }
 
-export function ProfileDropdown({ user, plan, onLogout, onDeleteAccount, onNavigate }: ProfileDropdownProps) {
+export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDropdownProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
@@ -61,31 +61,18 @@ export function ProfileDropdown({ user, plan, onLogout, onDeleteAccount, onNavig
                                 <User className="w-4 h-4" /> 내 정보
                             </button>
                             <button
-                                onClick={() => { setIsMenuOpen(false); onNavigate("/plans"); }}
+                                onClick={() => { setIsMenuOpen(false); onNavigate("/settings"); }}
                                 className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                             >
-                                <CreditCard className="w-4 h-4" /> 플랜 관리
-                                {plan === 'pro' && (
-                                    <span className="ml-auto text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded font-bold">
-                                        PRO
-                                    </span>
-                                )}
+                                <Settings className="w-4 h-4" /> 설정
                             </button>
                         </div>
                         <div className="p-1 border-t border-slate-50">
                             <button
                                 onClick={() => { setIsMenuOpen(false); onLogout(); }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg flex items-center gap-2 transition-colors"
+                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors"
                             >
                                 <LogOut className="w-4 h-4" /> 로그아웃
-                            </button>
-                        </div>
-                        <div className="p-1 border-t border-slate-50">
-                            <button
-                                onClick={() => { setIsMenuOpen(false); onDeleteAccount(); }}
-                                className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 hover:text-slate-500 rounded-lg flex items-center gap-2 transition-colors"
-                            >
-                                <Trash2 className="w-3 h-3" /> 회원 탈퇴
                             </button>
                         </div>
                     </motion.div>

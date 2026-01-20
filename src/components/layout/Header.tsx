@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { useMemoryStore } from "@/store/useMemoryStore";
 
+
 import { createClient } from "@/lib/supabase/client";
-import { WithdrawModal } from "@/components/auth/WithdrawModal";
 
 interface HeaderProps {
     transparentOnTop?: boolean;
@@ -19,7 +19,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const pathname = usePathname();
     const { user, setUser, plan } = useMemoryStore();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -98,15 +97,12 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 user={user}
                                 plan={plan}
                                 onLogout={handleLogout}
-                                onDeleteAccount={() => setIsWithdrawModalOpen(true)}
                                 onNavigate={(path) => router.push(path)}
                             />
                         )}
                     </nav>
                 </div>
             </header>
-
-            <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} />
         </>
     );
 }
