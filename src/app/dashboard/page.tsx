@@ -68,10 +68,16 @@ export default function DashboardPage() {
                                     <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                                 </div>
                                 <div className="p-1">
-                                    <button className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                    <button
+                                        onClick={() => router.push('/settings')}
+                                        className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                                    >
                                         <User className="w-4 h-4" /> 내 정보
                                     </button>
-                                    <button className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                                    <button
+                                        onClick={() => router.push('/plans')}
+                                        className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                                    >
                                         <CreditCard className="w-4 h-4" /> 플랜 관리
                                         {plan === 'pro' && <span className="ml-auto text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded font-bold">PRO</span>}
                                     </button>
