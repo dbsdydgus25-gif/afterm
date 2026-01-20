@@ -8,14 +8,15 @@ import { useState, useEffect } from "react";
 // import { AuthModal } from "@/components/auth/AuthModal";
 import { PaymentModal } from "@/components/payment/PaymentModal";
 import { useMemoryStore } from "@/store/useMemoryStore";
-import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { Header } from "@/components/layout/Header";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
 
   const { message, setMessage, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
@@ -38,6 +39,42 @@ export default function Home() {
   const handleSubscribe = (plan: "Standard" | "Pro", price: string) => {
     setSelectedPlan({ name: plan, price });
     setIsPaymentOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!message.trim()) {
+      alert("메시지를 입력해주세요.");
+      return;
+    }
+
+    if (user) {
+      setIsSaving(true);
+      try {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from('messages')
+          .insert({
+            user_id: user.id,
+            content: message,
+            recipient_name: recipient.name || null,
+            recipient_phone: recipient.phone || null
+          });
+
+        if (error) throw error;
+
+        alert("소중한 마음이 안전하게 저장되었습니다.");
+        router.push('/dashboard');
+      } catch (e) {
+        console.error(e);
+        alert("저장 중 오류가 발생했습니다.");
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Not logged in -> Persist happens auto via middleware
+      alert("로그인 후 안전하게 보관됩니다.");
+      router.push('/login');
+    }
   };
 
   return (
@@ -65,7 +102,6 @@ export default function Home() {
 
           <div className="relative z-10 w-full max-w-2xl flex flex-col items-center text-center space-y-10 animate-fade-in">
 
-            {/* Typography */}
             {/* Typography */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -126,16 +162,11 @@ export default function Home() {
 
               <Button
                 size="lg"
-                onClick={() => {
-                  if (user) {
-                    router.push('/create');
-                  } else {
-                    router.push('/login');
-                  }
-                }}
+                disabled={isSaving}
+                onClick={handleSave}
                 className="w-full sm:w-auto px-12 py-6 text-lg sm:text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
               >
-                저장하기
+                {isSaving ? "저장 중..." : "저장하기"}
               </Button>
             </div>
 

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface MemoryStore {
     message: string;
@@ -30,24 +31,32 @@ interface MemoryStore {
     setPlan: (plan: 'free' | 'pro') => void;
 }
 
-export const useMemoryStore = create<MemoryStore>((set) => ({
-    message: '',
-    setMessage: (message) => set({ message }),
-    recipient: {
-        name: '',
-        phone: '',
-        relationship: '',
-    },
-    setRecipient: (recipient) =>
-        set((state) => ({
-            recipient: { ...state.recipient, ...recipient }
-        })),
+export const useMemoryStore = create<MemoryStore>()(
+    persist(
+        (set) => ({
+            message: '',
+            setMessage: (message) => set({ message }),
+            recipient: {
+                name: '',
+                phone: '',
+                relationship: '',
+            },
+            setRecipient: (recipient) =>
+                set((state) => ({
+                    recipient: { ...state.recipient, ...recipient }
+                })),
 
-    // User State
-    user: null,
-    setUser: (user: MemoryStore['user']) => set({ user }),
+            // User State
+            user: null,
+            setUser: (user: MemoryStore['user']) => set({ user }),
 
-    // Plan State
-    plan: 'free',
-    setPlan: (plan: 'free' | 'pro') => set({ plan }),
-}));
+            // Plan State
+            plan: 'free',
+            setPlan: (plan: 'free' | 'pro') => set({ plan }),
+        }),
+        {
+            name: 'memory-storage', // unique name
+            partialize: (state) => ({ message: state.message, recipient: state.recipient }), // Only persist draft data
+        }
+    )
+);

@@ -89,3 +89,30 @@ create table public.deleted_users (
 alter table public.deleted_users enable row level security;
 -- No policies means default deny for public/authenticated, which is what we want.
 -- Only the service_role (server-side) can write to it.
+
+-- Create Messages Table (Digital Wills)
+create table public.messages (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid references auth.users (id) on delete cascade,
+  content text not null,
+  recipient_name text,
+  recipient_phone text,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone default now(),
+  constraint messages_pkey primary key (id)
+);
+
+-- RLS for Messages
+alter table public.messages enable row level security;
+
+create policy "Users can view their own messages" on public.messages
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own messages" on public.messages
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update their own messages" on public.messages
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete their own messages" on public.messages
+  for delete using (auth.uid() = user_id);
