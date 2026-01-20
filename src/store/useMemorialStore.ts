@@ -37,8 +37,8 @@ const MOCK_MEMORIALS: Memorial[] = [
         birthDate: '1980.05.12',
         deathDate: '2025.12.10',
         bio: '따뜻한 미소로 언제나 우리 곁을 지켜주었던 당신을 기억합니다.',
-        profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-        coverImage: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=2070&auto=format&fit=crop',
+        profileImage: 'https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?q=80&w=2000&auto=format&fit=crop', // Happy smiling face
+        coverImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop', // Sunny beach
         tributeCount: 124,
         posts: [
             {
@@ -68,8 +68,8 @@ const MOCK_MEMORIALS: Memorial[] = [
         birthDate: '1992.08.20',
         deathDate: '2026.01.05',
         bio: '세상에서 가장 밝게 빛나던 별, 영원히 우리 마음에.',
-        profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-        coverImage: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?q=80&w=2560&auto=format&fit=crop',
+        profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2000&auto=format&fit=crop', // Happy woman
+        coverImage: 'https://images.unsplash.com/photo-1460500063983-994d4c27756c?q=80&w=2000&auto=format&fit=crop', // Bright sky/nature
         galleryImages: [
             'https://images.unsplash.com/photo-1501901609772-df0848060b33?q=80&w=2670&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=2070&auto=format&fit=crop',
