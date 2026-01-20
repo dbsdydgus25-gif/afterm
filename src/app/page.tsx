@@ -174,7 +174,7 @@ export default function Home() {
                       }
                     }}
                     placeholder="이곳에 당신의 이야기를 담아주세요..."
-                    className="w-full min-h-[320px] text-lg leading-relaxed p-8 rounded-3xl bg-white/60 backdrop-blur-md border border-white shadow-xl resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder:text-slate-400 text-slate-800 transition-all"
+                    className="w-full min-h-[260px] md:min-h-[320px] text-base md:text-lg leading-relaxed p-6 md:p-8 rounded-3xl bg-white/60 backdrop-blur-md border border-white shadow-xl resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 placeholder:text-slate-400 text-slate-800 transition-all"
                   />
                   <div className="absolute bottom-6 right-8 text-sm text-slate-400 font-medium">
                     {message.length} / 500자
@@ -212,8 +212,8 @@ export default function Home() {
         <section className="w-full bg-slate-900 text-white py-32 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
-          <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="grid md:grid-cols-12 gap-16 items-center">
+          <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+            <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-center">
 
               {/* Text Content */}
               <div className="md:col-span-5 space-y-10 text-left">
@@ -557,7 +557,7 @@ export default function Home() {
                     href={article.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-shrink-0 w-[40vw] sm:w-[30vw] lg:w-[20rem] xl:w-[25rem] bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col h-full"
+                    className="flex-shrink-0 w-[70vw] sm:w-[50vw] md:w-[35vw] lg:w-[20rem] xl:w-[25rem] bg-white p-5 md:p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col h-full"
                   >
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 ${article.color} group-hover:scale-110 transition-transform`}>
                       {article.icon}

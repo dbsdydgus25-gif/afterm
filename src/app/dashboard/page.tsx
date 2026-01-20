@@ -154,12 +154,12 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto p-6 lg:p-10 space-y-10">
+            <main className="max-w-3xl mx-auto p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10">
 
                 {/* Profile Section (Editable) */}
                 <section
                     onClick={() => router.push('/settings')}
-                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-6 pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer"
+                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer"
                 >
                     <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button variant="ghost" size="sm" className="text-slate-400 hover:text-blue-600">설정 ›</Button>
@@ -200,16 +200,16 @@ export default function DashboardPage() {
 
                 {/* Dashboard Stats */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
+                    <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-28 md:h-32">
                         <span className="text-sm font-bold text-slate-400">남은 메시지</span>
-                        <div className="text-3xl font-black text-slate-900">
+                        <div className="text-2xl md:text-3xl font-black text-slate-900">
                             {plan === 'pro' ? '∞' : Math.max(0, 1 - messages.length)}
                             <span className="text-lg text-slate-400 font-medium ml-1">/ {plan === 'pro' ? '무제한' : '1건'}</span>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
+                    <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-28 md:h-32">
                         <span className="text-sm font-bold text-slate-400">남은 용량</span>
-                        <div className="text-3xl font-black text-blue-600">
+                        <div className="text-2xl md:text-3xl font-black text-blue-600">
                             {plan === 'pro' ? '∞' : '5.0'}
                             <span className="text-lg text-slate-400 font-medium ml-1">GB</span>
                         </div>
