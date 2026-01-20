@@ -70,17 +70,16 @@ export default function DashboardPage() {
     //     if (!user) router.push("/");
     // }, [user, router]);
 
-    const handleEdit = (msg: Message) => {
+    const handleEdit = (msg: Message | any) => {
         setMessage(msg.content);
         setMessageId(msg.id); // Set ID for update
         setRecipient({
             name: msg.recipient_name,
-            phone: '', // Need to fetch phone if we want to pre-fill it
-            relationship: ''
+            phone: msg.recipient_phone || '', // Fix: Pass phone number correctly
+            relationship: msg.recipient_relationship || ''
         });
-        // Note: File state is not currently restored for edit, 
-        // user would need to re-upload if they want to change it.
-        router.push("/create");
+        // We navigate to the unified edit page now
+        router.push("/dashboard/edit");
     };
 
     const handleDelete = async (id: string) => {
