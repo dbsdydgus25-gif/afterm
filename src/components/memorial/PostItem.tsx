@@ -36,9 +36,26 @@ export function PostItem({ post }: PostItemProps) {
                 </div>
             </div>
 
-            <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+            <p className="text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">
                 {post.content}
             </p>
+
+            {post.mediaUrl && (
+                <div className="rounded-xl overflow-hidden mb-4 border border-slate-100 bg-slate-50">
+                    {post.mediaType === 'video' ? (
+                        <video controls className="w-full max-h-[500px] object-contain">
+                            <source src={post.mediaUrl} />
+                            Your browser does not support the video tag.
+                        </video>
+                    ) : (
+                        <img
+                            src={post.mediaUrl}
+                            alt="Post Media"
+                            className="w-full max-h-[500px] object-cover"
+                        />
+                    )}
+                </div>
+            )}
 
             <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-4">
                 <button className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors text-sm font-medium">

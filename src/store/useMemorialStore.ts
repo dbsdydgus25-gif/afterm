@@ -6,6 +6,8 @@ export interface Post {
     content: string;
     date: string;
     likes: number;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
 }
 
 export interface Memorial {

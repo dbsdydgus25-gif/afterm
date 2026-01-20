@@ -7,6 +7,7 @@ import { PostItem } from "@/components/memorial/PostItem";
 import { useMemorialStore } from "@/store/useMemorialStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { CreatePostModal } from "@/components/memorial/CreatePostModal";
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -20,22 +21,24 @@ export default function MemorialDetailPage({ params }: PageProps) {
     const { getMemorial, addPost } = useMemorialStore();
     const memorial = getMemorial(id);
 
-    const [newPostContent, setNewPostContent] = useState("");
-    const [authorName, setAuthorName] = useState("");
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
-    const handleSubmitPost = () => {
-        if (!newPostContent.trim() || !authorName.trim()) {
-            alert("이름과 내용을 모두 입력해주세요.");
-            return;
+    const handleCreatePost = (authorName: string, content: string, mediaFile: File | null) => {
+        let mediaUrl = undefined;
+        let mediaType: 'image' | 'video' | undefined = undefined;
+
+        if (mediaFile) {
+            // Create a fake local URL for the uploaded file (MVP style)
+            mediaUrl = URL.createObjectURL(mediaFile);
+            mediaType = mediaFile.type.startsWith('video') ? 'video' : 'image';
         }
 
         addPost(id, {
             authorName,
-            content: newPostContent,
+            content,
+            mediaUrl,
+            mediaType
         });
-
-        setNewPostContent("");
-        setAuthorName("");
     };
 
     if (!memorial) {
@@ -48,6 +51,12 @@ export default function MemorialDetailPage({ params }: PageProps) {
             </div>
         );
     }
+
+    // Combine gallery images with images from posts
+    const allGalleryImages = [
+        ...(memorial.galleryImages || []),
+        ...memorial.posts.filter(p => p.mediaType === 'image' && p.mediaUrl).map(p => p.mediaUrl!)
+    ];
 
     return (
         <div className="min-h-screen bg-slate-100 font-sans">
@@ -101,13 +110,13 @@ export default function MemorialDetailPage({ params }: PageProps) {
                     </div>
 
                     {/* Gallery Section */}
-                    {memorial.galleryImages && memorial.galleryImages.length > 0 && (
+                    {allGalleryImages.length > 0 && (
                         <div className="mt-10 pt-8 border-t border-slate-100">
                             <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <span>📸</span> 함께했던 추억들
                             </h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {memorial.galleryImages.map((img, idx) => (
+                                {allGalleryImages.map((img, idx) => (
                                     <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-100 relative group cursor-pointer shadow-sm hover:shadow-md transition-all">
                                         <img src={img} alt={`memory-${idx}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
@@ -125,7 +134,7 @@ export default function MemorialDetailPage({ params }: PageProps) {
 
                     {/* Left Sidebar (Info) */}
                     <div className="md:col-span-1 space-y-6">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
                             <h3 className="font-bold text-slate-900 mb-4 px-1">소개</h3>
                             <ul className="space-y-3 text-sm text-slate-600">
                                 <li className="flex items-center gap-3">
@@ -142,35 +151,22 @@ export default function MemorialDetailPage({ params }: PageProps) {
 
                     {/* Right Content (Feed) */}
                     <div className="md:col-span-2">
-                        {/* Write Post Box */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-                            <div className="flex gap-4 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                                    👤
-                                </div>
-                                <div className="flex-1 space-y-3">
-                                    <input
-                                        type="text"
-                                        placeholder="작성자 이름"
-                                        value={authorName}
-                                        onChange={(e) => setAuthorName(e.target.value)}
-                                        className="w-full md:w-1/2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <Textarea
-                                        placeholder={`${memorial.name}님에게 남기고 싶은 말을 적어주세요..`}
-                                        value={newPostContent}
-                                        onChange={(e) => setNewPostContent(e.target.value)}
-                                        className="w-full min-h-[100px] resize-none border-slate-200 focus:ring-blue-500"
-                                    />
-                                </div>
+                        {/* Write Post Trigger */}
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-xl">
+                                👤
                             </div>
-                            <div className="flex justify-end pt-2 border-t border-slate-50">
-                                <Button
-                                    onClick={handleSubmitPost}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 rounded-lg"
-                                >
-                                    게시하기
-                                </Button>
+                            <div
+                                onClick={() => setIsPostModalOpen(true)}
+                                className="flex-1 bg-slate-100 hover:bg-slate-200 transition-colors rounded-full px-5 py-3 text-slate-500 cursor-pointer font-medium"
+                            >
+                                {memorial.name}님에게 남기고 싶은 추억이 있나요?
+                            </div>
+                            <div
+                                onClick={() => setIsPostModalOpen(true)}
+                                className="p-2 hover:bg-slate-100 rounded-full cursor-pointer text-slate-400 transition-colors"
+                            >
+                                <span className="text-xl">🖼️</span>
                             </div>
                         </div>
 
@@ -189,6 +185,13 @@ export default function MemorialDetailPage({ params }: PageProps) {
                     </div>
                 </div>
             </main>
+
+            <CreatePostModal
+                isOpen={isPostModalOpen}
+                onClose={() => setIsPostModalOpen(false)}
+                onSubmit={handleCreatePost}
+                memorialName={memorial.name}
+            />
         </div>
     );
 }
