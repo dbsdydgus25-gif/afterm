@@ -6,6 +6,7 @@ import { X, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface WithdrawModalProps {
     isOpen: boolean;
@@ -56,11 +57,14 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 throw new Error(error.error || "탈퇴 처리 실패");
             }
 
+            const supabase = createClient();
+            await supabase.auth.signOut(); // Explicitly sign out from Supabase
+
             alert("회원 탈퇴가 완료되었습니다.");
             setUser(null);
             onClose();
             router.push("/");
-            router.refresh(); // Refresh stored auth state
+            router.refresh();
 
         } catch (error: any) {
             alert(error.message);
@@ -116,8 +120,8 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                                                 key={r}
                                                 onClick={() => setReason(r)}
                                                 className={`p-3 rounded-xl border text-sm cursor-pointer transition-all ${reason === r
-                                                        ? "border-blue-500 bg-blue-50 text-blue-700 font-medium"
-                                                        : "border-slate-200 hover:border-slate-300 text-slate-600"
+                                                    ? "border-blue-500 bg-blue-50 text-blue-700 font-medium"
+                                                    : "border-slate-200 hover:border-slate-300 text-slate-600"
                                                     }`}
                                             >
                                                 {r}

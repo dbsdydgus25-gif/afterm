@@ -61,9 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch("/api/auth/restore", { method: "POST" });
             if (!res.ok) throw new Error("복구 실패");
 
+            const supabase = createClient();
+            // Force refresh session to get new JWT without 'deleted_at'
+            const { error } = await supabase.auth.refreshSession();
+            if (error) throw error;
+
             alert("계정이 성공적으로 복구되었습니다!");
             setIsRestoreModalOpen(false);
-            window.location.reload(); // Reload to refresh session and metadata
+            window.location.reload();
         } catch (error) {
             alert("계정 복구 중 오류가 발생했습니다.");
             console.error(error);
