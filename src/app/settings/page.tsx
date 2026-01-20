@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { WithdrawModal } from "@/components/auth/WithdrawModal";
 import { User, Shield, CreditCard, LogOut, ChevronRight, Camera } from "lucide-react";
 
@@ -346,12 +347,13 @@ export default function SettingsPage() {
                                             {plan === 'pro' ? 'Active' : 'Basic'}
                                         </div>
                                     </div>
-                                    <Button
-                                        onClick={() => router.push("/plans")}
-                                        className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm"
-                                    >
-                                        플랜 업그레이드 / 관리
-                                    </Button>
+                                    <Link href="/plans" className="w-full">
+                                        <Button
+                                            className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm"
+                                        >
+                                            플랜 업그레이드 / 관리
+                                        </Button>
+                                    </Link>
                                 </div>
                             </div>
                         )}
