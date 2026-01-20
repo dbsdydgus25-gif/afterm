@@ -94,6 +94,24 @@ export default function OnboardingPage() {
 
             if (error) throw error;
 
+            // Send Welcome Email
+            try {
+                // Get email from user object or current session
+                const email = user.email;
+                if (email) {
+                    await fetch('/api/email/welcome', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email,
+                            name: name
+                        })
+                    });
+                }
+            } catch (emailError) {
+                console.error("Welcome email failed:", emailError);
+                // Don't block onboarding for email failure
+            }
+
             // Force session refresh to ensure next page load gets updated metadata
             await supabase.auth.refreshSession();
 

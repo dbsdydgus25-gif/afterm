@@ -237,7 +237,6 @@ export default function DashboardPage() {
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
-                                                <span className="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs font-bold">D-Day 전송</span>
                                                 <span className="text-xs text-slate-400">{new Date(msg.created_at).toLocaleDateString()} 작성</span>
                                             </div>
                                             <h3 className="text-lg font-bold text-slate-900">
