@@ -18,6 +18,7 @@ export default function Home() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
+  const [messageCount, setMessageCount] = useState(0);
 
   const { message, setMessage, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -36,6 +37,22 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch message count for limit check
+  useEffect(() => {
+    const fetchCount = async () => {
+      if (!user) return;
+      const supabase = createClient();
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true });
+
+      if (!error && count !== null) {
+        setMessageCount(count);
+      }
+    };
+    fetchCount();
+  }, [user]);
+
   const handleSubscribe = (plan: "Standard" | "Pro", price: string) => {
     setSelectedPlan({ name: plan, price });
     setIsPaymentOpen(true);
@@ -48,6 +65,14 @@ export default function Home() {
     }
 
     if (user) {
+      // Check Plan Limit
+      if (plan !== 'pro' && messageCount >= 1) {
+        if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n무제한 작성을 위해 업그레이드 하시겠습니까?")) {
+          handleSubscribe("Pro", "100원");
+        }
+        return;
+      }
+
       // Logged in -> Go to step 2 (Create Page -> Recipient Page)
       // Since we want to let them edit/add photos, we go to /create first
       router.push('/create');
@@ -637,6 +662,12 @@ export default function Home() {
             <Button
               onClick={() => {
                 if (user) {
+                  if (plan !== 'pro' && messageCount >= 1) {
+                    if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n무제한 작성을 위해 업그레이드 하시겠습니까?")) {
+                      handleSubscribe("Pro", "100원");
+                    }
+                    return;
+                  }
                   router.push('/create');
                 } else {
                   router.push('/login');

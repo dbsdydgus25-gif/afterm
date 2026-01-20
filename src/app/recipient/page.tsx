@@ -9,7 +9,8 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { message, messageId, setMessageId, recipient, setRecipient, user } = useMemoryStore();
+    const { message, messageId, setMessageId, recipient, setRecipient, user, plan } = useMemoryStore();
+    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -53,7 +54,7 @@ export default function RecipientPage() {
             const supabase = createClient();
 
             if (messageId) {
-                // Update existing message
+                // Update existing message -> OK regardless of plan (usually)
                 const { error } = await supabase
                     .from('messages')
                     .update({
@@ -67,6 +68,21 @@ export default function RecipientPage() {
 
                 if (error) throw error;
             } else {
+                // Insert new message -> Check Limit
+                if (plan !== 'pro') {
+                    const { count } = await supabase
+                        .from('messages')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', user.id);
+
+                    if (count !== null && count >= 1) {
+                        alert("무료 플랜은 1개의 메시지만 저장할 수 있습니다. 프로 플랜으로 업그레이드 해주세요.");
+                        // Ideally show payment modal here, but for now alert and maybe redirect or block
+                        setIsSaving(false);
+                        return;
+                    }
+                }
+
                 // Insert new message
                 const { error } = await supabase
                     .from('messages')

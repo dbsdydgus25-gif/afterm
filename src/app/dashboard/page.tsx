@@ -173,6 +173,11 @@ export default function DashboardPage() {
                                 {user?.name?.[0] || "U"}
                             </div>
                         )}
+                        {plan === 'pro' && (
+                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-xs">PRO</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="text-center sm:text-left">
@@ -197,11 +202,17 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
                         <span className="text-sm font-bold text-slate-400">남은 메시지</span>
-                        <div className="text-3xl font-black text-slate-900">{plan === 'pro' ? '∞' : (1 - messages.length)}<span className="text-lg text-slate-400 font-medium ml-1">/ {plan === 'pro' ? '무제한' : '1건'}</span></div>
+                        <div className="text-3xl font-black text-slate-900">
+                            {plan === 'pro' ? '∞' : Math.max(0, 1 - messages.length)}
+                            <span className="text-lg text-slate-400 font-medium ml-1">/ {plan === 'pro' ? '무제한' : '1건'}</span>
+                        </div>
                     </div>
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
                         <span className="text-sm font-bold text-slate-400">남은 용량</span>
-                        <div className="text-3xl font-black text-blue-600">{plan === 'pro' ? '100' : '0.01'}<span className="text-lg text-slate-400 font-medium ml-1">GB</span></div>
+                        <div className="text-3xl font-black text-blue-600">
+                            {plan === 'pro' ? '∞' : '5.0'}
+                            <span className="text-lg text-slate-400 font-medium ml-1">GB</span>
+                        </div>
                     </div>
                 </div>
 
