@@ -7,12 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (authorName: string, content: string, mediaFile: File | null) => void;
+    onSubmit: (content: string, mediaFile: File | null) => void;
     memorialName: string;
 }
 
 export function CreatePostModal({ isOpen, onClose, onSubmit, memorialName }: CreatePostModalProps) {
-    const [authorName, setAuthorName] = useState("");
     const [content, setContent] = useState("");
     const [mediaFile, setMediaFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -30,14 +29,13 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, memorialName }: Cre
     };
 
     const handleSubmit = () => {
-        if (!authorName.trim() || !content.trim()) {
-            alert("이름과 내용을 입력해주세요.");
+        if (!content.trim()) {
+            alert("내용을 입력해주세요.");
             return;
         }
-        onSubmit(authorName, content, mediaFile);
+        onSubmit(content, mediaFile);
 
         // Reset
-        setAuthorName("");
         setContent("");
         setMediaFile(null);
         setPreviewUrl(null);
@@ -57,19 +55,6 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, memorialName }: Cre
 
                 {/* Body */}
                 <div className="p-6 space-y-4">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xl shrink-0">
-                            👤
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="작성자 이름"
-                            value={authorName}
-                            onChange={(e) => setAuthorName(e.target.value)}
-                            className="font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none bg-transparent w-full text-lg"
-                        />
-                    </div>
-
                     <Textarea
                         placeholder={`${memorialName}님과의 소중한 추억을 남겨주세요...`}
                         value={content}
@@ -116,11 +101,11 @@ export function CreatePostModal({ isOpen, onClose, onSubmit, memorialName }: Cre
                 <div className="p-4 border-t border-slate-100 bg-slate-50/50">
                     <Button
                         onClick={handleSubmit}
-                        className={`w-full py-6 text-lg font-bold rounded-xl transition-all ${content.trim() && authorName.trim()
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20'
-                                : 'bg-slate-200 text-slate-400 cursor-not-allowed hidden-disabled'
+                        className={`w-full py-6 text-lg font-bold rounded-xl transition-all ${content.trim()
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed hidden-disabled'
                             }`}
-                        disabled={!content.trim() || !authorName.trim()}
+                        disabled={!content.trim()}
                     >
                         게시하기
                     </Button>

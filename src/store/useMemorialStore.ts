@@ -19,6 +19,7 @@ export interface Memorial {
     profileImage: string;
     coverImage: string;
     galleryImages?: string[]; // Added gallery support
+    tributeCount: number;
     posts: Post[];
 }
 
@@ -26,6 +27,7 @@ interface MemorialStore {
     memorials: Memorial[];
     getMemorial: (id: string) => Memorial | undefined;
     addPost: (memorialId: string, post: Omit<Post, 'id' | 'date' | 'likes'>) => void;
+    addTribute: (memorialId: string) => void;
 }
 
 const MOCK_MEMORIALS: Memorial[] = [
@@ -37,6 +39,7 @@ const MOCK_MEMORIALS: Memorial[] = [
         bio: '따뜻한 미소로 언제나 우리 곁을 지켜주었던 당신을 기억합니다.',
         profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
         coverImage: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=2070&auto=format&fit=crop',
+        tributeCount: 124,
         posts: [
             {
                 id: 'p1',
@@ -66,18 +69,13 @@ const MOCK_MEMORIALS: Memorial[] = [
         deathDate: '2026.01.05',
         bio: '세상에서 가장 밝게 빛나던 별, 영원히 우리 마음에.',
         profileImage: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-        coverImage: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?q=80&w=2560&auto=format&fit=crop', // Confirmed working or replaced if broken. The user said it's broken.
-        // Let's replace it with a safe one or assume the user wants it fixed. 
-        // User said "broken behind Lee Miyoung". 
-        // The current one in file is ...60f360e1d4b0... 
-        // I will change it to a known good one: https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop (Beach) or similar.
-        // Actually, let's use a nice starry sky or flowers.
-        // https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop (Nature)
+        coverImage: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?q=80&w=2560&auto=format&fit=crop',
         galleryImages: [
             'https://images.unsplash.com/photo-1501901609772-df0848060b33?q=80&w=2670&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=2070&auto=format&fit=crop',
             'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2669&auto=format&fit=crop'
         ],
+        tributeCount: 89,
         posts: [
             {
                 id: 'p3',
@@ -107,6 +105,17 @@ export const useMemorialStore = create<MemorialStore>((set, get) => ({
                         },
                         ...m.posts
                     ]
+                };
+            }
+            return m;
+        })
+    })),
+    addTribute: (memorialId) => set((state) => ({
+        memorials: state.memorials.map((m) => {
+            if (m.id === memorialId) {
+                return {
+                    ...m,
+                    tributeCount: (m.tributeCount || 0) + 1
                 };
             }
             return m;

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CreatePostModal } from "@/components/memorial/CreatePostModal";
 
+import { useMemoryStore } from "@/store/useMemoryStore";
+
 interface PageProps {
     params: Promise<{ id: string }>;
 }
@@ -18,12 +20,18 @@ export default function MemorialDetailPage({ params }: PageProps) {
     // Unwrap params using React.use()
     const { id } = use(params);
 
-    const { getMemorial, addPost } = useMemorialStore();
+    const { getMemorial, addPost, addTribute } = useMemorialStore();
+    const { user } = useMemoryStore();
     const memorial = getMemorial(id);
 
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
-    const handleCreatePost = (authorName: string, content: string, mediaFile: File | null) => {
+    const handleCreatePost = (content: string, mediaFile: File | null) => {
+        if (!user) {
+            alert("로그인이 필요한 서비스입니다.");
+            return;
+        }
+
         let mediaUrl = undefined;
         let mediaType: 'image' | 'video' | undefined = undefined;
 
@@ -34,11 +42,17 @@ export default function MemorialDetailPage({ params }: PageProps) {
         }
 
         addPost(id, {
-            authorName,
+            authorName: user.name,
             content,
             mediaUrl,
             mediaType
         });
+
+        setIsPostModalOpen(false);
+    };
+
+    const handleTribute = () => {
+        addTribute(id);
     };
 
     if (!memorial) {
@@ -96,8 +110,12 @@ export default function MemorialDetailPage({ params }: PageProps) {
                         </div>
 
                         <div className="pb-2 md:pb-6 w-full md:w-auto flex justify-center">
-                            <Button className="bg-slate-200 text-slate-800 hover:bg-slate-300 font-bold px-6">
-                                <span className="mr-2">🕯️</span> 추모하기
+                            <Button
+                                onClick={handleTribute}
+                                className="bg-white/90 backdrop-blur text-slate-800 border border-slate-200 hover:bg-slate-50 font-bold px-6 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col items-center gap-1 min-w-[100px]"
+                            >
+                                <span className="text-2xl">🕯️</span>
+                                <span className="text-xs text-slate-500 font-medium">{memorial.tributeCount}명이 추모함</span>
                             </Button>
                         </div>
                     </div>
