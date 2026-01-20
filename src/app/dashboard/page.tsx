@@ -81,11 +81,6 @@ export default function DashboardPage() {
                                         <LogOut className="w-4 h-4" /> 로그아웃
                                     </button>
                                 </div>
-                                <div className="p-1 border-t border-slate-50">
-                                    <button onClick={handleDeleteAccount} className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-slate-50 hover:text-slate-500 rounded-lg flex items-center gap-2 transition-colors">
-                                        <Trash2 className="w-3 h-3" /> 회원 탈퇴
-                                    </button>
-                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
