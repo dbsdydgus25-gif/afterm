@@ -70,32 +70,40 @@ export async function POST(request: Request) {
             // Continue even if archive fails? Or stop? 
             // Generally better to stop or log heavily. Let's stop to be safe.
             return NextResponse.json(
-                { error: "회원 탈퇴 처리 중 오류가 발생했습니다. (Archive Failed)" },
+                { error: `회원 탈퇴 처리 중 오류가 발생했습니다. (Archive Failed: ${archiveError.message})` },
                 { status: 500 }
             );
         }
 
-        // 5. Delete User from Supabase Auth (This cascades to public tables if foreign keys are set up with cascading delete)
-        // NOTE: In our schema, we should ensure 'on delete cascade' is set for user_id fields in posts/memorials.
-        // However, if we want to keep the content anonymized (as requested "delete from existing members"), 
-        // usually cascade delete removes it.
-        // If the user wants to keep content but anonymize, that's different.
-        // The request said "기존 회원에선 삭제되고" which implies full removal or at least removal from auth system.
+        // 5. Soft Delete: Mark as deleted in user_metadata
+        // We do NOT ban the user, so they can login to restore the account.
+        // The frontend (AuthProvider) will check this metadata and block access/show restore modal.
 
-        const { error: deleteError } = await adminAuthClient.auth.admin.deleteUser(
-            user.id
+        const { error: updateError } = await adminAuthClient.auth.admin.updateUserById(
+            user.id,
+            {
+                user_metadata: {
+                    ...user.user_metadata,
+                    deleted_at: new Date().toISOString()
+                }
+            }
         );
 
-        if (deleteError) {
-            console.error("Delete Error:", deleteError);
+        if (updateError) {
+            console.error("Soft Delete Error:", updateError);
             return NextResponse.json(
-                { error: "회원 삭제 실패" },
+                { error: "회원 탈퇴 처리 실패 (Metadata Update Error)" },
                 { status: 500 }
             );
         }
 
-        // 6. Sign Out from Session
-        await supabase.auth.signOut();
+        // 6. Sign Out from Session is handled by the client usually, but we can do it here too just in case?
+        // Actually, for the API flow, we don't need to sign out on server side if client handles it.
+        // But let's proceed to success.
+
+        // Note: We don't sign out server-side using 'supabase.auth.signOut()' because we are in an API route context
+        // and it might not clear the client cookie fully without response headers.
+        // The client-side 'WithdrawModal' handles the router.push and state clear.
 
         return NextResponse.json({ success: true });
 
