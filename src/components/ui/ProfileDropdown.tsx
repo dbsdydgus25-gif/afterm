@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { User, LogOut, CreditCard, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 interface ProfileDropdownProps {
@@ -65,10 +65,10 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                                 <User className="w-4 h-4" /> 내 정보
                             </button>
                             <button
-                                onClick={() => { setIsMenuOpen(false); onNavigate("/settings"); }}
+                                onClick={() => { setIsMenuOpen(false); onNavigate("/plans"); }}
                                 className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                             >
-                                <Settings className="w-4 h-4" /> 설정
+                                <CreditCard className="w-4 h-4" /> 플랜 관리
                             </button>
                         </div>
                         <div className="p-1 border-t border-slate-50">
