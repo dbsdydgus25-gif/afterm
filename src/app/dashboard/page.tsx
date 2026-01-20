@@ -210,7 +210,7 @@ export default function DashboardPage() {
                     <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-28 md:h-32">
                         <span className="text-sm font-bold text-slate-400">남은 용량</span>
                         <div className="text-2xl md:text-3xl font-black text-blue-600">
-                            {plan === 'pro' ? '∞' : '5.0'}
+                            {plan === 'pro' ? '1.0' : '0.01'}
                             <span className="text-lg text-slate-400 font-medium ml-1">GB</span>
                         </div>
                     </div>
