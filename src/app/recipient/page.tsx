@@ -71,12 +71,10 @@ export default function RecipientPage() {
 
                 if (uploadError) throw uploadError;
 
-                const { data: { publicUrl } } = supabase.storage
-                    .from('memories')
-                    .getPublicUrl(path);
-
-                fileUrl = publicUrl;
+                // For private buckets, we cannot use publicUrl.
+                // We will only store the filePath, and generate Signed URL on demand.
                 filePath = path;
+                fileUrl = null; // No static public URL
                 fileSize = messageFile.size;
             }
 
