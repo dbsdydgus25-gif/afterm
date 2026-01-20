@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { useMemoryStore } from "@/store/useMemoryStore";
 
+import { createClient } from "@/lib/supabase/client";
+
 interface HeaderProps {
     transparentOnTop?: boolean;
 }
@@ -16,7 +18,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const pathname = usePathname();
     const { user, setUser, plan } = useMemoryStore();
     const [isScrolled, setIsScrolled] = useState(false);
-    const { createClient } = require("@/lib/supabase/client");
 
     const handleLogout = async () => {
         const supabase = createClient();
