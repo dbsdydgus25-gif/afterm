@@ -253,7 +253,32 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                <StorageWidget plan={plan} userId={user?.id} />
+                {/* Stats Section: Messages & Storage */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left: Message Usage */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 메시지</h3>
+                        <div className="flex items-end gap-2 mb-2">
+                            <span className="text-3xl font-bold text-slate-900">
+                                {plan === 'pro' ? '∞' : Math.max(0, 1 - messages.length)}
+                            </span>
+                            <span className="text-sm text-slate-400 mb-1">
+                                / {plan === 'pro' ? '무제한' : '1개'}
+                            </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                style={{ width: plan === 'pro' ? '100%' : `${(messages.length / 1) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right: Storage Usage */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <StorageWidget plan={plan} userId={user?.id} />
+                    </div>
+                </section>
 
                 {/* My Memories List (Text Centric) */}
                 <section className="space-y-6">
