@@ -76,3 +76,16 @@ $$ language plpgsql security definer;
 create trigger on_tribute_created
   after insert on public.tributes
   for each row execute procedure public.handle_new_tribute();
+
+-- Create Deleted Users Table (For Archival)
+create table public.deleted_users (
+  id uuid not null primary key, -- Keep the original ID for reference
+  email text,
+  reason text,
+  deleted_at timestamp with time zone default now()
+);
+
+-- Only Service Role can access this table (No Public RLS Policy needed if we don't grant select to anon/authenticated)
+alter table public.deleted_users enable row level security;
+-- No policies means default deny for public/authenticated, which is what we want.
+-- Only the service_role (server-side) can write to it.
