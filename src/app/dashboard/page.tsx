@@ -73,10 +73,19 @@ export default function DashboardPage() {
     const handleEdit = (msg: Message | any) => {
         setMessage(msg.content);
         setMessageId(msg.id); // Set ID for update
+
+        // Map legacy English relationships to Korean
+        let rel = msg.recipient_relationship || '';
+        if (rel === 'family') rel = '가족';
+        else if (rel === 'friend') rel = '친구';
+        else if (rel === 'lover') rel = '연인';
+        else if (rel === 'colleague') rel = '동료';
+        else if (rel === 'other') rel = '기타';
+
         setRecipient({
             name: msg.recipient_name,
-            phone: msg.recipient_phone || '', // Fix: Pass phone number correctly
-            relationship: msg.recipient_relationship || ''
+            phone: msg.recipient_phone || '',
+            relationship: rel
         });
         // We navigate to the unified edit page now
         router.push("/dashboard/edit");

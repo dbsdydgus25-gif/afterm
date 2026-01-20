@@ -457,15 +457,15 @@ export default function Home() {
                       desc: "최근 젊은 층 사이에서 유행하는 '유언장 미리 쓰기'와 웰다잉 트렌드 소개.",
                       icon: "📝",
                       color: "bg-orange-50",
-                      link: "https://www.google.com/search?q=site:mk.co.kr+%EC%97%84%EB%A7%88+%EC%A0%80+%EC%97%86%EC%9D%B4%EB%8F%84+%EC%9E%98+%EC%A7%80%EB%82%B4%EC%84%B8%EC%9A%94+%EC%A3%BD%EC%9D%8C+%EB%AF%B8%EB%A6%AC+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+MZ%EB%93%A4"
+                      link: "https://www.mk.co.kr/news/society/11236750"
                     },
                     {
-                      source: "[YTN 사이언스]",
+                      source: "[매일신문]",
                       title: "삶을 아름답게 마무리하는 '웰다잉' 문화",
                       desc: "갑작스러운 죽음에 대비해 미리 엔딩노트를 작성하고 주변을 정리하는 문화 확산.",
                       icon: "🌿",
                       color: "bg-green-50",
-                      link: "https://www.google.com/search?q=site:ytn.co.kr+%EC%82%B6%EC%9D%84+%EC%95%84%EB%A6%84%EB%8B%B5%EA%B2%8C+%EB%A7%88%EB%AC%B4%EB%A6%AC%ED%95%98%EB%8A%94+%EC%9B%B0%EB%8B%A4%EC%9E%89+%EB%AC%B8%ED%99%94"
+                      link: "https://www.imaeil.com/page/view/2023090509410052313"
                     },
                     {
                       source: "[시사저널]",
@@ -473,7 +473,7 @@ export default function Home() {
                       desc: "예고 없는 죽음이 남은 가족에게 주는 충격을 줄이기 위해 평소 준비가 필요하다는 전문가 인터뷰.",
                       icon: "⏳",
                       color: "bg-purple-50",
-                      link: "https://www.google.com/search?q=site:sisajournal.com+%EC%A3%BD%EC%9D%8C+%EC%A4%80%EB%B9%84%ED%95%98%EB%8A%94+%EC%82%AC%EB%9E%8C%EC%9D%B4+%EB%8A%98%EA%B3%A0+%EC%9E%88%EB%8B%A4"
+                      link: "https://www.sisajournal.com/news/articleView.html?idxno=126253"
                     },
                     {
                       source: "[대학신문]",
@@ -481,7 +481,7 @@ export default function Home() {
                       desc: "싸이월드, SNS 등 고인이 남긴 디지털 기록을 가족에게 어떻게 전달할 것인가에 대한 이슈.",
                       icon: "💻",
                       color: "bg-blue-50",
-                      link: "https://www.google.com/search?q=site:snunews.com+%EC%82%AC%EB%9E%8C%EC%9D%80+%EC%A3%BD%EC%96%B4%EC%84%9C+%EC%95%84%EC%9D%B4%EB%94%94%EB%A5%BC+%EB%82%A8%EA%B8%B8%EA%B9%8C+%EB%94%94%EC%A7%80%ED%84%B8+%EC%9C%A0%EC%82%B0%EC%9D%98+%EC%8B%9C%EB%8C%80"
+                      link: "https://www.snunews.com/news/articleView.html?idxno=30935"
                     },
                     {
                       source: "[한겨레]",
@@ -489,15 +489,15 @@ export default function Home() {
                       desc: "장례식이 슬픈 이별식이 아니라, 소중한 사람들과 나누는 마지막 파티가 될 수 있음을 보여주는 사례.",
                       icon: "🎉",
                       color: "bg-red-50",
-                      link: "https://www.google.com/search?q=site:hani.co.kr+%EB%82%B4+%EC%9E%A5%EB%A1%80%EC%8B%9D%EC%9D%80+%EC%B6%95%EC%A0%9C%EC%B2%98%EB%9F%BC+%EB%B0%B0%EC%9A%B0+%EB%B0%95%EC%A0%95%EC%9E%90%EC%9D%98+%EC%83%9D%EC%A0%84+%EC%9E%A5%EB%A1%80%EC%8B%9D"
+                      link: "https://www.hani.co.kr/arti/opinion/column/1201177.html"
                     },
                     {
-                      source: "[동아일보]",
+                      source: "[중앙일보]",
                       title: "출산보다 많아진 죽음… 내 마지막은 내가 디자인한다",
                       desc: "1인 가구 증가와 고령화로 인해 스스로 자신의 마지막을 계획하고 준비하는 사회적 변화.",
                       icon: "📊",
                       color: "bg-indigo-50",
-                      link: "https://www.google.com/search?q=site:donga.com+%EC%B6%9C%EC%82%B0%EB%B3%B4%EB%8B%A4+%EB%A7%8E%EC%95%84%EC%A7%84+%EC%A3%BD%EC%9D%8C+%EB%82%B4+%EB%A7%88%EC%A7%80%EB%A7%89%EC%9D%80+%EB%82%B4%EA%B0%80+%EB%94%94%EC%9E%90%EC%9D%B8%ED%95%9C%EB%8B%A4"
+                      link: "https://www.joongang.co.kr/article/25338613"
                     }
                   ],
                   // Duplicate for infinite loop
