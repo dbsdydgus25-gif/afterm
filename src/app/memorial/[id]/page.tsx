@@ -112,10 +112,10 @@ export default function MemorialDetailPage({ params }: PageProps) {
                         <div className="pb-2 md:pb-6 w-full md:w-auto flex justify-center">
                             <Button
                                 onClick={handleTribute}
-                                className="bg-white/90 backdrop-blur text-slate-800 border border-slate-200 hover:bg-slate-50 font-bold px-6 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col items-center gap-1 min-w-[100px]"
+                                className="bg-white/90 backdrop-blur text-slate-800 border border-slate-200 hover:bg-slate-50 font-bold px-6 py-4 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 flex items-center gap-2 min-w-[100px]"
                             >
-                                <span className="text-2xl">🕯️</span>
-                                <span className="text-xs text-slate-500 font-medium">{memorial.tributeCount}명이 추모함</span>
+                                <span className="text-red-500 text-2xl">❤️</span>
+                                <span className="text-lg font-medium text-slate-700">{memorial.tributeCount}명</span>
                             </Button>
                         </div>
                     </div>
