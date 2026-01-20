@@ -318,7 +318,15 @@ export default function DashboardPage() {
 
                                     {imageUrls[msg.id] && (
                                         <div className="mt-4 rounded-xl overflow-hidden border border-slate-100">
-                                            <img src={imageUrls[msg.id]} alt="Attachment" className="w-full h-auto max-h-64 object-cover" />
+                                            <img
+                                                src={imageUrls[msg.id]}
+                                                alt="Attachment"
+                                                className="w-full h-auto max-h-64 object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement?.style.setProperty('display', 'none');
+                                                }}
+                                            />
                                         </div>
                                     )}
 

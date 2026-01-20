@@ -16,7 +16,7 @@ export default function RecipientPage() {
     const [formData, setFormData] = useState({
         name: recipient.name,
         phone: recipient.phone,
-        relationship: recipient.relationship || "family",
+        relationship: recipient.relationship || "가족",
         agreed: false
     });
 
@@ -222,17 +222,37 @@ export default function RecipientPage() {
                             <label className="text-sm font-medium leading-none flex items-center gap-2">
                                 <Heart className="w-4 h-4 text-primary" /> 관계
                             </label>
-                            <select
-                                value={formData.relationship}
-                                onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
-                                className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            >
-                                <option value="family">가족</option>
-                                <option value="friend">친구</option>
-                                <option value="lover">연인</option>
-                                <option value="colleague">동료</option>
-                                <option value="other">기타</option>
-                            </select>
+                            <div className="space-y-2">
+                                <select
+                                    value={['가족', '친구', '연인', '동료'].includes(formData.relationship) ? formData.relationship : '기타'}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '기타') {
+                                            setFormData({ ...formData, relationship: '' }); // Clear to force user input
+                                        } else {
+                                            setFormData({ ...formData, relationship: val });
+                                        }
+                                    }}
+                                    className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                >
+                                    <option value="가족">가족</option>
+                                    <option value="친구">친구</option>
+                                    <option value="연인">연인</option>
+                                    <option value="동료">동료</option>
+                                    <option value="기타">기타 (직접 입력)</option>
+                                </select>
+
+                                {(!['가족', '친구', '연인', '동료'].includes(formData.relationship)) && (
+                                    <input
+                                        type="text"
+                                        value={formData.relationship}
+                                        onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                                        placeholder="직접 입력 (예: 이웃, 선생님)"
+                                        className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring animate-in fade-in slide-in-from-top-2"
+                                        autoFocus
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
 

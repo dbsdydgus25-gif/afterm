@@ -254,13 +254,37 @@ export default function EditMessagePage() {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold text-slate-500">관계</label>
-                                <input
-                                    type="text"
-                                    value={recipient.relationship}
-                                    onChange={(e) => setRecipient({ ...recipient, relationship: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
-                                    placeholder="가족, 친구..."
-                                />
+                                <div className="space-y-2">
+                                    <select
+                                        value={['가족', '친구', '연인', '동료'].includes(recipient.relationship) ? recipient.relationship : '기타'}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '기타') {
+                                                setRecipient({ ...recipient, relationship: '' }); // Clear for custom input
+                                            } else {
+                                                setRecipient({ ...recipient, relationship: val });
+                                            }
+                                        }}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium appearance-none"
+                                    >
+                                        <option value="가족">가족</option>
+                                        <option value="친구">친구</option>
+                                        <option value="연인">연인</option>
+                                        <option value="동료">동료</option>
+                                        <option value="기타">기타 (직접 입력)</option>
+                                    </select>
+
+                                    {(!['가족', '친구', '연인', '동료'].includes(recipient.relationship)) && (
+                                        <input
+                                            type="text"
+                                            value={recipient.relationship}
+                                            onChange={(e) => setRecipient({ ...recipient, relationship: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium animate-in fade-in slide-in-from-top-1"
+                                            placeholder="직접 입력 (예: 이웃, 선생님)"
+                                            autoFocus
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2">
