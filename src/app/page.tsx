@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
-import { AuthModal } from "@/components/auth/AuthModal";
+// import { AuthModal } from "@/components/auth/AuthModal";
 import { PaymentModal } from "@/components/payment/PaymentModal";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
@@ -123,7 +123,7 @@ export default function Home() {
                   if (user) {
                     router.push('/create');
                   } else {
-                    setIsModalOpen(true);
+                    router.push('/login');
                   }
                 }}
                 className="w-full sm:w-auto px-12 py-6 text-lg sm:text-xl font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95"
@@ -620,7 +620,7 @@ export default function Home() {
                 if (user) {
                   router.push('/create');
                 } else {
-                  setIsModalOpen(true);
+                  router.push('/login');
                 }
               }}
               size="lg"
@@ -632,7 +632,7 @@ export default function Home() {
         </section>
       </main>
 
-      <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
       <PaymentModal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
