@@ -19,6 +19,13 @@ export default function OnboardingPage() {
     const [bio, setBio] = useState("");
     const [phone, setPhone] = useState("");
     const [profileImage, setProfileImage] = useState("");
+
+    // Verification States
+    const [verificationCode, setVerificationCode] = useState("");
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    const [timer, setTimer] = useState(0);
+
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -31,10 +38,24 @@ export default function OnboardingPage() {
             const metaPhone = user.user_metadata?.phone || "";
             if (metaPhone) {
                 setPhone(metaPhone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
+                // If phone existed, do we assume verified? Maybe not for new logic. Let's require re-verify or trust?
+                // User said "All users must verify". So we force verify even if pre-filled.
+                // But if they are just editing? This is ONBOARDING page. So strictly for new setup.
             }
             setProfileImage(user.user_metadata?.avatar_url || user.image || "");
         }
     }, [user]);
+
+    // Timer Logic
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isCodeSent && timer > 0) {
+            interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+        } else if (timer === 0) {
+            // clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [isCodeSent, timer]);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -70,6 +91,59 @@ export default function OnboardingPage() {
         }
     };
 
+    const handleSendVerification = async () => {
+        if (!phone || phone.length < 10) {
+            alert("올바른 휴대폰 번호를 입력해주세요.");
+            return;
+        }
+
+        try {
+            // Reset verification state if retrying
+            setIsVerified(false);
+            setVerificationCode("");
+
+            const res = await fetch('/api/verify/send', {
+                method: 'POST',
+                body: JSON.stringify({ phone })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setIsCodeSent(true);
+                setTimer(180); // 3 minutes
+                alert("인증번호가 발송되었습니다.");
+            } else {
+                alert("발송 실패: " + data.error);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("발송 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleConfirmVerification = async () => {
+        if (!verificationCode) return;
+
+        try {
+            const res = await fetch('/api/verify/confirm', {
+                method: 'POST',
+                body: JSON.stringify({ phone, code: verificationCode })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setIsVerified(true);
+                setIsCodeSent(false); // Hide input or keep it showing verified status
+                alert("인증이 완료되었습니다!");
+            } else {
+                alert("인증번호가 올바르지 않거나 만료되었습니다.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("인증 확인 중 오류가 발생했습니다.");
+        }
+    };
+
     const handleComplete = async () => {
         if (!name.trim()) {
             alert("이름을 입력해주세요.");
@@ -81,6 +155,10 @@ export default function OnboardingPage() {
         }
         if (!phone.trim()) {
             alert("휴대폰 번호를 입력해주세요.");
+            return;
+        }
+        if (!isVerified) {
+            alert("휴대폰 인증을 완료해주세요.");
             return;
         }
 
@@ -127,40 +205,17 @@ export default function OnboardingPage() {
 
             if (authError) console.error("Auth metadata update failed:", authError);
 
-            // 3. Send Notifications (Conditionally)
-            const isFirstTime = !user.user_metadata?.onboarding_completed;
-            const provider = user.app_metadata?.provider;
-            // provider can be 'google', 'kakao', 'email' etc.
-
-            // Logic: Send SMS ONLY if it's the first time verified AND NOT Google (assuming Google sends Email)
-            // Or explicitly if it IS Kakao (as requested)
-            const shouldSendSMS = isFirstTime && (provider === 'kakao' || provider !== 'google');
-
-            if (shouldSendSMS) {
-                try {
-                    await fetch('/api/notifications/welcome', {
+            // 3. Send Welcome Email ONLY (New Requirement)
+            try {
+                const email = user.email;
+                if (email) {
+                    await fetch('/api/email/welcome', {
                         method: 'POST',
-                        body: JSON.stringify({
-                            phone: phone.replace(/-/g, ''),
-                            name: name
-                        })
+                        body: JSON.stringify({ email, name })
                     });
-                } catch (smsError) {
-                    console.error("Welcome SMS failed:", smsError);
                 }
-            } else if (isFirstTime && provider === 'google') {
-                // Google users get the email (existing logic)
-                try {
-                    const email = user.email;
-                    if (email) {
-                        await fetch('/api/email/welcome', {
-                            method: 'POST',
-                            body: JSON.stringify({ email, name })
-                        });
-                    }
-                } catch (emailError) {
-                    console.error("Welcome email failed:", emailError);
-                }
+            } catch (emailError) {
+                console.error("Welcome email failed:", emailError);
             }
 
             // Force session refresh
@@ -194,7 +249,7 @@ export default function OnboardingPage() {
                 <div className="text-center mb-10">
                     <h1 className="text-2xl font-black text-slate-900 mb-2">환영합니다! 👋</h1>
                     <p className="text-slate-500">
-                        서비스를 이용하기 전,<br />간단한 프로필을 설정해주세요.
+                        서비스를 이용하기 전,<br />간단한 본인확인을 진행해주세요.
                     </p>
                 </div>
 
@@ -250,18 +305,54 @@ export default function OnboardingPage() {
                                 className="w-full p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
                             />
                         </div>
+
+                        {/* Phone Verification Section */}
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호 <span className="text-blue-500">*</span></label>
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
-                                placeholder="010-0000-0000"
-                                maxLength={13}
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
-                            />
-                            <p className="text-xs text-slate-400 mt-1 pl-1">가입 환영 메시지와 중요 알림을 위해 사용됩니다.</p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
+                                    placeholder="010-0000-0000"
+                                    maxLength={13}
+                                    disabled={isVerified} // Disable if verified
+                                    className="flex-1 p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-500"
+                                />
+                                <Button
+                                    onClick={handleSendVerification}
+                                    disabled={isVerified || isCodeSent && timer > 0}
+                                    className="h-auto whitespace-nowrap rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold px-4"
+                                >
+                                    {isVerified ? "인증완료" : isCodeSent ? `재전송 (${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, '0')})` : "인증번호"}
+                                </Button>
+                            </div>
+
+                            {/* Verification Code Input */}
+                            {isCodeSent && !isVerified && (
+                                <div className="mt-2 flex gap-2 animate-in fade-in slide-in-from-top-2">
+                                    <input
+                                        type="text"
+                                        value={verificationCode}
+                                        onChange={(e) => setVerificationCode(e.target.value)}
+                                        placeholder="인증번호 6자리"
+                                        maxLength={6}
+                                        className="flex-1 p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
+                                    />
+                                    <Button
+                                        onClick={handleConfirmVerification}
+                                        className="h-auto whitespace-nowrap rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6"
+                                    >
+                                        확인
+                                    </Button>
+                                </div>
+                            )}
+
+                            <p className="text-xs text-slate-400 mt-1 pl-1">
+                                {isVerified ? "휴대폰 인증이 완료되었습니다." : "본인 확인을 위해 휴대폰 인증이 필요합니다."}
+                            </p>
                         </div>
+
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">한 줄 소개 <span className="text-slate-400 font-normal">(선택)</span></label>
                             <textarea
@@ -276,8 +367,8 @@ export default function OnboardingPage() {
 
                     <Button
                         onClick={handleComplete}
-                        disabled={isSaving}
-                        className="w-full h-14 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20"
+                        disabled={isSaving || !isVerified}
+                        className="w-full h-14 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none transition-all"
                     >
                         {isSaving ? "설정 저장 중..." : "시작하기"}
                     </Button>
