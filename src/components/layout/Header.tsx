@@ -24,6 +24,20 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const { user, setUser, plan } = useMemoryStore();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isProfileStatsOpen, setIsProfileStatsOpen] = useState(false);
+    const [messageCount, setMessageCount] = useState(0);
+
+    // Fetch message count for stats
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (isMobileMenuOpen && user) {
+                const supabase = createClient();
+                const { count } = await supabase.from('messages').select('*', { count: 'exact', head: true });
+                if (count !== null) setMessageCount(count);
+            }
+        };
+        fetchStats();
+    }, [isMobileMenuOpen, user]);
 
     const handleLogout = async () => {
         const supabase = createClient();
@@ -109,12 +123,11 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     onNavigate={(path) => router.push(path)}
                                 />
                             ) : (
-                                <Link href="/login">
-                                    <Button
-                                        className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
-                                    >
-                                        로그인
-                                    </Button>
+                                <Link
+                                    href="/login"
+                                    className="rounded-lg px-6 h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all font-bold text-sm tracking-tight flex items-center justify-center hover:scale-[1.02]"
+                                >
+                                    로그인
                                 </Link>
                             )}
                         </nav>
@@ -162,22 +175,21 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 </Link>
 
                                 {!user && (
-                                    <Link href="/login" className="pt-2">
-                                        <Button className="w-full text-lg h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white">
-                                            로그인
-                                        </Button>
+                                    <Link
+                                        href="/login"
+                                        className="pt-2 w-full flex items-center justify-center rounded-lg text-lg h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                                    >
+                                        로그인
                                     </Link>
                                 )}
 
                                 {user && (
                                     <div className="pt-2 flex flex-col gap-3">
-                                        {/* Clickable Profile Card */}
+                                        {/* Clickable Profile Card (Expands for Stats) */}
                                         <div
-                                            onClick={() => {
-                                                router.push('/settings');
-                                                setIsMobileMenuOpen(false);
-                                            }}
-                                            className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors active:scale-[0.98]"
+                                            onClick={() => setIsProfileStatsOpen(!isProfileStatsOpen)}
+                                            className={`flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all ${isProfileStatsOpen ? "bg-blue-50/50 ring-1 ring-blue-100" : "bg-slate-50 hover:bg-slate-100"
+                                                }`}
                                         >
                                             {user.user_metadata?.avatar_url || user.image ? (
                                                 <SecureAvatar
@@ -190,37 +202,83 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                     {user.name?.[0]}
                                                 </div>
                                             )}
-                                            <div>
-                                                <p className="font-bold text-slate-900 text-lg">{user.name}</p>
-                                                <p className="text-sm text-slate-500">{user.email}</p>
-                                            </div>
-                                            <div className="ml-auto opacity-50">
-                                                <span className="text-xl">›</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 text-lg">{user.name}</p>
+                                                        <p className="text-sm text-slate-500 truncate">{user.email}</p>
+                                                    </div>
+                                                    <span className={`transform transition-transform ${isProfileStatsOpen ? "rotate-90" : ""}`}>
+                                                        ›
+                                                    </span>
+                                                </div>
+
+                                                {/* Expanded Stats Area */}
+                                                <AnimatePresence>
+                                                    {isProfileStatsOpen && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: "auto" }}
+                                                            exit={{ opacity: 0, height: 0 }}
+                                                            className="mt-4 space-y-3 overflow-hidden"
+                                                        >
+                                                            <div className="h-px bg-blue-100/50 mb-3" />
+
+                                                            <div className="bg-white rounded-lg p-3 border border-blue-100 shadow-sm">
+                                                                <div className="flex justify-between items-center text-sm mb-1">
+                                                                    <span className="text-slate-500">남은 메시지</span>
+                                                                    <span className="font-bold text-blue-600">
+                                                                        {plan === 'pro' ? '무제한' : (1 - (messageCount || 0)) + '개'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-sm">
+                                                                    <span className="text-slate-500">남은 용량</span>
+                                                                    <span className="font-bold text-slate-700">
+                                                                        {plan === 'pro' ? '1GB' : '10MB'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <Button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    router.push('/dashboard/memories');
+                                                                    setIsMobileMenuOpen(false);
+                                                                }}
+                                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 text-sm font-bold shadow-md shadow-blue-200"
+                                                            >
+                                                                💌 나의 기억 보관함
+                                                            </Button>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
 
-                                        {/* Mobile User Actions */}
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <Button
-                                                onClick={() => {
-                                                    router.push('/settings');
-                                                    setIsMobileMenuOpen(false);
-                                                }}
-                                                variant="outline"
-                                                className="h-12 border-slate-200 text-slate-700 bg-white"
-                                            >
-                                                내 정보
-                                            </Button>
-                                            <Button
-                                                onClick={() => {
-                                                    router.push('/plans');
-                                                    setIsMobileMenuOpen(false);
-                                                }}
-                                                variant="outline"
-                                                className="h-12 border-slate-200 text-slate-700 bg-white"
-                                            >
-                                                플랜 관리
-                                            </Button>
+                                        {/* Settings Group */}
+                                        <div className="space-y-1 pt-2">
+                                            <p className="text-xs font-bold text-slate-400 px-1 mb-2">설정</p>
+                                            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                                                {[
+                                                    { name: "내 정보", tab: "profile" },
+                                                    { name: "계정 설정", tab: "security" },
+                                                    { name: "멤버십", tab: "billing" }
+                                                ].map((item, idx) => (
+                                                    <div key={item.tab}>
+                                                        <button
+                                                            onClick={() => {
+                                                                router.push(`/settings?tab=${item.tab}`);
+                                                                setIsMobileMenuOpen(false);
+                                                            }}
+                                                            className="w-full text-left px-4 py-3.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-between"
+                                                        >
+                                                            {item.name}
+                                                            <span className="text-slate-300">›</span>
+                                                        </button>
+                                                        {idx !== 2 && <div className="h-px bg-slate-50 mx-4" />}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         <Button

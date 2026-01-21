@@ -11,12 +11,109 @@ import { WithdrawModal } from "@/components/auth/WithdrawModal";
 import { User, Shield, CreditCard, LogOut, ChevronRight, Camera } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
+import { MessageList } from "@/components/dashboard/MessageList";
+
+// Sub-component for Memories Tab to handle its own data fetching
+function MemoriesTabContent() {
+    const { user, setMessage, setMessageId, setRecipient } = useMemoryStore();
+    const router = useRouter();
+    const [messages, setMessages] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (!user) return;
+            const supabase = createClient();
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!error) {
+                setMessages(data || []);
+                const urls: { [key: string]: string } = {};
+                for (const msg of (data || [])) {
+                    if (msg.file_path) {
+                        const { data: signedData } = await supabase.storage
+                            .from('memories')
+                            .createSignedUrl(msg.file_path, 3600);
+                        if (signedData?.signedUrl) {
+                            urls[msg.id] = signedData.signedUrl;
+                        }
+                    }
+                }
+                setImageUrls(urls);
+            }
+            setLoading(false);
+        };
+        fetchMessages();
+    }, [user]);
+
+    const handleEdit = (msg: any) => {
+        setMessage(msg.content);
+        setMessageId(msg.id);
+
+        let rel = msg.recipient_relationship || '';
+        if (rel === 'family') rel = '가족';
+        else if (rel === 'friend') rel = '친구';
+        else if (rel === 'lover') rel = '연인';
+        else if (rel === 'colleague') rel = '동료';
+        else if (rel === 'other') rel = '기타';
+
+        setRecipient({
+            name: msg.recipient_name,
+            phone: msg.recipient_phone || '',
+            relationship: rel
+        });
+        router.push("/dashboard/edit");
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("정말로 삭제하시겠습니까?")) return;
+        const supabase = createClient();
+
+        const { data: msg } = await supabase.from('messages').select('file_path').eq('id', id).single();
+
+        const { error } = await supabase.from('messages').delete().eq('id', id);
+        if (error) { alert("삭제 실패"); return; }
+
+        if (msg?.file_path) {
+            await supabase.storage.from('memories').remove([msg.file_path]);
+        }
+
+        setMessages(prev => prev.filter(m => m.id !== id));
+    };
+
+    return (
+        <div>
+            <h2 className="text-xl font-bold text-slate-900 mb-1">나의 기억</h2>
+            <p className="text-sm text-slate-500 mb-8 border-b border-slate-100 pb-4">
+                남겨둔 메시지를 확인하고 관리합니다.
+            </p>
+            <MessageList
+                messages={messages}
+                loading={loading}
+                imageUrls={imageUrls}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onCreateNew={() => router.push('/create')}
+            />
+        </div>
+    );
+}
+
+import { useSearchParams } from "next/navigation";
+
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing">("profile");
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories" || "profile";
+    const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing" | "memories">(initialTab);
     const { user, setUser, plan } = useMemoryStore();
     const router = useRouter();
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isAuthChecking, setIsAuthChecking] = useState(true);
 
     // Profile Edit States
     const [customName, setCustomName] = useState("");
@@ -29,124 +126,25 @@ export default function SettingsPage() {
         setMounted(true);
         if (user) {
             setCustomName(user.name || "");
-            // Initialize other fields from metadata if available (assuming user object has them or we fetch them)
-            // For now, we will rely on what's in user object or empty strings
-            // Ideally user object in store should be updated with metadata
             const metadata = user.user_metadata || {};
             setNickname(metadata.nickname || "");
             setBio(metadata.bio || "");
             setProfileImage(metadata.avatar_url || "");
+            setIsAuthChecking(false);
         }
     }, [user]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    // Removed direct redirect to prevent loops
+    // AuthProvider handles main protection
 
-        // Limiting file size to 2MB
-        if (file.size > 2 * 1024 * 1024) {
-            alert("이미지 크기는 2MB 이하여야 합니다.");
-            return;
-        }
+    if (!mounted || isAuthChecking) return <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>;
 
-        // For MVP, we can Convert to Base64 to store in metadata (Not recommended for large apps but fine for MVP/Soft Delete context if small)
-        // OR better: Upload to Supabase Storage 'avatars' bucket.
-        // Let's try Supabase Storage first.
-        try {
-            const supabase = createClient();
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
-            const { error: uploadError, data } = await supabase.storage
-                .from('avatars')
-                .upload(fileName, file);
-
-            if (uploadError) {
-                // Fallback: If storage not set up, just use base64 for small preview or alert
-                console.error("Storage upload failed:", uploadError);
-                alert("이미지 업로드에 실패했습니다. (스토리지 버킷 설정을 확인해주세요)");
-                return;
-            }
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(fileName);
-
-            setProfileImage(publicUrl);
-        } catch (error) {
-            console.error(error);
-            alert("이미지 업로드 중 오류가 발생했습니다.");
-        }
-    };
-
-    const handleSaveProfile = async () => {
-        if (!user) return;
-        setIsSaving(true);
-        const supabase = createClient();
-
-        try {
-            const updates = {
-                name: customName, // Allow updating display name in metadata
-                nickname: nickname,
-                bio: bio,
-                avatar_url: profileImage
-            };
-
-            // 1. Update Auth Metadata (Backup / Session)
-            const { error: authError } = await supabase.auth.updateUser({
-                data: updates
-            });
-
-            if (authError) throw authError;
-
-            // 2. Update Public Profiles Table (Persistence)
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .upsert({
-                    id: user.id,
-                    full_name: customName,
-                    nickname: nickname,
-                    avatar_url: profileImage,
-                    updated_at: new Date().toISOString()
-                });
-
-            if (profileError) throw profileError;
-
-            await supabase.auth.refreshSession();
-
-            // Update local store
-            setUser({
-                ...user,
-                name: customName,
-                image: profileImage, // Force update local image
-                user_metadata: {
-                    ...user.user_metadata,
-                    ...updates
-                }
-            });
-
-            alert("프로필이 업데이트되었습니다.");
-        } catch (error: any) {
-            console.error(error);
-            alert(`저장에 실패했습니다: ${error.message}`);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        setUser(null);
-        // Use window.location.href to force a full refresh and clear all states
-        window.location.href = "/";
-    };
-
-    if (!mounted) return null;
-
-    if (!user) {
-        router.push("/login"); // Redirect if not logged in
-        return null;
-    }
+    // Fallback if user is null but auth check passed (rare)
+    if (!user) return <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>;
 
     return (
         <div className="min-h-screen bg-white">
@@ -206,6 +204,16 @@ export default function SettingsPage() {
                         >
                             <CreditCard className="w-4 h-4" />
                             멤버십
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("memories")}
+                            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${activeTab === "memories"
+                                ? "bg-slate-100 text-slate-900 font-bold"
+                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                }`}
+                        >
+                            <span className="w-4 h-4 flex items-center justify-center">💌</span>
+                            나의 기억 (메시지)
                         </button>
                         <div className="border-t border-slate-100 my-2 pt-2">
                             <button
@@ -372,11 +380,11 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                     <Link href="/plans" className="w-full">
-                                        <Button
-                                            className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm"
+                                        <div
+                                            className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm flex items-center justify-center cursor-pointer transition-colors"
                                         >
                                             플랜 업그레이드 / 관리
-                                        </Button>
+                                        </div>
                                     </Link>
                                 </div>
                             </div>

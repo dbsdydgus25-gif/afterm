@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -8,16 +10,32 @@ import { ArrowLeft } from "lucide-react";
 
 export default function MyMemoriesPage() {
     const router = useRouter();
-    const { message, recipient } = useMemoryStore();
+    const { user } = useMemoryStore();
+    const [memories, setMemories] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data for demonstration if store is empty or just to show list layout
-    const memories = message ? [{
-        id: 1,
-        content: message,
-        recipient: recipient.name || "수신인 미지정",
-        date: "2026.01.19",
-        type: "text"
-    }] : [];
+    useEffect(() => {
+        const fetchMessages = async () => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            const currentUserId = user?.id || session?.user?.id;
+
+            if (!currentUserId) return;
+
+            const { data } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('user_id', currentUserId)
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                setMemories(data);
+            }
+            setLoading(false);
+        };
+
+        fetchMessages();
+    }, [user]);
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
@@ -45,10 +63,12 @@ export default function MyMemoriesPage() {
                                     <div>
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="px-2 py-1 rounded bg-blue-50 text-blue-600 text-xs font-bold">D-Day 전송</span>
-                                            <span className="text-xs text-slate-400">{mem.date} 작성</span>
+                                            <span className="text-xs text-slate-400">
+                                                {new Date(mem.created_at).toLocaleDateString()} 작성
+                                            </span>
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-900">
-                                            To. {mem.recipient}
+                                            To. {mem.recipient_name}
                                         </h3>
                                     </div>
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

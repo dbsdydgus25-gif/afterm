@@ -85,16 +85,16 @@ export function SecureAvatar({ src, alt, className, fallback, onBlobLoad }: Secu
 
     if (!src || hasError) {
         return (
-            <div className={cn("flex items-center justify-center bg-slate-100 text-slate-400", className)}>
+            <span className={cn("flex items-center justify-center bg-slate-100 text-slate-400", className)}>
                 {fallback || <User className="w-1/2 h-1/2" />}
-            </div>
+            </span>
         );
     }
 
     if (isLoading) {
         return (
-            <div className={cn("flex items-center justify-center bg-slate-50 animate-pulse", className)}>
-            </div>
+            <span className={cn("flex items-center justify-center bg-slate-50 animate-pulse", className)}>
+            </span>
         );
     }
 
