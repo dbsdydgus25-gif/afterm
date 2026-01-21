@@ -317,49 +317,67 @@ export default function OnboardingPage() {
                         </div>
 
                         {/* Phone Verification Section */}
+                        {/* Phone Verification Section */}
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호 <span className="text-blue-500">*</span></label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="tel"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
-                                    placeholder="010-0000-0000"
-                                    maxLength={13}
-                                    disabled={isVerified} // Disable if verified
-                                    className="flex-1 p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-500"
-                                />
+                            <div className="flex gap-2 items-stretch">
+                                <div className="relative flex-1">
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
+                                        placeholder="010-0000-0000"
+                                        maxLength={13}
+                                        disabled={isVerified}
+                                        className="w-full h-12 p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900 disabled:bg-slate-50 disabled:text-slate-500"
+                                    />
+                                </div>
                                 <Button
                                     onClick={handleSendVerification}
-                                    disabled={isVerified || isCodeSent && timer > 0}
-                                    className="h-auto whitespace-nowrap rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold px-4"
+                                    disabled={isVerified || (isCodeSent && timer > 0)}
+                                    variant={isCodeSent ? "outline" : "default"}
+                                    className={`h-12 whitespace-nowrap rounded-xl font-bold px-4 transition-all ${isCodeSent
+                                            ? "border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                            : "bg-slate-800 hover:bg-slate-900 text-white"
+                                        }`}
                                 >
-                                    {isVerified ? "인증완료" : isCodeSent ? `재전송 (${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, '0')})` : "인증번호"}
+                                    {isVerified ? "인증완료" : isCodeSent ? "재전송" : "인증번호"}
                                 </Button>
                             </div>
 
                             {/* Verification Code Input */}
                             {isCodeSent && !isVerified && (
-                                <div className="mt-2 flex gap-2 animate-in fade-in slide-in-from-top-2">
-                                    <input
-                                        type="text"
-                                        value={verificationCode}
-                                        onChange={(e) => setVerificationCode(e.target.value)}
-                                        placeholder="인증번호 6자리"
-                                        maxLength={6}
-                                        className="flex-1 p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
-                                    />
-                                    <Button
-                                        onClick={handleConfirmVerification}
-                                        className="h-auto whitespace-nowrap rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6"
-                                    >
-                                        확인
-                                    </Button>
+                                <div className="mt-3 animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex gap-2 items-stretch">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={verificationCode}
+                                                onChange={(e) => setVerificationCode(e.target.value)}
+                                                placeholder="인증번호 6자리"
+                                                maxLength={6}
+                                                className="w-full h-12 p-4 pr-16 rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900 bg-blue-50/30"
+                                            />
+                                            {/* Timer inside input */}
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-blue-600Tab">
+                                                {Math.floor(timer / 60)}:{((timer % 60)).toString().padStart(2, '0')}
+                                            </span>
+                                        </div>
+                                        <Button
+                                            onClick={handleConfirmVerification}
+                                            className="h-12 whitespace-nowrap rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 shadow-md shadow-blue-500/20"
+                                        >
+                                            확인
+                                        </Button>
+                                    </div>
+                                    <p className="text-xs text-blue-500 mt-2 ml-1">
+                                        * 인증번호가 발송되었습니다. 3분 내에 입력해주세요.
+                                    </p>
                                 </div>
                             )}
 
                             <p className="text-xs text-slate-400 mt-1 pl-1">
-                                {isVerified ? "휴대폰 인증이 완료되었습니다." : "본인 확인을 위해 휴대폰 인증이 필요합니다."}
+                                {isVerified ? "✅ 휴대폰 인증이 완료되었습니다." : !isCodeSent && "본인 확인을 위해 휴대폰 인증이 필요합니다."}
                             </p>
                         </div>
 
