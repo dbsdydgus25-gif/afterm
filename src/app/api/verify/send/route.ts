@@ -26,7 +26,7 @@ export async function POST(request: Request) {
             .select('id')
             .eq('phone', cleanPhone)
             .neq('id', user.id) // Exclude myself (re-verification is allowed)
-            .single();
+            .maybeSingle();
 
         if (existingUser) {
             return NextResponse.json({ error: "이미 가입된 휴대폰 번호입니다." }, { status: 400 });
