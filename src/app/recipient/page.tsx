@@ -78,9 +78,9 @@ export default function RecipientPage() {
                 fileSize = messageFile.size;
             }
 
-            // 2. Insert/Update Message
             if (messageId) {
-                // Update existing message
+                // Update existing message logic (unchanged)
+                // ...
                 const { error } = await supabase
                     .from('messages')
                     .update({
@@ -88,21 +88,23 @@ export default function RecipientPage() {
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
                         updated_at: new Date().toISOString(),
-                        // Only update file info if a new file was uploaded
-                        ...(fileUrl && {
-                            file_url: fileUrl,
-                            file_path: filePath,
-                            file_size: fileSize,
-                            file_type: messageFile?.type
-                        })
+                        ...(fileUrl && { file_url: fileUrl, file_path: filePath, file_size: fileSize, file_type: messageFile?.type })
                     })
                     .eq('id', messageId)
                     .eq('user_id', user.id);
-
                 if (error) throw error;
             } else {
                 // Insert new message -> Check Limit
-                if (plan !== 'pro') {
+                // Double-check plan from DB + Store (Source of Truth)
+                const { data: dbProfile } = await supabase
+                    .from('profiles')
+                    .select('plan')
+                    .eq('id', user.id)
+                    .single();
+
+                const effectivePlan = (dbProfile?.plan || plan || 'free').toLowerCase();
+
+                if (effectivePlan !== 'pro') {
                     const { count } = await supabase
                         .from('messages')
                         .select('*', { count: 'exact', head: true })
@@ -128,7 +130,6 @@ export default function RecipientPage() {
                         file_size: fileSize,
                         file_type: messageFile?.type
                     });
-
                 if (error) throw error;
             }
 
