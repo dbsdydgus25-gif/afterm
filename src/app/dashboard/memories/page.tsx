@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User } from "lucide-react";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
+import { StorageWidget } from "@/components/dashboard/StorageWidget";
 
 export default function MyMemoriesPage() {
     const router = useRouter();
-    const { user, setMessage, setMessageId, setRecipient } = useMemoryStore();
+    const { user, setMessage, setMessageId, setRecipient, plan } = useMemoryStore();
     const [memories, setMemories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -54,6 +56,66 @@ export default function MyMemoriesPage() {
                 </div>
 
                 <h1 className="text-2xl font-bold text-slate-900 mb-8">나의 기억 보관함</h1>
+
+                {/* Profile Section (Unified Design) */}
+                <section className="mb-8 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-6">
+                    <div className="relative flex-shrink-0">
+                        {user?.image || user?.user_metadata?.avatar_url ? (
+                            <SecureAvatar
+                                src={user?.image || user?.user_metadata?.avatar_url}
+                                alt="Profile"
+                                className="w-16 h-16 rounded-full shadow-sm"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-slate-500">
+                                {user?.name?.[0] || "U"}
+                            </div>
+                        )}
+                        {plan === 'pro' && (
+                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-[10px]">PRO</span>
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            {user?.name || "사용자"}
+                            {user?.user_metadata?.nickname && (
+                                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    @{user.user_metadata.nickname}
+                                </span>
+                            )}
+                        </h2>
+                        <p className="text-sm text-slate-500 line-clamp-1">{user?.user_metadata?.bio || "자기소개를 입력해주세요."}</p>
+                    </div>
+                </section>
+
+                {/* Stats Section */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    {/* Left: Message Usage */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 메시지</h3>
+                        <div className="flex items-end gap-2 mb-2">
+                            <span className="text-3xl font-bold text-slate-900">
+                                {plan === 'pro' ? '∞' : Math.max(0, 1 - memories.length)}
+                            </span>
+                            <span className="text-sm text-slate-400 mb-1">
+                                / {plan === 'pro' ? '무제한' : '1개'}
+                            </span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                style={{ width: plan === 'pro' ? '100%' : `${(memories.length / 1) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Right: Storage Usage */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <StorageWidget plan={plan} userId={user?.id} />
+                    </div>
+                </section>
 
                 {memories.length > 0 ? (
                     <div className="space-y-4">
