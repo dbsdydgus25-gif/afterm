@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function MyMemoriesPage() {
     const router = useRouter();
-    const { user } = useMemoryStore();
+    const { user, setMessage, setMessageId, setRecipient } = useMemoryStore();
     const [memories, setMemories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,8 +71,30 @@ export default function MyMemoriesPage() {
                                             To. {mem.recipient_name}
                                         </h3>
                                     </div>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button variant="ghost" size="sm" className="h-8">수정</Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const rel = mem.recipient_relationship === 'family' ? '가족' :
+                                                    mem.recipient_relationship === 'friend' ? '친구' :
+                                                        mem.recipient_relationship === 'lover' ? '연인' :
+                                                            mem.recipient_relationship === 'colleague' ? '동료' : '기타';
+
+                                                setMessage(mem.content);
+                                                setMessageId(mem.id);
+                                                setRecipient({
+                                                    name: mem.recipient_name,
+                                                    phone: mem.recipient_phone || '',
+                                                    relationship: rel
+                                                });
+                                                router.push('/dashboard/edit');
+                                            }}
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8"
+                                        >
+                                            수정
+                                        </Button>
                                         <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50">삭제</Button>
                                     </div>
                                 </div>
