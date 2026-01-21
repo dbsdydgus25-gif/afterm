@@ -109,6 +109,13 @@ function SettingsContent() {
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories" || "profile";
     const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing" | "memories">(initialTab);
+
+    // Sync tab with URL
+    useEffect(() => {
+        const tab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories";
+        if (tab) setActiveTab(tab);
+    }, [searchParams]);
+
     const { user, setUser, plan } = useMemoryStore();
     const router = useRouter();
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
