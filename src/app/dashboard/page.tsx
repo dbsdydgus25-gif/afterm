@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 import { StorageWidget } from "@/components/dashboard/StorageWidget";
 
@@ -230,7 +231,11 @@ export default function DashboardPage() {
 
                     <div className="relative">
                         {user?.image || user?.user_metadata?.avatar_url ? (
-                            <img src={user?.image || user?.user_metadata?.avatar_url} alt="Profile" className="w-20 h-20 rounded-full object-cover shadow-sm ring-4 ring-white" />
+                            <SecureAvatar
+                                src={user?.image || user?.user_metadata?.avatar_url}
+                                alt="Profile"
+                                className="w-20 h-20 rounded-full shadow-sm ring-4 ring-white"
+                            />
                         ) : (
                             <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl shadow-inner ring-4 ring-white">
                                 {user?.name?.[0] || "U"}
