@@ -7,7 +7,7 @@ import { RestoreModal } from "@/components/auth/RestoreModal";
 import { usePathname, useRouter } from "next/navigation";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const { setUser } = useMemoryStore();
+    const { setUser, setPlan } = useMemoryStore();
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [deletedAt, setDeletedAt] = useState<string>("");
     const [isRestoring, setIsRestoring] = useState(false);
@@ -90,6 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     user_metadata: finalMetadata
                 });
                 setIsRestoreModalOpen(false);
+
+                // 3. Set Plan (Fetch from Subscription or Profile)
+                // For now, we check the 'profiles' table for a 'plan' column or 'subscription_tier'
+                // If the user manually upgraded in DB, this will reflect it.
+                // Later we will join with 'subscriptions' table.
+                const userPlan = profile?.plan || profile?.subscription_tier || 'free';
+                setPlan(userPlan as 'free' | 'pro');
             }
         } else {
             setUser(null);
