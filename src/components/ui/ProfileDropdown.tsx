@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, LogOut, CreditCard, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 interface ProfileDropdownProps {
     user: {
@@ -27,11 +28,10 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                 className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
             >
                 {user.image && !imgError ? (
-                    <img
+                    <SecureAvatar
                         src={user.image}
                         alt="Profile"
-                        className="w-8 h-8 rounded-full object-cover shadow-sm"
-                        onError={() => setImgError(true)}
+                        className="w-8 h-8 rounded-full shadow-sm"
                     />
                 ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">

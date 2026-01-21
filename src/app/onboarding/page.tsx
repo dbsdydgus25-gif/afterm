@@ -6,6 +6,7 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -176,11 +177,10 @@ export default function OnboardingPage() {
                         <div className="relative group cursor-pointer">
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-slate-100 bg-slate-50 relative shadow-sm">
                                 {profileImage ? (
-                                    <img
+                                    <SecureAvatar
                                         src={profileImage}
                                         alt="Profile"
-                                        className="w-full h-full object-cover"
-                                        onError={() => setProfileImage("")}
+                                        className="w-full h-full"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-500 font-bold text-3xl">

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import { useMemoryStore } from "@/store/useMemoryStore";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 
 import { createClient } from "@/lib/supabase/client";
@@ -179,7 +180,11 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                             className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors active:scale-[0.98]"
                                         >
                                             {user.user_metadata?.avatar_url || user.image ? (
-                                                <img src={user.user_metadata?.avatar_url || user.image} alt="Profile" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
+                                                <SecureAvatar
+                                                    src={user.user_metadata?.avatar_url || user.image}
+                                                    alt="Profile"
+                                                    className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
+                                                />
                                             ) : (
                                                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
                                                     {user.name?.[0]}

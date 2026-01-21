@@ -51,8 +51,9 @@ CREATE POLICY "Users can update own profile."
 
 -- 5. Storage Setup (Idempotent)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('avatars', 'avatars', true)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('avatars', 'avatars', false)
+ON CONFLICT (id) DO UPDATE
+SET public = false;
 
 -- 6. Storage Policies (Drop first to be safe)
 DROP POLICY IF EXISTS "Avatar images are publicly accessible." ON storage.objects;

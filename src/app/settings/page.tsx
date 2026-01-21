@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WithdrawModal } from "@/components/auth/WithdrawModal";
 import { User, Shield, CreditCard, LogOut, ChevronRight, Camera } from "lucide-react";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing">("profile");
@@ -158,7 +159,11 @@ export default function SettingsPage() {
                         <p className="text-xs font-bold text-slate-400 mb-2">계정</p>
                         <div className="flex items-center gap-3 mb-6">
                             {user.image || user.user_metadata?.avatar_url ? (
-                                <img src={user.image || user.user_metadata?.avatar_url} alt="Profile" className="w-8 h-8 rounded-md object-cover" />
+                                <SecureAvatar
+                                    src={user.image || user.user_metadata?.avatar_url}
+                                    alt="Profile"
+                                    className="w-8 h-8 rounded-md"
+                                />
                             ) : (
                                 <div className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
                                     {user.name?.[0] || "U"}
@@ -236,7 +241,11 @@ export default function SettingsPage() {
                                                 <div className="relative group">
                                                     <div className="w-20 h-20 rounded-full overflow-hidden border border-slate-200 shadow-sm bg-slate-50 relative">
                                                         {profileImage ? (
-                                                            <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                                            <SecureAvatar
+                                                                src={profileImage}
+                                                                alt="Profile"
+                                                                className="w-full h-full"
+                                                            />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 font-bold text-2xl">
                                                                 {customName?.[0] || "U"}
