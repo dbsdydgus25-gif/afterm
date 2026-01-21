@@ -64,10 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
                 // Allow access to /onboarding, /api/auth/callback, /logout
+                // Allow access to /onboarding, /api/auth/callback, /logout
                 if (!hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
                     console.log("Redirecting to onboarding due to missing nickname (DB & Metadata check failed)");
                     router.replace("/onboarding");
-                    return;
+                    // Do NOT return here. We must proceed to set the user state so the onboarding page can use it.
                 }
 
                 // If on onboarding page but already has nickname, send to dashboard

@@ -84,7 +84,10 @@ export default function OnboardingPage() {
             return;
         }
 
-        if (!user) return;
+        if (!user) {
+            alert("로그인 세션을 찾을 수 없습니다. 페이지를 새로고침 해주세요.");
+            return;
+        }
         setIsSaving(true);
         const supabase = createClient();
 
