@@ -26,12 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         checkUser();
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            handleUserSession(session);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setIsRestoreModalOpen(false);
+                router.replace("/"); // Force redirect on sign out event
+            } else {
+                handleUserSession(session);
+            }
         });
 
         return () => subscription.unsubscribe();
-    }, [setUser, pathname]); // Depend on pathname to re-check on navigation
+    }, [setUser]); // Removed pathname dependency to avoid race conditions during redirect
 
     const handleUserSession = async (session: any) => {
         if (session?.user) {

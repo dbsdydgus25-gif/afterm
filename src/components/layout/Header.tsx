@@ -40,10 +40,15 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     }, [isMobileMenuOpen, user]);
 
     const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        setUser(null);
-        router.push("/");
+        try {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            setUser(null);
+            router.push("/");
+        } catch (error) {
+            console.error("Logout failed", error);
+            window.location.href = "/";
+        }
     };
 
     useEffect(() => {

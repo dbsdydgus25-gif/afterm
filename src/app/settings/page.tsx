@@ -244,10 +244,17 @@ function SettingsContent() {
     };
 
     const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        setUser(null);
-        window.location.href = "/";
+        try {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            setUser(null);
+            router.push("/");
+            // Force a small delay to ensure state clears if needed, though router.push is immediate
+        } catch (error) {
+            console.error("Logout failed", error);
+            // Fallback
+            window.location.href = "/";
+        }
     };
 
     return (
