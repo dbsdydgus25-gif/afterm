@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
@@ -105,7 +105,7 @@ function MemoriesTabContent() {
 
 import { useSearchParams } from "next/navigation";
 
-export default function SettingsPage() {
+function SettingsContent() {
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories" || "profile";
     const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing" | "memories">(initialTab);
@@ -395,5 +395,15 @@ export default function SettingsPage() {
 
             <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} />
         </div>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>}>
+            <SettingsContent />
+        </Suspense>
     );
 }
