@@ -72,7 +72,8 @@ export async function POST(request: Request) {
 
         if (!result.success) {
             console.error("SMS Error:", result.error);
-            return NextResponse.json({ error: "SMS sending failed" }, { status: 500 });
+            // Return specific error from Solapi (e.g. "Sender number unauthorized")
+            return NextResponse.json({ error: result.error || "SMS sending failed" }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, expires_in: 180 });

@@ -32,7 +32,7 @@ export async function sendMessage({ to, from, text, type = 'SMS', kakaoOptions }
         return { success: false, error: "Solapi Client Not Initialized" };
     }
 
-    const sender = from || process.env.SOLAPI_SENDER_NUMBER;
+    const sender = from || process.env.SOLAPI_SENDER_NUMBER || "01063816440";
     if (!sender) {
         return { success: false, error: "Sender number (from) is required" };
     }
