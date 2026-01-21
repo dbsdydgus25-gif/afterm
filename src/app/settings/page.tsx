@@ -146,6 +146,103 @@ function SettingsContent() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>;
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Limiting file size to 2MB
+        if (file.size > 2 * 1024 * 1024) {
+            alert("이미지 크기는 2MB 이하여야 합니다.");
+            return;
+        }
+
+        try {
+            const supabase = createClient();
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
+            const { error: uploadError, data } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file);
+
+            if (uploadError) {
+                console.error("Storage upload failed:", uploadError);
+                alert("이미지 업로드에 실패했습니다. (스토리지 버킷 설정을 확인해주세요)");
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+
+            setProfileImage(publicUrl);
+        } catch (error) {
+            console.error(error);
+            alert("이미지 업로드 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        const supabase = createClient();
+
+        try {
+            const updates = {
+                name: customName, // Allow updating display name in metadata
+                nickname: nickname,
+                bio: bio,
+                avatar_url: profileImage
+            };
+
+            // 1. Update Auth Metadata (Backup / Session)
+            const { error: authError } = await supabase.auth.updateUser({
+                data: updates
+            });
+
+            if (authError) throw authError;
+
+            // 2. Update Public Profiles Table (Persistence)
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    full_name: customName,
+                    nickname: nickname,
+                    avatar_url: profileImage,
+                    updated_at: new Date().toISOString()
+                });
+
+            if (profileError) throw profileError;
+
+            await supabase.auth.refreshSession();
+
+            // Update local store
+            setUser({
+                ...user,
+                name: customName,
+                image: profileImage, // Force update local image
+                user_metadata: {
+                    ...user.user_metadata,
+                    ...updates
+                }
+            });
+
+            alert("프로필이 업데이트되었습니다.");
+        } catch (error: any) {
+            console.error(error);
+            alert(`저장에 실패했습니다: ${error.message}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        setUser(null);
+        window.location.href = "/";
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <Header />
