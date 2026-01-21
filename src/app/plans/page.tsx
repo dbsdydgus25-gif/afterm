@@ -7,8 +7,23 @@ import { Button } from "@/components/ui/button";
 export default function PlansPage() {
     const router = useRouter();
 
-    const handleSubscribe = (plan: string, price: string) => {
-        alert(`${plan} 플랜(${price})을 선택하셨습니다.`);
+    const handleSubscribe = async (plan: string, price: string) => {
+        if (plan === 'Pro') {
+            const confirmed = confirm("테스트 모드: 무료로 PRO 플랜으로 업그레이드 하시겠습니까?");
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch('/api/payment/mock', { method: 'POST' });
+                if (!res.ok) throw new Error("Upgrade failed");
+                alert("성공적으로 업그레이드 되었습니다! 잠시 후 반영됩니다.");
+                window.location.reload();
+            } catch (error) {
+                console.error(error);
+                alert("업그레이드 중 오류가 발생했습니다.");
+            }
+        } else {
+            alert(`${plan} 플랜(${price})은 현재 이용 중입니다.`);
+        }
     };
 
     return (

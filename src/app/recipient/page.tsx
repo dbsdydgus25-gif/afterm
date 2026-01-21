@@ -111,7 +111,11 @@ export default function RecipientPage() {
                         .eq('user_id', user.id);
 
                     if (count !== null && count >= 1) {
-                        alert("무료 플랜은 1개의 메시지만 저장할 수 있습니다. 프로 플랜으로 업그레이드 해주세요.");
+                        if (count !== null && count >= 1) {
+                            alert(`[Debug: Plan=${effectivePlan}, DB=${dbProfile?.plan || 'null'}] 무료 플랜은 1개의 메시지만 저장할 수 있습니다. 이미 작성된 메시지가 있습니다.`);
+                            setIsSaving(false);
+                            return;
+                        }
                         setIsSaving(false);
                         return;
                     }
