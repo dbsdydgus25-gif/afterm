@@ -43,25 +43,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setIsRestoreModalOpen(true);
             } else {
                 // Normal User
+                const supabase = createClient();
 
-                // Check if Onboarding is needed (No nickname)
-                const hasNickname = session.user.user_metadata?.nickname;
+                // 1. FETCH PROFILE from 'profiles' table FIRST (Source of Truth)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                // 2. Check if Onboarding is needed
+                // We trust the DB profile first. If profile exists and has nickname, they are done.
+                // Fallback to metadata if DB fetch fails (rare) or user is new.
+                const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
                 // Allow access to /onboarding, /api/auth/callback, /logout
-                // Also, consider if we should block other pages? Yes, for UX.
-                // But let's be careful not to loop.
                 if (!hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
-                    console.log("Redirecting to onboarding due to missing nickname");
-                    router.replace("/onboarding"); // Use replace to prevent back button loop
+                    console.log("Redirecting to onboarding due to missing nickname (DB & Metadata check failed)");
+                    router.replace("/onboarding");
                     return;
                 }
 
+                // If on onboarding page but already has nickname, send to dashboard
+                if (hasNickname && pathname === "/onboarding") {
+                    router.replace("/dashboard");
+                }
+
+                // Determine display values (Profile Table > Metadata > Defaults)
+                const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자";
+                const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
+                const finalMetadata = {
+                    ...session.user.user_metadata,
+                    ...(profile ? {
+                        full_name: profile.full_name,
+                        nickname: profile.nickname,
+                        avatar_url: profile.avatar_url,
+                        bio: profile.bio
+                    } : {})
+                };
+
                 setUser({
                     id: session.user.id,
-                    name: session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자",
+                    name: finalName,
                     email: session.user.email!,
-                    image: session.user.user_metadata.avatar_url,
-                    user_metadata: session.user.user_metadata
+                    image: finalAvatar,
+                    user_metadata: finalMetadata
                 });
                 setIsRestoreModalOpen(false);
             }

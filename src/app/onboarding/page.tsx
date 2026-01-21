@@ -88,11 +88,32 @@ export default function OnboardingPage() {
                 onboarding_completed: true
             };
 
-            const { error } = await supabase.auth.updateUser({
+            // 1. Insert/Update Public Profiles Table (Persistence) - CRITICAL: Do this first or generally ensure it succeeds
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    full_name: name,
+                    nickname: nickname,
+                    avatar_url: profileImage,
+                    bio: bio,
+                    updated_at: new Date().toISOString()
+                });
+
+            if (profileError) {
+                console.error("Profile save error:", profileError);
+                throw new Error("프로필 저장에 실패했습니다.");
+            }
+
+            // 2. Update Auth Metadata (Backup / Session)
+            const { error: authError } = await supabase.auth.updateUser({
                 data: updates
             });
 
-            if (error) throw error;
+            if (authError) {
+                console.error("Auth metadata update failed:", authError);
+                // We don't block here because the profile table (source of truth) is updated.
+            }
 
             // Send Welcome Email
             try {
@@ -119,13 +140,16 @@ export default function OnboardingPage() {
             setUser({
                 ...user,
                 name: name,
+                image: profileImage, // Ensure consistent image state
                 user_metadata: {
                     ...user.user_metadata,
                     ...updates
                 }
             });
 
-            router.push("/dashboard"); // Go to dashboard after onboarding
+            // Double check redirect
+            router.replace("/dashboard");
+            // router.push("/dashboard"); 
         } catch (error: any) {
             console.error(error);
             alert(`저장에 실패했습니다: ${error.message}`);
@@ -152,7 +176,12 @@ export default function OnboardingPage() {
                         <div className="relative group cursor-pointer">
                             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-slate-100 bg-slate-50 relative shadow-sm">
                                 {profileImage ? (
-                                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    <img
+                                        src={profileImage}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                        onError={() => setProfileImage("")}
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-500 font-bold text-3xl">
                                         {name?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
@@ -168,8 +197,8 @@ export default function OnboardingPage() {
 
                     {/* Default Avatars */}
                     <div className="flex justify-center gap-3">
-                        <button onClick={() => setProfileImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Felix")} className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">👦 남성</button>
-                        <button onClick={() => setProfileImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka")} className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">👧 여성</button>
+                        <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Felix")} className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">👦 남성</button>
+                        <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Lisa")} className="px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">👧 여성</button>
                     </div>
 
                     {/* Inputs */}

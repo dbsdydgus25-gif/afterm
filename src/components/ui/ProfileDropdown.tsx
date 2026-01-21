@@ -18,6 +18,7 @@ interface ProfileDropdownProps {
 
 export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDropdownProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
     return (
         <div className="relative">
@@ -25,8 +26,13 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
             >
-                {user.image ? (
-                    <img src={user.image} alt="Profile" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                {user.image && !imgError ? (
+                    <img
+                        src={user.image}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full object-cover shadow-sm"
+                        onError={() => setImgError(true)}
+                    />
                 ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                         {user?.name?.[0] || "U"}

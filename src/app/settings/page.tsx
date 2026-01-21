@@ -90,11 +90,25 @@ export default function SettingsPage() {
                 avatar_url: profileImage
             };
 
-            const { error } = await supabase.auth.updateUser({
+            // 1. Update Auth Metadata (Backup / Session)
+            const { error: authError } = await supabase.auth.updateUser({
                 data: updates
             });
 
-            if (error) throw error;
+            if (authError) throw authError;
+
+            // 2. Update Public Profiles Table (Persistence)
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: user.id,
+                    full_name: customName,
+                    nickname: nickname,
+                    avatar_url: profileImage,
+                    updated_at: new Date().toISOString()
+                });
+
+            if (profileError) throw profileError;
 
             await supabase.auth.refreshSession();
 
@@ -102,6 +116,7 @@ export default function SettingsPage() {
             setUser({
                 ...user,
                 name: customName,
+                image: profileImage, // Force update local image
                 user_metadata: {
                     ...user.user_metadata,
                     ...updates
@@ -234,8 +249,8 @@ export default function SettingsPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Felix")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">남자 아이콘</button>
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">여자 아이콘</button>
+                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Felix")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">남자 캐릭터</button>
+                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Lisa")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">여자 캐릭터</button>
                                                 </div>
                                             </div>
                                         </div>

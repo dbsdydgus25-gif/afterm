@@ -351,7 +351,7 @@ export default function Home() {
                 <div className="relative z-10 bg-white p-6 rounded-3xl shadow-2xl border border-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
                   <div className="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
                     <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden">
-                      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grandma" alt="Profile" className="w-full h-full object-cover" />
+                      <img src="https://api.dicebear.com/9.x/adventurer/svg?seed=Grandma" alt="Profile" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <div className="font-bold text-slate-900">보고싶은 할머니</div>
