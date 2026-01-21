@@ -35,13 +35,25 @@ export function SecureAvatar({ src, alt, className, fallback, onBlobLoad }: Secu
 
                 // Scenario 2: It is a Supabase Storage URL (Public format)
                 // Format: .../storage/v1/object/public/avatars/folder/file.ext
-                const publicMarker = "/storage/v1/object/public/avatars/";
+                // OR custom domain: .../storage/v1/object/public/avatars/...
 
                 let path = src;
+                const publicMarker = "/storage/v1/object/public/avatars/";
+
                 if (src.includes(publicMarker)) {
                     path = src.split(publicMarker)[1];
+                } else if (src.includes("/storage/v1/object/public/")) {
+                    // Fallback for other buckets if needed or slight variations
+                    try {
+                        const url = new URL(src);
+                        if (url.pathname.includes('/avatars/')) {
+                            path = url.pathname.split('/avatars/')[1];
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
                 } else if (src.startsWith('http')) {
-                    // Unknown external URL, just use it
+                    // It is an external URL (Google, etc.) or unknown.
                     setSignedUrl(src);
                     setIsLoading(false);
                     return;

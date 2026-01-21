@@ -170,9 +170,17 @@ export default function DashboardPage() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
                     >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                            {user?.name?.[0] || "U"}
-                        </div>
+                        {user?.image || user?.user_metadata?.avatar_url ? (
+                            <SecureAvatar
+                                src={user?.image || user?.user_metadata?.avatar_url}
+                                alt="Profile"
+                                className="w-8 h-8 rounded-full shadow-sm"
+                            />
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                {user?.name?.[0] || "U"}
+                            </div>
+                        )}
                         <span className="text-sm font-bold text-slate-700 hidden sm:block">{user?.name || "사용자"}</span>
                         {plan === 'pro' && (
                             <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">PRO</span>
