@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         const cleanPhone = phone.replace(/-/g, '');
 
         // 1. Check for Unique Phone Number
-        const supabase = createClient();
+        const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
