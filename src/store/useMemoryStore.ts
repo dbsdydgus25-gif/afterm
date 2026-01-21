@@ -25,6 +25,12 @@ interface MemoryStore {
             nickname?: string;
             bio?: string;
             deleted_at?: string;
+            phone?: string;
+            onboarding_completed?: boolean;
+        };
+        app_metadata?: {
+            provider?: string;
+            [key: string]: any;
         };
     } | null;
     setUser: (user: MemoryStore['user']) => void;

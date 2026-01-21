@@ -93,7 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     name: finalName,
                     email: session.user.email!,
                     image: finalAvatar,
-                    user_metadata: finalMetadata
+                    user_metadata: finalMetadata,
+                    app_metadata: session.user.app_metadata
                 });
                 setIsRestoreModalOpen(false);
 

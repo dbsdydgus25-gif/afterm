@@ -17,6 +17,7 @@ export default function OnboardingPage() {
     const [name, setName] = useState("");
     const [nickname, setNickname] = useState("");
     const [bio, setBio] = useState("");
+    const [phone, setPhone] = useState("");
     const [profileImage, setProfileImage] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
@@ -27,6 +28,10 @@ export default function OnboardingPage() {
             setName(user.user_metadata?.full_name || user.name || "");
             setNickname(user.user_metadata?.nickname || "");
             setBio(user.user_metadata?.bio || "");
+            const metaPhone = user.user_metadata?.phone || "";
+            if (metaPhone) {
+                setPhone(metaPhone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
+            }
             setProfileImage(user.user_metadata?.avatar_url || user.image || "");
         }
     }, [user]);
@@ -74,6 +79,10 @@ export default function OnboardingPage() {
             alert("별명을 입력해주세요.");
             return;
         }
+        if (!phone.trim()) {
+            alert("휴대폰 번호를 입력해주세요.");
+            return;
+        }
 
         if (!user) return;
         setIsSaving(true);
@@ -81,15 +90,16 @@ export default function OnboardingPage() {
 
         try {
             const updates = {
-                full_name: name, // Standardize as full_name
-                name: name,      // Also keep name for compatibility
+                full_name: name,
+                name: name,
                 nickname: nickname,
                 bio: bio,
+                phone: phone.replace(/-/g, ''), // Save plain number
                 avatar_url: profileImage,
                 onboarding_completed: true
             };
 
-            // 1. Insert/Update Public Profiles Table (Persistence) - CRITICAL: Do this first or generally ensure it succeeds
+            // 1. Insert/Update Public Profiles Table
             const { error: profileError } = await supabase
                 .from('profiles')
                 .upsert({
@@ -98,6 +108,7 @@ export default function OnboardingPage() {
                     nickname: nickname,
                     avatar_url: profileImage,
                     bio: bio,
+                    phone: phone.replace(/-/g, ''),
                     updated_at: new Date().toISOString()
                 });
 
@@ -106,51 +117,64 @@ export default function OnboardingPage() {
                 throw new Error("프로필 저장에 실패했습니다.");
             }
 
-            // 2. Update Auth Metadata (Backup / Session)
+            // 2. Update Auth Metadata
             const { error: authError } = await supabase.auth.updateUser({
                 data: updates
             });
 
-            if (authError) {
-                console.error("Auth metadata update failed:", authError);
-                // We don't block here because the profile table (source of truth) is updated.
-            }
+            if (authError) console.error("Auth metadata update failed:", authError);
 
-            // Send Welcome Email
-            try {
-                // Get email from user object or current session
-                const email = user.email;
-                if (email) {
-                    await fetch('/api/email/welcome', {
+            // 3. Send Notifications (Conditionally)
+            const isFirstTime = !user.user_metadata?.onboarding_completed;
+            const provider = user.app_metadata?.provider;
+            // provider can be 'google', 'kakao', 'email' etc.
+
+            // Logic: Send SMS ONLY if it's the first time verified AND NOT Google (assuming Google sends Email)
+            // Or explicitly if it IS Kakao (as requested)
+            const shouldSendSMS = isFirstTime && (provider === 'kakao' || provider !== 'google');
+
+            if (shouldSendSMS) {
+                try {
+                    await fetch('/api/notifications/welcome', {
                         method: 'POST',
                         body: JSON.stringify({
-                            email,
+                            phone: phone.replace(/-/g, ''),
                             name: name
                         })
                     });
+                } catch (smsError) {
+                    console.error("Welcome SMS failed:", smsError);
                 }
-            } catch (emailError) {
-                console.error("Welcome email failed:", emailError);
-                // Don't block onboarding for email failure
+            } else if (isFirstTime && provider === 'google') {
+                // Google users get the email (existing logic)
+                try {
+                    const email = user.email;
+                    if (email) {
+                        await fetch('/api/email/welcome', {
+                            method: 'POST',
+                            body: JSON.stringify({ email, name })
+                        });
+                    }
+                } catch (emailError) {
+                    console.error("Welcome email failed:", emailError);
+                }
             }
 
-            // Force session refresh to ensure next page load gets updated metadata
+            // Force session refresh
             await supabase.auth.refreshSession();
 
-            // Update local store immediately for visual feedback
+            // Update local store
             setUser({
                 ...user,
                 name: name,
-                image: profileImage, // Ensure consistent image state
+                image: profileImage,
                 user_metadata: {
                     ...user.user_metadata,
                     ...updates
                 }
             });
 
-            // Double check redirect
             router.replace("/dashboard");
-            // router.push("/dashboard"); 
         } catch (error: any) {
             console.error(error);
             alert(`저장에 실패했습니다: ${error.message}`);
@@ -222,6 +246,18 @@ export default function OnboardingPage() {
                                 placeholder="사용하실 별명을 입력하세요"
                                 className="w-full p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호 <span className="text-blue-500">*</span></label>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
+                                placeholder="010-0000-0000"
+                                maxLength={13}
+                                className="w-full p-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all font-medium text-slate-900"
+                            />
+                            <p className="text-xs text-slate-400 mt-1 pl-1">가입 환영 메시지와 중요 알림을 위해 사용됩니다.</p>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">한 줄 소개 <span className="text-slate-400 font-normal">(선택)</span></label>
