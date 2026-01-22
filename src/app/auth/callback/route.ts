@@ -25,27 +25,27 @@ export async function GET(request: Request) {
             const identities = session.user.identities || [];
             const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
 
-            // Fetch Profile (Source of Truth)
-            // Note: exchangeCodeForSession sets cookies for *response*. 
-            // The current 'supabase' client might not have the session set effectively for RLS if not refreshed.
-            // But usually @supabase/ssr handles this. 
-            // If this fails often, we might need to rely on metadata or bypass RLS (if we had admin key).
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('nickname')
-                .eq('id', session.user.id)
-                .single();
+            // ERROR: The supabase client here uses OLD cookies... (DB RLS issue)
+            // FIX: Use 'created_at' to detect NEW users, and 'user_metadata.nickname' to detect ONBOARDED users.
+            // This avoids DB calls in the callback which can be flaky due to RLS/Cookie timing.
 
-            const hasNickname = profile?.nickname;
+            const createdAt = new Date(session.user.created_at).getTime();
+            const now = Date.now();
+            const isNewUser = (now - createdAt) < 60 * 1000; // Created within last 60 seconds
+            const hasNickname = session.user.user_metadata.nickname;
 
             // Prepare response object
             let response: NextResponse;
 
-            if (isSocial && hasNickname) {
+            // Only force verification if:
+            // 1. Social Login
+            // 2. Not a brand new user (Just signed up)
+            // 3. Has a nickname (Means they finished onboarding and presumably set a password)
+            if (isSocial && !isNewUser && hasNickname) {
                 // Existing Social User -> Force Verify
                 response = NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
             } else {
-                // New User or Email User -> Go to Target
+                // New User or Incomplete-Onboarding User -> Go to Target (AuthProvider will handle Onboarding redirect)
                 response = NextResponse.redirect(`${origin}${next}`);
             }
 
