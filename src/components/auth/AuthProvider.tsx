@@ -66,24 +66,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Allow access to /onboarding, /api/auth/callback, /logout
                 // Allow access to /onboarding, /api/auth/callback, /logout
                 if (!hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
-                    console.log("Redirecting to onboarding due to missing nickname (DB & Metadata check failed)");
-                    const searchParams = typeof window !== 'undefined' ? window.location.search : '';
-                    router.replace(`/onboarding${searchParams}`);
+                    console.log("Redirecting to onboarding due to missing nickname");
+
+                    // Capture current path and search params as returnTo
+                    const currentPath = pathname + (typeof window !== 'undefined' ? window.location.search : '');
+                    const returnToVal = currentPath === '/' ? '' : `?returnTo=${encodeURIComponent(currentPath)}`;
+
+                    router.replace(`/onboarding${returnToVal}`);
                     // Do NOT return here. We must proceed to set the user state so the onboarding page can use it.
                 }
 
-                // If on onboarding page but already has nickname, send to dashboard
+                // If on onboarding page but already has nickname, send to dashboard (or returnTo if exists)
                 if (hasNickname && pathname === "/onboarding") {
-                    router.replace("/dashboard");
+                    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+                    const returnTo = params.get("returnTo") || "/dashboard";
+                    router.replace(returnTo);
                 }
 
                 // PASSWORD CHALLENGE CHECK
                 // Only for Social Login Users (provider != 'email')
-                // Skip if already on verify page or onboarding
-                const isSocial = session.user.app_metadata.provider !== 'email';
+                const provider = session.user.app_metadata.provider;
+                // Check if user has any linked identity that is NOT 'email'
+                const identities = session.user.identities || [];
+                const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
+
                 const isVerified = typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true';
 
-                if (isSocial && !isVerified && hasNickname && pathname !== "/auth/verify-password" && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
+                // Allow /auth/verify-password, /onboarding, /api/auth/callback, /login (just in case), /logout
+                const isExcludedPath = ["/auth/verify-password", "/onboarding", "/api/auth/callback", "/login"].includes(pathname);
+
+                if (isSocial && !isVerified && hasNickname && !isExcludedPath) {
                     console.log("Redirecting to Password Verification (Social Login Challenge)");
                     const returnTo = pathname + (typeof window !== 'undefined' ? window.location.search : '');
                     router.replace(`/auth/verify-password?returnTo=${encodeURIComponent(returnTo)}`);

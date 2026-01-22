@@ -95,7 +95,7 @@ export default function Home() {
       sessionStorage.setItem('login_redirect_active', 'true');
 
       alert("로그인 후 계속 작성이 가능합니다.");
-      router.push('/login');
+      router.push('/login?returnTo=/create');
     }
   };
 
