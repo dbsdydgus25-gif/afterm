@@ -76,6 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     router.replace("/dashboard");
                 }
 
+                // PASSWORD CHALLENGE CHECK
+                // Only for Social Login Users (provider != 'email')
+                // Skip if already on verify page or onboarding
+                const isSocial = session.user.app_metadata.provider !== 'email';
+                const isVerified = typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true';
+
+                if (isSocial && !isVerified && hasNickname && pathname !== "/auth/verify-password" && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
+                    console.log("Redirecting to Password Verification (Social Login Challenge)");
+                    router.replace(`/auth/verify-password?returnTo=${encodeURIComponent(pathname)}`);
+                }
+
                 // Determine display values (Profile Table > Metadata > Defaults)
                 const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자";
                 const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
@@ -109,6 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
             setUser(null);
             setIsRestoreModalOpen(false);
+
+            // Clear verification on logout
+            if (typeof window !== 'undefined') sessionStorage.removeItem('auth_verified');
         }
     };
 
@@ -139,6 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut();
         setIsRestoreModalOpen(false);
         setUser(null);
+        if (typeof window !== 'undefined') sessionStorage.removeItem('auth_verified');
         router.push("/");
     };
 

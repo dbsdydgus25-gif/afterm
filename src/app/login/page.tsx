@@ -29,7 +29,14 @@ export default function LoginPage() {
             if (error) {
                 setError("이메일 또는 비밀번호가 올바르지 않습니다.");
             } else {
-                router.push("/dashboard");
+                // Check for returnTo param
+                const params = new URLSearchParams(window.location.search);
+                const returnTo = params.get("returnTo");
+                if (returnTo) {
+                    router.push(returnTo);
+                } else {
+                    router.push("/");
+                }
             }
         } catch (err) {
             setError("로그인 중 오류가 발생했습니다.");
@@ -39,10 +46,13 @@ export default function LoginPage() {
     };
 
     const handleSocialLogin = async (provider: "google" | "kakao") => {
+        const params = new URLSearchParams(window.location.search);
+        const returnTo = params.get("returnTo") || "/";
+
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
             },
         });
     };

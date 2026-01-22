@@ -190,7 +190,17 @@ export default function OnboardingPage() {
                 user_metadata: { ...user!.user_metadata, ...updates }
             });
 
-            router.replace("/dashboard");
+            // Mark as verified since they just set the password/profile
+            if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
+
+            // Handle Redirect
+            const params = new URLSearchParams(window.location.search);
+            const returnTo = params.get("returnTo");
+            if (returnTo) {
+                router.replace(returnTo);
+            } else {
+                router.replace("/");
+            }
         } catch (error: any) {
             alert("저장 실패: " + error.message);
         } finally {
