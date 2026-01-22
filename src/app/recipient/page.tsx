@@ -39,7 +39,7 @@ export default function RecipientPage() {
 
         if (!user) {
             alert("로그인이 필요한 서비스입니다.");
-            router.push('/login');
+            router.push('/login?returnTo=/recipient');
             return;
         }
 

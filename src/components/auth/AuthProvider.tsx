@@ -67,7 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Allow access to /onboarding, /api/auth/callback, /logout
                 if (!hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
                     console.log("Redirecting to onboarding due to missing nickname (DB & Metadata check failed)");
-                    router.replace("/onboarding");
+                    const searchParams = typeof window !== 'undefined' ? window.location.search : '';
+                    router.replace(`/onboarding${searchParams}`);
                     // Do NOT return here. We must proceed to set the user state so the onboarding page can use it.
                 }
 
@@ -84,7 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 if (isSocial && !isVerified && hasNickname && pathname !== "/auth/verify-password" && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
                     console.log("Redirecting to Password Verification (Social Login Challenge)");
-                    router.replace(`/auth/verify-password?returnTo=${encodeURIComponent(pathname)}`);
+                    const returnTo = pathname + (typeof window !== 'undefined' ? window.location.search : '');
+                    router.replace(`/auth/verify-password?returnTo=${encodeURIComponent(returnTo)}`);
                 }
 
                 // Determine display values (Profile Table > Metadata > Defaults)

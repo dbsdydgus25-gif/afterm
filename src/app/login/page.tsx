@@ -27,7 +27,7 @@ export default function LoginPage() {
             });
 
             if (error) {
-                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+                setError("가입되지 않은 이메일이거나 비밀번호가 올바르지 않습니다. (회원가입이 필요할 수 있습니다)");
             } else {
                 // Check for returnTo param
                 const params = new URLSearchParams(window.location.search);
