@@ -8,13 +8,13 @@ export async function POST(req: NextRequest) {
 
         const apiKey = process.env.SOLAPI_API_KEY;
         const apiSecret = process.env.SOLAPI_API_SECRET;
-        const senderPhone = process.env.SOLAPI_SENDER_PHONE;
+        const senderPhone = process.env.SOLAPI_SENDER_NUMBER;
 
         if (!apiKey || !apiSecret || !senderPhone) {
             const missing = [];
             if (!apiKey) missing.push('SOLAPI_API_KEY');
             if (!apiSecret) missing.push('SOLAPI_API_SECRET');
-            if (!senderPhone) missing.push('SOLAPI_SENDER_PHONE');
+            if (!senderPhone) missing.push('SOLAPI_SENDER_NUMBER');
 
             console.error(`Solapi environment variables missing: ${missing.join(', ')}`);
             return NextResponse.json(
