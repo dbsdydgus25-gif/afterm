@@ -11,9 +11,14 @@ export async function POST(req: NextRequest) {
         const senderPhone = process.env.SOLAPI_SENDER_PHONE;
 
         if (!apiKey || !apiSecret || !senderPhone) {
-            console.error("Solapi environment variables missing");
+            const missing = [];
+            if (!apiKey) missing.push('SOLAPI_API_KEY');
+            if (!apiSecret) missing.push('SOLAPI_API_SECRET');
+            if (!senderPhone) missing.push('SOLAPI_SENDER_PHONE');
+
+            console.error(`Solapi environment variables missing: ${missing.join(', ')}`);
             return NextResponse.json(
-                { error: "SMS configuration missing" },
+                { error: `SMS configuration missing: ${missing.join(', ')}` },
                 { status: 500 }
             );
         }

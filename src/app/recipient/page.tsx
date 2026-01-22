@@ -164,7 +164,7 @@ export default function RecipientPage() {
 
             // 4. Send SMS Notification
             try {
-                await fetch('/api/sms/send', {
+                const smsRes = await fetch('/api/sms/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -174,9 +174,15 @@ export default function RecipientPage() {
                         messageId: messageId || (await supabase.from('messages').select('id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single()).data?.id // Get newly created ID if not set
                     })
                 });
-            } catch (smsError) {
+
+                if (!smsRes.ok) {
+                    const errorData = await smsRes.json();
+                    throw new Error(errorData.error || "SMS API Error");
+                }
+            } catch (smsError: any) {
                 console.error("Failed to send SMS:", smsError);
-                // SMS 실패해도 저장은 성공으로 처리
+                // 디버깅을 위해 실패 사유를 알림
+                alert(`저장은 되었으나 문자 발송에 실패했습니다.\n사유: ${smsError.message || "Unknown error"}`);
             }
 
             alert("저장되었습니다.");
