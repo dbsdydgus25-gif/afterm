@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 import { StorageWidget } from "@/components/dashboard/StorageWidget";
+import { MessageList } from "@/components/dashboard/MessageList";
 
 interface Message {
     id: string;
@@ -148,7 +149,9 @@ export default function DashboardPage() {
         setMessages(prev => prev.filter(m => m.id !== id));
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
         setUser(null); // Clear user state
         router.push("/");
     };
@@ -177,9 +180,9 @@ export default function DashboardPage() {
                                 className="w-8 h-8 rounded-full shadow-sm"
                             />
                         ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                            <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                 {user?.name?.[0] || "U"}
-                            </div>
+                            </span>
                         )}
                         <span className="text-sm font-bold text-slate-700 hidden sm:block">{user?.name || "사용자"}</span>
                         {plan === 'pro' && (
@@ -201,19 +204,19 @@ export default function DashboardPage() {
                                     <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                                 </div>
                                 <div className="p-1">
-                                    <button
-                                        onClick={() => router.push('/settings')}
+                                    <Link
+                                        href="/settings"
                                         className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                                     >
                                         <User className="w-4 h-4" /> 내 정보
-                                    </button>
-                                    <button
-                                        onClick={() => router.push('/plans')}
+                                    </Link>
+                                    <Link
+                                        href="/plans"
                                         className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                                     >
                                         <CreditCard className="w-4 h-4" /> 플랜 관리
                                         {plan === 'pro' && <span className="ml-auto text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded font-bold">PRO</span>}
-                                    </button>
+                                    </Link>
                                 </div>
                                 <div className="p-1 border-t border-slate-50">
                                     <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg flex items-center gap-2 transition-colors">
@@ -229,12 +232,12 @@ export default function DashboardPage() {
             <main className="max-w-3xl mx-auto p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10">
 
                 {/* Profile Section (Editable) */}
-                <section
-                    onClick={() => router.push('/settings')}
-                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer"
+                <Link
+                    href="/settings"
+                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer block"
                 >
                     <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-blue-600">설정 ›</Button>
+                        <span className="text-sm font-medium text-slate-400 hover:text-blue-600">설정 ›</span>
                     </div>
 
                     <div className="relative">
@@ -272,7 +275,7 @@ export default function DashboardPage() {
                             <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">PRO MEMBER</span>
                         )}
                     </div>
-                </section>
+                </Link>
 
                 {/* Stats Section: Messages & Storage */}
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,69 +311,19 @@ export default function DashboardPage() {
                         <Button onClick={() => router.push('/dashboard/memories')} variant="ghost" size="sm" className="text-slate-500">전체보기</Button>
                     </div>
 
-                    {loading ? (
-                        <div className="text-center py-10 text-slate-400">로딩 중...</div>
-                    ) : messages.length > 0 ? (
-                        <div className="space-y-4">
-                            {messages.map((msg: any) => (
-                                <motion.div
-                                    key={msg.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all group"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="text-xs text-slate-400">{new Date(msg.created_at).toLocaleDateString()} 작성</span>
-                                            </div>
-                                            <h3 className="text-lg font-bold text-slate-900">
-                                                To. {msg.recipient_name || '수신인 미지정'}
-                                            </h3>
-                                        </div>
-                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button onClick={() => handleEdit(msg)} variant="ghost" size="sm" className="h-8">수정</Button>
-                                            <Button onClick={() => handleDelete(msg.id)} variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50">삭제</Button>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 p-4 rounded-xl text-sm">
-                                        {msg.content}
-                                    </p>
-
-                                    {imageUrls[msg.id] && (
-                                        <div className="mt-4 rounded-xl overflow-hidden border border-slate-100">
-                                            <img
-                                                src={imageUrls[msg.id]}
-                                                alt="Attachment"
-                                                className="w-full h-auto max-h-64 object-cover"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                    e.currentTarget.parentElement?.style.setProperty('display', 'none');
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-400 font-medium">
-                                        <span className="flex items-center gap-1">📄 텍스트</span>
-                                        {msg.file_path && <span className="flex items-center gap-1">📷 사진/영상 첨부됨</span>}
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div onClick={() => {
+                    <MessageList
+                        messages={messages}
+                        loading={loading}
+                        imageUrls={imageUrls}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onCreateNew={() => {
                             setMessage('');
                             setMessageId(null);
                             setRecipient({ name: '', phone: '', relationship: '' });
                             router.push('/create');
-                        }} className="cursor-pointer border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-                            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl group-hover:scale-110 transition-transform">✍️</div>
-                            <p className="text-slate-900 font-bold mb-1">첫 번째 기억을 남겨보세요</p>
-                            <p className="text-slate-500 text-sm">무료로 최대 1명에게 마음을 전할 수 있습니다.</p>
-                        </div>
-                    )}
+                        }}
+                    />
                 </section>
 
                 {/* Upgrade CTA */}

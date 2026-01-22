@@ -22,13 +22,24 @@ export default function MyMemoriesPage() {
             const { data: { session } } = await supabase.auth.getSession();
             const currentUserId = user?.id || session?.user?.id;
 
-            if (!currentUserId) return;
+            console.log("Fetching memories for User ID:", currentUserId);
 
-            const { data } = await supabase
+            if (!currentUserId) {
+                console.log("No user ID found, aborting fetch.");
+                return;
+            }
+
+            const { data, error } = await supabase
                 .from('messages')
                 .select('*')
                 .eq('user_id', currentUserId)
                 .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching messages:", error);
+            } else {
+                console.log("Messages fetched:", data);
+            }
 
             if (data) {
                 setMemories(data);

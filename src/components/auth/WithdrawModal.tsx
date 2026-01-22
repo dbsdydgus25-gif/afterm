@@ -2,8 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { X, AlertTriangle, Loader2, Phone, CheckCircle2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -16,11 +16,34 @@ interface WithdrawModalProps {
 export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
     const router = useRouter();
     const { user, setUser } = useMemoryStore();
-    const [step, setStep] = useState<"reason" | "verify">("reason");
+    const [step, setStep] = useState<"reason" | "verify" | "confirm">("reason");
     const [reason, setReason] = useState("");
     const [customReason, setCustomReason] = useState("");
+
+    // Email Verification State
     const [verifyEmail, setVerifyEmail] = useState("");
+
+    // SMS Verification State
+    const [phone, setPhone] = useState("");
+    const [verificationCode, setVerificationCode] = useState("");
+    const [timer, setTimer] = useState(0);
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [isSmsVerified, setIsSmsVerified] = useState(false);
+    const [isSendingCode, setIsSendingCode] = useState(false);
+    const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Timer Effect
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (timer > 0) {
+            interval = setInterval(() => {
+                setTimer((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
 
     const reasons = [
         "더 이상 이용하지 않습니다.",
@@ -30,15 +53,81 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
         "기타 (직접 입력)"
     ];
 
-    const handleSubmit = async () => {
-        if (!user) return;
-        if (verifyEmail !== user.email) {
-            alert("이메일이 일치하지 않습니다.");
+    const handleSendVerification = async () => {
+        if (!phone) return;
+
+        // Clean phone number
+        const cleanPhone = phone.replace(/-/g, '');
+        if (cleanPhone.length < 10) {
+            alert("유효한 휴대폰 번호를 입력해주세요.");
             return;
         }
 
-        if (!confirm("정말로 탈퇴하시겠습니까? 돌이킬 수 없습니다.")) return;
+        setIsSendingCode(true);
+        try {
+            const res = await fetch("/api/verify/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone: cleanPhone }),
+            });
 
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "인증번호 전송 실패");
+
+            setIsCodeSent(true);
+            setTimer(180); // 3 minutes
+            alert("인증번호가 전송되었습니다.");
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setIsSendingCode(false);
+        }
+    };
+
+    const handleConfirmVerification = async () => {
+        if (!verificationCode) return;
+
+        setIsVerifyingCode(true);
+        const cleanPhone = phone.replace(/-/g, '');
+
+        try {
+            const res = await fetch("/api/verify/confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    phone: cleanPhone,
+                    code: verificationCode
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.error || "인증 실패");
+
+            setIsSmsVerified(true);
+            setTimer(0);
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setIsVerifyingCode(false);
+        }
+    };
+
+    const handleNext = () => {
+        if (step === 'verify') {
+            if (verifyEmail !== user?.email) {
+                alert("이메일이 일치하지 않습니다.");
+                return;
+            }
+            if (!isSmsVerified) {
+                alert("휴대폰 인증을 완료해주세요.");
+                return;
+            }
+            setStep('confirm');
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!user) return;
         setIsSubmitting(true);
         const finalReason = reason === "기타 (직접 입력)" ? customReason : reason;
 
@@ -145,23 +234,85 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                                         다음
                                     </Button>
                                 </div>
-                            ) : (
+                            ) : step === 'verify' ? (
                                 <div className="space-y-6">
                                     <div className="bg-slate-50 p-4 rounded-xl text-sm text-slate-600 leading-relaxed border border-slate-200">
-                                        본인 확인을 위해 아래의 이메일을<br />
-                                        <span className="font-bold text-slate-900">{user?.email}</span><br />
-                                        정확하게 입력해주세요.
+                                        본인 확인을 위해 이메일과 휴대폰 번호를<br />
+                                        <span className="font-bold text-slate-900">모두 인증</span>해주세요.
                                     </div>
 
-                                    <input
-                                        type="email"
-                                        value={verifyEmail}
-                                        onChange={(e) => setVerifyEmail(e.target.value)}
-                                        placeholder="이메일 입력"
-                                        className="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none text-center font-medium placeholder:text-slate-400"
-                                    />
+                                    {/* Email Verification */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">이메일 확인</label>
+                                        <input
+                                            type="email"
+                                            value={verifyEmail}
+                                            onChange={(e) => setVerifyEmail(e.target.value)}
+                                            placeholder={user?.email || "이메일 입력"}
+                                            className="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none font-medium placeholder:text-slate-400"
+                                        />
+                                        {verifyEmail === user?.email && verifyEmail !== "" && (
+                                            <p className="text-xs text-green-600 font-bold ml-1 flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3" /> 이메일이 일치합니다.
+                                            </p>
+                                        )}
+                                    </div>
 
-                                    <div className="flex gap-2">
+                                    {/* SMS Verification */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-slate-500 ml-1">휴대폰 번호 인증</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="tel"
+                                                value={phone}
+                                                onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
+                                                placeholder="010-0000-0000"
+                                                disabled={isSmsVerified}
+                                                className="flex-1 p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-500"
+                                                maxLength={13}
+                                            />
+                                            <Button
+                                                onClick={handleSendVerification}
+                                                disabled={isSmsVerified || isSendingCode || phone.length < 10 || (isCodeSent && timer > 0)}
+                                                className="h-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl whitespace-nowrap"
+                                            >
+                                                {isSmsVerified ? "인증완료" : isSendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : isCodeSent ? "재전송" : "인증번호"}
+                                            </Button>
+                                        </div>
+
+                                        {isCodeSent && !isSmsVerified && (
+                                            <div className="flex gap-2 animate-in fade-in slide-in-from-top-2">
+                                                <div className="relative flex-1">
+                                                    <input
+                                                        type="text"
+                                                        value={verificationCode}
+                                                        onChange={(e) => setVerificationCode(e.target.value)}
+                                                        placeholder="인증번호 6자리"
+                                                        maxLength={6}
+                                                        className="w-full p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-900"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-red-500 font-medium">
+                                                        {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, '0')}
+                                                    </span>
+                                                </div>
+                                                <Button
+                                                    onClick={handleConfirmVerification}
+                                                    disabled={verificationCode.length !== 6 || isVerifyingCode}
+                                                    className="h-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold whitespace-nowrap"
+                                                >
+                                                    {isVerifyingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
+                                                </Button>
+                                            </div>
+                                        )}
+
+                                        {isSmsVerified && (
+                                            <p className="text-xs text-green-600 font-bold ml-1 flex items-center gap-1">
+                                                <CheckCircle2 className="w-3 h-3" /> 휴대폰 인증이 완료되었습니다.
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
                                         <Button
                                             onClick={() => setStep("reason")}
                                             variant="outline"
@@ -170,11 +321,59 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                                             이전
                                         </Button>
                                         <Button
+                                            onClick={handleNext}
+                                            disabled={verifyEmail !== user?.email || !isSmsVerified}
+                                            className="flex-1 h-12 rounded-xl font-bold bg-slate-900 hover:bg-slate-800 text-white disabled:bg-slate-200 disabled:text-slate-400"
+                                        >
+                                            다음
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                // Final Confirmation Step
+                                <div className="space-y-6 text-center animate-in fade-in zoom-in-95">
+                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600 mb-2">
+                                        <AlertTriangle className="w-8 h-8" />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold text-slate-900">정말 떠나시겠습니까?</h3>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            회원 탈퇴 시 모든 데이터는 즉시 삭제되며,<br />
+                                            <span className="font-bold text-red-500">절대로 복구할 수 없습니다.</span>
+                                        </p>
+                                    </div>
+
+                                    <div className="bg-slate-50 p-4 rounded-xl text-left space-y-2 border border-slate-200">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-500">탈퇴 사유</span>
+                                            <span className="font-bold text-slate-900">{reason === "기타 (직접 입력)" ? "기타" : reason}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-500">계정</span>
+                                            <span className="font-bold text-slate-900">{user?.email}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
+                                        <Button
+                                            onClick={() => setStep("verify")}
+                                            variant="outline"
+                                            className="flex-1 h-12 rounded-xl font-bold"
+                                        >
+                                            취소
+                                        </Button>
+                                        <Button
                                             onClick={handleSubmit}
-                                            disabled={verifyEmail !== user?.email || isSubmitting}
+                                            disabled={isSubmitting}
                                             className="flex-1 h-12 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white disabled:bg-slate-200 disabled:text-slate-400"
                                         >
-                                            {isSubmitting ? "처리 중..." : "영구 탈퇴"}
+                                            {isSubmitting ? (
+                                                <span className="flex items-center gap-2">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    처리 중...
+                                                </span>
+                                            ) : "영구 탈퇴 확인"}
                                         </Button>
                                     </div>
                                 </div>
