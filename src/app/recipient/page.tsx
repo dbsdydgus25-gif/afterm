@@ -162,6 +162,25 @@ export default function RecipientPage() {
 
             if (profileError) console.error("Failed to update storage usage:", profileError);
 
+            // 4. Send SMS Notification
+            try {
+                await fetch('/api/sms/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipientPhone: formData.phone,
+                        recipientName: formData.name,
+                        senderName: user.name || "사용자", // Fallback name
+                        messageId: messageId || (await supabase.from('messages').select('id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single()).data?.id // Get newly created ID if not set
+                    })
+                });
+            } catch (smsError) {
+                console.error("Failed to send SMS:", smsError);
+                // SMS 실패해도 저장은 성공으로 처리
+            }
+
+            alert("저장되었습니다.");
+
 
             alert("저장되었습니다.");
 
