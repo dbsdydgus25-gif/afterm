@@ -1,13 +1,44 @@
 "use client";
 
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
     const supabase = createClient();
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async (provider: "google" | "kakao") => {
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+            } else {
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            setError("로그인 중 오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSocialLogin = async (provider: "google" | "kakao") => {
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
@@ -20,16 +51,63 @@ export default function LoginPage() {
         <div className="min-h-screen bg-slate-50 font-sans">
             <Header />
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-md text-center">
-                    <h1 className="text-2xl font-bold text-slate-900 mb-2">로그인</h1>
-                    <p className="text-slate-500 mb-8">
-                        SNS 계정으로 간편하게 시작하세요.
-                    </p>
+                <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-md">
+                    <div className="text-center mb-8">
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2">로그인</h1>
+                        <p className="text-slate-500">
+                            계정 정보를 입력하거나 SNS로 시작하세요.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleLogin} className="space-y-4 mb-8">
+                        <div>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="이메일 주소"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                        <div>
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="비밀번호"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+
+                        {error && (
+                            <p className="text-red-500 text-sm text-center">{error}</p>
+                        )}
+
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg rounded-xl"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "로그인"}
+                        </Button>
+                    </form>
+
+                    <div className="relative mb-8">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-200"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-slate-500">또는</span>
+                        </div>
+                    </div>
 
                     <div className="space-y-3">
                         <Button
-                            onClick={() => handleLogin("kakao")}
-                            className="w-full bg-[#FEE500] hover:bg-[#FDD835] text-slate-900 font-bold py-6 text-lg rounded-xl flex items-center justify-center gap-3"
+                            onClick={() => handleSocialLogin("kakao")}
+                            type="button"
+                            className="w-full bg-[#FEE500] hover:bg-[#FDD835] text-slate-900 font-bold py-6 text-lg rounded-xl flex items-center justify-center gap-3 border-none"
                         >
                             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 3C6.48 3 2 6.48 2 10.77c0 2.8 1.94 5.23 4.88 6.66-.2 0.76-.74 2.76-.85 3.16-.04.14.06.2.18.12.98-.67 4.14-2.81 4.31-2.93.48.07.98.1 1.48.1 5.52 0 10-3.48 10-7.77S17.52 3 12 3z" />
@@ -38,7 +116,8 @@ export default function LoginPage() {
                         </Button>
 
                         <Button
-                            onClick={() => handleLogin("google")}
+                            onClick={() => handleSocialLogin("google")}
+                            type="button"
                             className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold py-6 text-lg rounded-xl flex items-center justify-center gap-3"
                         >
                             <svg className="w-6 h-6" viewBox="0 0 24 24">
