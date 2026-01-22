@@ -1,11 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get("next") ?? "/";
+
+    // 1. Determine Redirect Target (Priority: Cookie > Query Param > Default)
+    // Read from cookies() for server-side consistent access
+    const cookieStore = await cookies();
+    const cookieReturnTo = cookieStore.get('auth_return_to')?.value;
+    let next = decodeURIComponent(cookieReturnTo || searchParams.get("next") || "/");
+
+    // Ensure next starts with / to prevent open redirect vulnerabilities (basic check)
+    if (!next.startsWith("/")) next = "/";
 
     if (code) {
         const supabase = await createClient();
@@ -17,36 +25,11 @@ export async function GET(request: Request) {
             const identities = session.user.identities || [];
             const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
 
-            // If Social Login, force Password Verification
-            // But we need to check if they actually HAVE a password? 
-            // For now, based on requirements, we assume they do or onboarding sets it.
-            // If they are new users (Onboarding not done), they might not have a password yet.
-            // But the Verify Page checks auth.
-            // Let's redirect to verify IF it's social.
-            // WAIT: New users (Sign Up) also come here. They don't have a password set in our custom flow yet (Onboarding sets it).
-            // If we send new users to verify-password, they will get stuck?
-            // "Verify Password" page calls signInWithPassword.
-            // If user has NO password, this fails.
-
-            // Logic:
-            // 1. If Social -> Redirect to /auth/verify-password
-            // 2. Exception: If they are NEW (no password set in app metadata?), how to know?
-            // Actually, Onboarding Step 1 sets the password. 
-            // If they are brand new, they go to Onboarding (via AuthProvider check).
-            // AuthProvider checks nickname.
-            // So: 
-            // If we send them to VerifyPassword, and they are new, they can't verify.
-            // We should let them go to `next` (which is likely / or /onboarding or /dashboard).
-            // Then AuthProvider picks them up.
-
-            // But User Requirement: "When login with Google/Kakao... verify password".
-            // This implies EXISTING users.
-            // How to distinguish?
-            // Profiles table check is async and server side DB call.
-            // We can do it here.
-
-            // Allow bypassing verify if they need onboarding (nickname check is good proxy).
-            // We fetch the profile from the DB to be sure (Source of Truth)
+            // Fetch Profile (Source of Truth)
+            // Note: exchangeCodeForSession sets cookies for *response*. 
+            // The current 'supabase' client might not have the session set effectively for RLS if not refreshed.
+            // But usually @supabase/ssr handles this. 
+            // If this fails often, we might need to rely on metadata or bypass RLS (if we had admin key).
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('nickname')
@@ -55,17 +38,22 @@ export async function GET(request: Request) {
 
             const hasNickname = profile?.nickname;
 
-            // Prepare response
+            // Prepare response object
             let response: NextResponse;
 
             if (isSocial && hasNickname) {
+                // Existing Social User -> Force Verify
                 response = NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
             } else {
+                // New User or Email User -> Go to Target
                 response = NextResponse.redirect(`${origin}${next}`);
             }
 
-            // Clear cookie
-            response.cookies.delete('auth_return_to');
+            // Cleanup Cookie
+            if (cookieReturnTo) {
+                response.cookies.delete('auth_return_to');
+            }
+
             return response;
         }
     }
