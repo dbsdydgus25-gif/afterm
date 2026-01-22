@@ -83,24 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     router.replace(returnTo);
                 }
 
-                // PASSWORD CHALLENGE CHECK
-                // Only for Social Login Users (provider != 'email')
-                const provider = session.user.app_metadata.provider;
-                // Check if user has any linked identity that is NOT 'email'
-                const identities = session.user.identities || [];
-                const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
-
-                const isVerified = typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true';
-
-                // Allow /auth/verify-password, /onboarding, /api/auth/callback, /login (just in case), /logout
-                const isExcludedPath = ["/auth/verify-password", "/onboarding", "/api/auth/callback", "/login"].includes(pathname);
-
-                if (isSocial && !isVerified && hasNickname && !isExcludedPath) {
-                    console.log("Redirecting to Password Verification (Social Login Challenge)");
-                    const returnTo = pathname + (typeof window !== 'undefined' ? window.location.search : '');
-                    router.replace(`/auth/verify-password?returnTo=${encodeURIComponent(returnTo)}`);
-                }
-
                 // Determine display values (Profile Table > Metadata > Defaults)
                 const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자";
                 const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
