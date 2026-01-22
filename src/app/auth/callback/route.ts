@@ -46,13 +46,27 @@ export async function GET(request: Request) {
             // We can do it here.
 
             // Allow bypassing verify if they need onboarding (nickname check is good proxy).
-            const nickname = session.user.user_metadata.nickname;
+            // We fetch the profile from the DB to be sure (Source of Truth)
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', session.user.id)
+                .single();
 
-            if (isSocial && nickname) {
-                return NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
+            const hasNickname = profile?.nickname;
+
+            // Prepare response
+            let response: NextResponse;
+
+            if (isSocial && hasNickname) {
+                response = NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
+            } else {
+                response = NextResponse.redirect(`${origin}${next}`);
             }
 
-            return NextResponse.redirect(`${origin}${next}`);
+            // Clear cookie
+            response.cookies.delete('auth_return_to');
+            return response;
         }
     }
 

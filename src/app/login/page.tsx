@@ -49,10 +49,18 @@ export default function LoginPage() {
         const params = new URLSearchParams(window.location.search);
         const returnTo = params.get("returnTo") || "/";
 
+        // Set cookie for robustness (in case query param is stripped by provider)
+        document.cookie = `auth_return_to=${encodeURIComponent(returnTo)}; path=/; max-age=300`; // 5 mins expiration
+
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
+                redirectTo: `${location.origin}/auth/callback`,
+                // We still pass next in URL as backup, but rely on cookie primarily in callback
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                },
             },
         });
     };
