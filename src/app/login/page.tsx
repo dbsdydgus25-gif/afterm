@@ -55,7 +55,7 @@ export default function LoginPage() {
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${location.origin}/auth/callback`,
+                redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
                 // We still pass next in URL as backup, but rely on cookie primarily in callback
                 queryParams: {
                     access_type: 'offline',

@@ -26,13 +26,13 @@ export async function GET(request: Request) {
             const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
 
             // ERROR: The supabase client here uses OLD cookies... (DB RLS issue)
-            // FIX: Use 'created_at' to detect NEW users, and 'user_metadata.nickname' to detect ONBOARDED users.
-            // This avoids DB calls in the callback which can be flaky due to RLS/Cookie timing.
+            // FIX: Use 'created_at' to detect NEW users.
+            // REMOVED 'nickname' check because metadata can be out of sync.
+            // If user is > 1 min old, force verify.
 
             const createdAt = new Date(session.user.created_at).getTime();
             const now = Date.now();
             const isNewUser = (now - createdAt) < 60 * 1000; // Created within last 60 seconds
-            const hasNickname = session.user.user_metadata.nickname;
 
             // Prepare response object
             let response: NextResponse;
@@ -40,12 +40,13 @@ export async function GET(request: Request) {
             // Only force verification if:
             // 1. Social Login
             // 2. Not a brand new user (Just signed up)
-            // 3. Has a nickname (Means they finished onboarding and presumably set a password)
-            if (isSocial && !isNewUser && hasNickname) {
+            // If they are existing users without a password (abandoned onboarding), they will face the challenge.
+            // This is the intended security behavior for "Existing Users".
+            if (isSocial && !isNewUser) {
                 // Existing Social User -> Force Verify
                 response = NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
             } else {
-                // New User or Incomplete-Onboarding User -> Go to Target (AuthProvider will handle Onboarding redirect)
+                // New User -> Go to Target (AuthProvider will handle Onboarding redirect)
                 response = NextResponse.redirect(`${origin}${next}`);
             }
 
