@@ -45,9 +45,9 @@ export async function POST(req: NextRequest) {
 
         // 사용자 요청 포맷 적용:
         // 1. [에프텀] 헤더
-        // 2. 안내 멘트 후 줄바꿈 2번 (\n\n)
-        // 3. 링크: < URL > 형태로 감싸서 인식률 극대화
-        const text = `[에프텀] ${senderName}님이 보낸 소중한 메시지가 도착했습니다. 아래 링크를 터치하여 확인해 주세요.\n\n< ${link} >`;
+        // 2. 안내 멘트 후 줄바꿈 2번 (\n\n) -> 링크 -> 줄바꿈 2번
+        // 3. 링크: < > 제거하고 순수 URL만 노출하되 앞뒤 공백/줄바꿈으로 분리
+        const text = `[에프텀] ${senderName}님이 보낸 소중한 메시지가 도착했습니다. 아래 링크를 터치하여 확인해 주세요.\n\n${link}\n\n`;
 
         const result = await messageService.sendOne({
             to: recipientPhone,

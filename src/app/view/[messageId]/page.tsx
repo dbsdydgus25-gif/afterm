@@ -81,9 +81,9 @@ export default function MessageViewPage() {
 
             <div className="w-full max-w-[400px] z-10 animate-fade-in-up">
 
-                {/* Brand / Logo Area */}
+                {/* Brand / Logo Area - Clickable & No Text */}
                 <div className="flex flex-col items-center mb-8">
-                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg mb-4 ring-4 ring-white dark:ring-zinc-900">
+                    <Link href="/" className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg mb-4 ring-4 ring-white dark:ring-zinc-900 hover:opacity-90 transition-opacity active:scale-95 duration-200">
                         <Image
                             src="/logo.jpg"
                             alt="AFTERM Logo"
@@ -91,10 +91,7 @@ export default function MessageViewPage() {
                             className="object-cover"
                             priority
                         />
-                    </div>
-                    <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        AFTERM
-                    </h1>
+                    </Link>
                 </div>
 
                 {/* Main Card */}
@@ -113,7 +110,6 @@ export default function MessageViewPage() {
 
                     <div className="p-5 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30">
                         <p className="text-sm text-amber-800 dark:text-amber-200 font-medium text-center leading-relaxed box-border break-keep">
-                            {/* 따옴표 제거하고 좀 더 깔끔하게 */}
                             현재 {senderName}님의 상태를 확인해주세요.
                         </p>
                     </div>
@@ -145,7 +141,7 @@ export default function MessageViewPage() {
                 {/* Footer Info */}
                 <div className="mt-8 text-center space-y-2">
                     <p className="text-xs text-zinc-400 dark:text-zinc-600">
-                        디지털 유산 보관소, 에프텀
+                        떠난 후에도 당신이 기억 되도록. 에프텀
                     </p>
                     <div className="text-[10px] text-zinc-300/50 font-mono">
                         Ref: {messageId?.slice(0, 8)}...
