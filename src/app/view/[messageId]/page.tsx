@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getMessageSenderInfo } from "@/app/actions/viewMessage";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -18,32 +18,14 @@ export default function MessageViewPage() {
         const fetchMessageInfo = async () => {
             if (!messageId) return;
 
-            const supabase = createClient();
+            // 1. Fetch Sender Info via Server Action (Bypass RLS)
+            const result = await getMessageSenderInfo(messageId);
 
-            // 1. Fetch Message & Sender Info
-            // Note: 'messages' table likely has RLS. 
-            // If the user (recipient) is not logged in, they might not be able to read this row directly via client SDK
-            // unless we have a public policy or use a secure API.
-            // For now, attempting direct fetch assuming RLS allows reading by ID if link is shared (or public for demo).
-            // IF BLOCK: We might need a server action or API route to fetch this securely bypassing RLS.
-
-            const { data: message, error } = await supabase
-                .from('messages')
-                .select(`
-                    content,
-                    user_id,
-                    profiles:user_id ( full_name )
-                `)
-                .eq('id', messageId)
-                .single();
-
-            if (error || !message) {
-                console.error("Message fetch error:", error);
-                setError("메시지를 찾을 수 없거나 접근 권한이 없습니다.");
+            if (result.error || !result.senderName) {
+                console.error("Message fetch error:", result.error);
+                setError(result.error || "메시지를 찾을 수 없거나 접근 권한이 없습니다.");
             } else {
-                // @ts-ignore
-                const name = message.profiles?.full_name || "사용자";
-                setSenderName(name);
+                setSenderName(result.senderName);
             }
             setLoading(false);
         };
