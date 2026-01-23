@@ -109,6 +109,9 @@ export default function MessageViewPage() {
                     </div>
                 </div>
 
+                <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-300 dark:text-zinc-700 font-mono">
+                    System ID: {messageId}
+                </div>
             </div>
         </div>
     );

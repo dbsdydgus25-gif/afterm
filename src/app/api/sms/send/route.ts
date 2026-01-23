@@ -26,11 +26,23 @@ export async function POST(req: NextRequest) {
         const messageService = new SolapiMessageService(apiKey, apiSecret);
 
         // 링크 생성 (도메인은 환경변수 또는 요청 헤더에서 가져옴)
+        // 링크 생성 로직 개선
         const host = req.headers.get('host');
-        // Vercel or Production should be https
-        const isLocal = host?.includes('localhost');
-        const protocol = req.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
-        const domain = `${protocol}://${host}`;
+        let domain = '';
+
+        if (process.env.VERCEL_URL) {
+            domain = `https://${process.env.VERCEL_URL}`;
+        } else if (host && !host.includes('localhost')) {
+            domain = `https://${host}`;
+        } else {
+            // 로컬 개발 환경용
+            const protocol = req.headers.get('x-forwarded-proto') || 'http';
+            domain = `${protocol}://${host}`;
+        }
+
+        // 도메인이 확실치 않은 경우 하드코딩된 프로덕션 도메인 사용 (필요 시 수정)
+        // domain = 'https://afterm.co.kr'; // 만약 위 로직 실패 시 주석 해제하여 사용
+
         const link = `${domain}/view/${messageId}`;
 
         // 1. LMS 명시 (긴 텍스트 및 링크 포함)
