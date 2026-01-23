@@ -49,7 +49,17 @@ export async function getMessageSenderInfo(messageId: string) {
             console.error("Profile fetch error (Non-critical):", profileError);
         }
 
-        const senderName = profileData?.full_name || "사용자";
+        let senderName = profileData?.full_name;
+
+        // 3. Fallback: If profile name is missing, try Auth User Metadata
+        if (!senderName) {
+            const { data: { user: authUser }, error: authError } = await supabaseAdmin.auth.admin.getUserById(messageData.user_id);
+            if (!authError && authUser) {
+                senderName = authUser.user_metadata?.name || authUser.user_metadata?.full_name || authUser.email?.split('@')[0];
+            }
+        }
+
+        senderName = senderName || "사용자";
         return { senderName };
     } catch (err: any) {
         console.error("Server action error:", err);
