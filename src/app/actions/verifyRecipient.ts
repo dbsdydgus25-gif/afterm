@@ -79,10 +79,16 @@ export async function verifyOTP(messageId: string, phone: string, code: string) 
         }
 
         // Status check
+        // Fast Track: OTP Verified -> Unlock Immediately
+        // 사용자의 요청: 수신인 인증(OTP) 성공 시 1주일 대기 없이 즉시 열람
         if (message.verification_status !== 'unlocked') {
-            // In real world, we block here. But for test, if code matches, maybe we allow?
-            // Let's strictly follow flow: must be unlocked.
-            return { success: false, error: "아직 잠금 해제 기간(1주일)이 지나지 않았습니다. 잠시 후 다시 시도해주세요." };
+            await supabaseAdmin
+                .from('messages')
+                .update({
+                    verification_status: 'unlocked',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', messageId);
         }
 
         // Success! Return content
