@@ -131,7 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         full_name: profile.full_name,
                         nickname: profile.nickname,
                         avatar_url: profile.avatar_url,
-                        bio: profile.bio
+                        bio: profile.bio,
+                        phone_verified: profile.phone_verified
                     } : {})
                 };
 
