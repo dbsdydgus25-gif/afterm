@@ -28,27 +28,18 @@ export async function POST(req: NextRequest) {
         // 링크 생성 (도메인은 환경변수 또는 요청 헤더에서 가져옴)
         // 링크 생성 로직 개선
         const host = req.headers.get('host');
-        let domain = '';
 
-        if (process.env.VERCEL_URL) {
-            domain = `https://${process.env.VERCEL_URL}`;
-        } else if (host && !host.includes('localhost')) {
-            domain = `https://${host}`;
-        } else {
-            // 로컬 개발 환경용
-            const protocol = req.headers.get('x-forwarded-proto') || 'http';
-            domain = `${protocol}://${host}`;
-        }
+        // Vercel Preview Auth 문제 해결 및 링크 정확성을 위해 프로덕션 도메인 강제 사용
+        const domain = 'https://www.afterm.co.kr';
+        // domain = (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ...) // 기존 로직 주석 처리
 
-        // 도메인이 확실치 않은 경우 하드코딩된 프로덕션 도메인 사용 (필요 시 수정)
-        // domain = 'https://afterm.co.kr'; // 만약 위 로직 실패 시 주석 해제하여 사용
+        const link = `${domain}/view/${messageId.toString().trim()}`;
 
-        const link = `${domain}/view/${messageId}`;
-
-        // 1. LMS 명시 (긴 텍스트 및 링크 포함)
-        // 2. 제목(subject) 추가
-        // 3. 본문 포맷: 링크를 명확히 분리
-        const text = `[AFTERM]\n${senderName}님이 남기신 소중한 메시지가 있습니다.\n\n나중에 부재 시 열람하실 수 있습니다.\n\n👇링크 확인하기👇\n${link}`;
+        // 사용자 요청 포맷 적용:
+        // 1. [에프텀] 헤더
+        // 2. 안내 멘트 후 줄바꿈 2번 (\n\n)
+        // 3. 링크 앞뒤 공백 ( ${link} )
+        const text = `[에프텀] ${senderName}님이 보낸 소중한 메시지가 도착했습니다. 아래 링크를 터치하여 확인해 주세요.\n\n ${link} `;
 
         const result = await messageService.sendOne({
             to: recipientPhone,
