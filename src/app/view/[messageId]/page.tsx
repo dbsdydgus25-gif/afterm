@@ -59,7 +59,9 @@ export default function MessageViewPage() {
                 try {
                     const res = await reportIssue(messageId);
                     if (res.success) {
-                        alert("확인 절차가 시작되었습니다.\n\n작성자에게 생존 확인 요청을 보냈습니다.\n미응답 시 단계적으로 확인 문자가 발송되며, 최종적으로 응답이 없을 경우 열람 권한이 부여됩니다.");
+                        alert("확인 절차가 시작되었습니다.\n\n지금은 테스트 모드입니다.\n확인을 누르면 '인증 대기 화면(검은색)'으로 이동합니다.\n\n(1~2분 뒤에 인증을 시도해보세요)");
+                        // Redirect to Auth Page (Black Screen)
+                        window.location.href = `/view/${messageId}/auth`;
                     } else {
                         alert(`오류가 발생했습니다: ${res.error}`);
                     }
