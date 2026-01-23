@@ -18,9 +18,12 @@ interface Message {
     id: string;
     content: string;
     recipient_name: string;
+    recipient_phone: string;
+    recipient_relationship: string;
     created_at: string;
     file_path?: string;
     file_size?: number;
+    type?: "text" | "image" | "voice" | "video";
 }
 
 export default function DashboardPage() {
@@ -39,6 +42,7 @@ export default function DashboardPage() {
             const { data, error } = await supabase
                 .from('messages')
                 .select('*')
+                .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
 
             if (error) {
