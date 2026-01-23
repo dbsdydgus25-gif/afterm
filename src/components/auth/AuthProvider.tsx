@@ -103,9 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 // If on onboarding page but already has nickname, send to dashboard (or returnTo if exists)
-                if (hasNickname && pathname === "/onboarding") {
+                // [MODIFIED] Final Step: If compliance is ALL done, and user is still on an auth/onboarding page, send to MAIN (/).
+                if (hasNickname && (pathname === "/onboarding" || pathname === "/auth/verify-phone" || pathname === "/auth/agreements" || pathname === "/signup" || pathname === "/login")) {
+                    console.log("Onboarding complete, redirecting to Main");
                     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-                    const returnTo = params.get("returnTo") || "/dashboard";
+                    // Priority: returnTo > '/' (Main)
+                    const returnTo = params.get("returnTo") || "/";
                     router.replace(returnTo);
                 }
 
