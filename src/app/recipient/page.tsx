@@ -57,6 +57,7 @@ export default function RecipientPage() {
             let fileUrl = null;
             let filePath = null;
             let fileSize = 0;
+            let finalMessageId = messageId; // ID variable to track across update/insert
             const textBytes = new Blob([message]).size;
 
             // 1. Upload File if exists
@@ -81,7 +82,7 @@ export default function RecipientPage() {
             if (messageId) {
                 // Update existing message logic (unchanged)
                 // ...
-                const { error } = await supabase
+                const { data: updatedData, error } = await supabase
                     .from('messages')
                     .update({
                         content: message,
@@ -91,8 +92,12 @@ export default function RecipientPage() {
                         ...(fileUrl && { file_url: fileUrl, file_path: filePath, file_size: fileSize, file_type: messageFile?.type })
                     })
                     .eq('id', messageId)
-                    .eq('user_id', user.id);
+                    .eq('user_id', user.id)
+                    .select()
+                    .single();
+
                 if (error) throw error;
+                finalMessageId = updatedData.id;
             } else {
                 // Insert new message -> Check Limit
                 // Double-check plan from DB + Store (Source of Truth)
@@ -122,7 +127,7 @@ export default function RecipientPage() {
                 }
 
                 // Insert new message
-                const { error } = await supabase
+                const { data: insertedData, error } = await supabase
                     .from('messages')
                     .insert({
                         user_id: user.id,
@@ -133,8 +138,12 @@ export default function RecipientPage() {
                         file_path: filePath,
                         file_size: fileSize,
                         file_type: messageFile?.type
-                    });
+                    })
+                    .select()
+                    .single();
+
                 if (error) throw error;
+                finalMessageId = insertedData.id;
             }
 
             // 3. Update Storage Usage in Profiles
@@ -170,8 +179,8 @@ export default function RecipientPage() {
                     body: JSON.stringify({
                         recipientPhone: formData.phone,
                         recipientName: formData.name,
-                        senderName: user.name || "사용자", // Fallback name
-                        messageId: messageId || (await supabase.from('messages').select('id').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single()).data?.id // Get newly created ID if not set
+                        senderName: user.name || "사용자",
+                        messageId: finalMessageId
                     })
                 });
 

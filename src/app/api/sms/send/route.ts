@@ -33,12 +33,18 @@ export async function POST(req: NextRequest) {
         const domain = `${protocol}://${host}`;
         const link = `${domain}/view/${messageId}`;
 
-        const text = `[AFTERM]\n${senderName}님이 남기신 소중한 메시지가 있습니다.\n\n나중에 부재 시 열람하실 수 있습니다.\n\n👇링크 확인하기👇\n\n ${link} \n`;
+        // 1. LMS 명시 (긴 텍스트 및 링크 포함)
+        // 2. 제목(subject) 추가
+        // 3. 본문 포맷: 링크를 명확히 분리
+        const text = `[AFTERM]\n${senderName}님이 남기신 소중한 메시지가 있습니다.\n\n나중에 부재 시 열람하실 수 있습니다.\n\n👇링크 확인하기👇\n${link}`;
 
         const result = await messageService.sendOne({
             to: recipientPhone,
             from: senderPhone,
             text: text,
+            subject: "[AFTERM] 소중한 메시지 도착", // LMS 제목
+            // @ts-ignore: Solapi type definition might be strict, but 'LMS' is supported
+            type: 'LMS'
         });
 
         return NextResponse.json({ success: true, result });
