@@ -69,7 +69,7 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             <Header />
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4">
+            <div className="flex flex-col items-center justify-center min-h-screen px-4 pt-28 pb-12">
                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-md">
                     <div className="text-center mb-8">
                         <h1 className="text-2xl font-bold text-slate-900 mb-2">로그인</h1>

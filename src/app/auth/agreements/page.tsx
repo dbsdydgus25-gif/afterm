@@ -39,17 +39,19 @@ export default function AgreementsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("User not found");
 
-            // Insert agreement record
+            // Upsert agreement record (prevents unique constraint error if already exists)
             const { error } = await supabase
                 .from('user_agreements')
-                .insert({
+                .upsert({
                     user_id: user.id,
                     terms_agreed: agreedTerms,
                     privacy_agreed: agreedPrivacy,
                     third_party_agreed: agreedThirdParty,
                     entrustment_agreed: agreedEntrustment,
-                    terms_version: '1.0'
-                });
+                    marketing_agreed: false, // Default to false if not present in state, or remove if nullable
+                    terms_version: '1.0',
+                    agreed_at: new Date().toISOString() // Update timestamp
+                }, { onConflict: 'user_id' });
 
             if (error) throw error;
 
