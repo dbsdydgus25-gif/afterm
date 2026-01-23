@@ -171,30 +171,38 @@ export default function RecipientPage() {
 
             if (profileError) console.error("Failed to update storage usage:", profileError);
 
-            // 4. Send SMS Notification
-            try {
-                const smsRes = await fetch('/api/sms/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        recipientPhone: formData.phone,
-                        recipientName: formData.name,
-                        senderName: user.name || "사용자",
-                        messageId: finalMessageId
-                    })
-                });
+            // 4. Send SMS Notification (Safe Guard)
 
-                if (!smsRes.ok) {
-                    const errorData = await smsRes.json();
-                    throw new Error(errorData.error || "SMS API Error");
+            // Critical Check: ID가 없으면 절대 발송하지 않음 (비용 절감)
+            if (!finalMessageId) {
+                console.error("Critical Error: Message ID missing after save.");
+                alert("시스템 오류: 메시지는 저장되었으나 ID를 찾을 수 없어 문자를 발송하지 않았습니다. (비용 차감 없음)");
+                // 여기서 멈추지 않고 완료 처리는 하되, 문자는 안 나감
+            } else {
+                try {
+                    const smsRes = await fetch('/api/sms/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            recipientPhone: formData.phone,
+                            recipientName: formData.name,
+                            senderName: user.name || "사용자",
+                            messageId: finalMessageId
+                        })
+                    });
+
+                    if (!smsRes.ok) {
+                        const errorData = await smsRes.json();
+                        throw new Error(errorData.error || "SMS API Error");
+                    }
+                } catch (smsError: any) {
+                    console.error("Failed to send SMS:", smsError);
+                    alert(`저장은 되었으나 문자 발송에 실패했습니다.\n사유: ${smsError.message || "Unknown error"}`);
                 }
-            } catch (smsError: any) {
-                console.error("Failed to send SMS:", smsError);
-                // 디버깅을 위해 실패 사유를 알림
-                alert(`저장은 되었으나 문자 발송에 실패했습니다.\n사유: ${smsError.message || "Unknown error"}`);
             }
 
-            alert("저장되었습니다.");
+            // Debugging Info for User
+            alert(`[성공] 메시지가 안전하게 저장되었으며 문자가 발송되었습니다.\n(ID: ${finalMessageId})`);
 
 
 

@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Critical Check: messageId가 없으면 절대 발송하지 않음 (비용 절감)
+        if (!messageId || messageId.toString().trim() === '') {
+            return NextResponse.json(
+                { error: "Message ID is missing. Aborting SMS send to prevent cost." },
+                { status: 400 } // Bad Request
+            );
+        }
+
         const messageService = new SolapiMessageService(apiKey, apiSecret);
 
         // 링크 생성 (도메인은 환경변수 또는 요청 헤더에서 가져옴)
