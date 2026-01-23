@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getMessageSenderInfo } from "@/app/actions/viewMessage";
+import { notifySenderOfView } from "@/app/actions/notifySenderOfView";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRef } from "react";
 
 export default function MessageViewPage() {
     const params = useParams();
@@ -14,6 +16,9 @@ export default function MessageViewPage() {
     const [loading, setLoading] = useState(true);
     const [senderName, setSenderName] = useState("");
     const [error, setError] = useState("");
+
+    // 알림 중복 발송 방지
+    const notificationSentRef = useRef(false);
 
     useEffect(() => {
         const fetchMessageInfo = async () => {
@@ -27,6 +32,16 @@ export default function MessageViewPage() {
                 setError(result.error || "메시지를 찾을 수 없거나 접근 권한이 없습니다.");
             } else {
                 setSenderName(result.senderName);
+
+                // 2. Trigger Email Notification to Sender (Dead Man's Switch Alert)
+                // Fire and Forget - 페이지 로딩을 막지 않음
+                if (!notificationSentRef.current) {
+                    notificationSentRef.current = true;
+                    console.log("Triggering view notification...");
+                    notifySenderOfView(messageId).then(res => {
+                        if (!res.success) console.error("Notification failed:", res.error);
+                    });
+                }
             }
             setLoading(false);
         };
