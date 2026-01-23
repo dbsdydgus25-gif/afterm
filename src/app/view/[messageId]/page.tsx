@@ -130,12 +130,12 @@ export default function MessageViewPage() {
 
                     <div className="text-center space-y-3">
                         <h2 className="text-2xl font-bold leading-snug text-zinc-900 dark:text-zinc-100">
-                            <span className="text-blue-600 dark:text-blue-400">{senderName}</span>님의 상태에 따라<br />
-                            메시지를 열람할 수 있습니다.
+                            <span className="text-blue-600 dark:text-blue-400">{senderName}</span>님이 당신에게<br />
+                            소중한 메시지를 남겼습니다
                         </h2>
                         <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                            이 메시지는 작성자의 신변에 변화가 생겼을 때<br />
-                            확인할 수 있도록 설정되어 있습니다.
+                            단, 이 메시지는 작성자의 신변 변화에 따라<br />
+                            확인 할 수 있도록 설정되어 있습니다
                         </p>
                     </div>
 

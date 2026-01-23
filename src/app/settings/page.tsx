@@ -39,6 +39,7 @@ function SettingsContent() {
     const [nickname, setNickname] = useState("");
     const [bio, setBio] = useState("");
     const [profileImage, setProfileImage] = useState("");
+    const [phone, setPhone] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -50,6 +51,18 @@ function SettingsContent() {
             setBio(metadata.bio || "");
             setProfileImage(metadata.avatar_url || "");
             setIsAuthChecking(false);
+
+            // Fetch Phone from Profiles
+            const fetchProfile = async () => {
+                const supabase = createClient();
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('phone')
+                    .eq('id', user.id)
+                    .single();
+                if (data?.phone) setPhone(data.phone);
+            };
+            fetchProfile();
         }
     }, [user]);
 
@@ -128,6 +141,7 @@ function SettingsContent() {
                     full_name: customName,
                     nickname: nickname,
                     avatar_url: profileImage,
+                    phone: phone, // Save Phone
                     updated_at: new Date().toISOString()
                 });
 
@@ -298,8 +312,24 @@ function SettingsContent() {
                                                 value={customName}
                                                 onChange={(e) => setCustomName(e.target.value)}
                                                 className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                                                placeholder="이름"
                                             />
+                                        </div>
+
+                                        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
+                                            <label className="w-24 pt-3 text-sm font-bold text-slate-700">전화번호</label>
+                                            <div className="flex-1">
+                                                <input
+                                                    type="tel"
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                                    placeholder="01012345678 (숫자만 입력)"
+                                                />
+                                                <p className="text-xs text-slate-400 mt-1">
+                                                    * 생존 확인(Dead Man's Switch) 기능을 위해 본인 명의 휴대폰 번호가 필요합니다.<br />
+                                                    * 수신인 인증 시, 이 번호로 인증번호가 발송됩니다.
+                                                </p>
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
