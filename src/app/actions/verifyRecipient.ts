@@ -2,7 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 // import { generateRandomCode } from '@/lib/utils'; // Removed
-import { MsgApiService } from 'solapi'; // Named import try
+import { SolapiMessageService } from 'solapi'; // Corrected import
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,10 +10,10 @@ const supabaseAdmin = createClient(
 );
 
 // Solapi Config
-const messageService = new MsgApiService({
-    apiKey: process.env.SOLAPI_API_KEY!,
-    apiSecret: process.env.SOLAPI_API_SECRET!,
-});
+const messageService = new SolapiMessageService(
+    process.env.SOLAPI_API_KEY!,
+    process.env.SOLAPI_API_SECRET!
+);
 
 export async function requestOTP(messageId: string, phone: string) {
     try {
