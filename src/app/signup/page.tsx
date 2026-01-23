@@ -16,6 +16,9 @@ export default function SignupPage() {
     const router = useRouter();
     const [step, setStep] = useState<Step>("terms");
 
+    // Modal State
+    const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
+
     // Terms State
     const [agreedTerms, setAgreedTerms] = useState(false);
     const [agreedPrivacy, setAgreedPrivacy] = useState(false);
@@ -84,20 +87,24 @@ export default function SignupPage() {
 
     const AgreementItem = ({
         title,
+        content,
         checked,
         setChecked,
         required = true
     }: {
         title: string;
+        content: string;
         checked: boolean;
         setChecked: (v: boolean) => void;
         required?: boolean;
     }) => (
         <div
-            className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
-            onClick={() => setChecked(!checked)}
+            className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
         >
-            <div className="flex items-center gap-3">
+            <div
+                className="flex items-center gap-3 flex-1 cursor-pointer"
+                onClick={() => setChecked(!checked)}
+            >
                 <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${checked ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                     {checked && <Check className="w-4 h-4 text-white" />}
                 </div>
@@ -106,13 +113,54 @@ export default function SignupPage() {
                     {title}
                 </span>
             </div>
-            <div className="text-xs text-slate-400 underline">내용보기</div>
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setModalContent({ title, content });
+                }}
+                className="relative z-10 px-3 py-2 text-xs text-slate-500 underline hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+                내용보기
+            </button>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans">
+        <div className="min-h-screen bg-slate-50 font-sans relative">
             <Header />
+
+            {/* Terms Modal */}
+            {modalContent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-slate-900">{modalContent.title}</h3>
+                            <button
+                                onClick={() => setModalContent(null)}
+                                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto whitespace-pre-wrap text-slate-600 text-sm leading-relaxed">
+                            {modalContent.content}
+                        </div>
+                        <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+                            <Button
+                                onClick={() => setModalContent(null)}
+                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl"
+                            >
+                                확인
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-12">
                 <div className="max-w-md w-full mb-8">
                     {/* Progress Bar */}
@@ -141,10 +189,30 @@ export default function SignupPage() {
                                     <p className="text-slate-500 text-sm">서비스 이용을 위해 필수 약관에 동의해주세요.</p>
                                 </div>
                                 <div className="space-y-3">
-                                    <AgreementItem title="서비스 이용약관" checked={agreedTerms} setChecked={setAgreedTerms} />
-                                    <AgreementItem title="개인정보 수집 및 이용" checked={agreedPrivacy} setChecked={setAgreedPrivacy} />
-                                    <AgreementItem title="제3자 정보 제공 동의" checked={agreedThirdParty} setChecked={setAgreedThirdParty} />
-                                    <AgreementItem title="개인정보 처리 위탁" checked={agreedEntrustment} setChecked={setAgreedEntrustment} />
+                                    <AgreementItem
+                                        title="서비스 이용약관"
+                                        content={TERMS_OF_SERVICE}
+                                        checked={agreedTerms}
+                                        setChecked={setAgreedTerms}
+                                    />
+                                    <AgreementItem
+                                        title="개인정보 수집 및 이용"
+                                        content={PRIVACY_POLICY}
+                                        checked={agreedPrivacy}
+                                        setChecked={setAgreedPrivacy}
+                                    />
+                                    <AgreementItem
+                                        title="제3자 정보 제공 동의"
+                                        content={THIRD_PARTY_PROVISION}
+                                        checked={agreedThirdParty}
+                                        setChecked={setAgreedThirdParty}
+                                    />
+                                    <AgreementItem
+                                        title="개인정보 처리 위탁"
+                                        content={ENTRUSTMENT}
+                                        checked={agreedEntrustment}
+                                        setChecked={setAgreedEntrustment}
+                                    />
                                 </div>
                                 <Button
                                     onClick={() => setStep("info")}
