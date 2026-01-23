@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, THIRD_PARTY_PROVISION, ENTRUSTMENT } from "@/lib/compliance";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, LogOut } from "lucide-react";
 
 export default function AgreementsPage() {
     const router = useRouter();
@@ -53,14 +53,21 @@ export default function AgreementsPage() {
 
             if (error) throw error;
 
+            if (error) throw error;
+
             // Redirect to next step (Phone Verification)
             router.push("/auth/verify-phone");
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("동의 처리 중 오류가 발생했습니다.");
+            alert("처리 중 오류가 발생했습니다: " + (error.message || ""));
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.replace("/login");
     };
 
     const AgreementItem = ({
@@ -103,7 +110,15 @@ export default function AgreementsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
+            <button
+                onClick={handleLogout}
+                className="absolute top-6 right-6 text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium p-2 rounded-lg hover:bg-slate-100"
+            >
+                <LogOut className="w-4 h-4" />
+                선택 취소 (나가기)
+            </button>
+
             <div className="bg-white max-w-md w-full rounded-2xl shadow-sm border border-slate-200 p-8">
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">약관 동의</h1>

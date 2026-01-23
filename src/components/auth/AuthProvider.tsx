@@ -59,11 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .single();
 
                 // 2. [NEW] Check Legal Agreements
-                const { data: agreements } = await supabase
+                const { data: agreementRows } = await supabase
                     .from('user_agreements')
                     .select('*')
                     .eq('user_id', session.user.id)
-                    .single();
+                    .limit(1);
+
+                const agreements = agreementRows?.[0];
 
                 const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
                 const isAgreementsPage = pathname === "/auth/agreements";
