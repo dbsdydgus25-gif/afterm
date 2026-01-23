@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
     const supabase = createClient();
@@ -146,6 +147,15 @@ export default function LoginPage() {
                             </svg>
                             구글로 시작하기
                         </Button>
+                    </div>
+
+                    <div className="mt-8 text-center">
+                        <p className="text-slate-500 text-sm">
+                            아직 계정이 없으신가요?{" "}
+                            <Link href="/signup" className="text-blue-600 font-bold hover:underline">
+                                회원가입
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>
