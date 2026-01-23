@@ -6,6 +6,7 @@ import { getMessageSenderInfo } from "@/app/actions/viewMessage";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function MessageViewPage() {
     const params = useParams();
@@ -51,70 +52,104 @@ export default function MessageViewPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black p-6 text-center">
-                <h1 className="text-xl font-bold mb-4">접근 불가</h1>
-                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-8 max-w-sm w-full">
-                    <p className="text-red-600 dark:text-red-400 text-sm font-mono break-all whitespace-pre-wrap text-left">
-                        {error}
-                    </p>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black p-6">
+                <div className="w-full max-w-sm bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-xl text-center space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                        <span className="text-2xl">⚠️</span>
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">접근 불가</h1>
+                        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl text-left">
+                            <p className="text-red-600 dark:text-red-400 text-xs font-mono break-all whitespace-pre-wrap">
+                                {error}
+                            </p>
+                        </div>
+                    </div>
+                    <Link href="/" className="block">
+                        <Button className="w-full rounded-xl h-12">홈으로 돌아가기</Button>
+                    </Link>
+                    <div className="text-[10px] text-zinc-300 font-mono">ID: {messageId}</div>
                 </div>
-                <Link href="/">
-                    <Button>홈으로 돌아가기</Button>
-                </Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black p-6 relative">
-            {/* Logo */}
-            <div className="absolute top-8 left-0 right-0 flex justify-center">
-                <Link href="/" className="text-2xl font-black tracking-tighter hover:opacity-80 transition-opacity">
-                    AFTERM
-                </Link>
-            </div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6 relative overflow-hidden">
+            {/* Background Decoration */}
+            <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-900/10 pointer-events-none" />
 
-            <div className="w-full max-w-md space-y-12 animate-fade-in text-center">
+            <div className="w-full max-w-[400px] z-10 animate-fade-in-up">
 
-                <div className="space-y-4">
-                    <h1 className="text-2xl font-bold leading-tight break-keep">
-                        <span className="text-primary">{senderName}</span>님이 보낸<br />
-                        소중한 메시지가 담겨 있습니다
-                    </h1>
-
-                    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-xl">
-                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium leading-relaxed break-keep">
-                            ⚠️ 이 메시지는 <strong>{senderName}</strong>님의 신변에 문제가 생겼을 때만 열람할 수 있도록 설정되어 있습니다.
-                        </p>
+                {/* Brand / Logo Area */}
+                <div className="flex flex-col items-center mb-8">
+                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-lg mb-4 ring-4 ring-white dark:ring-zinc-900">
+                        <Image
+                            src="/logo.jpg"
+                            alt="AFTERM Logo"
+                            fill
+                            className="object-cover"
+                            priority
+                        />
                     </div>
+                    <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                        AFTERM
+                    </h1>
                 </div>
 
-                <div className="space-y-6 pt-4">
-                    <h2 className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">
-                        {senderName}님, 현재 어떤 상태인가요?
-                    </h2>
+                {/* Main Card */}
+                <div className="bg-white dark:bg-zinc-900 rounded-[2rem] shadow-xl p-8 space-y-8 ring-1 ring-black/5 dark:ring-white/10">
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center space-y-3">
+                        <h2 className="text-2xl font-bold leading-snug text-zinc-900 dark:text-zinc-100">
+                            <span className="text-blue-600 dark:text-blue-400">{senderName}</span>님이 남긴<br />
+                            소중한 메시지가 있습니다.
+                        </h2>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                            이 메시지는 작성자의 신변에 변화가 생겼을 때<br />
+                            확인할 수 있도록 설정되어 있습니다.
+                        </p>
+                    </div>
+
+                    <div className="p-5 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30">
+                        <p className="text-sm text-amber-800 dark:text-amber-200 font-medium text-center leading-relaxed box-border break-keep">
+                            {/* 따옴표 제거하고 좀 더 깔끔하게 */}
+                            현재 {senderName}님의 상태를 확인해주세요.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => handleStatusCheck('alive')}
-                            className="h-32 rounded-2xl bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md"
+                            className="flex flex-col items-center justify-center p-4 h-32 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 group"
                         >
-                            <span className="text-3xl group-hover:scale-110 transition-transform">☀️</span>
-                            <span className="font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">살아있다</span>
+                            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">☀️</span>
+                            <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                                잘 지내고 있다
+                            </span>
                         </button>
 
                         <button
                             onClick={() => handleStatusCheck('critical')}
-                            className="h-32 rounded-2xl bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md"
+                            className="flex flex-col items-center justify-center p-4 h-32 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-transparent hover:border-red-200 dark:hover:border-red-800 transition-all duration-200 group"
                         >
-                            <span className="text-3xl group-hover:scale-110 transition-transform">🚑</span>
-                            <span className="font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400">힘든 상황이다</span>
+                            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">🚨</span>
+                            <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400">
+                                연락이 안 된다
+                            </span>
                         </button>
                     </div>
+
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-300 dark:text-zinc-700 font-mono">
-                    System ID: {messageId}
+                {/* Footer Info */}
+                <div className="mt-8 text-center space-y-2">
+                    <p className="text-xs text-zinc-400 dark:text-zinc-600">
+                        디지털 유산 보관소, 에프텀
+                    </p>
+                    <div className="text-[10px] text-zinc-300/50 font-mono">
+                        Ref: {messageId?.slice(0, 8)}...
+                    </div>
                 </div>
             </div>
         </div>
