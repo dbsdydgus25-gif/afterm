@@ -53,7 +53,11 @@ export default function MessageViewPage() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black p-6 text-center">
                 <h1 className="text-xl font-bold mb-4">접근 불가</h1>
-                <p className="text-zinc-500 mb-8 whitespace-pre-wrap">{error}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-8 max-w-sm w-full">
+                    <p className="text-red-600 dark:text-red-400 text-sm font-mono break-all whitespace-pre-wrap text-left">
+                        {error}
+                    </p>
+                </div>
                 <Link href="/">
                     <Button>홈으로 돌아가기</Button>
                 </Link>

@@ -33,7 +33,10 @@ export async function getMessageSenderInfo(messageId: string) {
 
         if (error || !data) {
             console.error("Admin fetch error:", error);
-            return { error: "메시지를 찾을 수 없습니다." };
+            // 디버깅을 위해 상세 에러 반환
+            return {
+                error: `DB_ERR: ${error?.code || 'NoCode'} - ${error?.message || 'Data Not Found'} / Details: ${error?.details || 'None'} / Hint: ${error?.hint || 'None'}`
+            };
         }
 
         // @ts-ignore
