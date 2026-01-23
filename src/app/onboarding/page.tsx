@@ -45,6 +45,27 @@ export default function OnboardingPage() {
             if (metaPhone) {
                 setPhone(metaPhone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
             }
+
+            // Determine Starting Step
+            let startStep = 1;
+            const isSocial = user.app_metadata?.provider !== 'email';
+            const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+
+            if (isSocial) {
+                startStep = 2; // Skip password for social login
+            }
+            if (isPhoneVerified) {
+                startStep = 3; // Skip verification if done
+            }
+
+            // Allow manual override via query param ?step=
+            const params = new URLSearchParams(window.location.search);
+            const queryStep = params.get("step");
+            if (queryStep) {
+                setStep(parseInt(queryStep));
+            } else {
+                setStep(startStep);
+            }
         }
     }, [user]);
 
@@ -211,12 +232,25 @@ export default function OnboardingPage() {
     if (!mounted) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 pt-28 font-sans">
             <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 md:p-10 relative overflow-hidden">
                 {/* Back Button */}
                 <button
                     onClick={async () => {
-                        if (step > 1) {
+                        // Intelligent Back: If Social User at Step 2, go to Login (Step 1 is invalid)
+                        const isSocial = user?.app_metadata?.provider !== 'email';
+                        const isPhoneVerified = user?.user_metadata?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+
+                        if (step === 3 && isPhoneVerified) {
+                            // If auto-skipped to 3, Back means Logout essentially or Home
+                            // But user might want to change phone?
+                            // Let's just go back to 2, it will show "Verified" state.
+                            setStep(2);
+                        } else if (step === 2 && isSocial) {
+                            const supabase = createClient();
+                            await supabase.auth.signOut();
+                            router.replace("/login");
+                        } else if (step > 1) {
                             setStep(step - 1);
                         } else {
                             const supabase = createClient();

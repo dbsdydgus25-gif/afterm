@@ -110,7 +110,7 @@ export default function AgreementsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 pt-24 pb-12 relative">
             <button
                 onClick={handleLogout}
                 className="absolute top-6 right-6 text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium p-2 rounded-lg hover:bg-slate-100"

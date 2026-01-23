@@ -85,7 +85,7 @@ export default function VerifyPhonePage() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
             <Header />
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-12">
+            <div className="flex flex-col items-center justify-center min-h-screen px-4 pt-28 pb-12">
                 <div className="max-w-md w-full mb-8">
                     {/* 4-Step Progress Bar */}
                     <div className="flex items-center justify-between mb-8 px-1">

@@ -116,7 +116,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 문의하기
                             </Link>
 
-                            {user ? (
+                            {user && (user.user_metadata?.onboarding_completed || user.user_metadata?.nickname) ? (
                                 <ProfileDropdown
                                     user={{
                                         name: user.name,
@@ -127,6 +127,13 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     onLogout={handleLogout}
                                     onNavigate={(path) => router.push(path)}
                                 />
+                            ) : user ? (
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-sm font-medium text-slate-500 hover:text-red-500 transition-colors"
+                                >
+                                    로그아웃
+                                </button>
                             ) : (
                                 <Link
                                     href="/login"
