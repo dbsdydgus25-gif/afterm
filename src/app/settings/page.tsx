@@ -321,8 +321,8 @@ function SettingsContent() {
                                                 <input
                                                     type="tel"
                                                     value={phone}
-                                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
-                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                                    disabled
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm bg-slate-100 text-slate-500 cursor-not-allowed focus:outline-none"
                                                     placeholder="01012345678 (숫자만 입력)"
                                                 />
                                                 <p className="text-xs text-slate-400 mt-1">
