@@ -104,6 +104,16 @@ export default function LoginPage() {
                             <p className="text-red-500 text-sm text-center">{error}</p>
                         )}
 
+                        <div className="flex justify-end mb-4 gap-3 text-xs text-slate-500">
+                            <Link href="/auth/find-id" className="hover:text-blue-600 hover:underline">
+                                아이디 찾기
+                            </Link>
+                            <span className="text-slate-300">|</span>
+                            <Link href="/auth/find-password" className="hover:text-blue-600 hover:underline">
+                                비밀번호 찾기
+                            </Link>
+                        </div>
+
                         <Button
                             type="submit"
                             disabled={loading}

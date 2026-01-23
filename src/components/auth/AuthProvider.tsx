@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const isAgreementsPage = pathname === "/auth/agreements";
 
                 // Whitelist public/auth paths that shouldn't trigger checks
-                if (!hasAgreed && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
+                if (!hasAgreed && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/auth/callback" && pathname !== "/auth/forgot-password" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
                     console.log("Redirecting to Agreements");
                     router.replace("/auth/agreements");
                     // Continue to set user state so the agreements page can access it
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const isVerifyPage = pathname === "/auth/verify-phone";
 
                 // Only check phone if agreed (sequential flow)
-                if (hasAgreed && !isPhoneVerified && !isVerifyPage && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
+                if (hasAgreed && !isPhoneVerified && !isVerifyPage && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/auth/callback" && pathname !== "/auth/forgot-password" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
                     console.log("Redirecting to Phone Verification");
                     router.replace("/auth/verify-phone");
                 }

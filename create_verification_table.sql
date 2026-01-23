@@ -1,19 +1,26 @@
--- Create verification_codes table for SMS OTP
-CREATE TABLE IF NOT EXISTS public.verification_codes (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    phone TEXT NOT NULL,
-    code TEXT NOT NULL,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create table if not exists
+create table if not exists public.verification_codes (
+    id uuid primary key default gen_random_uuid(),
+    phone text not null,
+    code text not null,
+    expires_at timestamptz not null,
+    created_at timestamptz default now()
 );
 
--- Index for faster lookup
-CREATE INDEX IF NOT EXISTS idx_verification_codes_phone ON public.verification_codes(phone);
+-- Indices
+create index if not exists idx_vc_phone on public.verification_codes(phone);
+create index if not exists idx_vc_expires on public.verification_codes(expires_at);
 
--- RLS (Optional, but good practice. For now public insert via API is fine as logic is server-side)
-ALTER TABLE public.verification_codes ENABLE ROW LEVEL SECURITY;
+-- RLS
+alter table public.verification_codes enable row level security;
 
--- Allow server (service role) full access
-CREATE POLICY "Service role full access" ON public.verification_codes
-    USING (true)
-    WITH CHECK (true);
+-- Drop policy if exists to avoid error on recreation
+drop policy if exists "Service role full access" on public.verification_codes;
+
+-- Create policy
+create policy "Service role full access"
+  on public.verification_codes
+  for all
+  to service_role
+  using (true)
+  with check (true);
