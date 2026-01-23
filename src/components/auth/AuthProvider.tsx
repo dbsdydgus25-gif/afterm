@@ -69,37 +69,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const isAgreementsPage = pathname === "/auth/agreements";
 
                 // Whitelist public/auth paths that shouldn't trigger checks
-                if (!hasAgreed && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/auth/callback" && pathname !== "/auth/forgot-password" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
-                    console.log("Redirecting to Agreements");
+                // [FIX] Removed "/" from whitelist. Logged-in users MUST complete onboarding even on home page.
+                const isAuthPath = pathname.startsWith("/auth/") || pathname.startsWith("/api/auth/");
+
+                if (!hasAgreed && !isAuthPath) {
+                    console.log("Redirecting to Agreements (Agreements missing)");
                     router.replace("/auth/agreements");
-                    // Continue to set user state so the agreements page can access it
+                    return; // Stop further checks
                 }
 
                 // 3. [NEW] Check Phone Verification
                 const isPhoneVerified = profile?.phone_verified;
-                const isVerifyPage = pathname === "/auth/verify-phone";
 
                 // Only check phone if agreed (sequential flow)
-                if (hasAgreed && !isPhoneVerified && !isVerifyPage && !isAgreementsPage && pathname !== "/api/auth/callback" && pathname !== "/auth/callback" && pathname !== "/auth/forgot-password" && pathname !== "/login" && pathname !== "/signup" && pathname !== "/") {
+                if (hasAgreed && !isPhoneVerified && !isAuthPath) {
                     console.log("Redirecting to Phone Verification");
                     router.replace("/auth/verify-phone");
+                    return; // Stop further checks
                 }
 
                 // 4. Check if Onboarding is needed (Nickname)
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
-                // Check previous conditions to avoid conflicting redirects
                 const isComplianceDone = hasAgreed && isPhoneVerified;
 
                 // Allow access to /onboarding, /api/auth/callback, /logout
-                if (isComplianceDone && !hasNickname && pathname !== "/onboarding" && pathname !== "/api/auth/callback") {
+                if (isComplianceDone && !hasNickname && !isAuthPath && pathname !== "/onboarding") {
                     console.log("Redirecting to onboarding due to missing nickname");
-
-                    // Capture current path and search params as returnTo
                     const currentPath = pathname + (typeof window !== 'undefined' ? window.location.search : '');
                     const returnToVal = currentPath === '/' ? '' : `?returnTo=${encodeURIComponent(currentPath)}`;
-
                     router.replace(`/onboarding${returnToVal}`);
+                    return;
                 }
 
                 // If on onboarding page but already has nickname, send to dashboard (or returnTo if exists)
