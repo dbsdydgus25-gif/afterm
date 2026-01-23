@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getMessageSenderInfo } from "@/app/actions/viewMessage";
 import { notifySenderOfView } from "@/app/actions/notifySenderOfView";
+import { reportIssue } from "@/app/actions/reportIssue";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -49,11 +50,24 @@ export default function MessageViewPage() {
         fetchMessageInfo();
     }, [messageId]);
 
-    const handleStatusCheck = (status: 'alive' | 'critical') => {
+    const handleStatusCheck = async (status: 'alive' | 'critical') => {
         if (status === 'alive') {
             alert("다행입니다! 아직 메시지를 열람할 수 없는 상태입니다.");
         } else {
-            alert("비상 연락망에 알림을 전송하고 메시지 열람 절차를 시작합니다. (기능 준비 중)");
+            if (confirm(`${senderName}님과 연락이 닿지 않으시나요?\n\n'확인'을 누르면 ${senderName}님에게 알림을 발송하고, 생존 확인 절차(약 1주일 기간 소요)를 시작합니다.\n\n절차가 완료될 때까지 메시지는 열람할 수 없습니다.`)) {
+                // Call critical report action
+                try {
+                    const res = await reportIssue(messageId);
+                    if (res.success) {
+                        alert("확인 절차가 시작되었습니다.\n\n작성자에게 생존 확인 요청을 보냈습니다.\n미응답 시 단계적으로 확인 문자가 발송되며, 최종적으로 응답이 없을 경우 열람 권한이 부여됩니다.");
+                    } else {
+                        alert(`오류가 발생했습니다: ${res.error}`);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("처리 중 오류가 발생했습니다.");
+                }
+            }
         }
     };
 
