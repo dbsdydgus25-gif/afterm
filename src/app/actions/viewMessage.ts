@@ -22,25 +22,34 @@ export async function getMessageSenderInfo(messageId: string) {
     if (!messageId) return { error: "Message ID required" };
 
     try {
-        const { data, error } = await supabaseAdmin
+        // 1. Fetch Message (user_id only)
+        // FK 관계(PGRST200) 오류를 피하기 위해 조인 대신 2번의 쿼리로 분리합니다.
+        const { data: messageData, error: messageError } = await supabaseAdmin
             .from('messages')
-            .select(`
-                user_id,
-                profiles:user_id ( full_name )
-            `)
+            .select('user_id')
             .eq('id', messageId)
             .single();
 
-        if (error || !data) {
-            console.error("Admin fetch error:", error);
-            // 디버깅을 위해 상세 에러 반환
+        if (messageError || !messageData) {
+            console.error("Message fetch error:", messageError);
             return {
-                error: `DB_ERR: ${error?.code || 'NoCode'} - ${error?.message || 'Data Not Found'} / Details: ${error?.details || 'None'} / Hint: ${error?.hint || 'None'}`
+                error: `MSG_ERR: ${messageError?.code || 'NoCode'} - ${messageError?.message || 'Msg Not Found'} / Details: ${messageError?.details || 'None'}`
             };
         }
 
-        // @ts-ignore
-        const senderName = data.profiles?.full_name || "사용자";
+        // 2. Fetch Sender Profile
+        const { data: profileData, error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .select('full_name') // profiles 테이블은 FK 없이 ID로 직접 조회
+            .eq('id', messageData.user_id)
+            .single();
+
+        // 프로필이 없거나 에러가 나도, 메인 로직(메시지 존재 확인)에는 영향 안 미치게 fallback 처리
+        if (profileError) {
+            console.error("Profile fetch error (Non-critical):", profileError);
+        }
+
+        const senderName = profileData?.full_name || "사용자";
         return { senderName };
     } catch (err: any) {
         console.error("Server action error:", err);
