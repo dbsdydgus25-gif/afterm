@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { requestOTP, verifyOTP } from "@/app/actions/verifyRecipient";
+import { getMessageSenderInfo } from "@/app/actions/viewMessage";
 import { Button } from "@/components/ui/button";
 import { Loader2, Lock, Unlock, Eye } from "lucide-react";
 
@@ -15,6 +16,15 @@ export default function AuthViewPage() {
     const [step, setStep] = useState<'phone' | 'code' | 'view'>('phone');
     const [loading, setLoading] = useState(false);
     const [messageContent, setMessageContent] = useState("");
+    const [senderName, setSenderName] = useState("");
+
+    useEffect(() => {
+        if (messageId) {
+            getMessageSenderInfo(messageId).then(res => {
+                if (res.senderName) setSenderName(res.senderName);
+            });
+        }
+    }, [messageId]);
 
     const handleRequestOTP = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,8 +66,8 @@ export default function AuthViewPage() {
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight">본인 확인</h1>
                         <p className="text-zinc-400 text-sm">
-                            메시지 열람을 위해 수신인 인증이 필요합니다.<br />
-                            등록된 휴대폰 번호로 인증해주세요.
+                            메시지 열람을 위해 <span className="text-blue-400 font-bold">{senderName}</span> 인증이 필요합니다.<br />
+                            <span className="text-blue-400 font-bold">{senderName}</span> 휴대폰 번호로 인증해주세요.
                         </p>
                     </div>
 
