@@ -6,8 +6,12 @@ import { createClient } from '@supabase/supabase-js';
 // Use only for strictly controlled fetch operations
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing via Server Action!");
+}
 
 /**
  * Recipient View: Fetch Sender Name Only
