@@ -114,8 +114,8 @@ export default function MessageViewPage() {
 
                     <div className="text-center space-y-3">
                         <h2 className="text-2xl font-bold leading-snug text-zinc-900 dark:text-zinc-100">
-                            <span className="text-blue-600 dark:text-blue-400">{senderName}</span>님이 남긴<br />
-                            소중한 메시지가 있습니다.
+                            <span className="text-blue-600 dark:text-blue-400">{senderName}</span>님의 상태에 따라<br />
+                            메시지를 열람할 수 있습니다.
                         </h2>
                         <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
                             이 메시지는 작성자의 신변에 변화가 생겼을 때<br />
@@ -146,7 +146,7 @@ export default function MessageViewPage() {
                         >
                             <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">🚨</span>
                             <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400">
-                                연락이 안 된다
+                                문제가 있다<br />(메시지 열람)
                             </span>
                         </button>
                     </div>

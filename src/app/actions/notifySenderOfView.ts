@@ -83,7 +83,7 @@ export async function notifySenderOfView(messageId: string) {
                         
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="https://www.afterm.co.kr" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
-                                생존 확인 / 열람 중단
+                                열람 중단 (서비스로 이동)
                             </a>
                         </div>
                         
