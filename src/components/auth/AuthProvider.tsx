@@ -78,6 +78,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     return; // Stop further checks
                 }
 
+                // [FIX] Forwarding: If agreed but still on agreement page, move forward
+                if (hasAgreed && isAgreementsPage) {
+                    console.log("Agreements done, forwarding to phone verify");
+                    router.replace("/auth/verify-phone");
+                    return;
+                }
+
                 // 3. [NEW] Check Phone Verification
                 const isPhoneVerified = profile?.phone_verified;
 

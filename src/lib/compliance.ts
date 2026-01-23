@@ -64,7 +64,7 @@ export const ENTRUSTMENT = `
 **[에프텀]**은 서비스 향상을 위해 아래와 같이 외부 전문 업체에 개인정보 처리를 위탁하고 있습니다.
 
 - (주)솔라피 (Solapi): 카카오톡 알림톡 및 SMS/LMS 문자 메시지 발송 대행
-- Google Cloud (Firebase): 서비스 데이터베이스 저장 및 클라우드 서버 운영
+- Supabase: 서비스 데이터베이스 저장 및 클라우드 서버 운영
 - 토스페이먼츠 (또는 사용 예정 PG사): 유료 서비스 결제 처리 및 에스크로 서비스
 - Amazon Web Services (AWS): 이미지/영상 파일 스토리지 저장
 `;

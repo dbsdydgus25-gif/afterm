@@ -69,7 +69,7 @@ export default function VerifyPhonePage() {
             const response = await fetch('/api/auth/verify-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: phone.replace(/[^0-9]/g, ''), otp }) // Logic uses 'otp' key not 'token'
+                body: JSON.stringify({ phone: phone.replace(/[^0-9]/g, ''), otp })
             });
 
             const data = await response.json();
