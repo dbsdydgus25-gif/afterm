@@ -188,7 +188,7 @@ export default function RecipientPage() {
             alert("저장되었습니다.");
 
 
-            alert("저장되었습니다.");
+
 
             // Clear store on success
             setMessage('');

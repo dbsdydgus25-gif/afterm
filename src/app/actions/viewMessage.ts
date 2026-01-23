@@ -35,8 +35,8 @@ export async function getMessageSenderInfo(messageId: string) {
         // @ts-ignore
         const senderName = data.profiles?.full_name || "사용자";
         return { senderName };
-    } catch (err) {
+    } catch (err: any) {
         console.error("Server action error:", err);
-        return { error: "서버 오류가 발생했습니다." };
+        return { error: `서버 오류: ${err.message || JSON.stringify(err)}` };
     }
 }

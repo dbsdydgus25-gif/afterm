@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         const domain = `${protocol}://${host}`;
         const link = `${domain}/view/${messageId}`;
 
-        const text = `[AFTERM]\n${senderName}님이 남기신 소중한 메시지가 있습니다.\n\n나중에 부재 시 열람하실 수 있습니다.\n\n👇링크 확인하기👇\n${link}`;
+        const text = `[AFTERM]\n${senderName}님이 남기신 소중한 메시지가 있습니다.\n\n나중에 부재 시 열람하실 수 있습니다.\n\n👇링크 확인하기👇\n\n ${link} \n`;
 
         const result = await messageService.sendOne({
             to: recipientPhone,
