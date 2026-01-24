@@ -24,20 +24,17 @@ export async function GET(request: Request) {
         console.log("Error:", error);
 
         if (!error && session) {
-            // Check if user has completed onboarding (has nickname)
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('nickname')
-                .eq('id', session.user.id)
-                .single();
+            // Check if user has completed onboarding
+            // Use user_metadata which is available in the session and bypasses RLS latency/issues
+            const userMetadata = session.user.user_metadata;
+            const hasNickname = !!userMetadata?.nickname || !!userMetadata?.full_name;
 
-            const isCompleted = !!profile?.nickname;
-            console.log(">>> Profile Status:", isCompleted ? "Complete" : "Incomplete");
+            console.log(">>> Profile Status (from metadata):", hasNickname ? "Complete" : "Incomplete");
 
-            let targetUrl = isCompleted ? next : "/onboarding";
+            let targetUrl = hasNickname ? next : "/onboarding";
 
             // If completed but target is onboarding, force home to prevent loops
-            if (isCompleted && targetUrl.includes("/onboarding")) {
+            if (hasNickname && targetUrl.includes("/onboarding")) {
                 targetUrl = "/";
             }
 
