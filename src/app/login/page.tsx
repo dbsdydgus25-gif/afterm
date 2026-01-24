@@ -53,10 +53,14 @@ export default function LoginPage() {
         // Set cookie for robustness (in case query param is stripped by provider)
         document.cookie = `auth_return_to=${encodeURIComponent(returnTo)}; path=/; max-age=300`; // 5 mins expiration
 
+        const redirectUrl = process.env.NODE_ENV === 'production'
+            ? 'https://www.afterm.co.kr/auth/callback'
+            : `${location.origin}/auth/callback`;
+
         await supabase.auth.signInWithOAuth({
             provider,
             options: {
-                redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
+                redirectTo: `${redirectUrl}?next=${encodeURIComponent(returnTo)}`,
                 // We still pass next in URL as backup, but rely on cookie primarily in callback
                 queryParams: {
                     access_type: 'offline',
