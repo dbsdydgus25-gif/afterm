@@ -18,6 +18,102 @@ import { PhoneUpdateModal } from "@/components/settings/PhoneUpdateModal";
 
 import { useSearchParams } from "next/navigation";
 
+function PasswordChangeForm() {
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleUpdatePassword = async () => {
+        if (!newPassword || !confirmPassword) {
+            alert("새 비밀번호를 입력해주세요.");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            alert("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+        if (newPassword.length < 6) {
+            alert("비밀번호는 6자 이상이어야 합니다.");
+            return;
+        }
+
+        setLoading(true);
+        const supabase = createClient();
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) throw error;
+
+            alert("비밀번호가 성공적으로 변경되었습니다.");
+            setIsEditing(false);
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (error: any) {
+            alert("비밀번호 변경 실패: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!isEditing) {
+        return (
+            <Button
+                onClick={() => setIsEditing(true)}
+                variant="outline"
+                className="text-xs font-bold border-slate-200"
+            >
+                비밀번호 변경
+            </Button>
+        );
+    }
+
+    return (
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in slide-in-from-top-2">
+            <div className="space-y-4 max-w-sm">
+                <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">새 비밀번호</label>
+                    <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="새 비밀번호 입력"
+                        className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">비밀번호 확인</label>
+                    <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="비밀번호 다시 입력"
+                        className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={handleUpdatePassword}
+                        disabled={loading}
+                        className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold"
+                    >
+                        {loading ? "변경 중..." : "변경하기"}
+                    </Button>
+                    <Button
+                        onClick={() => setIsEditing(false)}
+                        variant="ghost"
+                        className="text-slate-500 hover:text-slate-700 text-xs"
+                    >
+                        취소
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function SettingsContent() {
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories" || "profile";
@@ -389,6 +485,14 @@ function SettingsContent() {
                                             <p className="text-xs text-slate-500 mt-1">{user.email}</p>
                                         </div>
                                     </div>
+
+                                    {/* Password Change Section (Local Users Only) */}
+                                    {user.app_metadata?.provider === 'email' && (
+                                        <div className="py-4 border-b border-slate-50">
+                                            <h3 className="font-bold text-slate-900 text-sm mb-4">비밀번호 변경</h3>
+                                            <PasswordChangeForm />
+                                        </div>
+                                    )}
 
                                     <div>
                                         <h3 className="font-bold text-slate-900 text-sm mb-4 text-red-600">위험 구역</h3>
