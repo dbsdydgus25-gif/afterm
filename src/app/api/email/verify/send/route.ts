@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: Request) {
     try {
@@ -10,29 +10,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
 
-        const supabase = await createClient();
-        // Allow unauthenticated requests for signup
-        // const { data: { user } } = await supabase.auth.getUser();
-        // if (!user || user.email !== email) {
-        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // }
+        // Use Admin Client to bypass RLS for verification codes (needed for signup)
+        const supabaseAdmin = createAdminClient();
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        // Use the email as the "phone" identifier in verification_codes table with a prefix to avoid collision
-        // Or better, just use the email if the column is text. But wait, verification_codes has 'phone' column.
-        // I should probably add 'email' column or reuse 'phone' by storing "email:{email}".
-        // Let's verify the schema of verification_codes.
-        // It has 'phone', 'code', 'expires_at'. 
-        // I will use "email:{email}" as the identifier in the phone column. 
 
         const identifier = `email:${email}`;
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 mins
 
         // Delete previous codes
-        await supabase.from('verification_codes').delete().eq('phone', identifier);
+        await supabaseAdmin.from('verification_codes').delete().eq('phone', identifier);
 
         // Insert new code
-        const { error: dbError } = await supabase.from('verification_codes').insert({
+        const { error: dbError } = await supabaseAdmin.from('verification_codes').insert({
             phone: identifier,
             code: code,
             expires_at: expiresAt
