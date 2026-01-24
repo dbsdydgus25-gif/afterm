@@ -29,28 +29,58 @@ export default function AuthViewPage() {
     const handleRequestOTP = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const res = await requestOTP(messageId, phone);
-        setLoading(false);
 
-        if (res.success) {
-            alert("인증번호가 발송되었습니다.");
-            setStep('code');
-        } else {
-            alert(res.error || "인증번호 발송 실패");
+        try {
+            // Use API Route instead of Server Action
+            const res = await fetch('/api/verify/send', {
+                method: 'POST',
+                body: JSON.stringify({
+                    phone,
+                    type: 'recipient',
+                    id: messageId
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert("인증번호가 발송되었습니다.");
+                setStep('code');
+            } else {
+                alert(data.error || "인증번호 발송 실패");
+            }
+        } catch (error) {
+            alert("오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const res = await verifyOTP(messageId, phone, code);
-        setLoading(false);
 
-        if (res.success && res.content) {
-            setMessageContent(res.content);
-            setStep('view');
-        } else {
-            alert(res.error || "인증 실패");
+        try {
+            // Use API Route for Unlock
+            const res = await fetch('/api/message/unlock', {
+                method: 'POST',
+                body: JSON.stringify({
+                    messageId,
+                    phone,
+                    code
+                })
+            });
+            const data = await res.json();
+
+            if (data.success && data.content) {
+                setMessageContent(data.content);
+                setStep('view');
+            } else {
+                alert(data.error || "인증 실패");
+            }
+        } catch (error) {
+            alert("오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
     };
 
