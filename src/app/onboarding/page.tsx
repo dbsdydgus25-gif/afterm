@@ -8,26 +8,32 @@ import { Button } from "@/components/ui/button";
 import { Camera, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
+// ... (imports remain)
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemoryStore } from "@/store/useMemoryStore";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Camera, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
+
 export default function OnboardingPage() {
     const router = useRouter();
     const { user, setUser } = useMemoryStore();
     const [mounted, setMounted] = useState(false);
+
+    // Steps: 1 = Verification, 2 = Profile
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
-    // Step 1: Account (Email & Password)
-    const [password, setPassword] = useState("");
-    const [passwordConfirm, setPasswordConfirm] = useState("");
-    const [isPasswordSet, setIsPasswordSet] = useState(false);
-
-    // Step 2: Verification
+    // Step 1: Verification
     const [phone, setPhone] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const [timer, setTimer] = useState(0);
 
-    // Step 3: Profile
+    // Step 2: Profile
     const [name, setName] = useState("");
     const [nickname, setNickname] = useState("");
     const [bio, setBio] = useState("");
@@ -47,22 +53,21 @@ export default function OnboardingPage() {
             }
 
             // Determine Starting Step
-            // Default to Step 2 (Phone Verification) because:
-            // 1. Email users already set password during signup.
-            // 2. Social users don't need a password.
-            let startStep = 2;
+            let startStep = 1; // Default to Verification
 
             const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
 
             if (isPhoneVerified) {
-                startStep = 3; // Skip verification if done
+                startStep = 2; // Skip to Profile if verified
             }
 
             // Allow manual override via query param ?step=
             const params = new URLSearchParams(window.location.search);
             const queryStep = params.get("step");
             if (queryStep) {
-                setStep(parseInt(queryStep));
+                const s = parseInt(queryStep);
+                // Map old step 3 to new step 2 for compatibility if needed, or just rely on new logic
+                setStep(s > 2 ? 2 : s);
             } else {
                 setStep(startStep);
             }
@@ -77,30 +82,6 @@ export default function OnboardingPage() {
         }
         return () => clearInterval(interval);
     }, [isCodeSent, timer]);
-
-    const handlePasswordSubmit = async () => {
-        if (password.length < 6) {
-            alert("비밀번호는 6자 이상이어야 합니다.");
-            return;
-        }
-        if (password !== passwordConfirm) {
-            alert("비밀번호가 일치하지 않습니다.");
-            return;
-        }
-
-        setLoading(true);
-        const supabase = createClient();
-        const { error } = await supabase.auth.updateUser({ password: password });
-        setLoading(false);
-
-        if (error) {
-            console.error("Password update error", error);
-            alert("비밀번호 설정 중 오류가 발생했습니다: " + error.message);
-        } else {
-            setIsPasswordSet(true);
-            setStep(2);
-        }
-    };
 
     const handleSendVerification = async () => {
         if (!phone || phone.length < 10) {
@@ -139,7 +120,7 @@ export default function OnboardingPage() {
                 setIsVerified(true);
                 setIsCodeSent(false);
                 alert("인증이 완료되었습니다!");
-                setTimeout(() => setStep(3), 500); // Auto advance
+                setTimeout(() => setStep(2), 500); // Auto advance to Profile
             } else {
                 alert("인증번호가 올바르지 않거나 만료되었습니다.");
             }
@@ -211,7 +192,7 @@ export default function OnboardingPage() {
                 user_metadata: { ...user!.user_metadata, ...updates }
             });
 
-            // Mark as verified since they just set the password/profile
+            // Mark as verified since they just set the profile
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
 
             // Handle Redirect
@@ -237,21 +218,9 @@ export default function OnboardingPage() {
                 {/* Back Button */}
                 <button
                     onClick={async () => {
-                        // Intelligent Back: If Social User at Step 2, go to Login (Step 1 is invalid)
-                        const isSocial = user?.app_metadata?.provider !== 'email';
-                        const isPhoneVerified = (user?.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
-
-                        if (step === 3 && isPhoneVerified) {
-                            // If auto-skipped to 3, Back means Logout essentially or Home
-                            // But user might want to change phone?
-                            // Let's just go back to 2, it will show "Verified" state.
-                            setStep(2);
-                        } else if (step === 2 && isSocial) {
-                            const supabase = createClient();
-                            await supabase.auth.signOut();
-                            router.replace("/login");
-                        } else if (step > 1) {
-                            setStep(step - 1);
+                        // Intelligent Back Logic
+                        if (step === 2) {
+                            setStep(1);
                         } else {
                             const supabase = createClient();
                             await supabase.auth.signOut();
@@ -265,72 +234,24 @@ export default function OnboardingPage() {
 
                 {/* Progress Indicator */}
                 <div className="flex justify-center mb-8 gap-2">
-                    {[1, 2, 3].map((s) => (
+                    {[1, 2].map((s) => (
                         <div key={s} className={`h-1.5 w-8 rounded-full transition-all duration-300 ${s <= step ? "bg-blue-600" : "bg-slate-200"}`} />
                     ))}
                 </div>
 
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-black text-slate-900 mb-2">
-                        {step === 1 && "계정 보안 설정"}
-                        {step === 2 && "본인 확인"}
-                        {step === 3 && "프로필 설정"}
+                        {step === 1 && "본인 확인"}
+                        {step === 2 && "프로필 설정"}
                     </h1>
                     <p className="text-sm text-slate-500">
-                        {step === 1 && "안전한 이용을 위해 비밀번호를 설정해주세요."}
-                        {step === 2 && "본인 명의의 휴대폰으로 인증해주세요."}
-                        {step === 3 && "사용하실 프로필 정보를 입력해주세요."}
+                        {step === 1 && "본인 명의의 휴대폰으로 인증해주세요."}
+                        {step === 2 && "사용하실 프로필 정보를 입력해주세요."}
                     </p>
                 </div>
 
-                {/* STEP 1: Account Security */}
+                {/* STEP 1: Phone Verification */}
                 {step === 1 && (
-                    <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">로그인 이메일</label>
-                            <div className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 font-medium text-sm flex items-center gap-2">
-                                <span className="flex-1 truncate">{user?.email}</span>
-                                <Check className="w-4 h-4 text-green-500" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호 설정</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="비밀번호 (6자 이상)"
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
-                            />
-                        </div>
-                        <div>
-                            <input
-                                type="password"
-                                value={passwordConfirm}
-                                onChange={(e) => setPasswordConfirm(e.target.value)}
-                                placeholder="비밀번호 확인"
-                                className={`w-full p-4 rounded-xl border focus:outline-none focus:ring-2 transition-all font-medium ${passwordConfirm && password !== passwordConfirm ? "border-red-300 focus:ring-red-500" : "border-slate-200 focus:ring-blue-500"
-                                    }`}
-                            />
-                            {passwordConfirm && password !== passwordConfirm && (
-                                <p className="text-xs text-red-500 mt-2 ml-1">비밀번호가 일치하지 않습니다.</p>
-                            )}
-                        </div>
-
-                        <Button
-                            onClick={handlePasswordSubmit}
-                            disabled={!password || password.length < 6 || password !== passwordConfirm || loading}
-                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg mt-4"
-                        >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "다음으로"}
-                        </Button>
-                    </div>
-                )}
-
-
-                {/* STEP 2: Phone Verification */}
-                {step === 2 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호</label>
@@ -379,7 +300,7 @@ export default function OnboardingPage() {
                             </Button>
                         ) : (
                             <Button
-                                onClick={() => setStep(3)}
+                                onClick={() => setStep(2)}
                                 className="w-full h-14 mt-4 rounded-xl bg-blue-600 text-white font-bold text-lg"
                             >
                                 다음으로 <ArrowRight className="ml-2 w-5 h-5" />
@@ -389,8 +310,8 @@ export default function OnboardingPage() {
                 )}
 
 
-                {/* STEP 3: Profile Setup */}
-                {step === 3 && (
+                {/* STEP 2: Profile Setup */}
+                {step === 2 && (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         {/* Profile Image */}
                         <div className="flex justify-center">
