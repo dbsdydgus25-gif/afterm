@@ -10,6 +10,7 @@ import Link from "next/link";
 import { WithdrawModal } from "@/components/auth/WithdrawModal";
 import { User, Shield, CreditCard, LogOut, ChevronRight, Camera } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
+import { PhoneUpdateModal } from "@/components/settings/PhoneUpdateModal";
 
 
 
@@ -41,6 +42,7 @@ function SettingsContent() {
     const [profileImage, setProfileImage] = useState("");
     const [phone, setPhone] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -318,13 +320,21 @@ function SettingsContent() {
                                         <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
                                             <label className="w-24 pt-3 text-sm font-bold text-slate-700">전화번호</label>
                                             <div className="flex-1">
-                                                <input
-                                                    type="tel"
-                                                    value={phone}
-                                                    disabled
-                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm bg-slate-100 text-slate-500 cursor-not-allowed focus:outline-none"
-                                                    placeholder="01012345678 (숫자만 입력)"
-                                                />
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="tel"
+                                                        value={phone}
+                                                        disabled
+                                                        className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none"
+                                                        placeholder="등록된 전화번호 없음"
+                                                    />
+                                                    <Button
+                                                        onClick={() => setIsPhoneModalOpen(true)}
+                                                        className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 rounded-lg text-xs"
+                                                    >
+                                                        {phone ? "번호 변경" : "번호 등록"}
+                                                    </Button>
+                                                </div>
                                                 <p className="text-xs text-slate-400 mt-1">
                                                     * 생존 확인(Dead Man's Switch) 기능을 위해 본인 명의 휴대폰 번호가 필요합니다.<br />
                                                     * 수신인 인증 시, 이 번호로 인증번호가 발송됩니다.
@@ -438,6 +448,13 @@ function SettingsContent() {
             </div>
 
             <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} />
+
+            <PhoneUpdateModal
+                isOpen={isPhoneModalOpen}
+                onClose={() => setIsPhoneModalOpen(false)}
+                currentEmail={user.email || ""}
+                onSuccess={(newPhone) => setPhone(newPhone)}
+            />
         </div>
     );
 }

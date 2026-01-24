@@ -24,10 +24,25 @@ export async function GET(request: Request) {
         console.log("Error:", error);
 
         if (!error && session) {
-            console.log(">>> Redirecting to /onboarding");
-            // Redirect all users to onboarding
-            // The onboarding page will handle step detection based on user status
-            let response = NextResponse.redirect(`${origin}/onboarding`);
+            // Check if user has completed onboarding (has nickname)
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', session.user.id)
+                .single();
+
+            const isCompleted = !!profile?.nickname;
+            console.log(">>> Profile Status:", isCompleted ? "Complete" : "Incomplete");
+
+            let targetUrl = isCompleted ? next : "/onboarding";
+
+            // If completed but target is onboarding, force home to prevent loops
+            if (isCompleted && targetUrl.includes("/onboarding")) {
+                targetUrl = "/";
+            }
+
+            console.log(">>> Redirecting to:", targetUrl);
+            let response = NextResponse.redirect(`${origin}${targetUrl}`);
 
             // Cleanup Cookie
             if (cookieReturnTo) {
