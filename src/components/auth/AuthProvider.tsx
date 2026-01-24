@@ -52,27 +52,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const supabase = createClient();
 
                 // Fetch PROFILE from 'profiles' table (Source of Truth)
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+                // Wrap in try-catch to handle 406 or other DB errors smoothly
+                let profile = null;
+                try {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .maybeSingle(); // Use maybeSingle to avoid 406 on empty
+
+                    if (error) {
+                        console.error("Profile fetch error:", error);
+                    } else {
+                        profile = data;
+                    }
+                } catch (err) {
+                    console.error("Profile fetch exception:", err);
+                }
 
                 // Check if user has completed onboarding (has nickname)
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
                 // Whitelist: Auth pages and onboarding itself
-                // Force incomplete users to onboarding on ALL pages except auth/onboarding
-                const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname === "/onboarding" || pathname.startsWith("/api/") || pathname.startsWith("/_next");
+                const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
 
                 // Force incomplete users to onboarding globally
+                // Move redirect to here (inside useEffect/async function), do not block rendering
                 if (!hasNickname && !isAuthOrOnboarding) {
                     console.log("Incomplete onboarding, redirecting to /onboarding");
                     router.replace("/onboarding");
-                    return;
+                    // Do NOT return here, let the state update so UI can render (or show loading)
+                    // If we return, setUser might not be called? 
+                    // Actually, if we redirect, we should stop processing. 
+                    // But to avoid "blank screen" if redirect fails, we should process user state.
                 }
-
-
 
                 // If user has completed onboarding but is still on signup/login pages, redirect to home
                 // Don't interfere with onboarding page - it handles its own logic
