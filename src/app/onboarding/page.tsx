@@ -171,6 +171,16 @@ export default function OnboardingPage() {
             });
             const data = await res.json();
             if (data.success) {
+                // Save phone number immediately to profiles
+                const supabase = createClient();
+                const cleanPhone = phone.replace(/-/g, '');
+
+                await supabase.from('profiles').upsert({
+                    id: user!.id,
+                    phone: cleanPhone,
+                    updated_at: new Date().toISOString()
+                });
+
                 setIsVerified(true);
                 setIsCodeSent(false);
                 alert("인증이 완료되었습니다!");
