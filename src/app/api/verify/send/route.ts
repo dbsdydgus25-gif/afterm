@@ -47,6 +47,31 @@ export async function POST(request: Request) {
             if (!existingUser) {
                 return NextResponse.json({ error: "가입되지 않은 휴대폰 번호입니다." }, { status: 400 });
             }
+        } else if (type === 'recipient') {
+            // Check against MESSAGES table
+            // Extra param: 'id' (messageId) is required in body
+            const { id } = await request.json();
+
+            if (!id) return NextResponse.json({ error: "Message ID is required" }, { status: 400 });
+
+            // Need to fetch message securely (Service Role)
+            const { data: message } = await supabaseAdmin
+                .from('messages')
+                .select('recipient_phone')
+                .eq('id', id)
+                .single();
+
+            if (!message) {
+                return NextResponse.json({ error: "Message not found" }, { status: 404 });
+            }
+
+            // Normalize
+            const dbPhone = message.recipient_phone.replace(/-/g, '');
+            if (dbPhone !== cleanPhone) {
+                return NextResponse.json({ error: "지정된 수신인 휴대폰 번호와 일치하지 않습니다." }, { status: 403 });
+            }
+
+            // If match, allow sending code
         } else {
             // Default (Update / Onboarding / Et cetra)
             // Check if phone exists for ANY OTHER user
