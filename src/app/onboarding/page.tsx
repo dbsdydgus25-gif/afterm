@@ -83,15 +83,25 @@ export default function OnboardingPage() {
                 console.log(">>> User has no nickname, proceeding with onboarding");
 
                 // Check agreements
-                const { data: agreementRows } = await supabase
-                    .from('user_agreements')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .limit(1);
+                let hasAgreed = false;
 
-                const agreements = agreementRows?.[0];
-                console.log("Agreements data:", agreements);
-                const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
+                // 1. Check Metadata first (Reliable Backup)
+                if (userMetadata?.terms_agreed) {
+                    hasAgreed = true;
+                } else {
+                    // 2. Check DB
+                    const { data: agreementRows } = await supabase
+                        .from('user_agreements')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .limit(1);
+
+                    const agreements = agreementRows?.[0];
+                    if (agreements?.terms_agreed && agreements?.privacy_agreed) {
+                        hasAgreed = true;
+                    }
+                }
+
                 console.log("Has agreed:", hasAgreed);
 
                 // Check phone verification
@@ -145,7 +155,7 @@ export default function OnboardingPage() {
             setVerificationCode("");
             const res = await fetch('/api/verify/send', {
                 method: 'POST',
-                body: JSON.stringify({ phone })
+                body: JSON.stringify({ phone, type: 'signup' }) // Explicitly set type
             });
             const data = await res.json();
             if (data.success) {
@@ -171,10 +181,15 @@ export default function OnboardingPage() {
             });
             const data = await res.json();
             if (data.success) {
-                // Save phone number immediately to profiles
                 const supabase = createClient();
                 const cleanPhone = phone.replace(/-/g, '');
 
+                // Update Metadata for Persistence
+                await supabase.auth.updateUser({
+                    data: { phone_verified: true, phone: cleanPhone }
+                });
+
+                // Update Profiles
                 await supabase.from('profiles').upsert({
                     id: user!.id,
                     phone: cleanPhone,
@@ -203,7 +218,14 @@ export default function OnboardingPage() {
         try {
             if (!user) throw new Error("User not found");
 
-            // Save agreements to database
+            // 1. Check/Update Metadata FIRST (Reliable)
+            const { error: authError } = await supabase.auth.updateUser({
+                data: { terms_agreed: true }
+            });
+
+            if (authError) console.error("Metadata update failed:", authError);
+
+            // 2. Save agreements to database (Best effort)
             const { error } = await supabase
                 .from('user_agreements')
                 .upsert({
@@ -217,7 +239,7 @@ export default function OnboardingPage() {
                     agreed_at: new Date().toISOString()
                 }, { onConflict: 'user_id' });
 
-            if (error) throw error;
+            if (error) console.error("DB agreements save error:", error);
 
             // Move to next step (Phone Verification)
             setStep(1);
