@@ -10,12 +10,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
 
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user || user.email !== email) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        // Allow unauthenticated requests for signup
+        // const { data: { user } } = await supabase.auth.getUser();
+        // if (!user || user.email !== email) {
+        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // }
 
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         // Use the email as the "phone" identifier in verification_codes table with a prefix to avoid collision
