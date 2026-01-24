@@ -5,17 +5,10 @@ import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Camera, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { Camera, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
-// ... (imports remain)
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMemoryStore } from "@/store/useMemoryStore";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Camera, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
-import { SecureAvatar } from "@/components/ui/SecureAvatar";
+
 
 export default function OnboardingPage() {
     const router = useRouter();

@@ -161,7 +161,7 @@ export default function SignupPage() {
                 </div>
             )}
 
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-12">
+            <div className="flex flex-col items-center justify-start min-h-[calc(100vh-80px)] px-4 pt-10 pb-12 md:pt-24">
                 <div className="max-w-md w-full mb-8">
                     {/* Progress Bar */}
                     <div className="flex items-center justify-between mb-8 px-2">
@@ -189,6 +189,26 @@ export default function SignupPage() {
                                     <p className="text-slate-500 text-sm">서비스 이용을 위해 필수 약관에 동의해주세요.</p>
                                 </div>
                                 <div className="space-y-3">
+                                    <div
+                                        className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                                        onClick={() => {
+                                            const newState = !allAgreed;
+                                            setAgreedTerms(newState);
+                                            setAgreedPrivacy(newState);
+                                            setAgreedThirdParty(newState);
+                                            setAgreedEntrustment(newState);
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-3 flex-1">
+                                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${allAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                                {allAgreed && <Check className="w-4 h-4 text-white" />}
+                                            </div>
+                                            <span className="font-bold text-slate-900">
+                                                약관 전체 동의
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="h-px bg-slate-100 my-2" />
                                     <AgreementItem
                                         title="서비스 이용약관"
                                         content={TERMS_OF_SERVICE}
