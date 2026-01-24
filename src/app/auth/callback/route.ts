@@ -20,41 +20,9 @@ export async function GET(request: Request) {
         const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error && session) {
-            // Check user completion status from database
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-
-            const { data: agreementRows } = await supabase
-                .from('user_agreements')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .limit(1);
-
-            const agreements = agreementRows?.[0];
-            const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
-            const isPhoneVerified = profile?.phone_verified;
-            const hasNickname = profile?.nickname;
-
-            // Prepare response
-            let response: NextResponse;
-
-            // Route user to appropriate step based on completion status
-            if (!hasAgreed) {
-                // Step 1: Need to agree to terms
-                response = NextResponse.redirect(`${origin}/auth/agreements`);
-            } else if (!isPhoneVerified) {
-                // Step 2: Need phone verification
-                response = NextResponse.redirect(`${origin}/auth/verify-phone`);
-            } else if (!hasNickname) {
-                // Step 3: Need to set up profile (onboarding)
-                response = NextResponse.redirect(`${origin}/onboarding`);
-            } else {
-                // All steps complete, redirect to intended page or home
-                response = NextResponse.redirect(`${origin}${next}`);
-            }
+            // Redirect all users to onboarding
+            // The onboarding page will handle step detection based on user status
+            let response = NextResponse.redirect(`${origin}/onboarding`);
 
             // Cleanup Cookie
             if (cookieReturnTo) {

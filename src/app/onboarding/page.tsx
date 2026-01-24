@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Camera, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { Camera, ArrowLeft, ArrowRight, Loader2, Check, ChevronDown } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
+import { TERMS_OF_SERVICE, PRIVACY_POLICY, THIRD_PARTY_PROVISION, ENTRUSTMENT } from "@/lib/compliance";
 
 
 
@@ -15,9 +16,17 @@ export default function OnboardingPage() {
     const { user, setUser } = useMemoryStore();
     const [mounted, setMounted] = useState(false);
 
-    // Steps: 1 = Verification, 2 = Profile
-    const [step, setStep] = useState(1);
+    // Steps: 0 = Agreements, 1 = Verification, 2 = Profile
+    const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
+
+    // Step 0: Agreements
+    const [agreedTerms, setAgreedTerms] = useState(false);
+    const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+    const [agreedThirdParty, setAgreedThirdParty] = useState(false);
+    const [agreedEntrustment, setAgreedEntrustment] = useState(false);
+    const allAgreed = agreedTerms && agreedPrivacy && agreedThirdParty && agreedEntrustment;
+    const [expandedAgreement, setExpandedAgreement] = useState<string | null>(null);
 
     // Step 1: Verification
     const [phone, setPhone] = useState("");
@@ -45,25 +54,43 @@ export default function OnboardingPage() {
                 setPhone(metaPhone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
             }
 
-            // Determine Starting Step
-            let startStep = 1; // Default to Verification
+            // Determine Starting Step based on completion status
+            const checkStartStep = async () => {
+                const supabase = createClient();
 
-            const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+                // Check agreements
+                const { data: agreementRows } = await supabase
+                    .from('user_agreements')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .limit(1);
 
-            if (isPhoneVerified) {
-                startStep = 2; // Skip to Profile if verified
-            }
+                const agreements = agreementRows?.[0];
+                const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
 
-            // Allow manual override via query param ?step=
-            const params = new URLSearchParams(window.location.search);
-            const queryStep = params.get("step");
-            if (queryStep) {
-                const s = parseInt(queryStep);
-                // Map old step 3 to new step 2 for compatibility if needed, or just rely on new logic
-                setStep(s > 2 ? 2 : s);
-            } else {
-                setStep(startStep);
-            }
+                // Check phone verification
+                const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+
+                let startStep = 0; // Default to Agreements
+
+                if (hasAgreed && !isPhoneVerified) {
+                    startStep = 1; // Agreements done, need phone verification
+                } else if (hasAgreed && isPhoneVerified) {
+                    startStep = 2; // Both done, need profile
+                }
+
+                // Allow manual override via query param ?step=
+                const params = new URLSearchParams(window.location.search);
+                const queryStep = params.get("step");
+                if (queryStep) {
+                    const s = parseInt(queryStep);
+                    setStep(s > 2 ? 2 : s);
+                } else {
+                    setStep(startStep);
+                }
+            };
+
+            checkStartStep();
         }
     }, [user]);
 
@@ -119,6 +146,41 @@ export default function OnboardingPage() {
             }
         } catch (error) {
             alert("오류가 발생했습니다.");
+        }
+    };
+
+    const handleAgreementsSubmit = async () => {
+        if (!allAgreed) {
+            alert("모든 필수 약관에 동의해주세요.");
+            return;
+        }
+        setLoading(true);
+        const supabase = createClient();
+        try {
+            if (!user) throw new Error("User not found");
+
+            // Save agreements to database
+            const { error } = await supabase
+                .from('user_agreements')
+                .upsert({
+                    user_id: user.id,
+                    terms_agreed: agreedTerms,
+                    privacy_agreed: agreedPrivacy,
+                    third_party_agreed: agreedThirdParty,
+                    entrustment_agreed: agreedEntrustment,
+                    marketing_agreed: false,
+                    terms_version: '1.0',
+                    agreed_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+
+            if (error) throw error;
+
+            // Move to next step (Phone Verification)
+            setStep(1);
+        } catch (error: any) {
+            alert("처리 중 오류가 발생했습니다: " + (error.message || ""));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -214,6 +276,8 @@ export default function OnboardingPage() {
                         // Intelligent Back Logic
                         if (step === 2) {
                             setStep(1);
+                        } else if (step === 1) {
+                            setStep(0);
                         } else {
                             const supabase = createClient();
                             await supabase.auth.signOut();
@@ -227,21 +291,98 @@ export default function OnboardingPage() {
 
                 {/* Progress Indicator */}
                 <div className="flex justify-center mb-8 gap-2">
-                    {[1, 2].map((s) => (
+                    {[0, 1, 2].map((s) => (
                         <div key={s} className={`h-1.5 w-8 rounded-full transition-all duration-300 ${s <= step ? "bg-blue-600" : "bg-slate-200"}`} />
                     ))}
                 </div>
 
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-black text-slate-900 mb-2">
+                        {step === 0 && "약관 동의"}
                         {step === 1 && "본인 확인"}
                         {step === 2 && "프로필 설정"}
                     </h1>
                     <p className="text-sm text-slate-500">
+                        {step === 0 && "서비스 이용을 위해 필수 약관에 동의해주세요."}
                         {step === 1 && "본인 명의의 휴대폰으로 인증해주세요."}
                         {step === 2 && "사용하실 프로필 정보를 입력해주세요."}
                     </p>
                 </div>
+
+                {/* STEP 0: Agreements */}
+                {step === 0 && (
+                    <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                        {/* All Agree */}
+                        <div
+                            className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
+                            onClick={() => {
+                                const newState = !allAgreed;
+                                setAgreedTerms(newState);
+                                setAgreedPrivacy(newState);
+                                setAgreedThirdParty(newState);
+                                setAgreedEntrustment(newState);
+                            }}
+                        >
+                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${allAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                {allAgreed && <Check className="w-4 h-4 text-white" />}
+                            </div>
+                            <span className="font-bold text-slate-900">\uc57d\uad00 \uc804\uccb4 \ub3d9\uc758</span>
+                        </div>
+
+                        <div className="h-px bg-slate-200 my-2" />
+
+                        {/* Individual Agreements */}
+                        <div className="space-y-2">
+                            <div
+                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
+                                onClick={() => setAgreedTerms(!agreedTerms)}
+                            >
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                    {agreedTerms && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uc11c\ube44\uc2a4 \uc774\uc6a9\uc57d\uad00</span>
+                            </div>
+
+                            <div
+                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
+                                onClick={() => setAgreedPrivacy(!agreedPrivacy)}
+                            >
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                    {agreedPrivacy && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uac1c\uc778\uc815\ubcf4 \uc218\uc9d1 \ubc0f \uc774\uc6a9</span>
+                            </div>
+
+                            <div
+                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
+                                onClick={() => setAgreedThirdParty(!agreedThirdParty)}
+                            >
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                    {agreedThirdParty && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uc81c3\uc790 \uc815\ubcf4 \uc81c\uacf5 \ub3d9\uc758</span>
+                            </div>
+
+                            <div
+                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
+                                onClick={() => setAgreedEntrustment(!agreedEntrustment)}
+                            >
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                    {agreedEntrustment && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uac1c\uc778\uc815\ubcf4 \ucc98\ub9ac \uc704\ud0c1</span>
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={handleAgreementsSubmit}
+                            disabled={loading || !allAgreed}
+                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "\ub2e4\uc74c\uc73c\ub85c"}
+                        </Button>
+                    </div>
+                )}
 
                 {/* STEP 1: Phone Verification */}
                 {step === 1 && (
