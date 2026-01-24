@@ -11,21 +11,31 @@ export async function POST(request: Request) {
 
         const admin = createAdminClient();
 
-        // 1. Fetch Message & SENDER Profile
+        // 1. Fetch Message First
         const { data: message, error: msgError } = await admin
             .from('messages')
-            .select('*, profiles:user_id(phone)')
+            .select('*')
             .eq('id', messageId)
             .single();
 
         if (msgError || !message) {
+            console.error("Message fetch error:", msgError);
             return NextResponse.json({ error: "Message not found" }, { status: 404 });
         }
 
-        const senderPhone = message.profiles?.phone;
-        if (!senderPhone) {
-            return NextResponse.json({ error: "작성자의 휴대폰 번호가 등록되지 않았습니다." }, { status: 400 });
+        // 2. Fetch Sender Profile separately
+        const { data: senderProfile, error: profileError } = await admin
+            .from('profiles')
+            .select('phone')
+            .eq('id', message.user_id)
+            .single();
+
+        if (profileError || !senderProfile || !senderProfile.phone) {
+            console.error("Sender profile error:", profileError);
+            return NextResponse.json({ error: "작성자의 휴대폰 번호를 찾을 수 없습니다." }, { status: 404 });
         }
+
+        const senderPhone = senderProfile.phone;
 
         // 2. Generate and Send Code to SENDER's phone
         const code = Math.floor(100000 + Math.random() * 900000).toString();
