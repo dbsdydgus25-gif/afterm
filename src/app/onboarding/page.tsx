@@ -58,6 +58,20 @@ export default function OnboardingPage() {
             const checkStartStep = async () => {
                 const supabase = createClient();
 
+                // First check if user already has nickname (onboarding complete)
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('nickname')
+                    .eq('id', user.id)
+                    .single();
+
+                // If user already completed onboarding, redirect to home
+                if (profile?.nickname) {
+                    console.log("User already has nickname, redirecting to home");
+                    router.replace("/");
+                    return;
+                }
+
                 // Check agreements
                 const { data: agreementRows } = await supabase
                     .from('user_agreements')
