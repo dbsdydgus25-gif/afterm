@@ -57,6 +57,9 @@ export default function OnboardingPage() {
             // Determine Starting Step based on completion status
             const checkStartStep = async () => {
                 const supabase = createClient();
+                console.log("=== ONBOARDING STEP DETECTION START ===");
+                console.log("User ID:", user.id);
+                console.log("User email:", user.email);
 
                 // First check if user already has nickname (onboarding complete)
                 const { data: profile } = await supabase
@@ -65,12 +68,18 @@ export default function OnboardingPage() {
                     .eq('id', user.id)
                     .single();
 
+                console.log("Profile data:", profile);
+                console.log("Has nickname:", !!profile?.nickname);
+                console.log("Nickname value:", profile?.nickname);
+
                 // If user already completed onboarding, redirect to home
                 if (profile?.nickname) {
-                    console.log("User already has nickname, redirecting to home");
+                    console.log(">>> User already has nickname, redirecting to home");
                     router.replace("/");
                     return;
                 }
+
+                console.log(">>> User has no nickname, proceeding with onboarding");
 
                 // Check agreements
                 const { data: agreementRows } = await supabase
@@ -80,10 +89,13 @@ export default function OnboardingPage() {
                     .limit(1);
 
                 const agreements = agreementRows?.[0];
+                console.log("Agreements data:", agreements);
                 const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
+                console.log("Has agreed:", hasAgreed);
 
                 // Check phone verification
                 const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+                console.log("Is phone verified:", isPhoneVerified);
 
                 let startStep = 0; // Default to Agreements
 
@@ -93,15 +105,19 @@ export default function OnboardingPage() {
                     startStep = 2; // Both done, need profile
                 }
 
+                console.log("Starting step:", startStep);
+
                 // Allow manual override via query param ?step=
                 const params = new URLSearchParams(window.location.search);
                 const queryStep = params.get("step");
                 if (queryStep) {
                     const s = parseInt(queryStep);
                     setStep(s > 2 ? 2 : s);
+                    console.log("Step overridden by query param:", s);
                 } else {
                     setStep(startStep);
                 }
+                console.log("=== ONBOARDING STEP DETECTION END ===");
             };
 
             checkStartStep();
