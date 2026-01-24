@@ -53,9 +53,16 @@ export default function LoginPage() {
         // Set cookie for robustness (in case query param is stripped by provider)
         document.cookie = `auth_return_to=${encodeURIComponent(returnTo)}; path=/; max-age=300`; // 5 mins expiration
 
-        const redirectUrl = process.env.NODE_ENV === 'production'
+        // Use hostname to determine if we're in production
+        const isProduction = location.hostname === 'afterm.co.kr' || location.hostname === 'www.afterm.co.kr';
+        const redirectUrl = isProduction
             ? 'https://www.afterm.co.kr/auth/callback'
             : `${location.origin}/auth/callback`;
+
+        console.log("=== OAUTH LOGIN ===");
+        console.log("Hostname:", location.hostname);
+        console.log("Is production:", isProduction);
+        console.log("Redirect URL:", redirectUrl);
 
         await supabase.auth.signInWithOAuth({
             provider,
