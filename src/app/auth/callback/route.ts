@@ -20,33 +20,39 @@ export async function GET(request: Request) {
         const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error && session) {
-            // Check Provider
-            const provider = session.user.app_metadata.provider;
-            const identities = session.user.identities || [];
-            const isSocial = provider !== 'email' || identities.some((id: any) => id.provider === 'google' || id.provider === 'kakao');
+            // Check user completion status from database
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
 
-            // ERROR: The supabase client here uses OLD cookies... (DB RLS issue)
-            // FIX: Use 'created_at' to detect NEW users.
-            // REMOVED 'nickname' check because metadata can be out of sync.
-            // If user is > 1 min old, force verify.
+            const { data: agreementRows } = await supabase
+                .from('user_agreements')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .limit(1);
 
-            const createdAt = new Date(session.user.created_at).getTime();
-            const now = Date.now();
-            const isNewUser = (now - createdAt) < 60 * 1000; // Created within last 60 seconds
+            const agreements = agreementRows?.[0];
+            const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
+            const isPhoneVerified = profile?.phone_verified;
+            const hasNickname = profile?.nickname;
 
-            // Prepare response object
+            // Prepare response
             let response: NextResponse;
 
-            // Only force verification if:
-            // 1. Social Login
-            // 2. Not a brand new user (Just signed up)
-            // If they are existing users without a password (abandoned onboarding), they will face the challenge.
-            // This is the intended security behavior for "Existing Users".
-            if (isSocial && !isNewUser) {
-                // Existing Social User -> Force Verify
-                response = NextResponse.redirect(`${origin}/auth/verify-password?returnTo=${encodeURIComponent(next)}`);
+            // Route user to appropriate step based on completion status
+            if (!hasAgreed) {
+                // Step 1: Need to agree to terms
+                response = NextResponse.redirect(`${origin}/auth/agreements`);
+            } else if (!isPhoneVerified) {
+                // Step 2: Need phone verification
+                response = NextResponse.redirect(`${origin}/auth/verify-phone`);
+            } else if (!hasNickname) {
+                // Step 3: Need to set up profile (onboarding)
+                response = NextResponse.redirect(`${origin}/onboarding`);
             } else {
-                // New User -> Go to Target (AuthProvider will handle Onboarding redirect)
+                // All steps complete, redirect to intended page or home
                 response = NextResponse.redirect(`${origin}${next}`);
             }
 
