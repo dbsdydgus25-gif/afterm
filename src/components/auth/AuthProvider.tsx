@@ -74,8 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     return;
                 }
 
-                // If user has completed onboarding but is still on auth/onboarding pages, redirect to home
-                if (hasNickname && (pathname === "/onboarding" || pathname === "/auth/verify-phone" || pathname === "/auth/agreements" || pathname === "/signup" || pathname === "/login")) {
+                // If user has completed onboarding but is still on signup/login pages, redirect to home
+                // Don't interfere with onboarding page - it handles its own logic
+                if (hasNickname && (pathname === "/signup" || pathname === "/login")) {
                     console.log("Onboarding complete, redirecting to Main");
                     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
                     const returnTo = params.get("returnTo") || "/";
