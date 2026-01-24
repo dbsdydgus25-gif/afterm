@@ -56,7 +56,7 @@ export default function LoginPage() {
         // Use hostname to determine if we're in production
         const isProduction = location.hostname === 'afterm.co.kr' || location.hostname === 'www.afterm.co.kr';
         const redirectUrl = isProduction
-            ? 'https://www.afterm.co.kr/auth/callback'
+            ? 'https://afterm.co.kr/auth/callback'
             : `${location.origin}/auth/callback`;
 
         console.log("=== OAUTH LOGIN ===");
