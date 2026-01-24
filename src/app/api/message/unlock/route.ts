@@ -6,12 +6,36 @@ export async function POST(request: Request) {
     try {
         const { messageId, phone, code } = await request.json();
 
-        if (!messageId || !phone || !code) {
+        if (!messageId || !code) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        const cleanPhone = phone.replace(/-/g, '');
+        let cleanPhone = phone ? phone.replace(/-/g, '') : null;
         const supabaseAdmin = createAdminClient();
+
+        // If phone is missing, try to find it via Message -> Sender
+        if (!cleanPhone) {
+            const { data: msgInfo } = await supabaseAdmin
+                .from('messages')
+                .select('user_id')
+                .eq('id', messageId)
+                .single();
+
+            if (msgInfo?.user_id) {
+                const { data: senderInfo } = await supabaseAdmin
+                    .from('profiles')
+                    .select('phone')
+                    .eq('id', msgInfo.user_id)
+                    .single();
+                if (senderInfo?.phone) {
+                    cleanPhone = senderInfo.phone.replace(/-/g, '');
+                }
+            }
+        }
+
+        if (!cleanPhone) {
+            return NextResponse.json({ error: "핸드폰 번호를 찾을 수 없습니다." }, { status: 400 });
+        }
 
         // 1. Verify Code
         const { data: verificationData, error: verificationError } = await supabaseAdmin

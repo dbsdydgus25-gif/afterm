@@ -144,11 +144,7 @@ export default function MessageViewPage() {
                         </p>
                     </div>
 
-                    <div className="p-5 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30">
-                        <p className="text-sm text-amber-800 dark:text-amber-200 font-medium text-center leading-relaxed box-border break-keep">
-                            현재 {senderName}님의 상태를 확인해주세요.
-                        </p>
-                    </div>
+                    {/* Status Check Banner Removed */}
 
                     <div className="flex flex-col gap-3">
                         <Link href={`/view/${messageId}/auth`} className="w-full">

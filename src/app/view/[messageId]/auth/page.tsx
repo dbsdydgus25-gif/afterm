@@ -88,7 +88,7 @@ export default function AuthViewPage() {
 
             const res = await fetch('/api/message/unlock', {
                 method: 'POST',
-                body: JSON.stringify({ messageId, phone, code })
+                body: JSON.stringify({ messageId, code }) // Phone inferred by server
             });
             const data = await res.json();
             if (data.success) {
@@ -211,40 +211,36 @@ export default function AuthViewPage() {
                             <h3 className="font-bold text-sm mb-4">작성자 휴대폰 인증</h3>
                             {step === 'PHONE' ? (
                                 <form onSubmit={handleRequestSenderOTP} className="space-y-3">
-                                    <p className="text-xs text-zinc-500">
-                                        작성자의 휴대폰 번호로 인증번호를 보냅니다.<br />
-                                        (버튼을 누르면 즉시 발송됩니다)
+                                    <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
+                                        작성자(본인)의 휴대폰 번호로 인증번호를 보냅니다.<br />
+                                        수신인이 작성자와 함께 있거나, 작성자의 휴대폰을 확인할 수 있어야 합니다.
                                     </p>
-                                    <Button type="submit" disabled={loading} className="w-full">
-                                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "인증번호 발송"}
+                                    <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-sm font-bold">
+                                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "인증번호 발송하기"}
                                     </Button>
                                 </form>
                             ) : (
                                 <form onSubmit={handleVerifyAndUnlock} className="space-y-3">
-                                    <input
-                                        type="tel"
-                                        placeholder="작성자 휴대폰번호 (01012345678)"
-                                        className="w-full bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm"
-                                        value={phone}
-                                        onChange={e => setPhone(e.target.value)}
-                                        required
-                                    />
+                                    <div className="text-center mb-4">
+                                        <p className="text-sm text-zinc-300">작성자의 휴대폰으로 전송된<br />인증번호 6자리를 입력해주세요.</p>
+                                    </div>
                                     <input
                                         type="text"
                                         placeholder="인증번호 6자리"
-                                        className="w-full bg-black border border-zinc-700 rounded-lg px-3 py-2 text-sm text-center tracking-widest"
+                                        className="w-full bg-black border border-zinc-700 rounded-lg px-3 py-3 text-center tracking-[0.5em] text-lg font-mono focus:border-blue-500 outline-none transition-colors"
                                         value={code}
                                         onChange={e => setCode(e.target.value)}
                                         required
+                                        maxLength={6}
                                     />
-                                    <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700">
-                                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "인증 확인"}
+                                    <Button type="submit" disabled={loading || code.length !== 6} className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-sm font-bold mt-2">
+                                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
                                     </Button>
                                 </form>
                             )}
                         </div>
-                        <button onClick={() => setMode('INITIAL')} className="text-xs text-zinc-500 hover:text-white w-full text-center">
-                            뒤로가기
+                        <button onClick={() => setMode('INITIAL')} className="text-xs text-zinc-500 hover:text-white w-full text-center py-2">
+                            다른 방법 선택
                         </button>
                     </div>
                 )}
