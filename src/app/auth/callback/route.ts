@@ -19,7 +19,12 @@ export async function GET(request: Request) {
         const supabase = await createClient();
         const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
 
+        console.log("=== AUTH CALLBACK ===");
+        console.log("Session:", session?.user?.id);
+        console.log("Error:", error);
+
         if (!error && session) {
+            console.log(">>> Redirecting to /onboarding");
             // Redirect all users to onboarding
             // The onboarding page will handle step detection based on user status
             let response = NextResponse.redirect(`${origin}/onboarding`);
