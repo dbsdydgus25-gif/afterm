@@ -27,7 +27,9 @@ export async function GET(request: Request) {
             // Check if user has completed onboarding
             // Use user_metadata which is available in the session and bypasses RLS latency/issues
             const userMetadata = session.user.user_metadata;
-            const hasNickname = !!userMetadata?.nickname || !!userMetadata?.full_name;
+            // Social login provides full_name, so we MUST NOT use it as a completion flag.
+            // Only 'nickname' proves they finished our onboarding.
+            const hasNickname = !!userMetadata?.nickname;
 
             console.log(">>> Profile Status (from metadata):", hasNickname ? "Complete" : "Incomplete");
 
