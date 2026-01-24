@@ -65,7 +65,9 @@ export default function OnboardingPage() {
                 // First check if user already has nickname (onboarding complete)
                 // Use user_metadata to bypass RLS issues
                 const userMetadata = user.user_metadata;
-                const hasNickname = !!userMetadata?.nickname || !!userMetadata?.full_name;
+                // Only 'nickname' proves they finished our onboarding.
+                // Social login provides full_name, so we MUST NOT use it as a completion flag.
+                const hasNickname = !!userMetadata?.nickname;
 
                 console.log("Profile data (metadata):", userMetadata);
                 console.log("Has nickname:", hasNickname);
