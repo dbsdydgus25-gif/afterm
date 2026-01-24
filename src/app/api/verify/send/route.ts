@@ -5,7 +5,7 @@ import { sendMessage } from "@/lib/solapi/client";
 
 export async function POST(request: Request) {
     try {
-        const { phone } = await request.json();
+        const { phone, type } = await request.json(); // type: 'signup' | 'find' | 'update' (default)
 
         if (!phone) {
             return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
@@ -13,27 +13,73 @@ export async function POST(request: Request) {
 
         const cleanPhone = phone.replace(/-/g, '');
 
-        // 1. Check Login Status (Still required for Onboarding SMS)
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
         // Use Admin Client for DB operations to bypass RLS
         const supabaseAdmin = createAdminClient();
+        let user = null;
 
-        // Check if phone exists for ANY OTHER user (Duplicate Check)
-        const { data: existingUser } = await supabaseAdmin
-            .from('profiles')
-            .select('id')
-            .eq('phone', cleanPhone)
-            .neq('id', user.id) // Exclude myself (re-verification is allowed)
-            .maybeSingle();
+        // Check Login Status if needed (for update/onboarding)
+        // For 'find' type, user is NOT logged in, so skipping strict auth check here
+        // For 'signup', user might be logged in (onboarding) or not
+        const supabase = await createClient();
+        const { data: authData } = await supabase.auth.getUser();
+        user = authData.user;
 
-        if (existingUser) {
-            return NextResponse.json({ error: "이미 가입된 휴대폰 번호입니다." }, { status: 400 });
+        // Validate Phone based on Type
+        if (type === 'signup') {
+            // MUST be unique across ALL users
+            const { data: existingUser } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('phone', cleanPhone)
+                .maybeSingle();
+
+            if (existingUser) {
+                return NextResponse.json({ error: "이미 가입된 휴대폰 번호입니다." }, { status: 400 });
+            }
+        } else if (type === 'find') {
+            // MUST exist
+            const { data: existingUser } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('phone', cleanPhone)
+                .maybeSingle();
+
+            if (!existingUser) {
+                return NextResponse.json({ error: "가입되지 않은 휴대폰 번호입니다." }, { status: 400 });
+            }
+        } else {
+            // Default (Update / Onboarding / Et cetra)
+            // Check if phone exists for ANY OTHER user
+            // If user is logged in, exclude self. If not (rare case for default), just check existence?
+            // Actually, onboarding uses 'signup' type now in client code? No, we just added it.
+            // But let's keep 'update' logic for settings page
+
+            if (user) {
+                const { data: existingUser } = await supabaseAdmin
+                    .from('profiles')
+                    .select('id')
+                    .eq('phone', cleanPhone)
+                    .neq('id', user.id)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    return NextResponse.json({ error: "이미 가입된 휴대폰 번호입니다." }, { status: 400 });
+                }
+            } else {
+                // If not logged in and not specified type, assume signup check? 
+                // Or error? Let's assume strict check
+                // For safety, require login for update
+                // But for now, let's treat it as 'signup' equivalent if no user
+                const { data: existingUser } = await supabaseAdmin
+                    .from('profiles')
+                    .select('id')
+                    .eq('phone', cleanPhone)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    return NextResponse.json({ error: "이미 가입된 휴대폰 번호입니다." }, { status: 400 });
+                }
+            }
         }
 
         // Generate 6-digit code
