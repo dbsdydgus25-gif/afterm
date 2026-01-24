@@ -18,11 +18,81 @@ import { PhoneUpdateModal } from "@/components/settings/PhoneUpdateModal";
 
 import { useSearchParams } from "next/navigation";
 
-function PasswordChangeForm() {
+function PasswordChangeForm({ userPhone }: { userPhone: string }) {
+    const [step, setStep] = useState<"verify" | "active">("verify");
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Step 1: Verification
+    const [verificationCode, setVerificationCode] = useState("");
+    const [isCodeSent, setIsCodeSent] = useState(false);
+    const [timer, setTimer] = useState(0);
+
+    // Step 2: New Password
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Timer Logic
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isCodeSent && timer > 0) {
+            interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isCodeSent, timer]);
+
+    const handleSendVerification = async () => {
+        if (!userPhone) {
+            alert("등록된 전화번호가 없습니다. 전화번호를 먼저 등록해주세요.");
+            return;
+        }
+        setLoading(true);
+        try {
+            // Use 'find' type to check existence, or just standard check since we know user has phone
+            // We use 'signup' type in verify/send to check duplication, 'find' to check existence.
+            // Here we just want to send code to HIS phone. 
+            // Let's use 'find' type as it validates existence.
+            const res = await fetch('/api/verify/send', {
+                method: 'POST',
+                body: JSON.stringify({ phone: userPhone, type: 'find' })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setIsCodeSent(true);
+                setTimer(180);
+                alert("인증번호가 발송되었습니다.");
+            } else {
+                alert(data.error || "발송 실패");
+            }
+        } catch (error) {
+            alert("오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyCode = async () => {
+        if (!verificationCode) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/auth/verify-code', {
+                method: 'POST',
+                body: JSON.stringify({ phone: userPhone, code: verificationCode })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setStep("active"); // Move to password input
+            } else {
+                alert(data.error || "인증번호가 올바르지 않습니다.");
+            }
+        } catch (error) {
+            alert("오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleUpdatePassword = async () => {
         if (!newPassword || !confirmPassword) {
@@ -49,6 +119,9 @@ function PasswordChangeForm() {
 
             alert("비밀번호가 성공적으로 변경되었습니다.");
             setIsEditing(false);
+            setStep("verify");
+            setVerificationCode("");
+            setIsCodeSent(false);
             setNewPassword("");
             setConfirmPassword("");
         } catch (error: any) {
@@ -73,42 +146,107 @@ function PasswordChangeForm() {
     return (
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 animate-in slide-in-from-top-2">
             <div className="space-y-4 max-w-sm">
-                <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">새 비밀번호</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="새 비밀번호 입력"
-                        className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">비밀번호 확인</label>
-                    <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="비밀번호 다시 입력"
-                        className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <Button
-                        onClick={handleUpdatePassword}
-                        disabled={loading}
-                        className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold"
-                    >
-                        {loading ? "변경 중..." : "변경하기"}
-                    </Button>
-                    <Button
-                        onClick={() => setIsEditing(false)}
-                        variant="ghost"
-                        className="text-slate-500 hover:text-slate-700 text-xs"
-                    >
-                        취소
-                    </Button>
-                </div>
+
+                {/* Step 1: Verification */}
+                {step === "verify" && (
+                    <div className="space-y-3">
+                        <p className="text-xs text-slate-500 mb-2">보안을 위해 본인인증이 필요합니다.</p>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5">휴대폰 번호</label>
+                            <div className="flex gap-2">
+                                <input
+                                    value={userPhone}
+                                    disabled
+                                    className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm bg-slate-100 text-slate-500"
+                                />
+                                <Button
+                                    onClick={handleSendVerification}
+                                    disabled={loading || (isCodeSent && timer > 0)}
+                                    className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold whitespace-nowrap"
+                                >
+                                    {loading && !isCodeSent ? "전송 중..." : isCodeSent ? "재전송" : "인증번호 전송"}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {isCodeSent && (
+                            <div className="animate-in slide-in-from-top-2">
+                                <div className="relative mb-2">
+                                    <input
+                                        type="text"
+                                        value={verificationCode}
+                                        onChange={(e) => setVerificationCode(e.target.value)}
+                                        placeholder="인증번호 6자리"
+                                        className="w-full p-2.5 rounded-lg border border-blue-200 bg-blue-50/50 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-600 font-medium">
+                                        {Math.floor(timer / 60)}:{((timer % 60)).toString().padStart(2, '0')}
+                                    </span>
+                                </div>
+                                <Button
+                                    onClick={handleVerifyCode}
+                                    disabled={loading || !verificationCode}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold"
+                                >
+                                    {loading ? "확인 중..." : "인증번호 확인"}
+                                </Button>
+                            </div>
+                        )}
+                        <Button
+                            onClick={() => setIsEditing(false)}
+                            variant="ghost"
+                            className="w-full text-slate-500 hover:text-slate-700 text-xs mt-2"
+                        >
+                            취소
+                        </Button>
+                    </div>
+                )}
+
+                {/* Step 2: New Password */}
+                {step === "active" && (
+                    <div className="space-y-4 animate-in slide-in-from-right-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5">새 비밀번호</label>
+                            <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="새 비밀번호 입력"
+                                className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5">비밀번호 확인</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="비밀번호 다시 입력"
+                                className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+                            />
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={handleUpdatePassword}
+                                disabled={loading}
+                                className="bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold"
+                            >
+                                {loading ? "변경 중..." : "변경하기"}
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    setStep("verify");
+                                    setVerificationCode("");
+                                }}
+                                variant="ghost"
+                                className="text-slate-500 hover:text-slate-700 text-xs"
+                            >
+                                취소
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -490,7 +628,7 @@ function SettingsContent() {
                                     {user.app_metadata?.provider === 'email' && (
                                         <div className="py-4 border-b border-slate-50">
                                             <h3 className="font-bold text-slate-900 text-sm mb-4">비밀번호 변경</h3>
-                                            <PasswordChangeForm />
+                                            <PasswordChangeForm userPhone={phone} />
                                         </div>
                                     )}
 
