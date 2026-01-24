@@ -47,13 +47,13 @@ export default function OnboardingPage() {
             }
 
             // Determine Starting Step
-            let startStep = 1;
-            const isSocial = user.app_metadata?.provider !== 'email';
+            // Default to Step 2 (Phone Verification) because:
+            // 1. Email users already set password during signup.
+            // 2. Social users don't need a password.
+            let startStep = 2;
+
             const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
 
-            if (isSocial) {
-                startStep = 2; // Skip password for social login
-            }
             if (isPhoneVerified) {
                 startStep = 3; // Skip verification if done
             }
@@ -239,7 +239,7 @@ export default function OnboardingPage() {
                     onClick={async () => {
                         // Intelligent Back: If Social User at Step 2, go to Login (Step 1 is invalid)
                         const isSocial = user?.app_metadata?.provider !== 'email';
-                        const isPhoneVerified = user?.user_metadata?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+                        const isPhoneVerified = (user?.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
 
                         if (step === 3 && isPhoneVerified) {
                             // If auto-skipped to 3, Back means Logout essentially or Home

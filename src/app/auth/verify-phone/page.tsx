@@ -75,7 +75,7 @@ export default function VerifyPhonePage() {
 
             // Success -> Redirect to Profile Setup (Onboarding)
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
-            router.push("/onboarding");
+            router.push("/onboarding?step=3");
         } catch (err: any) {
             setError(err.message || "인증번호가 올바르지 않습니다.");
         } finally {
