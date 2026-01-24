@@ -34,6 +34,7 @@ export default function OnboardingPage() {
     const [isCodeSent, setIsCodeSent] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const [timer, setTimer] = useState(0);
+    const [sendingCode, setSendingCode] = useState(false);
 
     // Step 2: Profile
     const [name, setName] = useState("");
@@ -138,6 +139,7 @@ export default function OnboardingPage() {
             alert("올바른 휴대폰 번호를 입력해주세요.");
             return;
         }
+        setSendingCode(true);
         try {
             setIsVerified(false);
             setVerificationCode("");
@@ -151,10 +153,12 @@ export default function OnboardingPage() {
                 setTimer(180);
                 alert("인증번호가 발송되었습니다.");
             } else {
-                alert("발송 실패: " + data.error);
+                alert(data.error || "발송 실패");
             }
         } catch (error) {
-            alert("발송 중 오류가 발생했습니다.");
+            alert("네트워크 오류가 발생했습니다.");
+        } finally {
+            setSendingCode(false);
         }
     };
 
@@ -370,7 +374,16 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedTerms && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 서비스 이용약관</span>
+                                <span className="text-sm font-medium text-slate-700">
+                                    <span className="text-blue-600">[필수]</span> 서비스 이용약관
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('terms'); }}
+                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
+                                    >
+                                        내용보기
+                                    </button>
+                                </span>
                             </div>
 
                             <div
@@ -380,7 +393,16 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedPrivacy && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용</span>
+                                <span className="text-sm font-medium text-slate-700">
+                                    <span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('privacy'); }}
+                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
+                                    >
+                                        내용보기
+                                    </button>
+                                </span>
                             </div>
 
                             <div
@@ -390,7 +412,16 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedThirdParty && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 제3자 정보 제공 동의</span>
+                                <span className="text-sm font-medium text-slate-700">
+                                    <span className="text-blue-600">[필수]</span> 제3자 제공
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('third-party'); }}
+                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
+                                    >
+                                        내용보기
+                                    </button>
+                                </span>
                             </div>
 
                             <div
@@ -400,7 +431,16 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedEntrustment && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 처리 위탁</span>
+                                <span className="text-sm font-medium text-slate-700">
+                                    <span className="text-blue-600">[필수]</span> 개인정보 처리 위탁
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('entrustment'); }}
+                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
+                                    >
+                                        내용보기
+                                    </button>
+                                </span>
                             </div>
                         </div>
 
@@ -431,10 +471,10 @@ export default function OnboardingPage() {
                                 />
                                 <Button
                                     onClick={handleSendVerification}
-                                    disabled={isVerified || (isCodeSent && timer > 0)}
+                                    disabled={sendingCode || isVerified || (isCodeSent && timer > 0)}
                                     className="h-12 w-20 rounded-xl bg-slate-800 text-white font-bold text-sm"
                                 >
-                                    {isVerified ? "완료" : isCodeSent ? "재전송" : "전송"}
+                                    {sendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : isVerified ? "완료" : isCodeSent ? "재전송" : "전송"}
                                 </Button>
                             </div>
                         </div>
@@ -537,6 +577,40 @@ export default function OnboardingPage() {
                     </div>
                 )}
             </div>
+
+            {/* Agreement Detail Modal */}
+            {expandedAgreement && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setExpandedAgreement(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 max-w-2xl max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-bold text-slate-900">
+                                {expandedAgreement === 'terms' && '서비스 이용약관'}
+                                {expandedAgreement === 'privacy' && '개인정보 수집 및 이용'}
+                                {expandedAgreement === 'third-party' && '제3자 제공'}
+                                {expandedAgreement === 'entrustment' && '개인정보 처리 위탁'}
+                            </h3>
+                            <button
+                                onClick={() => setExpandedAgreement(null)}
+                                className="text-slate-400 hover:text-slate-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                            {expandedAgreement === 'terms' && TERMS_OF_SERVICE}
+                            {expandedAgreement === 'privacy' && PRIVACY_POLICY}
+                            {expandedAgreement === 'third-party' && THIRD_PARTY_PROVISION}
+                            {expandedAgreement === 'entrustment' && ENTRUSTMENT}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
