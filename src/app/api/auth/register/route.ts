@@ -10,11 +10,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "모든 필드를 입력해주세요." }, { status: 400 });
         }
 
-        const supabase = await createClient();
         const identifier = `email:${email}`;
 
+        // Use Admin Client for ALL DB operations (bypass RLS for unauthenticated users)
+        const supabaseAdmin = createAdminClient();
+
         // 1. Verify Email Code first
-        const { data: verificationData, error: verificationError } = await supabase
+        const { data: verificationData, error: verificationError } = await supabaseAdmin
             .from('verification_codes')
             .select('*')
             .eq('phone', identifier) // Using 'phone' column for email identifier
