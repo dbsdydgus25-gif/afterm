@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
     try {
@@ -10,10 +10,12 @@ export async function POST(request: Request) {
         }
 
         const identifier = `email:${email}`;
-        const supabase = await createClient();
+
+        // Use Admin Client to bypass RLS
+        const supabaseAdmin = createAdminClient();
 
         // Check matching code that hasn't expired
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
             .from('verification_codes')
             .select('*')
             .eq('phone', identifier)
