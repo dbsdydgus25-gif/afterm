@@ -73,9 +73,10 @@ export default function VerifyPhonePage() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "인증 실패");
 
-            // Success -> Redirect to Profile Setup
+            // Success -> Redirect to Profile Setup (Onboarding)
+            // Removed query param for cleaner URL. OnboardingPage auto-detects 'auth_verified'.
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
-            router.push("/auth/profile-setup");
+            router.push("/onboarding");
         } catch (err: any) {
             setError(err.message || "인증번호가 올바르지 않습니다.");
         } finally {
