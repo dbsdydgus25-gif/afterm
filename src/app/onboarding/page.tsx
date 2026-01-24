@@ -265,7 +265,7 @@ export default function OnboardingPage() {
         }
     };
 
-    if (!mounted) return null;
+    if (!mounted || !user) return null;
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 pt-28 font-sans">
@@ -326,7 +326,7 @@ export default function OnboardingPage() {
                             <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${allAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                 {allAgreed && <Check className="w-4 h-4 text-white" />}
                             </div>
-                            <span className="font-bold text-slate-900">\uc57d\uad00 \uc804\uccb4 \ub3d9\uc758</span>
+                            <span className="font-bold text-slate-900">약관 전체 동의</span>
                         </div>
 
                         <div className="h-px bg-slate-200 my-2" />
@@ -340,7 +340,7 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedTerms && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uc11c\ube44\uc2a4 \uc774\uc6a9\uc57d\uad00</span>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 서비스 이용약관</span>
                             </div>
 
                             <div
@@ -350,7 +350,7 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedPrivacy && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uac1c\uc778\uc815\ubcf4 \uc218\uc9d1 \ubc0f \uc774\uc6a9</span>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용</span>
                             </div>
 
                             <div
@@ -360,7 +360,7 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedThirdParty && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uc81c3\uc790 \uc815\ubcf4 \uc81c\uacf5 \ub3d9\uc758</span>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 제3자 정보 제공 동의</span>
                             </div>
 
                             <div
@@ -370,7 +370,7 @@ export default function OnboardingPage() {
                                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                                     {agreedEntrustment && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> \uac1c\uc778\uc815\ubcf4 \ucc98\ub9ac \uc704\ud0c1</span>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 처리 위탁</span>
                             </div>
                         </div>
 
@@ -379,7 +379,7 @@ export default function OnboardingPage() {
                             disabled={loading || !allAgreed}
                             className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
                         >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "\ub2e4\uc74c\uc73c\ub85c"}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "다음으로"}
                         </Button>
                     </div>
                 )}
