@@ -5,7 +5,9 @@ import { sendMessage } from "@/lib/solapi/client";
 
 export async function POST(request: Request) {
     try {
-        const { phone, type } = await request.json(); // type: 'signup' | 'find' | 'update' (default)
+        const body = await request.json();
+        const { phone, type } = body;
+        const id = body.id; // Extract id optionally here
 
         if (!phone) {
             return NextResponse.json({ error: "Phone number is required" }, { status: 400 });
@@ -49,8 +51,7 @@ export async function POST(request: Request) {
             }
         } else if (type === 'recipient') {
             // Check against MESSAGES table
-            // Extra param: 'id' (messageId) is required in body
-            const { id } = await request.json();
+            // 'id' (messageId) is already extracted from body
 
             if (!id) return NextResponse.json({ error: "Message ID is required" }, { status: 400 });
 
