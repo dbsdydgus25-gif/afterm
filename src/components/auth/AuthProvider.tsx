@@ -39,6 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, [setUser]); // Removed pathname dependency to avoid race conditions during redirect
 
+    // Heartbeat for Dead Man's Switch (Update last_active_at every minute)
+    useEffect(() => {
+        const updateActivity = async () => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+            }
+        };
+
+        // Run immediately on mount
+        updateActivity();
+
+        // Run every minute
+        const interval = setInterval(updateActivity, 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     const handleUserSession = async (session: any) => {
         if (session?.user) {
             // Check for Soft Delete

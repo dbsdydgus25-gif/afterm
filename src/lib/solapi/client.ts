@@ -18,6 +18,7 @@ export interface SendMessageParams {
     to: string;       // Recipient Phone Number
     from?: string;    // Sender Phone Number (Optional, defaults to env)
     text: string;     // Message Content
+    subject?: string; // LMS Subject (Title)
     type?: 'SMS' | 'LMS' | 'MMS' | 'ATA' | 'CTA' | 'CTI'; // ATA = AlimTalk, SMS = Short Message
     kakaoOptions?: {
         pfId: string;        // Kakao Channel ID (PfID) - Required for AlimTalk
@@ -26,7 +27,7 @@ export interface SendMessageParams {
     }
 }
 
-export async function sendMessage({ to, from, text, type = 'SMS', kakaoOptions }: SendMessageParams) {
+export async function sendMessage({ to, from, text, subject, type = 'SMS', kakaoOptions }: SendMessageParams) {
     const messageService = getSolapiService();
     if (!messageService) {
         return { success: false, error: "Solapi Client Not Initialized" };
@@ -43,6 +44,7 @@ export async function sendMessage({ to, from, text, type = 'SMS', kakaoOptions }
             to,
             from: sender,
             text,
+            subject, // Added subject
             type // 'SMS' default, can be 'ATA' (AlimTalk)
         };
 

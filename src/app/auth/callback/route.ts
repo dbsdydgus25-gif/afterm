@@ -24,6 +24,9 @@ export async function GET(request: Request) {
         console.log("Error:", error);
 
         if (!error && session) {
+            // Update last_active_at
+            await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+
             // Check if user has completed onboarding
             // Use user_metadata which is available in the session and bypasses RLS latency/issues
             const userMetadata = session.user.user_metadata;

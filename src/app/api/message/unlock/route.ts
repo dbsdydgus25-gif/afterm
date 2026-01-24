@@ -38,7 +38,18 @@ export async function POST(request: Request) {
         }
 
         if (message.recipient_phone.replace(/-/g, '') !== cleanPhone) {
-            return NextResponse.json({ success: false, error: "수신인 정보가 일치하지 않습니다." }, { status: 403 });
+            // Check if it matches Sender's phone (Option 1)
+            const { data: senderProfile } = await supabaseAdmin
+                .from('profiles')
+                .select('phone')
+                .eq('id', message.user_id)
+                .single();
+
+            if (senderProfile?.phone && senderProfile.phone.replace(/-/g, '') === cleanPhone) {
+                // Allowed: Sender verification
+            } else {
+                return NextResponse.json({ success: false, error: "전화번호가 일치하지 않습니다. (수신인 또는 작성자 번호 필요)" }, { status: 403 });
+            }
         }
 
         // 3. Unlock Message (Update Status)

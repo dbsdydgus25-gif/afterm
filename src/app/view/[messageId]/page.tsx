@@ -18,6 +18,8 @@ export default function MessageViewPage() {
     const [senderName, setSenderName] = useState("");
     const [error, setError] = useState("");
 
+    const [showWarningModal, setShowWarningModal] = useState(false);
+
     // 알림 중복 발송 방지
     const notificationSentRef = useRef(false);
 
@@ -34,8 +36,9 @@ export default function MessageViewPage() {
             } else {
                 setSenderName(result.senderName);
 
-                // 2. Trigger Email Notification to Sender (Dead Man's Switch Alert)
-                // Fire and Forget - 페이지 로딩을 막지 않음
+                // 2. (Disabled) Trigger Email Notification on View
+                // User requirement: Only send email when "Problem" is reported.
+                /*
                 if (!notificationSentRef.current) {
                     notificationSentRef.current = true;
                     console.log("Triggering view notification...");
@@ -43,6 +46,7 @@ export default function MessageViewPage() {
                         if (!res.success) console.error("Notification failed:", res.error);
                     });
                 }
+                */
             }
             setLoading(false);
         };
@@ -54,22 +58,23 @@ export default function MessageViewPage() {
         if (status === 'alive') {
             alert("다행입니다! 아직 메시지를 열람할 수 없는 상태입니다.");
         } else {
-            if (confirm(`${senderName}님과 연락이 닿지 않으시나요?\n\n'확인'을 누르면 ${senderName}님에게 알림을 발송하고, 생존 확인 절차(약 1주일 기간 소요)를 시작합니다.\n\n절차가 완료될 때까지 메시지는 열람할 수 없습니다.`)) {
-                // Call critical report action
-                try {
-                    const res = await reportIssue(messageId);
-                    if (res.success) {
-                        alert("확인 절차가 시작되었습니다.\n\n지금은 테스트 모드입니다.\n확인을 누르면 '인증 대기 화면(검은색)'으로 이동합니다.\n\n(1~2분 뒤에 인증을 시도해보세요)");
-                        // Redirect to Auth Page (Black Screen)
-                        window.location.href = `/view/${messageId}/auth`;
-                    } else {
-                        alert(`오류가 발생했습니다: ${res.error}`);
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert("처리 중 오류가 발생했습니다.");
-                }
+            setShowWarningModal(true);
+        }
+    };
+
+    const confirmCriticalStatus = async () => {
+        setShowWarningModal(false);
+        try {
+            const res = await reportIssue(messageId);
+            if (res.success) {
+                alert("확인 절차가 시작되었습니다.\n\n확인 메일이 발송되었습니다.\n1주일 내에 응답이 없으면 메시지가 공개됩니다.\n\n(또는 인증 대기 화면에서 직접 인증 가능합니다)");
+                window.location.href = `/view/${messageId}/auth`;
+            } else {
+                alert(`오류가 발생했습니다: ${res.error}`);
             }
+        } catch (e) {
+            console.error(e);
+            alert("처리 중 오류가 발생했습니다.");
         }
     };
 
@@ -145,26 +150,12 @@ export default function MessageViewPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            onClick={() => handleStatusCheck('alive')}
-                            className="flex flex-col items-center justify-center p-4 h-32 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-2 border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200 group"
-                        >
-                            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">☀️</span>
-                            <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                                잘 지내고 있다
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={() => handleStatusCheck('critical')}
-                            className="flex flex-col items-center justify-center p-4 h-32 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/20 border-2 border-transparent hover:border-red-200 dark:hover:border-red-800 transition-all duration-200 group"
-                        >
-                            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">🚨</span>
-                            <span className="text-sm font-bold text-zinc-600 dark:text-zinc-300 group-hover:text-red-600 dark:group-hover:text-red-400">
-                                문제가 있다<br />(메시지 열람)
-                            </span>
-                        </button>
+                    <div className="flex flex-col gap-3">
+                        <Link href={`/view/${messageId}/auth`} className="w-full">
+                            <Button className="w-full h-14 text-lg font-bold rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-200">
+                                메시지 확인하기
+                            </Button>
+                        </Link>
                     </div>
 
                 </div>
@@ -179,6 +170,8 @@ export default function MessageViewPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Warning Modal Removed */}
         </div>
     );
 }
