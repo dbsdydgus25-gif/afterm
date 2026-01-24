@@ -51,77 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Normal User
                 const supabase = createClient();
 
-                // 1. FETCH PROFILE from 'profiles' table FIRST (Source of Truth)
+                // Fetch PROFILE from 'profiles' table (Source of Truth)
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
-
-                // 2. [NEW] Check Legal Agreements
-                const { data: agreementRows } = await supabase
-                    .from('user_agreements')
-                    .select('*')
-                    .eq('user_id', session.user.id)
-                    .limit(1);
-
-                const agreements = agreementRows?.[0];
-
-                const hasAgreed = agreements?.terms_agreed && agreements?.privacy_agreed && agreements?.third_party_agreed && agreements?.entrustment_agreed;
-                const isAgreementsPage = pathname === "/auth/agreements";
-
-                // Whitelist public/auth paths that shouldn't trigger checks
-                // [FIX] Removed "/" from whitelist. Logged-in users MUST complete onboarding even on home page.
-                const isAuthPath = pathname.startsWith("/auth/") || pathname.startsWith("/api/auth/");
-
-                if (!hasAgreed && !isAuthPath) {
-                    console.log("Redirecting to Agreements (Agreements missing)");
-                    router.replace("/auth/agreements");
-                    return; // Stop further checks
-                }
-
-                // [FIX] Forwarding: If agreed but still on agreement page, move forward
-                if (hasAgreed && isAgreementsPage) {
-                    console.log("Agreements done, forwarding to phone verify");
-                    router.replace("/auth/verify-phone");
-                    return;
-                }
-
-                // 3. [NEW] Check Phone Verification
-                const isPhoneVerified = profile?.phone_verified;
-
-                // Only check phone if agreed (sequential flow)
-                // [FIX] Allow /onboarding because it contains fallback verification UI or Profile setup
-                // Using startsWith to handle trailing slashes or sub-paths
-                if (hasAgreed && !isPhoneVerified && !isAuthPath && !pathname.startsWith("/onboarding")) {
-                    console.log("Redirecting to Phone Verification");
-                    router.replace("/auth/verify-phone");
-                    return; // Stop further checks
-                }
-
-                // 4. Check if Onboarding is needed (Nickname)
-                const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
-
-                const isComplianceDone = hasAgreed && isPhoneVerified;
-
-                // Allow access to /onboarding, /api/auth/callback, /logout
-                if (isComplianceDone && !hasNickname && !isAuthPath && pathname !== "/onboarding") {
-                    console.log("Redirecting to onboarding due to missing nickname");
-                    const currentPath = pathname + (typeof window !== 'undefined' ? window.location.search : '');
-                    const returnToVal = currentPath === '/' ? '' : `?returnTo=${encodeURIComponent(currentPath)}`;
-                    router.replace(`/onboarding${returnToVal}`);
-                    return;
-                }
-
-                // If on onboarding page but already has nickname, send to dashboard (or returnTo if exists)
-                // [MODIFIED] Final Step: If compliance is ALL done, and user is still on an auth/onboarding page, send to MAIN (/).
-                if (hasNickname && (pathname === "/onboarding" || pathname === "/auth/verify-phone" || pathname === "/auth/agreements" || pathname === "/signup" || pathname === "/login")) {
-                    console.log("Onboarding complete, redirecting to Main");
-                    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-                    // Priority: returnTo > '/' (Main)
-                    const returnTo = params.get("returnTo") || "/";
-                    router.replace(returnTo);
-                }
 
                 // Determine display values (Profile Table > Metadata > Defaults)
                 const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자";
@@ -148,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
                 setIsRestoreModalOpen(false);
 
-                // 3. Set Plan
+                // Set Plan
                 const userPlan = profile?.plan || profile?.subscription_tier || 'free';
                 setPlan(userPlan as 'free' | 'pro');
             }
