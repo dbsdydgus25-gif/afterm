@@ -61,12 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Check if user has completed onboarding (has nickname)
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
-                // Whitelist: Auth pages and onboarding itself
+                // Whitelist: Public pages, auth pages, and onboarding itself
+                // Allow incomplete users to view homepage, but protect feature pages
+                const protectedRoutes = ["/create", "/dashboard", "/settings", "/recipient"];
+                const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
                 const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname === "/onboarding" || pathname.startsWith("/api/");
 
-                // Force incomplete users to onboarding
-                if (!hasNickname && !isAuthOrOnboarding) {
-                    console.log("Incomplete onboarding, redirecting to /onboarding");
+                // Force incomplete users to onboarding ONLY when accessing protected routes
+                if (!hasNickname && isProtectedRoute) {
+                    console.log("Incomplete onboarding, redirecting to /onboarding from protected route");
                     router.replace("/onboarding");
                     return;
                 }
