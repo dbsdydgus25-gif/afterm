@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMessage } from "@/lib/solapi/client";
 
 export async function POST(request: Request) {
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
 
         const cleanPhone = phone.replace(/-/g, '');
 
-        // 1. Check for Unique Phone Number
+        // 1. Check Login Status (Still required for Onboarding SMS)
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -20,8 +21,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Check if phone exists for ANY OTHER user
-        const { data: existingUser } = await supabase
+        // Use Admin Client for DB operations to bypass RLS
+        const supabaseAdmin = createAdminClient();
+
+        // Check if phone exists for ANY OTHER user (Duplicate Check)
+        const { data: existingUser } = await supabaseAdmin
             .from('profiles')
             .select('id')
             .eq('phone', cleanPhone)
@@ -39,10 +43,10 @@ export async function POST(request: Request) {
         const expiresAt = new Date(Date.now() + 3 * 60 * 1000).toISOString();
 
         // 2. Delete previous codes for this phone
-        await supabase.from('verification_codes').delete().eq('phone', cleanPhone);
+        await supabaseAdmin.from('verification_codes').delete().eq('phone', cleanPhone);
 
         // 3. Insert new code
-        const { error: dbError } = await supabase.from('verification_codes').insert({
+        const { error: dbError } = await supabaseAdmin.from('verification_codes').insert({
             phone: cleanPhone,
             code: code,
             expires_at: expiresAt
