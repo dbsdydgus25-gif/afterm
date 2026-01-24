@@ -61,6 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Check if user has completed onboarding (has nickname)
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
 
+                // Whitelist: Auth pages and onboarding itself
+                const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname === "/onboarding" || pathname.startsWith("/api/");
+
+                // Force incomplete users to onboarding
+                if (!hasNickname && !isAuthOrOnboarding) {
+                    console.log("Incomplete onboarding, redirecting to /onboarding");
+                    router.replace("/onboarding");
+                    return;
+                }
+
                 // If user has completed onboarding but is still on auth/onboarding pages, redirect to home
                 if (hasNickname && (pathname === "/onboarding" || pathname === "/auth/verify-phone" || pathname === "/auth/agreements" || pathname === "/signup" || pathname === "/login")) {
                     console.log("Onboarding complete, redirecting to Main");
