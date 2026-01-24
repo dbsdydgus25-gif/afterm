@@ -5,349 +5,336 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertCircle, CheckCircle2, ChevronRight, Check } from "lucide-react";
+import { Loader2, Check, Mail, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { validatePassword, TERMS_OF_SERVICE, PRIVACY_POLICY, THIRD_PARTY_PROVISION, ENTRUSTMENT } from "@/lib/compliance";
 
-type Step = "terms" | "info" | "done";
+type SignupStep = "terms" | "info";
 
 export default function SignupPage() {
     const supabase = createClient();
     const router = useRouter();
-    const [step, setStep] = useState<Step>("terms");
+    const [step, setStep] = useState<SignupStep>("terms");
+    const [loading, setLoading] = useState(false);
 
-    // Modal State
-    const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null);
-
-    // Terms State
+    // --- Step 1: Agreements State ---
     const [agreedTerms, setAgreedTerms] = useState(false);
     const [agreedPrivacy, setAgreedPrivacy] = useState(false);
     const [agreedThirdParty, setAgreedThirdParty] = useState(false);
     const [agreedEntrustment, setAgreedEntrustment] = useState(false);
     const allAgreed = agreedTerms && agreedPrivacy && agreedThirdParty && agreedEntrustment;
+    const [expandedAgreement, setExpandedAgreement] = useState<string | null>(null);
 
-    // Info State
+    // --- Step 2: Info & Verification State ---
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    // Initial Agreements Insert logic (to be called after successful signup or effectively during signup via metadata?)
-    // Actually, for local signup, we can insert agreements AFTER they sign up successfully in `onAuthStateChange` or manually here if we auto-login?
-    // Supabase `signUp` doesn't auto-login if email confirm is on.
-    // So we should store the agreements state in Metadata or a temporary cookie? 
-    // OR create the user, then insert agreements. BUT if 'signUp' requires verification, we can't insert into 'user_agreements' (RLS needs user).
-    // SOLUTION: We will pass the agreement timestamp in `options.data` (metadata) during signup.
-    // Then a Trigger can copy it to the table, OR we insert it after they log in the first time.
-    // Let's use metadata for "signed_agreement_at".
+    // Email Verification
+    const [emailCode, setEmailCode] = useState("");
+    const [isEmailCodeSent, setIsEmailCodeSent] = useState(false);
+    const [sendingEmail, setSendingEmail] = useState(false);
 
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
+    // --- Handlers ---
 
+    // 1. Move to Info Step
+    const handleNextToInfo = () => {
+        if (!allAgreed) {
+            alert("모든 필수 약관에 동의해주세요.");
+            return;
+        }
+        setStep("info");
+    };
+
+    // 2. Send Email Verification Code
+    const sendEmailVerification = async () => {
+        if (!email || !email.includes("@")) {
+            alert("올바른 이메일 주소를 입력해주세요.");
+            return;
+        }
+        setSendingEmail(true);
         try {
-            const { data, error } = await supabase.auth.signUp({
+            const res = await fetch('/api/email/verify/send', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setIsEmailCodeSent(true);
+                alert("인증번호가 이메일로 발송되었습니다.");
+            } else {
+                alert(data.error || "이메일 발송 실패");
+            }
+        } catch (error) {
+            alert("오류가 발생했습니다.");
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
+    // 3. Register User (Verify Email Code -> Create User -> Auto Login)
+    const handleRegister = async () => {
+        if (!email || !password || !emailCode) return;
+
+        // Validate Password
+        const pwCheck = validatePassword(password, email);
+        if (!pwCheck.isValid) {
+            alert(pwCheck.message);
+            return;
+        }
+        if (password !== confirmPassword) {
+            alert("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // A. Register API (Verifies Code + Creates User)
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ email, password, code: emailCode })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                throw new Error(data.error || "회원가입 실패");
+            }
+
+            // B. Auto Login
+            const { error: loginError } = await supabase.auth.signInWithPassword({
                 email,
-                password,
-                options: {
-                    emailRedirectTo: `${location.origin}/auth/callback`,
-                    data: {
-                        full_name: email.split('@')[0],
-                        agreements: {
-                            terms: agreedTerms,
-                            privacy: agreedPrivacy,
-                            third_party: agreedThirdParty,
-                            entrustment: agreedEntrustment,
-                            agreed_at: new Date().toISOString(),
-                            version: '1.0'
-                        }
-                    }
-                },
+                password
             });
 
-            if (error) throw error;
+            if (loginError) throw loginError;
 
-            if (data.user) {
-                // If auto-confirm is off, we are done.
-                setStep("done");
+            // C. Insert Agreements (Best effort after login)
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase.from('user_agreements').upsert({
+                    user_id: user.id,
+                    terms_agreed: agreedTerms,
+                    privacy_agreed: agreedPrivacy,
+                    third_party_agreed: agreedThirdParty,
+                    entrustment_agreed: agreedEntrustment,
+                    agreed_at: new Date().toISOString(),
+                    version: '1.0'
+                });
             }
-        } catch (err: any) {
-            setError(err.message || "회원가입 중 오류가 발생했습니다.");
+
+            // D. Redirect to Onboarding (Phone & Profile)
+            router.replace("/onboarding");
+
+        } catch (error: any) {
+            alert(error.message || "오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }
     };
 
-    // Validation
-    const passwordValidation = validatePassword(password, email);
-    const isPasswordValid = password.length > 0 && passwordValidation.isValid;
-    const isMatch = password === confirmPassword && password.length > 0;
-
-    const AgreementItem = ({
-        title,
-        content,
-        checked,
-        setChecked,
-        required = true
-    }: {
-        title: string;
-        content: string;
-        checked: boolean;
-        setChecked: (v: boolean) => void;
-        required?: boolean;
-    }) => (
-        <div
-            className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
-        >
-            <div
-                className="flex items-center gap-3 flex-1 cursor-pointer"
-                onClick={() => setChecked(!checked)}
-            >
-                <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${checked ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                    {checked && <Check className="w-4 h-4 text-white" />}
-                </div>
-                <span className="font-bold text-slate-700">
-                    {required && <span className="text-blue-600 mr-1">[필수]</span>}
-                    {title}
-                </span>
-            </div>
-            <button
-                type="button"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setModalContent({ title, content });
-                }}
-                className="relative z-10 px-3 py-2 text-xs text-slate-500 underline hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-                내용보기
-            </button>
-        </div>
-    );
-
     return (
-        <div className="min-h-screen bg-slate-50 font-sans relative">
+        <div className="min-h-screen bg-white">
             <Header />
+            <div className="max-w-md mx-auto px-6 pt-32 pb-20 animate-in fade-in duration-500">
 
-            {/* Terms Modal */}
-            {modalContent && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-xl font-bold text-slate-900">{modalContent.title}</h3>
+                {/* Header Text */}
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl font-bold text-slate-900 mb-3">회원가입</h1>
+                    <p className="text-slate-500">
+                        {step === "terms" ? "서비스 이용을 위해 약관에 동의해주세요." : "계정 정보를 입력해주세요."}
+                    </p>
+                </div>
+
+                {/* --- Step 1: Agreements --- */}
+                {step === "terms" && (
+                    <div className="space-y-6">
+                        {/* All Agree Checkbox */}
+                        <div
+                            className="bg-slate-50 p-5 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-slate-100 transition-colors"
+                            onClick={() => {
+                                const newState = !allAgreed;
+                                setAgreedTerms(newState);
+                                setAgreedPrivacy(newState);
+                                setAgreedThirdParty(newState);
+                                setAgreedEntrustment(newState);
+                            }}
+                        >
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${allAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-300 bg-white'}`}>
+                                {allAgreed && <Check className="w-4 h-4 text-white" />}
+                            </div>
+                            <span className="font-bold text-slate-900 text-lg">약관 전체 동의</span>
+                        </div>
+
+                        <div className="space-y-4 px-2">
+                            {/* Terms */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAgreedTerms(!agreedTerms)}>
+                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                        {agreedTerms && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 서비스 이용약관</span>
+                                </div>
+                                <button onClick={() => setExpandedAgreement('terms')} className="text-xs text-slate-400 underline hover:text-slate-600">내용보기</button>
+                            </div>
+
+                            {/* Privacy */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAgreedPrivacy(!agreedPrivacy)}>
+                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                        {agreedPrivacy && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용</span>
+                                </div>
+                                <button onClick={() => setExpandedAgreement('privacy')} className="text-xs text-slate-400 underline hover:text-slate-600">내용보기</button>
+                            </div>
+
+                            {/* Third Party */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAgreedThirdParty(!agreedThirdParty)}>
+                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                        {agreedThirdParty && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 제3자 제공 동의</span>
+                                </div>
+                                <button onClick={() => setExpandedAgreement('third-party')} className="text-xs text-slate-400 underline hover:text-slate-600">내용보기</button>
+                            </div>
+
+                            {/* Entrustment */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAgreedEntrustment(!agreedEntrustment)}>
+                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                                        {agreedEntrustment && <Check className="w-3 h-3 text-white" />}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 처리 위탁</span>
+                                </div>
+                                <button onClick={() => setExpandedAgreement('entrustment')} className="text-xs text-slate-400 underline hover:text-slate-600">내용보기</button>
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={handleNextToInfo}
+                            disabled={!allAgreed}
+                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg mt-8"
+                        >
+                            다음으로
+                        </Button>
+                    </div>
+                )}
+
+                {/* --- Step 2: Info & Verification --- */}
+                {step === "info" && (
+                    <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
+                        {/* Email */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">이메일</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="example@email.com"
+                                    disabled={isEmailCodeSent}
+                                    className="flex-1 p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <Button
+                                    onClick={sendEmailVerification}
+                                    disabled={sendingEmail || isEmailCodeSent}
+                                    className="w-24 rounded-xl bg-slate-800 text-white font-bold text-xs"
+                                >
+                                    {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : isEmailCodeSent ? "완료" : "인증"}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Verification Code */}
+                        {isEmailCodeSent && (
+                            <div className="animate-in fade-in slide-in-from-top-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2">인증번호</label>
+                                <input
+                                    type="text"
+                                    value={emailCode}
+                                    onChange={(e) => setEmailCode(e.target.value)}
+                                    placeholder="이메일로 전송된 6자리 코드"
+                                    className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold tracking-widest"
+                                    maxLength={6}
+                                />
+                                <p className="text-xs text-blue-600 mt-2 ml-1">인증번호가 발송되었습니다. 이메일을 확인해주세요.</p>
+                            </div>
+                        )}
+
+                        {/* Password */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="영문, 숫자, 특수문자 포함 8자 이상"
+                                className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호 확인</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="비밀번호를 다시 입력해주세요"
+                                className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {password && confirmPassword && (
+                                <p className={`text-xs mt-2 ml-1 ${password === confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                                    {password === confirmPassword ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."}
+                                </p>
+                            )}
+                        </div>
+
+                        <Button
+                            onClick={handleRegister}
+                            disabled={loading || !emailCode || !password || password !== confirmPassword}
+                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg mt-8"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "가입하기"}
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {/* Agreement Detail Modal */}
+            {expandedAgreement && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setExpandedAgreement(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 max-w-2xl max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-bold text-slate-900">
+                                {expandedAgreement === 'terms' && '서비스 이용약관'}
+                                {expandedAgreement === 'privacy' && '개인정보 수집 및 이용'}
+                                {expandedAgreement === 'third-party' && '제3자 제공'}
+                                {expandedAgreement === 'entrustment' && '개인정보 처리 위탁'}
+                            </h3>
                             <button
-                                onClick={() => setModalContent(null)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                                onClick={() => setExpandedAgreement(null)}
+                                className="text-slate-400 hover:text-slate-600"
                             >
-                                <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <Check className="w-5 h-5 rotate-45" /> {/* Close Icon alternative */}
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto whitespace-pre-wrap text-slate-600 text-sm leading-relaxed">
-                            {modalContent.content}
-                        </div>
-                        <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
-                            <Button
-                                onClick={() => setModalContent(null)}
-                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl"
-                            >
-                                확인
-                            </Button>
+                        <div className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
+                            {expandedAgreement === 'terms' && TERMS_OF_SERVICE}
+                            {expandedAgreement === 'privacy' && PRIVACY_POLICY}
+                            {expandedAgreement === 'third-party' && THIRD_PARTY_PROVISION}
+                            {expandedAgreement === 'entrustment' && ENTRUSTMENT}
                         </div>
                     </div>
                 </div>
             )}
-
-            <div className="flex flex-col items-center justify-start min-h-[calc(100vh-80px)] px-4 pt-10 pb-12 md:pt-24">
-                <div className="max-w-md w-full mb-8">
-                    {/* Progress Bar */}
-                    <div className="flex items-center justify-between mb-8 px-2">
-                        <div className={`flex flex-col items-center gap-2 ${step === 'terms' ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step === 'terms' ? 'bg-blue-100' : 'bg-slate-200'}`}>1</div>
-                            <span className="text-xs font-bold">약관동의</span>
-                        </div>
-                        <div className="h-[2px] w-20 bg-slate-200" />
-                        <div className={`flex flex-col items-center gap-2 ${step === 'info' ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step === 'info' ? 'bg-blue-100' : 'bg-slate-200'}`}>2</div>
-                            <span className="text-xs font-bold">정보입력</span>
-                        </div>
-                        <div className="h-[2px] w-20 bg-slate-200" />
-                        <div className={`flex flex-col items-center gap-2 ${step === 'done' ? 'text-blue-600' : 'text-slate-400'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step === 'done' ? 'bg-blue-100' : 'bg-slate-200'}`}>3</div>
-                            <span className="text-xs font-bold">가입완료</span>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-                        {step === "terms" && (
-                            <div className="space-y-6">
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-bold text-slate-900 mb-2">약관 동의</h1>
-                                    <p className="text-slate-500 text-sm">서비스 이용을 위해 필수 약관에 동의해주세요.</p>
-                                </div>
-                                <div className="space-y-3">
-                                    <div
-                                        className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
-                                        onClick={() => {
-                                            const newState = !allAgreed;
-                                            setAgreedTerms(newState);
-                                            setAgreedPrivacy(newState);
-                                            setAgreedThirdParty(newState);
-                                            setAgreedEntrustment(newState);
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3 flex-1">
-                                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${allAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                                                {allAgreed && <Check className="w-4 h-4 text-white" />}
-                                            </div>
-                                            <span className="font-bold text-slate-900">
-                                                약관 전체 동의
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="h-px bg-slate-100 my-2" />
-                                    <AgreementItem
-                                        title="서비스 이용약관"
-                                        content={TERMS_OF_SERVICE}
-                                        checked={agreedTerms}
-                                        setChecked={setAgreedTerms}
-                                    />
-                                    <AgreementItem
-                                        title="개인정보 수집 및 이용"
-                                        content={PRIVACY_POLICY}
-                                        checked={agreedPrivacy}
-                                        setChecked={setAgreedPrivacy}
-                                    />
-                                    <AgreementItem
-                                        title="제3자 정보 제공 동의"
-                                        content={THIRD_PARTY_PROVISION}
-                                        checked={agreedThirdParty}
-                                        setChecked={setAgreedThirdParty}
-                                    />
-                                    <AgreementItem
-                                        title="개인정보 처리 위탁"
-                                        content={ENTRUSTMENT}
-                                        checked={agreedEntrustment}
-                                        setChecked={setAgreedEntrustment}
-                                    />
-                                </div>
-                                <Button
-                                    onClick={() => setStep("info")}
-                                    disabled={!allAgreed}
-                                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-6 text-lg rounded-xl"
-                                >
-                                    다음으로
-                                    <ChevronRight className="w-5 h-5 ml-1" />
-                                </Button>
-                                <div className="text-center text-sm text-slate-500">
-                                    이미 계정이 있으신가요? <Link href="/login" className="text-blue-600 font-bold hover:underline">로그인</Link>
-                                </div>
-                            </div>
-                        )}
-
-                        {step === "info" && (
-                            <form onSubmit={handleSignup} className="space-y-5">
-                                <div className="text-center mb-6">
-                                    <h1 className="text-2xl font-bold text-slate-900 mb-2">정보 입력</h1>
-                                    <p className="text-slate-500 text-sm">로그인에 사용할 이메일과 비밀번호를 입력해주세요.</p>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">이메일</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                        placeholder="example@email.com"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">비밀번호</label>
-                                    <input
-                                        type="password"
-                                        required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all ${password.length > 0 && !isPasswordValid ? 'border-red-200 bg-red-50' : 'border-slate-200 focus:ring-blue-500'
-                                            }`}
-                                        placeholder="10자 이상 (대/소/수/특 포함)"
-                                    />
-                                    {password.length > 0 && !isPasswordValid && (
-                                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" /> {passwordValidation.message}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">비밀번호 확인</label>
-                                    <input
-                                        type="password"
-                                        required
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all ${confirmPassword.length > 0 && !isMatch ? 'border-red-200 bg-red-50' : 'border-slate-200 focus:ring-blue-500'
-                                            }`}
-                                        placeholder="비밀번호 재입력"
-                                    />
-                                    {confirmPassword.length > 0 && !isMatch && (
-                                        <p className="text-red-500 text-xs mt-1">비밀번호가 일치하지 않습니다.</p>
-                                    )}
-                                </div>
-
-                                {error && (
-                                    <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4" /> {error}
-                                    </div>
-                                )}
-
-                                <div className="flex gap-3">
-                                    <Button
-                                        type="button"
-                                        onClick={() => setStep("terms")}
-                                        variant="outline"
-                                        className="w-1/3 py-6 rounded-xl border-slate-200 text-slate-600"
-                                    >
-                                        이전
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        disabled={loading || !isPasswordValid || !isMatch}
-                                        className="w-2/3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 rounded-xl"
-                                    >
-                                        {loading ? <Loader2 className="animate-spin" /> : "인증메일 발송"}
-                                    </Button>
-                                </div>
-                            </form>
-                        )}
-
-                        {step === "done" && (
-                            <div className="text-center py-8">
-                                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <CheckCircle2 className="w-10 h-10 text-blue-600" />
-                                </div>
-                                <h1 className="text-2xl font-bold text-slate-900 mb-4">인증 메일 발송 완료!</h1>
-                                <p className="text-slate-600 mb-8 leading-relaxed">
-                                    <strong>{email}</strong> 주소로 인증 메일을 보냈습니다.<br />
-                                    메일함에서 링크를 클릭하시면<br />
-                                    <span className="text-blue-600 font-bold">휴대폰 본인인증</span> 단계로 이어집니다.
-                                </p>
-                                <Link href="/login">
-                                    <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl">
-                                        로그인 페이지로 이동
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
