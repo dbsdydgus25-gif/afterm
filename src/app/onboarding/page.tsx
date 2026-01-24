@@ -63,19 +63,16 @@ export default function OnboardingPage() {
                 console.log("User email:", user.email);
 
                 // First check if user already has nickname (onboarding complete)
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('nickname')
-                    .eq('id', user.id)
-                    .single();
+                // Use user_metadata to bypass RLS issues
+                const userMetadata = user.user_metadata;
+                const hasNickname = !!userMetadata?.nickname || !!userMetadata?.full_name;
 
-                console.log("Profile data:", profile);
-                console.log("Has nickname:", !!profile?.nickname);
-                console.log("Nickname value:", profile?.nickname);
+                console.log("Profile data (metadata):", userMetadata);
+                console.log("Has nickname:", hasNickname);
 
                 // If user already completed onboarding, redirect to home
-                if (profile?.nickname) {
-                    console.log(">>> User already has nickname, redirecting to home");
+                if (hasNickname) {
+                    console.log(">>> User already has nickname (from metadata), redirecting to home");
                     // Force hard redirect
                     window.location.href = "/";
                     return;
