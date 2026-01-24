@@ -92,7 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // Only check phone if agreed (sequential flow)
                 // [FIX] Allow /onboarding because it contains fallback verification UI or Profile setup
-                if (hasAgreed && !isPhoneVerified && !isAuthPath && pathname !== "/onboarding") {
+                // Using startsWith to handle trailing slashes or sub-paths
+                if (hasAgreed && !isPhoneVerified && !isAuthPath && !pathname.startsWith("/onboarding")) {
                     console.log("Redirecting to Phone Verification");
                     router.replace("/auth/verify-phone");
                     return; // Stop further checks
