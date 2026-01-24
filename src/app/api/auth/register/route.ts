@@ -29,12 +29,11 @@ export async function POST(request: Request) {
         }
 
         // 2. Admin Client for User Creation
-        const supabaseAdmin = createAdminClient();
+        // const supabaseAdmin = createAdminClient(); // Removed redeclaration
 
         // Check if user already exists
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-        // Note: listUsers is paginated, for production with many users this check might need optimization or simply rely on createUser error
-        // But createUser throws error if email exists, which is fine.
+        // ...
 
         // 3. Create User (Confirmed)
         const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
         }
 
         // 4. Cleanup Verification Code
-        await supabase.from('verification_codes').delete().eq('id', verificationData.id);
+        await supabaseAdmin.from('verification_codes').delete().eq('id', verificationData.id);
 
         return NextResponse.json({ success: true, userId: userData.user.id });
 
