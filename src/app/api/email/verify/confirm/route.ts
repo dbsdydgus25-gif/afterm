@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         }
 
         // Delete used code
-        await supabase.from('verification_codes').delete().eq('id', data.id);
+        await supabaseAdmin.from('verification_codes').delete().eq('id', data.id);
 
         return NextResponse.json({ success: true });
 
