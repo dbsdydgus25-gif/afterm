@@ -76,7 +76,8 @@ export default function OnboardingPage() {
                 // If user already completed onboarding, redirect to home
                 if (profile?.nickname) {
                     console.log(">>> User already has nickname, redirecting to home");
-                    router.replace("/");
+                    // Force hard redirect
+                    window.location.href = "/";
                     return;
                 }
 
