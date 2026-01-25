@@ -140,12 +140,12 @@ export default function AuthViewPage() {
                         <span className="font-bold text-blue-600">메시지 열람</span>
                     </div>
 
-                    {/* Sender Info with Relationship */}
+                    {/* Recipient Info with Relationship */}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
                         <div className="flex items-center gap-3">
                             <div className="flex-1">
-                                <p className="text-xs text-blue-600 font-medium mb-1">From.</p>
-                                <p className="text-lg font-bold text-gray-900">{senderName}</p>
+                                <p className="text-xs text-blue-600 font-medium mb-1">To.</p>
+                                <p className="text-lg font-bold text-gray-900">{recipientName}</p>
                             </div>
                             {relationship && (
                                 <div className="px-4 py-2 bg-white border-2 border-blue-500 rounded-full shadow-sm">
@@ -163,11 +163,7 @@ export default function AuthViewPage() {
                     )}
 
                     {/* Message Content */}
-                    <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-6 border border-blue-100 shadow-sm space-y-4">
-                        <div className="flex items-center gap-2 pb-3 border-b border-blue-100">
-                            <p className="text-sm font-bold text-blue-600">To.</p>
-                            <p className="text-sm font-bold text-gray-900">{recipientName}</p>
-                        </div>
+                    <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-6 border border-blue-100 shadow-sm">
                         <p className="whitespace-pre-wrap leading-relaxed text-gray-800 text-base">{messageContent}</p>
                     </div>
                 </div>
