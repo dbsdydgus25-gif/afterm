@@ -139,19 +139,20 @@ export default function MessageViewPage() {
                             소중한 메시지를 남겼습니다
                         </h2>
                         <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                            단, 이 메시지는 작성자의 신변 변화에 따라<br />
-                            확인 할 수 있도록 설정되어 있습니다
+                            단, 이 메시지는 작성자가 <strong className="text-amber-600 dark:text-amber-400">문제가 있을 시에만</strong><br />
+                            열람할 수 있도록 설정되어 있습니다
                         </p>
                     </div>
 
                     {/* Status Check Banner Removed */}
 
                     <div className="flex flex-col gap-3">
-                        <Link href={`/view/${messageId}/auth`} className="w-full">
-                            <Button className="w-full h-14 text-lg font-bold rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-200">
-                                메시지 확인하기
-                            </Button>
-                        </Link>
+                        <button
+                            onClick={() => setShowWarningModal(true)}
+                            className="w-full h-14 text-lg font-bold rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-200"
+                        >
+                            메시지 확인하기
+                        </button>
                     </div>
 
                 </div>
@@ -167,7 +168,50 @@ export default function MessageViewPage() {
                 </div>
             </div>
 
-            {/* Warning Modal Removed */}
+            {/* Warning Modal */}
+            {showWarningModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">⚠️</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                                주의!
+                            </h3>
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-3 leading-relaxed break-keep">
+                                <p className="font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                                    이 메시지는 작성자가 <strong>문제가 있을 시에만</strong> 열람할 수 있도록 설정되어있습니다.
+                                </p>
+                                <p>
+                                    확인을 누르시면 <strong className="text-zinc-900 dark:text-zinc-100">작성자에게도 열람 메일이 갑니다.</strong>
+                                </p>
+                                <p className="text-xs text-zinc-500">
+                                    그래도 누르시겠습니까?
+                                </p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowWarningModal(false)}
+                                className="h-12 rounded-xl border-zinc-200 dark:border-zinc-800"
+                            >
+                                취소
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setShowWarningModal(false);
+                                    window.location.href = `/view/${messageId}/auth`;
+                                }}
+                                className="h-12 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                                확인
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
