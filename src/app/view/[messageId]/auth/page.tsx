@@ -20,6 +20,8 @@ export default function AuthViewPage() {
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [fileType, setFileType] = useState<string | null>(null);
     const [senderName, setSenderName] = useState("");
+    const [recipientName, setRecipientName] = useState("");
+    const [relationship, setRelationship] = useState("");
     const [statusData, setStatusData] = useState<any>(null); // To store trigger status
 
     useEffect(() => {
@@ -95,6 +97,9 @@ export default function AuthViewPage() {
                 setMessageContent(data.content);
                 setFileUrl(data.file_url);
                 setFileType(data.file_type);
+                setSenderName(data.sender_name || '');
+                setRecipientName(data.recipient_name || '');
+                setRelationship(data.recipient_relationship || '');
                 setMode('VIEW');
             } else {
                 alert(data.error);
@@ -127,10 +132,29 @@ export default function AuthViewPage() {
     if (mode === 'VIEW') {
         return (
             <div className="min-h-screen bg-black text-white p-6 flex justify-center items-center">
-                <div className="max-w-md w-full bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
+                <div className="max-w-md w-full bg-zinc-900 p-8 rounded-2xl border border-zinc-800 space-y-6">
                     <div className="flex items-center gap-2 mb-6 text-green-400">
                         <Unlock className="w-5 h-5" />
                         <span className="font-bold">잠금 해제됨</span>
+                    </div>
+
+                    {/* Sender & Recipient Info */}
+                    <div className="bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-zinc-700">
+                        <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs text-zinc-500 mb-1">작성자</p>
+                                <p className="text-sm font-bold text-zinc-200">{senderName}</p>
+                            </div>
+                            {relationship && (
+                                <div className="px-3 py-1 bg-blue-600/20 border border-blue-600/30 rounded-full">
+                                    <p className="text-xs font-medium text-blue-400">{relationship}</p>
+                                </div>
+                            )}
+                            <div className="flex-1 text-right">
+                                <p className="text-xs text-zinc-500 mb-1">수신인</p>
+                                <p className="text-sm font-bold text-zinc-200">{recipientName}</p>
+                            </div>
+                        </div>
                     </div>
 
                     {fileUrl && (
@@ -140,7 +164,9 @@ export default function AuthViewPage() {
                         </div>
                     )}
 
-                    <p className="whitespace-pre-wrap leading-relaxed text-zinc-200">{messageContent}</p>
+                    <div className="bg-zinc-800/30 rounded-xl p-5 border border-zinc-700/50">
+                        <p className="whitespace-pre-wrap leading-relaxed text-zinc-200">{messageContent}</p>
+                    </div>
                 </div>
             </div>
         );

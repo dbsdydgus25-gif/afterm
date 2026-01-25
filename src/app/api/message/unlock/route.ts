@@ -99,12 +99,23 @@ export async function POST(request: Request) {
             if (data?.signedUrl) signedUrl = data.signedUrl;
         }
 
+        // 5. Fetch Sender Profile for name
+        const { data: senderProfileInfo } = await supabaseAdmin
+            .from('profiles')
+            .select('full_name, nickname')
+            .eq('id', message.user_id)
+            .single();
+
+        const senderName = senderProfileInfo?.full_name || senderProfileInfo?.nickname || '작성자';
+
         return NextResponse.json({
             success: true,
             content: message.content,
             file_url: signedUrl,
             file_type: message.file_type,
             recipient_name: message.recipient_name,
+            sender_name: senderName,
+            recipient_relationship: message.recipient_relationship || '',
             created_at: message.created_at
         });
 
