@@ -200,8 +200,11 @@ export default function MessageViewPage() {
                                 취소
                             </Button>
                             <Button
-                                onClick={() => {
+                                onClick={async () => {
                                     setShowWarningModal(false);
+                                    // 메일 발송
+                                    await notifySenderOfView(messageId);
+                                    // 인증 페이지로 이동
                                     window.location.href = `/view/${messageId}/auth`;
                                 }}
                                 className="h-12 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
