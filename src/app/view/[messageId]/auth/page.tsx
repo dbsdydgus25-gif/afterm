@@ -128,44 +128,47 @@ export default function AuthViewPage() {
         setLoading(false);
     };
 
+
     // --- RENDER ---
     if (mode === 'VIEW') {
         return (
-            <div className="min-h-screen bg-black text-white p-6 flex justify-center items-center">
-                <div className="max-w-md w-full bg-zinc-900 p-8 rounded-2xl border border-zinc-800 space-y-6">
-                    <div className="flex items-center gap-2 mb-6 text-green-400">
-                        <Unlock className="w-5 h-5" />
-                        <span className="font-bold">잠금 해제됨</span>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 flex justify-center items-center">
+                <div className="max-w-lg w-full bg-white p-8 rounded-3xl shadow-2xl border border-blue-100 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 pb-4 border-b border-blue-100">
+                        <Unlock className="w-5 h-5 text-blue-600" />
+                        <span className="font-bold text-blue-600">메시지 열람</span>
                     </div>
 
-                    {/* Sender & Recipient Info */}
-                    <div className="bg-zinc-800/50 rounded-xl p-4 space-y-3 border border-zinc-700">
-                        <div className="flex items-center justify-between">
+                    {/* Sender Info with Relationship */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-200">
+                        <div className="flex items-center gap-3">
                             <div className="flex-1">
-                                <p className="text-xs text-zinc-500 mb-1">작성자</p>
-                                <p className="text-sm font-bold text-zinc-200">{senderName}</p>
+                                <p className="text-xs text-blue-600 font-medium mb-1">From.</p>
+                                <p className="text-lg font-bold text-gray-900">{senderName}</p>
                             </div>
                             {relationship && (
-                                <div className="px-3 py-1 bg-blue-600/20 border border-blue-600/30 rounded-full">
-                                    <p className="text-xs font-medium text-blue-400">{relationship}</p>
+                                <div className="px-4 py-2 bg-white border-2 border-blue-500 rounded-full shadow-sm">
+                                    <p className="text-sm font-bold text-blue-600">{relationship}</p>
                                 </div>
                             )}
-                            <div className="flex-1 text-right">
-                                <p className="text-xs text-zinc-500 mb-1">수신인</p>
-                                <p className="text-sm font-bold text-zinc-200">{recipientName}</p>
-                            </div>
                         </div>
                     </div>
 
+                    {/* Image */}
                     {fileUrl && (
-                        <div className="mb-6 rounded-xl overflow-hidden bg-black/50 border border-zinc-800">
-                            {/* Use Standard img tag for external/signed urls to avoid Next.js domain config issues for random buckets */}
+                        <div className="rounded-2xl overflow-hidden border-2 border-blue-100 shadow-lg">
                             <img src={fileUrl} alt="Attached content" className="w-full h-auto object-contain max-h-[500px]" />
                         </div>
                     )}
 
-                    <div className="bg-zinc-800/30 rounded-xl p-5 border border-zinc-700/50">
-                        <p className="whitespace-pre-wrap leading-relaxed text-zinc-200">{messageContent}</p>
+                    {/* Message Content */}
+                    <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-6 border border-blue-100 shadow-sm space-y-4">
+                        <div className="flex items-center gap-2 pb-3 border-b border-blue-100">
+                            <p className="text-sm font-bold text-blue-600">To.</p>
+                            <p className="text-sm font-bold text-gray-900">{recipientName}</p>
+                        </div>
+                        <p className="whitespace-pre-wrap leading-relaxed text-gray-800 text-base">{messageContent}</p>
                     </div>
                 </div>
             </div>
