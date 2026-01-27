@@ -38,7 +38,7 @@ export default function AuthViewPage() {
                 const { data: { user } } = await supabase.auth.getUser();
                 const { data: messageData } = await supabase
                     .from('messages')
-                    .select('user_id, status, content, recipient_name, recipient_relationship')
+                    .select('user_id, status, content, recipient_name, recipient_relationship, is_triggered')
                     .eq('id', messageId)
                     .single();
 
