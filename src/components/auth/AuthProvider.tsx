@@ -88,16 +88,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     console.error("Profile fetch exception:", err);
                 }
 
-                // Check if user has completed onboarding (has nickname)
+                // Check if user has completed onboarding
+                // CRITICAL FIX: For existing users, having EITHER full_name OR nickname means they're complete
+                // Only NEW users (from signup) will have neither
                 const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
+                const hasFullName = profile?.full_name || session.user.user_metadata?.full_name;
+                const hasCompletedOnboarding = hasNickname || hasFullName;
 
                 // Whitelist: Auth pages and onboarding itself
                 const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
 
                 // Force incomplete users to onboarding globally
-                // Move redirect to here (inside useEffect/async function), do not block rendering
-                if (!hasNickname && !isAuthOrOnboarding) {
-                    console.log("Incomplete onboarding, redirecting to /onboarding");
+                // ONLY redirect if user has NEITHER nickname NOR full_name (truly incomplete)
+                if (!hasCompletedOnboarding && !isAuthOrOnboarding) {
+                    console.log("Incomplete onboarding (no nickname AND no full_name), redirecting to /onboarding");
                     router.replace("/onboarding");
                     // Do NOT return here, let the state update so UI can render (or show loading)
                     // If we return, setUser might not be called? 
@@ -107,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // If user has completed onboarding but is still on signup/login pages, redirect to home
                 // Don't interfere with onboarding page - it handles its own logic
-                if (hasNickname && (pathname === "/signup" || pathname === "/login")) {
+                if (hasCompletedOnboarding && (pathname === "/signup" || pathname === "/login")) {
                     console.log("Onboarding complete, redirecting to Main");
                     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
                     const returnTo = params.get("returnTo") || "/";
