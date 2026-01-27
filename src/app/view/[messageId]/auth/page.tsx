@@ -182,12 +182,10 @@ export default function AuthViewPage() {
                 alert("✅ 부재 확인 요청이 접수되었습니다.\n\n2단계 과정은 총 8일의 시간이 필요합니다.\n(1단계: 7일, 2단계: 24시간)\n\n작성자가 응답하지 않으면 메시지로 알림이 전달됩니다.");
                 checkTriggerStatus(); // Refresh to show status
             } else {
-                console.error("Trigger error:", data);
-                alert(data.error || "요청 실패");
+                alert(`❌ 요청 실패\n\n에러: ${data.error || '알 수 없는 오류'}${data.details ? '\n\n상세: ' + data.details : ''}`);
             }
-        } catch (e) {
-            console.error("Trigger request error:", e);
-            alert("오류 발생");
+        } catch (e: any) {
+            alert(`❌ 오류 발생\n\n${e.message || e.toString()}`);
         }
         setLoading(false);
     };
