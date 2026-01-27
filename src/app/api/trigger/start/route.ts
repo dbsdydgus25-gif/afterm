@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         // 3. Get message details with detailed error handling
         const { data: message, error: msgError } = await supabase
             .from('messages')
-            .select('id, user_id, recipient_email, title')
+            .select('id, user_id, recipient_email, content')
             .eq('id', messageId)
             .single();
 
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #dc2626;">⚠️ 생존 확인 요청</h2>
                     <p>안녕하세요,</p>
-                    <p><strong>${message.title || '제목 없는 메시지'}</strong>의 수신인이 부재 확인을 요청했습니다.</p>
+                    <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>의 수신인이 부재 확인을 요청했습니다.</p>
                     <p>7일 이내에 이 메일을 확인하거나 아래 버튼을 클릭해주세요.</p>
                     
                    <div style="margin: 30px 0; text-align: center;">

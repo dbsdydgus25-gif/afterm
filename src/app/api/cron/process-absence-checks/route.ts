@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
         const { data: stage1Messages } = await supabase
             .from('messages')
-            .select('id, user_id, recipient_email, title')
+            .select('id, user_id, recipient_email, content')
             .eq('absence_check_stage', 1)
             .lt('stage1_sent_at', sevenDaysAgo.toISOString());
 
@@ -90,7 +90,7 @@ export async function GET(request: Request) {
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                             <h2 style="color: #dc2626;">🚨 최종 생존 확인</h2>
                             <p>안녕하세요,</p>
-                            <p><strong>${message.title || '제목 없는 메시지'}</strong>에 대한 마지막 생존 확인입니다.</p>
+                            <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>에 대한 마지막 생존 확인입니다.</p>
                             <p style="color: #dc2626; font-weight: bold;">
                                 24시간 이내에 이 메일을 확인하거나 아래 버튼을 클릭하지 않으면 메시지가 자동으로 공개됩니다.
                             </p>
@@ -123,7 +123,7 @@ export async function GET(request: Request) {
 
         const { data: stage2Messages } = await supabase
             .from('messages')
-            .select('id, recipient_email, title')
+            .select('id, recipient_email, content')
             .eq('absence_check_stage', 2)
             .lt('stage2_sent_at', twentyFourHoursAgo.toISOString());
 
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
                             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                                 <h2 style="color: #2563eb;">메시지 공개 알림</h2>
                                 <p>안녕하세요,</p>
-                                <p><strong>${message.title || '제목 없는 메시지'}</strong>의 작성자 부재가 확인되어 메시지가 공개되었습니다.</p>
+                                <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>의 작성자 부재가 확인되어 메시지가 공개되었습니다.</p>
                                 <p>이제 메시지를 열람하실 수 있습니다.</p>
                                 
                                 <div style="margin: 30px 0; text-align: center;">
