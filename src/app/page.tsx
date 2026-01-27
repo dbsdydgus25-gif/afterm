@@ -79,10 +79,17 @@ export default function Home() {
 
     if (user) {
       // Check Plan Limit
+      // Basic: 1 message limit
       if (plan !== 'pro' && messageCount >= 1) {
-        if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n무제한 작성을 위해 업그레이드 하시겠습니까?")) {
-          handleSubscribe("Pro", "100원");
+        if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n100개 저장이 가능한 PRO 플랜으로 업그레이드 하시겠습니까?")) {
+          handleSubscribe("Pro", "990원");
         }
+        return;
+      }
+
+      // Pro: 100 message limit
+      if (plan === 'pro' && messageCount >= 100) {
+        alert("PRO 플랜의 최대 메시지 저장 개수(100개)를 초과했습니다.");
         return;
       }
 
@@ -725,26 +732,18 @@ export default function Home() {
               <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
                 <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
-                <div className="text-4xl font-extrabold text-slate-900 mb-6">100원 <span className="text-base font-normal text-slate-500">/ 월</span></div>
+                <div className="text-4xl font-extrabold text-slate-900 mb-6">990원 <span className="text-base font-normal text-slate-500">/ 월</span></div>
                 <ul className="space-y-4 mb-8 text-left pl-4">
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    메시지 전송: 무제한 전송
+                    메시지 전송: 최대 100개
                   </li>
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    저장공간: 1GB (사진, 음성, 영상)
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    온라인 추모관 생성
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    추모 댓글, 사진 남기기 기능
+                    저장공간: 1GB (사진, 영상, 음성)
                   </li>
                 </ul>
-                <Button onClick={() => handleSubscribe("Pro", "100원")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
+                <Button onClick={() => handleSubscribe("Pro", "990원")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
                   PRO로 업그레이드
                 </Button>
               </div>
@@ -767,9 +766,13 @@ export default function Home() {
               onClick={() => {
                 if (user) {
                   if (plan !== 'pro' && messageCount >= 1) {
-                    if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n무제한 작성을 위해 업그레이드 하시겠습니까?")) {
-                      handleSubscribe("Pro", "100원");
+                    if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n100개 저장이 가능한 PRO 플랜으로 업그레이드 하시겠습니까?")) {
+                      handleSubscribe("Pro", "990원");
                     }
+                    return;
+                  }
+                  if (plan === 'pro' && messageCount >= 100) {
+                    alert("PRO 플랜의 최대 메시지 저장 개수(100개)를 초과했습니다.");
                     return;
                   }
                   router.push('/create');

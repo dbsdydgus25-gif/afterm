@@ -285,19 +285,27 @@ export default function DashboardPage() {
                 <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Left: Message Usage */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 메시지</h3>
-                        <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-slate-900">
-                                {plan === 'pro' ? '∞' : Math.max(0, 1 - messages.length)}
-                            </span>
-                            <span className="text-sm text-slate-400 mb-1">
-                                / {plan === 'pro' ? '무제한' : '1개'}
-                            </span>
+                        <div className="flex justify-between items-end mb-2">
+                            <div>
+                                <h3 className="text-slate-500 text-sm font-medium mb-1">남은 메시지</h3>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold text-slate-900">
+                                        {plan === 'pro' ? 100 - messages.length : 1 - messages.length}
+                                    </span>
+                                    <span className="text-sm text-slate-400 font-medium">
+                                        / {plan === 'pro' ? '100개' : '1개'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                             <div
-                                className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                                style={{ width: plan === 'pro' ? '100%' : `${(messages.length / 1) * 100}%` }}
+                                className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                                style={{
+                                    width: plan === 'pro'
+                                        ? `${Math.min((messages.length / 100) * 100, 100)}%`
+                                        : `${Math.min((messages.length / 1) * 100, 100)}%`
+                                }}
                             />
                         </div>
                     </div>
