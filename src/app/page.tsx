@@ -206,6 +206,95 @@ export default function Home() {
           </div>
         </section>
 
+        {/* New Service Process Explanation Section */}
+        <section className="w-full bg-white py-24 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="text-center mb-16 space-y-4">
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-xs font-bold tracking-wide">HOW IT WORKS</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+                마음이 전달되는 과정
+              </h2>
+              <p className="text-slate-500 text-lg">
+                가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+              {/* Connecting Line (Desktop) */}
+              <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-100 via-blue-200 to-blue-100 -z-10"></div>
+
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
+              >
+                <div className="w-24 h-24 rounded-3xl bg-blue-50 flex items-center justify-center text-4xl shadow-lg shadow-blue-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
+                  <span className="relative z-10">✍️</span>
+                  <div className="absolute inset-0 bg-blue-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 01</div>
+                  <h3 className="text-xl font-bold text-slate-900">기억 저장</h3>
+                  <p className="text-slate-500 leading-relaxed text-sm">
+                    소중한 사람에게 전하고 싶은 이야기,<br />
+                    사진, 영상을 미리 작성하세요.<br />
+                    모든 데이터는 암호화되어 안전하게 저장됩니다.
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
+              >
+                <div className="w-24 h-24 rounded-3xl bg-indigo-50 flex items-center justify-center text-4xl shadow-lg shadow-indigo-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
+                  <span className="relative z-10">🔒</span>
+                  <div className="absolute inset-0 bg-indigo-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 02</div>
+                  <h3 className="text-xl font-bold text-slate-900">안전 보관</h3>
+                  <p className="text-slate-500 leading-relaxed text-sm">
+                    당신이 지정한 순간이 올 때까지<br />
+                    메시지는 철저히 비공개로 보관됩니다.<br />
+                    클라우드 서버에서 영구적으로 관리됩니다.
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
+              >
+                <div className="w-24 h-24 rounded-3xl bg-amber-50 flex items-center justify-center text-4xl shadow-lg shadow-amber-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
+                  <span className="relative z-10">📬</span>
+                  <div className="absolute inset-0 bg-amber-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 03</div>
+                  <h3 className="text-xl font-bold text-slate-900">전달 및 열람</h3>
+                  <p className="text-slate-500 leading-relaxed text-sm">
+                    지정된 시점에 수신인에게 알림이 전송됩니다.<br />
+                    수신인은 본인 인증(휴대폰)을 거친 후<br />
+                    당신의 메시지를 열람할 수 있습니다.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
 
 
         {/* Feature Section (Dark) */}
