@@ -171,16 +171,24 @@ export default function AuthViewPage() {
         try {
             const res = await fetch('/api/trigger/start', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messageId, type: 'timer' })
             });
             const data = await res.json();
+
+            console.log("Trigger response:", data);
+
             if (data.success) {
-                alert("확인 요청이 시작되었습니다.");
+                alert("✅ 부재 확인 요청이 접수되었습니다.\n\n2단계 과정은 총 8일의 시간이 필요합니다.\n(1단계: 7일, 2단계: 24시간)\n\n작성자가 응답하지 않으면 메시지로 알림이 전달됩니다.");
                 checkTriggerStatus(); // Refresh to show status
             } else {
-                alert(data.error);
+                console.error("Trigger error:", data);
+                alert(data.error || "요청 실패");
             }
-        } catch (e) { alert("오류 발생"); }
+        } catch (e) {
+            console.error("Trigger request error:", e);
+            alert("오류 발생");
+        }
         setLoading(false);
     };
 
