@@ -15,23 +15,46 @@ const supabaseAdmin = createClient(
  */
 export async function POST(request: Request) {
     try {
-        const { messageId } = await request.json();
+        const body = await request.json();
+        const { messageId } = body;
+
+        // 1. Log request details
+        console.log(`[Trigger/Start] Request for messageId: ${messageId}`);
 
         if (!messageId) {
             return NextResponse.json({ error: "Message ID required" }, { status: 400 });
         }
 
+        // 2. Check Env Vars
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error("[Trigger/Start] Missing Supabase Env Vars");
+            return NextResponse.json({
+                error: "Server Configuration Error",
+                details: "Supabase credentials missing on server"
+            }, { status: 500 });
+        }
+
         const supabase = supabaseAdmin;
 
-        // Get message details
+        // 3. Get message details with detailed error handling
         const { data: message, error: msgError } = await supabase
             .from('messages')
             .select('id, user_id, recipient_email, title')
             .eq('id', messageId)
             .single();
 
-        if (msgError || !message) {
-            return NextResponse.json({ error: "Message not found" }, { status: 404 });
+        if (msgError) {
+            console.error("[Trigger/Start] Supabase Error:", msgError);
+            return NextResponse.json({
+                error: "Database Error",
+                details: msgError.message,
+                code: msgError.code
+            }, { status: 404 }); // Returning 404 but with details
+        }
+
+        if (!message) {
+            console.error("[Trigger/Start] Message found is null");
+            return NextResponse.json({ error: "Message not found (Null result)" }, { status: 404 });
         }
 
         // Check if already in progress
