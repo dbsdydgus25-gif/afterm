@@ -39,6 +39,7 @@ export default function MyMemoriesPage() {
                 console.error("Error fetching messages:", error);
             } else {
                 console.log("Messages fetched:", data);
+                console.log("First message status:", data?.[0]?.status);
             }
 
             if (data) {
