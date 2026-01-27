@@ -66,13 +66,11 @@ export async function POST(request: Request) {
         }
 
         // Get author details
-        const { data: author } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('id', message.user_id)
-            .single();
+        // Get author details directly from Auth (safer than profiles)
+        const { data: { user: author }, error: userError } = await supabase.auth.admin.getUserById(message.user_id);
 
-        if (!author?.email) {
+        if (userError || !author || !author.email) {
+            console.error("Failed to fetch author:", userError);
             return NextResponse.json({ error: "Author email not found" }, { status: 404 });
         }
 

@@ -62,14 +62,13 @@ export async function GET(request: Request) {
                     })
                     .eq('id', message.id);
 
-                // Get author email
-                const { data: author } = await supabase
-                    .from('profiles')
-                    .select('email')
-                    .eq('id', message.user_id)
-                    .single();
+                // Get author email directly from Auth
+                const { data: { user: author }, error: userError } = await supabase.auth.admin.getUserById(message.user_id);
 
-                if (!author?.email) continue;
+                if (userError || !author || !author.email) {
+                    console.error(`Author email not found for message ${message.id}`);
+                    continue;
+                }
 
                 // Generate confirmation token
                 const token = Buffer.from(JSON.stringify({
