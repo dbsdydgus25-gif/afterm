@@ -16,6 +16,7 @@ export default function AuthViewPage() {
     const [phone, setPhone] = useState("");
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true); // Add loading state
     const [messageContent, setMessageContent] = useState("");
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [fileType, setFileType] = useState<string | null>(null);
@@ -86,6 +87,9 @@ export default function AuthViewPage() {
                         setMode('OPTION2'); // Show Trigger Status
                     }
                 }
+
+                // Done loading
+                setIsInitialLoading(false);
             };
 
             initPage();
@@ -181,6 +185,18 @@ export default function AuthViewPage() {
 
 
     // --- RENDER ---
+    // Show loading spinner during initial data fetch
+    if (isInitialLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
+                    <p className="text-slate-600 font-medium">메시지 로딩 중...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (mode === 'VIEW') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 flex justify-center items-center">
