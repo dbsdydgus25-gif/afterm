@@ -13,6 +13,7 @@ export default function PlansPage() {
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
     const [remainingDays, setRemainingDays] = useState<number | undefined>();
+    const [endDate, setEndDate] = useState<string | undefined>();
 
     const handleSubscribe = async (planName: string, price: string) => {
         const newPlan = planName === "Pro" ? "pro" : "free";
@@ -30,9 +31,17 @@ export default function PlansPage() {
 
             const data = await res.json();
             if (data.success) {
-                setRemainingDays(data.remainingDays);
-                alert(data.message);
-                window.location.reload();
+                if (data.cancelled) {
+                    // Subscription cancelled - stays Pro until end date
+                    setRemainingDays(data.remainingDays);
+                    setEndDate(data.endDate);
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    // Plan changed immediately (Pro upgrade)
+                    alert(data.message);
+                    window.location.reload();
+                }
             } else {
                 alert(data.error || "플랜 변경 중 오류가 발생했습니다.");
             }
@@ -114,6 +123,7 @@ export default function PlansPage() {
                 targetPlan={targetPlan}
                 currentPlan={plan === 'pro' ? 'pro' : 'free'}
                 remainingDays={remainingDays}
+                endDate={endDate}
                 onConfirm={handlePlanChange}
             />
         </div>

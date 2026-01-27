@@ -9,20 +9,26 @@ interface PlanConfirmModalProps {
     targetPlan: "free" | "pro";
     currentPlan: "free" | "pro";
     remainingDays?: number;
+    endDate?: string;
     onConfirm: () => Promise<void>;
 }
 
-export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, onConfirm }: PlanConfirmModalProps) {
+export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, endDate, onConfirm }: PlanConfirmModalProps) {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const planName = targetPlan === "pro" ? "AFTERM Pro" : "AFTERM Basic";
     const price = targetPlan === "pro" ? "990원" : "무료";
 
-    // Determine the warning message
+    // Determine title and message
+    let title = "결제 정보 확인";
     let warningMessage = "";
+
     if (currentPlan === "pro" && targetPlan === "free") {
-        const daysText = remainingDays ? `남은 Pro 기간: ${remainingDays}일 · ` : "";
-        warningMessage = `${daysText}가장 최근 메시지 1개만 유지되며, 나머지는 보관됩니다.`;
+        title = "구독 취소 확인";
+        const endDateFormatted = endDate
+            ? new Date(endDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+        warningMessage = `${endDateFormatted}까지 Pro 혜택을 계속 이용할 수 있습니다. 이후 Basic 플랜으로 자동 전환됩니다.`;
     } else if (currentPlan === "free" && targetPlan === "pro") {
         warningMessage = "보관된 메시지가 모두 복원됩니다.";
     }
@@ -62,7 +68,7 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
                             </button>
 
                             <div className="text-center mb-8">
-                                <h2 className="text-2xl font-bold text-slate-900 mb-2">결제 정보 확인</h2>
+                                <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
                                 <p className="text-slate-500">선택하신 플랜을 확인해주세요.</p>
                             </div>
 
