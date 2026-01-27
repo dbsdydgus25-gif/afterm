@@ -89,17 +89,55 @@ export async function POST(request: Request) {
         await supabaseAdmin.from('verification_codes').delete().eq('id', verificationData.id);
 
         // 5. Return Content
-        // If file_url is private, sign it here
-        let signedUrl = message.file_url;
-        if (message.file_path) {
-            const { data } = await supabaseAdmin
-                .storage
-                .from('memories')
-                .createSignedUrl(message.file_path, 3600); // 1 hour
-            if (data?.signedUrl) signedUrl = data.signedUrl;
+        // Fetch ALL attachments from message_attachments table
+        const { data: attachments } = await supabaseAdmin
+            .from('message_attachments')
+            .select('*')
+            .eq('message_id', messageId)
+            .order('created_at', { ascending: true });
+
+        // Generate signed URLs for all attachments
+        const attachmentUrls = [];
+        if (attachments && attachments.length > 0) {
+            for (const att of attachments) {
+                const { data: signedData } = await supabaseAdmin
+                    .storage
+                    .from('memories')
+                    .createSignedUrl(att.file_path, 3600); // 1 hour
+
+                if (signedData?.signedUrl) {
+                    attachmentUrls.push({
+                        url: signedData.signedUrl,
+                        type: att.file_type,
+                        size: att.file_size
+                    });
+                }
+            }
         }
 
-        // 5. Fetch Sender Profile for name
+        // Also handle legacy file_path if exists and not in attachments
+        let legacyFileUrl = null;
+        if (message.file_path) {
+            // Check if it's already in attachments
+            const isDuplicate = attachments?.some(a => a.file_path === message.file_path);
+            if (!isDuplicate) {
+                const { data } = await supabaseAdmin
+                    .storage
+                    .from('memories')
+                    .createSignedUrl(message.file_path, 3600);
+                if (data?.signedUrl) {
+                    legacyFileUrl = data.signedUrl;
+                    // Add to attachments list
+                    attachmentUrls.unshift({
+                        url: data.signedUrl,
+                        type: message.file_type,
+                        size: message.file_size
+                    });
+                }
+            }
+        }
+
+        // 6. Fetch Sender Profile for name
         const { data: senderProfileInfo } = await supabaseAdmin
             .from('profiles')
             .select('full_name, nickname')
@@ -111,8 +149,9 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             content: message.content,
-            file_url: signedUrl,
-            file_type: message.file_type,
+            attachments: attachmentUrls, // Array of all attachments
+            file_url: attachmentUrls[0]?.url || null, // First file for backward compatibility
+            file_type: attachmentUrls[0]?.type || null,
             recipient_name: message.recipient_name,
             sender_name: senderName,
             recipient_relationship: message.recipient_relationship || '',

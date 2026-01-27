@@ -19,6 +19,7 @@ export default function AuthViewPage() {
     const [messageContent, setMessageContent] = useState("");
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const [fileType, setFileType] = useState<string | null>(null);
+    const [attachments, setAttachments] = useState<Array<{ url: string, type: string, size: number }>>([]);
     const [senderName, setSenderName] = useState("");
     const [recipientName, setRecipientName] = useState("");
     const [relationship, setRelationship] = useState("");
@@ -97,6 +98,7 @@ export default function AuthViewPage() {
                 setMessageContent(data.content);
                 setFileUrl(data.file_url);
                 setFileType(data.file_type);
+                setAttachments(data.attachments || []);
                 setSenderName(data.sender_name || '');
                 setRecipientName(data.recipient_name || '');
                 setRelationship(data.recipient_relationship || '');
@@ -133,7 +135,7 @@ export default function AuthViewPage() {
     if (mode === 'VIEW') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6 flex justify-center items-center">
-                <div className="max-w-lg w-full bg-white p-8 rounded-3xl shadow-2xl border border-blue-100 space-y-6">
+                <div className="max-w-2xl w-full bg-white p-8 rounded-3xl shadow-2xl border border-blue-100 space-y-6">
                     {/* Header */}
                     <div className="flex items-center gap-2 pb-4 border-b border-blue-100">
                         <Unlock className="w-5 h-5 text-blue-600" />
@@ -155,10 +157,37 @@ export default function AuthViewPage() {
                         </div>
                     </div>
 
-                    {/* Image */}
-                    {fileUrl && (
-                        <div className="rounded-2xl overflow-hidden border-2 border-blue-100 shadow-lg">
-                            <img src={fileUrl} alt="Attached content" className="w-full h-auto object-contain max-h-[500px]" />
+                    {/* Attachments Grid */}
+                    {attachments && attachments.length > 0 && (
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-slate-700">사진/영상 첨부</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {attachments.map((att, idx) => (
+                                    <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border-2 border-blue-100 shadow-lg group">
+                                        {att.type?.startsWith('image/') ? (
+                                            <img
+                                                src={att.url}
+                                                alt={`Attachment ${idx + 1}`}
+                                                className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-200"
+                                                onClick={() => window.open(att.url, '_blank')}
+                                            />
+                                        ) : att.type?.startsWith('video/') ? (
+                                            <video
+                                                src={att.url}
+                                                controls
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                                <span className="text-xs text-slate-500">파일</span>
+                                            </div>
+                                        )}
+                                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {(att.size / 1024 / 1024).toFixed(2)} MB
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
