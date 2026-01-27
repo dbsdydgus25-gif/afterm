@@ -79,6 +79,7 @@ export default function AuthViewPage() {
                         setRelationship(messageData.recipient_relationship || '');
                         setAttachments(attachmentUrls);
                         setSenderName(result.senderName || '');
+                        setIsInitialLoading(false); // IMPORTANT: Set before changing mode
                         setMode('VIEW');
                         return;
                     }
