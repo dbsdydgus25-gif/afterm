@@ -4,27 +4,38 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
+import { PlanConfirmModal } from "@/components/payment/PlanConfirmModal";
+import { useState } from "react";
 
 export default function PlansPage() {
     const router = useRouter();
     const { plan } = useMemoryStore();
+    const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+    const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
 
     const handleSubscribe = async (planName: string, price: string) => {
-        if (planName === 'Pro') {
-            const confirmed = confirm("테스트 모드: 무료로 PRO 플랜으로 업그레이드 하시겠습니까?");
-            if (!confirmed) return;
+        const newPlan = planName === "Pro" ? "pro" : "free";
+        setTargetPlan(newPlan);
+        setIsPlanModalOpen(true);
+    };
 
-            try {
-                const res = await fetch('/api/payment/mock', { method: 'POST' });
-                if (!res.ok) throw new Error("Upgrade failed");
-                alert("성공적으로 업그레이드 되었습니다! 잠시 후 반영됩니다.");
+    const handlePlanChange = async () => {
+        try {
+            const res = await fetch('/api/plan/change', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetPlan })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
                 window.location.reload();
-            } catch (error) {
-                console.error(error);
-                alert("업그레이드 중 오류가 발생했습니다.");
+            } else {
+                alert(data.error || "플랜 변경 중 오류가 발생했습니다.");
             }
-        } else {
-            alert(`${planName} 플랜(${price})은 현재 이용 중입니다.`);
+        } catch (error) {
+            alert("플랜 변경 중 오류가 발생했습니다.");
         }
     };
 
@@ -94,6 +105,14 @@ export default function PlansPage() {
                     </div>
                 </div>
             </main>
+
+            <PlanConfirmModal
+                isOpen={isPlanModalOpen}
+                onClose={() => setIsPlanModalOpen(false)}
+                targetPlan={targetPlan}
+                currentPlan={plan === 'pro' ? 'pro' : 'free'}
+                onConfirm={handlePlanChange}
+            />
         </div>
     );
 }

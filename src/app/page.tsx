@@ -11,11 +11,14 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { Header } from "@/components/layout/Header";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { PlanConfirmModal } from "@/components/payment/PlanConfirmModal";
 
 export default function Home() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
   const [messageCount, setMessageCount] = useState(0);
@@ -66,9 +69,30 @@ export default function Home() {
     fetchCount();
   }, [user]);
 
-  const handleSubscribe = (plan: "Standard" | "Pro", price: string) => {
-    setSelectedPlan({ name: plan, price });
-    setIsPaymentOpen(true);
+  const handleSubscribe = (planName: "Standard" | "Pro", price: string) => {
+    const newPlan = planName === "Pro" ? "pro" : "free";
+    setTargetPlan(newPlan);
+    setIsPlanModalOpen(true);
+  };
+
+  const handlePlanChange = async () => {
+    try {
+      const res = await fetch('/api/plan/change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPlan })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert(data.error || "플랜 변경 중 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      alert("플랜 변경 중 오류가 발생했습니다.");
+    }
   };
 
   const handleContinue = () => {
@@ -794,8 +818,16 @@ export default function Home() {
       <PaymentModal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
-        planName={selectedPlan.name}
+        plan={selectedPlan.name}
         price={selectedPlan.price}
+      />
+
+      <PlanConfirmModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        targetPlan={targetPlan}
+        currentPlan={plan === 'pro' ? 'pro' : 'free'}
+        onConfirm={handlePlanChange}
       />
 
       {/* Footer */}
@@ -804,6 +836,6 @@ export default function Home() {
           <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v2.1)</p>
         </div>
       </footer>
-    </div >
+    </div>
   );
 }
