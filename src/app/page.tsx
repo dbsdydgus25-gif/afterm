@@ -714,14 +714,6 @@ export default function Home() {
                     <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs">✓</span>
                     저장공간: 10mb (텍스트 위주)
                   </li>
-                  <li className="flex items-center gap-3 text-slate-400 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">x</span>
-                    추모 공간 x
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-400 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">x</span>
-                    부가기능 x
-                  </li>
                 </ul>
                 <Button onClick={() => handleSubscribe("Standard", "무료")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
                   지금 시작하기
