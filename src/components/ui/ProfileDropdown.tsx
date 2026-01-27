@@ -72,9 +72,16 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                             </button>
                             <button
                                 onClick={() => { setIsMenuOpen(false); onNavigate("/plans"); }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2 justify-between"
                             >
-                                <CreditCard className="w-4 h-4" /> 플랜 관리
+                                <div className="flex items-center gap-2">
+                                    <CreditCard className="w-4 h-4" /> 플랜 관리
+                                </div>
+                                {plan === 'pro' && (
+                                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                        PRO
+                                    </span>
+                                )}
                             </button>
                         </div>
                         <div className="p-1 border-t border-slate-50">

@@ -715,8 +715,12 @@ export default function Home() {
                     저장공간: 10mb (텍스트 위주)
                   </li>
                 </ul>
-                <Button onClick={() => handleSubscribe("Standard", "무료")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
-                  지금 시작하기
+                <Button
+                  onClick={() => handleSubscribe("Standard", "무료")}
+                  disabled={plan !== 'pro'}
+                  className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm disabled:opacity-50"
+                >
+                  {plan !== 'pro' ? "현재 이용 중" : "Basic으로 변경"}
                 </Button>
               </div>
 
@@ -735,8 +739,12 @@ export default function Home() {
                     저장공간: 1GB (사진, 영상, 음성)
                   </li>
                 </ul>
-                <Button onClick={() => handleSubscribe("Pro", "990원")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
-                  PRO로 업그레이드
+                <Button
+                  onClick={() => handleSubscribe("Pro", "990원")}
+                  disabled={plan === 'pro'}
+                  className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {plan === 'pro' ? "현재 이용 중" : "PRO로 업그레이드"}
                 </Button>
               </div>
             </div>
