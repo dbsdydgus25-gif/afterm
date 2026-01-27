@@ -4,7 +4,7 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { User, Phone, Heart, ArrowRight } from "lucide-react";
+import { User, Phone, Heart, ArrowRight, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
