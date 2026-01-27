@@ -258,7 +258,7 @@ export default function EditMessagePage() {
                 }
             }
 
-            // 2. Update Message Content
+            // 2. Update Message Content (preserve status)
             const { error } = await supabase
                 .from('messages')
                 .update({
@@ -267,6 +267,7 @@ export default function EditMessagePage() {
                     recipient_phone: recipient.phone,
                     recipient_relationship: recipient.relationship,
                     updated_at: new Date().toISOString()
+                    // Do NOT update 'status' - preserve UNLOCKED state
                 })
                 .eq('id', messageId);
 

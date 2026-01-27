@@ -208,10 +208,19 @@ export default function MyMemoriesPage() {
                             const isOpened = mem.status === 'UNLOCKED';
 
                             return (
-                                <div key={mem.id} className={`p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all cursor-pointer group ${isOpened
+                                <div
+                                    key={mem.id}
+                                    className={`p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all cursor-pointer group ${isOpened
                                         ? 'bg-amber-50/30 border-amber-200'
                                         : 'bg-white border-slate-200'
-                                    }`}>
+                                        }`}
+                                    onClick={() => {
+                                        if (isOpened) {
+                                            // Navigate to read-only view for opened messages
+                                            router.push(`/view/${mem.id}/auth`);
+                                        }
+                                    }}
+                                >
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
