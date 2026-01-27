@@ -69,17 +69,15 @@ export async function GET(request: Request) {
         // Send notification to recipient
         if (message.recipient_email) {
             const transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST,
-                port: Number(process.env.SMTP_PORT),
-                secure: false,
+                service: 'gmail',
                 auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS
+                    user: process.env.GMAIL_USER,
+                    pass: process.env.GMAIL_APP_PASSWORD
                 }
             });
 
             await transporter.sendMail({
-                from: process.env.SMTP_FROM,
+                from: `"AFTERM" <${process.env.GMAIL_USER}>`,
                 to: message.recipient_email,
                 subject: "메시지 열람 불가 안내",
                 html: `

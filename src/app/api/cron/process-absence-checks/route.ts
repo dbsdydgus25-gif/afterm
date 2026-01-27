@@ -29,12 +29,10 @@ export async function GET(request: Request) {
 
         // Email transporter setup
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT),
-            secure: false,
+            service: 'gmail',
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
             }
         });
 
@@ -85,7 +83,7 @@ export async function GET(request: Request) {
 
                 // Send Stage 2 final confirmation email
                 await transporter.sendMail({
-                    from: process.env.SMTP_FROM,
+                    from: `"AFTERM" <${process.env.GMAIL_USER}>`,
                     to: author.email,
                     subject: "🚨 AFTERM 최종 생존 확인 (24시간 내 확인 필요)",
                     html: `
@@ -147,7 +145,7 @@ export async function GET(request: Request) {
                 // Send notification to recipient
                 if (message.recipient_email) {
                     await transporter.sendMail({
-                        from: process.env.SMTP_FROM,
+                        from: `"AFTERM" <${process.env.GMAIL_USER}>`,
                         to: message.recipient_email,
                         subject: "메시지가 공개되었습니다",
                         html: `

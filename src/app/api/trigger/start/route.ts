@@ -82,18 +82,16 @@ export async function POST(request: Request) {
 
         // Setup email transporter
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: Number(process.env.SMTP_PORT),
-            secure: false,
+            service: 'gmail',
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
             }
         });
 
         // Send Stage 1 survival confirmation email to author
         await transporter.sendMail({
-            from: process.env.SMTP_FROM,
+            from: `"AFTERM" <${process.env.GMAIL_USER}>`,
             to: author.email,
             subject: "⚠️ AFTERM 생존 확인 요청 (7일 내 확인 필요)",
             html: `
