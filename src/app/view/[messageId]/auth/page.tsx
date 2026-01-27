@@ -27,10 +27,68 @@ export default function AuthViewPage() {
 
     useEffect(() => {
         if (messageId) {
-            getMessageSenderInfo(messageId).then(res => {
-                if (res.senderName) setSenderName(res.senderName);
-            });
-            checkTriggerStatus();
+            const initPage = async () => {
+                const supabase = createClient();
+
+                // Fetch message info
+                const result = await getMessageSenderInfo(messageId);
+                if (result.senderName) setSenderName(result.senderName);
+
+                // Check if current user is the author and message is UNLOCKED
+                const { data: { user } } = await supabase.auth.getUser();
+                const { data: messageData } = await supabase
+                    .from('messages')
+                    .select('user_id, status, content, recipient_name, recipient_relationship')
+                    .eq('id', messageId)
+                    .single();
+
+                if (messageData) {
+                    setStatusData(messageData);
+
+                    // If user is the author and message is UNLOCKED, auto-display
+                    if (user && messageData.user_id === user.id && messageData.status === 'UNLOCKED') {
+                        // Fetch attachments
+                        const { data: attachments } = await supabase
+                            .from('message_attachments')
+                            .select('*')
+                            .eq('message_id', messageId)
+                            .order('created_at', { ascending: true });
+
+                        // Generate signed URLs
+                        const attachmentUrls = [];
+                        if (attachments && attachments.length > 0) {
+                            for (const att of attachments) {
+                                const { data: signedData } = await supabase.storage
+                                    .from('memories')
+                                    .createSignedUrl(att.file_path, 3600);
+
+                                if (signedData?.signedUrl) {
+                                    attachmentUrls.push({
+                                        url: signedData.signedUrl,
+                                        type: att.file_type,
+                                        size: att.file_size
+                                    });
+                                }
+                            }
+                        }
+
+                        // Set all data and switch to VIEW mode
+                        setMessageContent(messageData.content);
+                        setRecipientName(messageData.recipient_name);
+                        setRelationship(messageData.recipient_relationship || '');
+                        setAttachments(attachmentUrls);
+                        setSenderName(result.senderName || '');
+                        setMode('VIEW');
+                        return;
+                    }
+
+                    if (messageData.is_triggered) {
+                        setMode('OPTION2'); // Show Trigger Status
+                    }
+                }
+            };
+
+            initPage();
         }
     }, [messageId]);
 
@@ -38,15 +96,6 @@ export default function AuthViewPage() {
         const supabase = createClient();
         const { data } = await supabase.from('messages').select('status, is_triggered, retry_count, last_reminder_sent_at').eq('id', messageId).single();
         if (data) {
-            if (data.status === 'UNLOCKED') {
-                // Fetch content if unlocked? Need phone auth usually?
-                // Wait, if unlocked, anyone with link can view?
-                // Original logic for 'UNLOCKED' message might still require some handshake or just show it?
-                // The API `api/message/unlock` handles verify+fetch.
-                // For now, let's keep it locked behind this UI unless we have a specific 'public' view.
-                // Actually, if status is UNLOCKED, we might still want to show "Click to View" rather than Auth.
-                // But for security, let's Stick to Auth/Trigger logic.
-            }
             setStatusData(data);
             if (data.is_triggered) {
                 setMode('OPTION2'); // Show Trigger Status
