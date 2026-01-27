@@ -166,7 +166,7 @@ export default function AuthViewPage() {
 
     // --- Option 2: Trigger Start ---
     const handleStartTrigger = async () => {
-        if (!confirm("작성자에게 부재 확인 요청을 보내시겠습니까?\n응답이 없으면 4단계 확인 후 메시지가 공개됩니다.")) return;
+        if (!confirm("작성자에게 부재 확인 요청을 보내시겠습니까?\n응답이 없으면 2단계 확인 후 메시지가 공개됩니다.")) return;
         setLoading(true);
         try {
             const res = await fetch('/api/trigger/start', {
