@@ -7,18 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
-import { ArrowLeft, Upload, X, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, X, FileText, Loader2, Image as ImageIcon, Video } from "lucide-react";
+
+interface Attachment {
+    id: string;
+    file_path: string;
+    file_size: number;
+    file_type: string;
+}
 
 export default function EditMessagePage() {
     const router = useRouter();
     const { message, setMessage, messageId, recipient, setRecipient, user, plan } = useMemoryStore();
 
     // Local state for file management
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+    const [newFiles, setNewFiles] = useState<File[]>([]);
+    const [existingAttachments, setExistingAttachments] = useState<Attachment[]>([]);
+    const [legacyFilePath, setLegacyFilePath] = useState<string | null>(null);
+    const [legacyFileSize, setLegacyFileSize] = useState<number>(0);
+
+    const [filePreviews, setFilePreviews] = useState<{ [key: string]: string }>({});
     const [isSaving, setIsSaving] = useState(false);
 
-    // Load initial data if needed (e.g. if we want to show existing file info)
+    // Load initial data
     useEffect(() => {
         if (!messageId) {
             router.replace('/dashboard');
@@ -27,31 +38,146 @@ export default function EditMessagePage() {
 
         const fetchCurrentMessage = async () => {
             const supabase = createClient();
-            const { data } = await supabase
+
+            // 1. Fetch Message & Legacy File
+            const { data: msg } = await supabase
                 .from('messages')
                 .select('file_path, file_size')
                 .eq('id', messageId)
                 .single();
 
-            if (data?.file_path) {
-                setCurrentFilePath(data.file_path);
+            // 2. Fetch Attachments
+            const { data: attachments } = await supabase
+                .from('message_attachments')
+                .select('id, file_path, file_size, file_type')
+                .eq('message_id', messageId);
+
+            setExistingAttachments(attachments || []);
+
+            // Check legacy file (avoid duplicates)
+            if (msg?.file_path) {
+                const isDuplicate = attachments?.some(a => a.file_path === msg.file_path);
+                if (!isDuplicate) {
+                    setLegacyFilePath(msg.file_path);
+                    setLegacyFileSize(msg.file_size || 0);
+                }
+            }
+
+            // Generate previews for existing attachments
+            if (attachments && attachments.length > 0) {
+                const previews: { [key: string]: string } = {};
+                for (const att of attachments) {
+                    if (att.file_type?.startsWith('image/')) {
+                        const { data: signedData } = await supabase.storage
+                            .from('memories')
+                            .createSignedUrl(att.file_path, 3600);
+                        if (signedData?.signedUrl) {
+                            previews[att.id] = signedData.signedUrl;
+                        }
+                    }
+                }
+                setFilePreviews(previews);
             }
         };
         fetchCurrentMessage();
     }, [messageId, router]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const selectedFiles = Array.from(e.target.files);
 
-            // Size Validation (10MB for Basic, 1GB for Pro)
-            const LIMIT = plan === 'pro' ? 1024 * 1024 * 1024 : 10 * 1024 * 1024;
-            if (file.size > LIMIT) {
-                alert(`파일 크기는 ${plan === 'pro' ? '1GB' : '10MB'}를 초과할 수 없습니다.`);
-                return;
+            const LIMIT = plan === 'pro' ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
+
+            for (const file of selectedFiles) {
+                if (file.size > LIMIT) {
+                    alert(`파일 '${file.name}'의 크기는 ${plan === 'pro' ? '1GB' : '500MB'}를 초과할 수 없습니다.`);
+                    return;
+                }
             }
-            setSelectedFile(file);
+
+            setNewFiles(prev => [...prev, ...selectedFiles]);
+
+            // Generate previews for new files
+            selectedFiles.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        setFilePreviews(prev => ({
+                            ...prev,
+                            [file.name]: e.target?.result as string
+                        }));
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         }
+    };
+
+    const removeNewFile = (index: number) => {
+        const fileToRemove = newFiles[index];
+        setNewFiles(prev => prev.filter((_, i) => i !== index));
+
+        // Remove preview
+        if (fileToRemove.type.startsWith('image/')) {
+            setFilePreviews(prev => {
+                const newPreviews = { ...prev };
+                delete newPreviews[fileToRemove.name];
+                return newPreviews;
+            });
+        }
+    };
+
+    const removeExistingAttachment = async (attachmentId: string, path: string, size: number) => {
+        if (!confirm("이 파일을 삭제하시겠습니까?")) return;
+
+        const supabase = createClient();
+
+        // Delete from Storage
+        await supabase.storage.from('memories').remove([path]);
+
+        // Delete from DB
+        await supabase.from('message_attachments').delete().eq('id', attachmentId);
+
+        // Update UI
+        setExistingAttachments(prev => prev.filter(a => a.id !== attachmentId));
+        setFilePreviews(prev => {
+            const newPreviews = { ...prev };
+            delete newPreviews[attachmentId];
+            return newPreviews;
+        });
+
+        // Update Storage Usage
+        const { data: profile } = await supabase.from('profiles').select('storage_used').eq('id', user?.id).single();
+        if (profile) {
+            await supabase.from('profiles').update({
+                storage_used: Math.max(0, profile.storage_used - size)
+            }).eq('id', user?.id);
+        }
+
+        alert("파일이 삭제되었습니다.");
+    };
+
+    const removeLegacyFile = async () => {
+        if (!confirm("이 파일을 삭제하시겠습니까?")) return;
+        if (!legacyFilePath) return;
+
+        const supabase = createClient();
+        await supabase.storage.from('memories').remove([legacyFilePath]);
+
+        // Update Message
+        await supabase.from('messages').update({ file_path: null, file_size: 0 }).eq('id', messageId);
+
+        // Update Storage
+        const { data: profile } = await supabase.from('profiles').select('storage_used').eq('id', user?.id).single();
+        if (profile && legacyFileSize) {
+            await supabase.from('profiles').update({
+                storage_used: Math.max(0, profile.storage_used - legacyFileSize)
+            }).eq('id', user?.id);
+        }
+
+        setLegacyFilePath(null);
+        setLegacyFileSize(0);
+        alert("파일이 삭제되었습니다.");
     };
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,61 +205,49 @@ export default function EditMessagePage() {
         const supabase = createClient();
 
         try {
-            let filePath = currentFilePath;
-            let fileSize = 0; // Don't track old file size here, only new updates or if we fetched it
+            // 1. Upload NEW files
+            if (newFiles.length > 0) {
+                const uploadedFiles: { path: string, size: number, type: string }[] = [];
 
-            // 1. Handle File Upload if new file selected
-            if (selectedFile) {
-                // Delete old file if exists
-                if (currentFilePath) {
-                    await supabase.storage.from('memories').remove([currentFilePath]);
-                    // We should also decrement storage used for the old file, 
-                    // but calculating exact delta is tricky without fetching old size. 
-                    // For simplicity in this logic, we might need to fetch old size or handle it via a smart decrement.
-                    // Actually, let's fetch the old message size properly above if we want perfect accuracy, 
-                    // OR simple approach: verify we handle storage updates correctly.
+                for (const file of newFiles) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const path = `${user?.id}/${fileName}`;
 
-                    // To keep it robust: 
-                    // We will fetch the OLD message data to get its size before overwriting.
-                    const { data: oldMsg } = await supabase.from('messages').select('file_size').eq('id', messageId).single();
-                    if (oldMsg?.file_size) {
-                        // Decrement old file size from profile
-                        await supabase.rpc('decrement_storage', { amount: oldMsg.file_size, user_id: user?.id });
-                        // Note: decrement_storage RPC doesn't exist yet, we usually do it manually.
-                        // Let's do manual update for now.
-                        const { data: profile } = await supabase.from('profiles').select('storage_used').eq('id', user?.id).single();
-                        if (profile) {
-                            await supabase.from('profiles').update({
-                                storage_used: Math.max(0, profile.storage_used - oldMsg.file_size)
-                            }).eq('id', user?.id);
-                        }
-                    }
+                    const { error: uploadError } = await supabase.storage
+                        .from('memories')
+                        .upload(path, file);
+
+                    if (uploadError) throw uploadError;
+
+                    uploadedFiles.push({ path, size: file.size, type: file.type });
                 }
 
-                // Upload NEW file
-                const fileExt = selectedFile.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                const path = `${user?.id}/${fileName}`; // Private path
+                // Insert into message_attachments
+                const attachmentsData = uploadedFiles.map(f => ({
+                    message_id: messageId,
+                    file_path: f.path,
+                    file_size: f.size,
+                    file_type: f.type
+                }));
 
-                const { error: uploadError } = await supabase.storage
-                    .from('memories')
-                    .upload(path, selectedFile);
+                const { error: attachError } = await supabase.from('message_attachments').insert(attachmentsData);
+                if (attachError) {
+                    console.error("Attachment insert error:", attachError);
+                    throw attachError;
+                }
 
-                if (uploadError) throw uploadError;
-
-                filePath = path;
-                fileSize = selectedFile.size;
-
-                // Update Profile Storage (Increment new size)
+                // Update Storage Usage
+                const totalNewSize = uploadedFiles.reduce((acc, f) => acc + f.size, 0);
                 const { data: profile } = await supabase.from('profiles').select('storage_used').eq('id', user?.id).single();
                 if (profile) {
                     await supabase.from('profiles').update({
-                        storage_used: profile.storage_used + fileSize
+                        storage_used: profile.storage_used + totalNewSize
                     }).eq('id', user?.id);
                 }
             }
 
-            // 2. Update Message
+            // 2. Update Message Content
             const { error } = await supabase
                 .from('messages')
                 .update({
@@ -141,8 +255,6 @@ export default function EditMessagePage() {
                     recipient_name: recipient.name,
                     recipient_phone: recipient.phone,
                     recipient_relationship: recipient.relationship,
-                    file_path: filePath,
-                    file_size: selectedFile ? fileSize : undefined, // Only update if changed
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', messageId);
@@ -150,7 +262,7 @@ export default function EditMessagePage() {
             if (error) throw error;
 
             alert("메시지가 수정되었습니다.");
-            router.push('/dashboard');
+            router.push('/dashboard/memories');
         } catch (error) {
             console.error(error);
             alert("저장 중 오류가 발생했습니다.");
@@ -183,57 +295,122 @@ export default function EditMessagePage() {
                         />
                     </div>
 
-                    {/* 2. File Attachment */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-bold text-slate-700">사진/영상 첨부 (선택)</label>
+                    {/* 2. File Attachments */}
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <label className="text-sm font-bold text-slate-700">사진/영상 첨부</label>
+                            <span className="text-xs text-slate-400">
+                                {plan === 'pro' ? '최대 1GB' : '최대 500MB'}
+                            </span>
+                        </div>
 
-                        {!selectedFile && !currentFilePath ? (
-                            <div className="relative group">
-                                <input
-                                    type="file"
-                                    onChange={handleFileChange}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                    accept="image/*,video/*"
-                                />
-                                <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 bg-slate-50 group-hover:bg-blue-50/50 group-hover:border-blue-200 transition-all">
-                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm">
-                                        <Upload className="w-5 h-5 text-blue-500" />
+                        {/* File Grid Preview */}
+                        {(existingAttachments.length > 0 || newFiles.length > 0 || legacyFilePath) && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {/* Legacy File */}
+                                {legacyFilePath && (
+                                    <div className="relative aspect-square bg-slate-100 rounded-xl overflow-hidden border border-slate-200 group">
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <FileText className="w-12 h-12 text-slate-400" />
+                                        </div>
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={removeLegacyFile}
+                                                className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        <div className="absolute top-2 left-2">
+                                            <span className="bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">Legacy</span>
+                                        </div>
                                     </div>
-                                    <span className="text-sm font-medium">눌러서 파일 업로드</span>
-                                    <span className="text-xs mt-1 text-slate-400">
-                                        {plan === 'pro' ? '최대 1GB' : '최대 10MB'}
-                                    </span>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="relative bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                                    <FileText className="w-6 h-6" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-slate-900 truncate">
-                                        {selectedFile ? selectedFile.name : "기존 첨부 파일"}
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                        {selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB` : "변경하려면 × 버튼을 누르세요"}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setSelectedFile(null);
-                                        setCurrentFilePath(null); // Mark for removal/replacement
-                                    }}
-                                    className="p-2 hover:bg-slate-200 rounded-full text-slate-400 hover:text-red-500 transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                )}
+
+                                {/* Existing Attachments */}
+                                {existingAttachments.map(att => (
+                                    <div key={att.id} className="relative aspect-square bg-slate-100 rounded-xl overflow-hidden border border-slate-200 group">
+                                        {att.file_type?.startsWith('image/') && filePreviews[att.id] ? (
+                                            <img src={filePreviews[att.id]} alt="Attachment" className="w-full h-full object-cover" />
+                                        ) : att.file_type?.startsWith('video/') ? (
+                                            <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                                                <Video className="w-12 h-12 text-slate-500" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <FileText className="w-12 h-12 text-slate-400" />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => removeExistingAttachment(att.id, att.file_path, att.file_size)}
+                                                className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        <div className="absolute bottom-2 left-2 right-2">
+                                            <span className="bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded block truncate">
+                                                {(att.file_size / 1024 / 1024).toFixed(2)} MB
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* New Files */}
+                                {newFiles.map((file, idx) => (
+                                    <div key={`new-${idx}`} className="relative aspect-square bg-blue-50 rounded-xl overflow-hidden border-2 border-blue-200 group">
+                                        {file.type.startsWith('image/') && filePreviews[file.name] ? (
+                                            <img src={filePreviews[file.name]} alt={file.name} className="w-full h-full object-cover" />
+                                        ) : file.type.startsWith('video/') ? (
+                                            <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                                                <Video className="w-12 h-12 text-blue-500" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <FileText className="w-12 h-12 text-blue-400" />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => removeNewFile(idx)}
+                                                className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        <div className="absolute top-2 left-2">
+                                            <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">NEW</span>
+                                        </div>
+                                        <div className="absolute bottom-2 left-2 right-2">
+                                            <span className="bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded block truncate">
+                                                {file.name} • {(file.size / 1024 / 1024).toFixed(2)} MB
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
-                        {currentFilePath && !selectedFile && (
-                            <p className="text-xs text-blue-500 flex items-center gap-1">
-                                * 기존 파일이 유지됩니다. 변경하려면 삭제 후 다시 올리세요.
-                            </p>
-                        )}
+
+                        {/* Upload Button */}
+                        <div className="relative group">
+                            <input
+                                type="file"
+                                onChange={handleFileSelect}
+                                multiple
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                accept="image/*,video/*"
+                            />
+                            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-slate-400 bg-slate-50 group-hover:bg-blue-50/50 group-hover:border-blue-200 transition-all cursor-pointer">
+                                <Upload className="w-8 h-8 mb-2 text-blue-500" />
+                                <span className="text-sm font-medium text-slate-600">
+                                    파일 추가하기
+                                </span>
+                                <span className="text-xs text-slate-400 mt-1">
+                                    이미지 또는 영상 파일을 선택하세요
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     <hr className="border-slate-100" />
@@ -260,7 +437,7 @@ export default function EditMessagePage() {
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             if (val === '기타') {
-                                                setRecipient({ ...recipient, relationship: '' }); // Clear for custom input
+                                                setRecipient({ ...recipient, relationship: '' });
                                             } else {
                                                 setRecipient({ ...recipient, relationship: val });
                                             }

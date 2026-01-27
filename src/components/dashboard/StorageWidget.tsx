@@ -21,18 +21,51 @@ export function StorageWidget({ plan, userId }: StorageWidgetProps) {
             if (!userId) return;
             const supabase = createClient();
 
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('storage_used')
-                .eq('id', userId)
-                .single();
+            try {
+                // 1. Calculate text content size from messages
+                const { data: messages, error: msgError } = await supabase
+                    .from('messages')
+                    .select('id, content, file_size')
+                    .eq('user_id', userId);
 
-            if (error) {
-                console.error("Error fetching storage:", error);
-                // If error (e.g., row missing), safely default to 0
+                if (msgError) throw msgError;
+
+                let totalSize = 0;
+                const messageIds: string[] = [];
+
+                // Add text content size
+                if (messages) {
+                    for (const msg of messages) {
+                        messageIds.push(msg.id);
+                        // Text content size
+                        if (msg.content) {
+                            totalSize += new Blob([msg.content]).size;
+                        }
+                        // Legacy file_size from messages table
+                        if (msg.file_size) {
+                            totalSize += msg.file_size;
+                        }
+                    }
+                }
+
+                // 2. Calculate file sizes from message_attachments
+                if (messageIds.length > 0) {
+                    const { data: attachments, error: attError } = await supabase
+                        .from('message_attachments')
+                        .select('file_size')
+                        .in('message_id', messageIds);
+
+                    if (!attError && attachments) {
+                        for (const att of attachments) {
+                            totalSize += att.file_size || 0;
+                        }
+                    }
+                }
+
+                setStorageUsed(totalSize);
+            } catch (error) {
+                console.error("Error calculating storage:", error);
                 setStorageUsed(0);
-            } else {
-                setStorageUsed(data?.storage_used || 0);
             }
             setLoading(false);
         };
@@ -43,14 +76,6 @@ export function StorageWidget({ plan, userId }: StorageWidgetProps) {
     const limit = plan === 'pro' ? LIMIT_PRO : LIMIT_BASIC;
     const remaining = Math.max(0, limit - storageUsed);
     const percent = Math.min(100, (storageUsed / limit) * 100);
-
-    const formatSize = (bytes: number) => {
-        if (bytes === 0) return '0';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)); // Return number for calculation
-    };
 
     const remainingMB = (remaining / (1024 * 1024)).toFixed(2);
     const MAX_STORAGE_MB = (limit / (1024 * 1024)).toFixed(0); // 10 or 1024
