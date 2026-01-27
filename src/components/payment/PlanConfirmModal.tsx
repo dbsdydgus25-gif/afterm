@@ -8,10 +8,11 @@ interface PlanConfirmModalProps {
     onClose: () => void;
     targetPlan: "free" | "pro";
     currentPlan: "free" | "pro";
+    remainingDays?: number;
     onConfirm: () => Promise<void>;
 }
 
-export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, onConfirm }: PlanConfirmModalProps) {
+export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, onConfirm }: PlanConfirmModalProps) {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const planName = targetPlan === "pro" ? "AFTERM Pro" : "AFTERM Basic";
@@ -20,7 +21,8 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, onC
     // Determine the warning message
     let warningMessage = "";
     if (currentPlan === "pro" && targetPlan === "free") {
-        warningMessage = "가장 최근 메시지 1개만 유지되며, 나머지는 보관됩니다.";
+        const daysText = remainingDays ? `남은 Pro 기간: ${remainingDays}일 · ` : "";
+        warningMessage = `${daysText}가장 최근 메시지 1개만 유지되며, 나머지는 보관됩니다.`;
     } else if (currentPlan === "free" && targetPlan === "pro") {
         warningMessage = "보관된 메시지가 모두 복원됩니다.";
     }

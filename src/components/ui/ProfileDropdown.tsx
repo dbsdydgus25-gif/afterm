@@ -13,11 +13,12 @@ interface ProfileDropdownProps {
         image?: string;
     };
     plan: string;
+    renewalDate?: string | null;
     onLogout: () => void;
     onNavigate: (path: string) => void;
 }
 
-export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDropdownProps) {
+export function ProfileDropdown({ user, plan, renewalDate, onLogout, onNavigate }: ProfileDropdownProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [imgError, setImgError] = useState(false);
 
@@ -41,6 +42,11 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                 <span className="text-sm font-bold text-slate-700 hidden sm:block">
                     {user?.name || "사용자"}
                 </span>
+                {plan === 'pro' && renewalDate && (
+                    <span className="text-[10px] text-slate-500 hidden md:block">
+                        다음 갱신: {new Date(renewalDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
+                    </span>
+                )}
                 {plan === 'pro' && (
                     <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">
                         PRO

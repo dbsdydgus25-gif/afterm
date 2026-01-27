@@ -124,6 +124,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                         image: user.user_metadata?.avatar_url || user.image
                                     }}
                                     plan={plan}
+                                    renewalDate={renewalDate}
                                     onLogout={handleLogout}
                                     onNavigate={(path) => router.push(path)}
                                 />

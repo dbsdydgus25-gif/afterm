@@ -12,6 +12,7 @@ export default function PlansPage() {
     const { plan } = useMemoryStore();
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
+    const [remainingDays, setRemainingDays] = useState<number | undefined>();
 
     const handleSubscribe = async (planName: string, price: string) => {
         const newPlan = planName === "Pro" ? "pro" : "free";
@@ -29,6 +30,7 @@ export default function PlansPage() {
 
             const data = await res.json();
             if (data.success) {
+                setRemainingDays(data.remainingDays);
                 alert(data.message);
                 window.location.reload();
             } else {
@@ -111,6 +113,7 @@ export default function PlansPage() {
                 onClose={() => setIsPlanModalOpen(false)}
                 targetPlan={targetPlan}
                 currentPlan={plan === 'pro' ? 'pro' : 'free'}
+                remainingDays={remainingDays}
                 onConfirm={handlePlanChange}
             />
         </div>

@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         // Get current plan
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('plan')
+            .select('plan, subscription_end_date')
             .eq('id', user.id)
             .single();
 
@@ -103,12 +103,24 @@ export async function POST(request: Request) {
 
         // Update plan in profiles table
         console.log("Updating profile...");
+
+        // Prepare update data
+        const updateData: any = {
+            plan: targetPlan,
+            updated_at: new Date().toISOString()
+        };
+
+        // Set subscription_end_date for Pro upgrade
+        if (targetPlan === 'pro') {
+            const renewalDate = new Date();
+            renewalDate.setDate(renewalDate.getDate() + 30);
+            updateData.subscription_end_date = renewalDate.toISOString();
+            console.log("Setting subscription renewal date:", renewalDate);
+        }
+
         const { error: updateError } = await supabase
             .from('profiles')
-            .update({
-                plan: targetPlan,
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', user.id);
 
         if (updateError) {
@@ -131,9 +143,18 @@ export async function POST(request: Request) {
 
         console.log(`Plan changed successfully to ${targetPlan}`);
 
+        // Calculate remaining days for downgrade case
+        let remainingDays = 0;
+        if (currentPlan === 'pro' && targetPlan === 'free' && profile?.subscription_end_date) {
+            const endDate = new Date(profile.subscription_end_date);
+            const now = new Date();
+            remainingDays = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        }
+
         return NextResponse.json({
             success: true,
             plan: targetPlan,
+            remainingDays,
             message: targetPlan === 'pro' ? '프로 플랜으로 업그레이드되었습니다!' : '베이직 플랜으로 변경되었습니다.'
         });
 
