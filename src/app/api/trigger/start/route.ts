@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         // Get message details
         const { data: message, error: msgError } = await supabase
             .from('messages')
-            .select('id, user_id, recipient_email, title, absence_check_stage')
+            .select('id, user_id, recipient_email, title')
             .eq('id', messageId)
             .single();
 
