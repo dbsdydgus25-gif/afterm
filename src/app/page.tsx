@@ -833,7 +833,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 border-t border-slate-100 bg-white">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v2.1)</p>
+          <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v1.0)</p>
         </div>
       </footer>
     </div>

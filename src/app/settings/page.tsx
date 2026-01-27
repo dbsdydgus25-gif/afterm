@@ -688,10 +688,38 @@ function SettingsContent() {
                                     )}
                                     {plan === 'pro' && renewalDate && !autoRenew && (
                                         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                            <p className="text-sm text-red-900 font-semibold mb-1">⚠️ 구독 취소 예정</p>
-                                            <p className="text-xs text-red-700">
-                                                {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 이후 Basic 플랜으로 자동 전환됩니다.
-                                            </p>
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <p className="text-sm text-red-900 font-semibold mb-1">⚠️ 구독 취소 예정</p>
+                                                    <p className="text-xs text-red-700">
+                                                        {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 이후 Basic 플랜으로 자동 전환됩니다.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (confirm('구독을 재개하시겠습니까?')) {
+                                                            try {
+                                                                const res = await fetch('/api/plan/resume', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' }
+                                                                });
+                                                                const data = await res.json();
+                                                                if (data.success) {
+                                                                    alert('구독이 재개되었습니다!');
+                                                                    window.location.reload();
+                                                                } else {
+                                                                    alert(data.error || '구독 재개에 실패했습니다.');
+                                                                }
+                                                            } catch (error) {
+                                                                alert('오류가 발생했습니다.');
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="ml-3 px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap"
+                                                >
+                                                    구독 재개
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                     <Link href="/plans" className="w-full">

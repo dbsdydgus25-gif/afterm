@@ -87,7 +87,7 @@ export default function LoginPage() {
                         <p className="text-slate-500">
                             계정 정보를 입력하거나 SNS로 시작하세요.
                         </p>
-                        <p className="text-xs text-slate-400 mt-2">v1.24.16:38</p>
+
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-4 mb-8">
