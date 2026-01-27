@@ -26,6 +26,26 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isProfileStatsOpen, setIsProfileStatsOpen] = useState(false);
     const [messageCount, setMessageCount] = useState(0);
+    const [renewalDate, setRenewalDate] = useState<string | null>(null);
+
+    // Fetch renewal date for pro users
+    useEffect(() => {
+        const fetchRenewalDate = async () => {
+            if (user && plan === 'pro') {
+                const supabase = createClient();
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('subscription_end_date')
+                    .eq('id', user.id)
+                    .single();
+
+                if (data?.subscription_end_date) {
+                    setRenewalDate(data.subscription_end_date);
+                }
+            }
+        };
+        fetchRenewalDate();
+    }, [user, plan]);
 
     // Fetch message count for stats
     useEffect(() => {
