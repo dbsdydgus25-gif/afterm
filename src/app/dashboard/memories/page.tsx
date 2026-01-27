@@ -221,10 +221,8 @@ export default function MyMemoriesPage() {
                                         <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                const rel = mem.recipient_relationship === 'family' ? '가족' :
-                                                    mem.recipient_relationship === 'friend' ? '친구' :
-                                                        mem.recipient_relationship === 'lover' ? '연인' :
-                                                            mem.recipient_relationship === 'colleague' ? '동료' : '기타';
+                                                // Preserve the original relationship value as-is
+                                                const rel = mem.recipient_relationship || '';
 
                                                 setMessage(mem.content);
                                                 setMessageId(mem.id);

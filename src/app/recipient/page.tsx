@@ -104,6 +104,7 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
+                        recipient_relationship: formData.relationship,
                         updated_at: new Date().toISOString(),
                         // Only update legacy columns if we have new files. 
                         // If no new files, we keep old ones? 
@@ -155,6 +156,7 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
+                        recipient_relationship: formData.relationship,
                         file_url: null,
                         file_path: legacyFilePath, // Backward compatibility
                         file_size: legacyFileSize,
