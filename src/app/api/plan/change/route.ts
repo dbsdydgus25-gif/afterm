@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
         if (profileError) {
             console.error("Profile fetch error:", profileError);
-            return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 });
+            // Don't fail - continue with default plan
         }
 
         const currentPlan = profile?.plan || 'free';

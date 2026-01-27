@@ -277,6 +277,7 @@ function SettingsContent() {
     const [phone, setPhone] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+    const [renewalDate, setRenewalDate] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -675,6 +676,13 @@ function SettingsContent() {
                                             {plan === 'pro' ? 'Active' : 'Basic'}
                                         </div>
                                     </div>
+                                    {plan === 'pro' && renewalDate && (
+                                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-900">
+                                                <span className="font-semibold">다음 갱신일:</span> {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    )}
                                     <Link href="/plans" className="w-full">
                                         <div
                                             className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm flex items-center justify-center cursor-pointer transition-colors"
