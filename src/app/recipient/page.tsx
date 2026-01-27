@@ -48,6 +48,7 @@ export default function RecipientPage() {
             setRecipient({
                 name: formData.name,
                 phone: formData.phone,
+                email: formData.email,
                 relationship: formData.relationship
             });
 
@@ -104,6 +105,7 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
+                        recipient_email: formData.email,
                         recipient_relationship: formData.relationship,
                         updated_at: new Date().toISOString(),
                         // Only update legacy columns if we have new files. 
@@ -156,6 +158,7 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
+                        recipient_email: formData.email,
                         recipient_relationship: formData.relationship,
                         file_url: null,
                         file_path: legacyFilePath, // Backward compatibility
@@ -277,6 +280,20 @@ export default function RecipientPage() {
                                 value={formData.phone}
                                 onChange={handlePhoneChange}
                                 placeholder="010-0000-0000"
+                                className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium leading-none flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-primary" /> 이메일 (선택)
+                            </label>
+                            <p className="text-xs text-muted-foreground">부재 시 알림을 받을 이메일 주소입니다.</p>
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="example@email.com"
                                 className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             />
                         </div>
