@@ -38,12 +38,23 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchMessages = async () => {
             if (!user) return;
+            if (!user.id) return;
+
             const supabase = createClient();
-            const { data, error } = await supabase
+
+            // Build query with archived filter
+            let query = supabase
                 .from('messages')
                 .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
+                .eq('user_id', user.id);
+
+            // Basic users only see non-archived messages
+            // Pro users see all messages
+            if (plan !== 'pro') {
+                query = query.eq('archived', false);
+            }
+
+            const { data, error } = await query.order('created_at', { ascending: false });
 
             if (error) {
                 console.error("Error fetching messages:", error);
