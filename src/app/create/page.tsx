@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function CreatePage() {
     const router = useRouter();
-    const { message, setMessage, file: messageStoreFile, setFile: setMessageStoreFile } = useMemoryStore();
+    const { message, setMessage, files, setFiles } = useMemoryStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // In a real app, we would check for authentication here
@@ -21,6 +21,34 @@ export default function CreatePage() {
         }
         router.push("/recipient");
     };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = e.target.files;
+        if (selectedFiles) {
+            const newFiles = Array.from(selectedFiles);
+
+            // Validate Total Size (Max 1GB for now collectively or 500MB per file? User didn't specify, sticking to reasonable limits)
+            // Let's stick to per-file check for simplicity or update to total. 
+            // Existing check was 500MB per file.
+            for (const file of newFiles) {
+                if (file.size > 500 * 1024 * 1024) {
+                    alert(`파일 '${file.name}'의 크기는 500MB 이하여야 합니다.`);
+                    return;
+                }
+            }
+
+            // Append to existing files
+            setFiles([...files, ...newFiles]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        const newFiles = files.filter((_, i) => i !== index);
+        setFiles(newFiles);
+    };
+
+    // Calculate total size
+    const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -47,45 +75,48 @@ export default function CreatePage() {
                         className="flex-1 w-full p-4 text-lg leading-relaxed resize-none border-none focus-visible:ring-0 placeholder:text-slate-300 text-slate-800"
                     />
 
-                    <div className="border-t border-slate-100 pt-4 mt-4 flex items-center justify-between">
+                    {/* File List Preview */}
+                    {files.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto py-2 mb-2 px-1">
+                            {files.map((file, idx) => (
+                                <div key={idx} className="relative flex-shrink-0 bg-slate-50 border border-slate-200 rounded-lg p-2 pr-6 flex items-center gap-2">
+                                    <span className="text-xl">{file.type.startsWith('video') ? '🎥' : '📷'}</span>
+                                    <div className="max-w-[100px] truncate text-xs font-medium text-slate-700">
+                                        {file.name}
+                                    </div>
+                                    <button
+                                        onClick={() => removeFile(idx)}
+                                        className="absolute right-1 top-1 text-slate-400 hover:text-red-500"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="border-t border-slate-100 pt-4 mt-auto flex items-center justify-between">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
                             >
-                                <span className="text-xl">📷</span>
+                                <span className="text-xl">📎</span>
                                 <span className="text-sm font-medium">
-                                    {messageStoreFile ? `파일 1개 선택됨` : "사진/동영상"}
+                                    파일 추가
                                 </span>
                             </button>
-                            {messageStoreFile && (
-                                <button
-                                    onClick={() => setMessageStoreFile(null)}
-                                    className="text-xs text-red-500 hover:text-red-600"
-                                >
-                                    삭제
-                                </button>
-                            )}
                             <input
                                 ref={fileInputRef}
                                 type="file"
                                 accept="image/*,video/*"
+                                multiple
                                 className="hidden"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        // Max 500MB check
-                                        if (file.size > 500 * 1024 * 1024) {
-                                            alert("파일 크기는 500MB 이하여야 합니다.");
-                                            return;
-                                        }
-                                        setMessageStoreFile(file);
-                                    }
-                                }}
+                                onChange={handleFileSelect}
                             />
                         </div>
                         <div className="text-xs text-slate-300">
-                            {messageStoreFile ? `${(messageStoreFile.size / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 500MB
+                            {files.length > 0 ? `${(totalSize / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 1GB
                         </div>
                     </div>
                 </div>

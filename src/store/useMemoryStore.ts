@@ -40,6 +40,8 @@ interface MemoryStore {
 
     file: File | null;
     setFile: (file: File | null) => void;
+    files: File[];
+    setFiles: (files: File[]) => void;
 }
 
 export const useMemoryStore = create<MemoryStore>()(
@@ -70,6 +72,8 @@ export const useMemoryStore = create<MemoryStore>()(
             // File State (Not persisted to localStorage to avoid serialize issues)
             file: null,
             setFile: (file) => set({ file }),
+            files: [],
+            setFiles: (files) => set({ files }),
         }),
         {
             name: 'memory-storage', // unique name

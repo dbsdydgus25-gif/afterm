@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
-    const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan, file: messageFile, setFile } = useMemoryStore();
+    const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan, files, setFiles } = useMemoryStore();
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -54,34 +54,50 @@ export default function RecipientPage() {
             const supabase = createClient();
 
 
-            let fileUrl = null;
-            let filePath = null;
-            let fileSize = 0;
-            let finalMessageId = messageId; // ID variable to track across update/insert
+            let uploadedFiles: { path: string, size: number, type: string }[] = [];
+            let legacyFilePath: string | null = null;
+            let legacyFileSize = 0;
+            let legacyFileType = null;
+
+            let finalMessageId = messageId;
             const textBytes = new Blob([message]).size;
 
-            // 1. Upload File if exists
-            if (messageFile) {
-                const fileExt = messageFile.name.split('.').pop();
-                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                const path = `${user.id}/${fileName}`;
+            // 1. Upload All Files
+            if (files && files.length > 0) {
+                for (const file of files) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const path = `${user.id}/${fileName}`;
 
-                const { error: uploadError } = await supabase.storage
-                    .from('memories')
-                    .upload(path, messageFile);
+                    const { error: uploadError } = await supabase.storage
+                        .from('memories')
+                        .upload(path, file);
 
-                if (uploadError) throw uploadError;
+                    if (uploadError) throw uploadError;
 
-                // For private buckets, we cannot use publicUrl.
-                // We will only store the filePath, and generate Signed URL on demand.
-                filePath = path;
-                fileUrl = null; // No static public URL
-                fileSize = messageFile.size;
+                    uploadedFiles.push({
+                        path: path,
+                        size: file.size,
+                        type: file.type
+                    });
+                }
+
+                // Set Legacy Info (First file)
+                if (uploadedFiles.length > 0) {
+                    legacyFilePath = uploadedFiles[0].path;
+                    legacyFileSize = uploadedFiles[0].size;
+                    legacyFileType = uploadedFiles[0].type;
+                }
             }
 
             if (messageId) {
-                // Update existing message logic (unchanged)
-                // ...
+                // Update existing message logic
+
+                // Note: If updating, we should think about existing files. 
+                // But this flow seems to be for "New Creation" mostly or "Editing Draft". 
+                // If messageId exists here, it means we came back or are editing a draft.
+                // Logic: update message info.
+
                 const { data: updatedData, error } = await supabase
                     .from('messages')
                     .update({
@@ -89,7 +105,17 @@ export default function RecipientPage() {
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
                         updated_at: new Date().toISOString(),
-                        ...(fileUrl && { file_url: fileUrl, file_path: filePath, file_size: fileSize, file_type: messageFile?.type })
+                        // Only update legacy columns if we have new files. 
+                        // If no new files, we keep old ones? 
+                        // Actually 'files' store should contain ALL files we want to have effectively.
+                        // But usually 'create' flow is fresh. 
+                        // If we are editing, we assume 'files' contains what we want.
+                        ...(legacyFilePath && {
+                            file_url: null,
+                            file_path: legacyFilePath,
+                            file_size: legacyFileSize,
+                            file_type: legacyFileType
+                        })
                     })
                     .eq('id', messageId)
                     .eq('user_id', user.id)
@@ -100,7 +126,6 @@ export default function RecipientPage() {
                 finalMessageId = updatedData.id;
             } else {
                 // Insert new message -> Check Limit
-                // Double-check plan from DB + Store (Source of Truth)
                 const { data: dbProfile } = await supabase
                     .from('profiles')
                     .select('plan')
@@ -116,11 +141,7 @@ export default function RecipientPage() {
                         .eq('user_id', user.id);
 
                     if (count !== null && count >= 1) {
-                        if (count !== null && count >= 1) {
-                            alert(`[Debug: Plan=${effectivePlan}, DB=${dbProfile?.plan || 'null'}] 무료 플랜은 1개의 메시지만 저장할 수 있습니다. 이미 작성된 메시지가 있습니다.`);
-                            setIsSaving(false);
-                            return;
-                        }
+                        alert(`[Debug: Plan=${effectivePlan}, DB=${dbProfile?.plan || 'null'}] 무료 플랜은 1개의 메시지만 저장할 수 있습니다.`);
                         setIsSaving(false);
                         return;
                     }
@@ -134,10 +155,10 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
-                        file_url: fileUrl,
-                        file_path: filePath,
-                        file_size: fileSize,
-                        file_type: messageFile?.type
+                        file_url: null,
+                        file_path: legacyFilePath, // Backward compatibility
+                        file_size: legacyFileSize,
+                        file_type: legacyFileType
                     })
                     .select()
                     .single();
@@ -146,13 +167,26 @@ export default function RecipientPage() {
                 finalMessageId = insertedData.id;
             }
 
-            // 3. Update Storage Usage in Profiles
-            // Note: Ideally this should be a DB trigger or RPC to be atomic, 
-            // but for now we do it client-side as requested standard approach.
-            const totalBytesToAdd = fileSize + textBytes; // Text is small but added for completeness
+            // 2. Insert into message_attachments
+            if (uploadedFiles.length > 0 && finalMessageId) {
+                const attachmentsData = uploadedFiles.map(f => ({
+                    message_id: finalMessageId,
+                    file_path: f.path,
+                    file_size: f.size,
+                    file_type: f.type
+                }));
 
-            // We need to fetch current usage first or increment
-            // Supabase RPC 'increment' would be better, but doing simple read-update for MVP
+                const { error: attachError } = await supabase
+                    .from('message_attachments')
+                    .insert(attachmentsData);
+
+                if (attachError) throw attachError;
+            }
+
+            // 3. Update Storage Usage
+            const totalFilesSize = uploadedFiles.reduce((acc, f) => acc + f.size, 0);
+            const totalBytesToAdd = totalFilesSize + textBytes;
+
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('storage_used')
@@ -171,19 +205,15 @@ export default function RecipientPage() {
 
             if (profileError) console.error("Failed to update storage usage:", profileError);
 
-            // 4. Send SMS Notification (Safe Guard)
-
             // 4. Send SMS Notification
-            // 과금 여부 상관없이 발송 시도. 실패해도 사용자에게는 성공으로 처리 (사용자 요청)
             if (finalMessageId) {
-                // Background fetch (fire and forget)
                 fetch('/api/sms/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         recipientPhone: formData.phone,
                         recipientName: formData.name,
-                        senderName: user.name || "사용자", // Fallback name
+                        senderName: user.name || "사용자",
                         messageId: finalMessageId
                     })
                 }).catch(err => console.error("SMS send background error:", err));
@@ -191,13 +221,10 @@ export default function RecipientPage() {
 
             alert("저장되었습니다.");
 
-
-
-
-            // Clear store on success
+            // Clear store
             setMessage('');
             setMessageId(null);
-            setFile(null);
+            setFiles([]); // Clear files
             setRecipient({ name: '', phone: '', relationship: '' });
 
             router.push('/dashboard');
