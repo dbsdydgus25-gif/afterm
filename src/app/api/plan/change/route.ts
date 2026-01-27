@@ -107,7 +107,6 @@ export async function POST(request: Request) {
             .from('profiles')
             .update({
                 plan: targetPlan,
-                subscription_tier: targetPlan,
                 updated_at: new Date().toISOString()
             })
             .eq('id', user.id);
