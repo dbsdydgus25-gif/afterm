@@ -9,6 +9,7 @@ interface MemoryStore {
     recipient: {
         name: string;
         phone: string;
+        email?: string; // Optional
         relationship: string;
     };
     setRecipient: (recipient: Partial<MemoryStore['recipient']>) => void;
@@ -54,6 +55,7 @@ export const useMemoryStore = create<MemoryStore>()(
             recipient: {
                 name: '',
                 phone: '',
+                email: '',
                 relationship: '',
             },
             setRecipient: (recipient) =>
