@@ -3,12 +3,14 @@
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
+import { useMemoryStore } from "@/store/useMemoryStore";
 
 export default function PlansPage() {
     const router = useRouter();
+    const { plan } = useMemoryStore();
 
-    const handleSubscribe = async (plan: string, price: string) => {
-        if (plan === 'Pro') {
+    const handleSubscribe = async (planName: string, price: string) => {
+        if (planName === 'Pro') {
             const confirmed = confirm("테스트 모드: 무료로 PRO 플랜으로 업그레이드 하시겠습니까?");
             if (!confirmed) return;
 
@@ -22,9 +24,11 @@ export default function PlansPage() {
                 alert("업그레이드 중 오류가 발생했습니다.");
             }
         } else {
-            alert(`${plan} 플랜(${price})은 현재 이용 중입니다.`);
+            alert(`${planName} 플랜(${price})은 현재 이용 중입니다.`);
         }
     };
+
+    const isPro = plan === 'pro';
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
@@ -56,8 +60,12 @@ export default function PlansPage() {
                                 저장공간: 10mb (텍스트 위주)
                             </li>
                         </ul>
-                        <Button onClick={() => handleSubscribe("Basic", "무료")} className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm">
-                            현재 이용 중
+                        <Button
+                            onClick={() => handleSubscribe("Basic", "무료")}
+                            disabled={!isPro}
+                            className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm disabled:opacity-50"
+                        >
+                            {!isPro ? "현재 이용 중" : "Basic으로 변경"}
                         </Button>
                     </div>
 
@@ -76,8 +84,12 @@ export default function PlansPage() {
                                 저장공간: 1GB (사진, 영상, 음성)
                             </li>
                         </ul>
-                        <Button onClick={() => handleSubscribe("Pro", "990원")} className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30">
-                            PRO로 업그레이드
+                        <Button
+                            onClick={() => handleSubscribe("Pro", "990원")}
+                            disabled={isPro}
+                            className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isPro ? "현재 이용 중" : "PRO로 업그레이드"}
                         </Button>
                     </div>
                 </div>
