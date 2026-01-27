@@ -218,7 +218,10 @@ export default function EditMessagePage() {
                         .from('memories')
                         .upload(path, file);
 
-                    if (uploadError) throw uploadError;
+                    if (uploadError) {
+                        console.error("Storage upload error:", uploadError);
+                        throw new Error(`파일 업로드 실패: ${uploadError.message}`);
+                    }
 
                     uploadedFiles.push({ path, size: file.size, type: file.type });
                 }
@@ -234,7 +237,10 @@ export default function EditMessagePage() {
                 const { error: attachError } = await supabase.from('message_attachments').insert(attachmentsData);
                 if (attachError) {
                     console.error("Attachment insert error:", attachError);
-                    throw attachError;
+                    // Rollback uploaded files
+                    const filePaths = uploadedFiles.map(f => f.path);
+                    await supabase.storage.from('memories').remove(filePaths);
+                    throw new Error(`첨부파일 저장 실패: ${attachError.message}`);
                 }
 
                 // Update Storage Usage
@@ -259,13 +265,16 @@ export default function EditMessagePage() {
                 })
                 .eq('id', messageId);
 
-            if (error) throw error;
+            if (error) {
+                console.error("Message update error:", error);
+                throw new Error(`메시지 업데이트 실패: ${error.message}`);
+            }
 
             alert("메시지가 수정되었습니다.");
             router.push('/dashboard/memories');
-        } catch (error) {
-            console.error(error);
-            alert("저장 중 오류가 발생했습니다.");
+        } catch (error: any) {
+            console.error("Save error:", error);
+            alert(error.message || "저장 중 오류가 발생했습니다.");
         } finally {
             setIsSaving(false);
         }
