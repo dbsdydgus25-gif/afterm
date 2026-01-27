@@ -204,59 +204,79 @@ export default function MyMemoriesPage() {
 
                 {memories.length > 0 ? (
                     <div className="space-y-4">
-                        {memories.map((mem) => (
-                            <div key={mem.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-xs text-slate-400">
-                                                {new Date(mem.created_at).toLocaleDateString()} 작성
-                                            </span>
-                                        </div>
-                                        <h3 className="text-lg font-bold text-slate-900">
-                                            To. {mem.recipient_name}
-                                        </h3>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                // Preserve the original relationship value as-is
-                                                const rel = mem.recipient_relationship || '';
+                        {memories.map((mem) => {
+                            const isOpened = mem.status === 'UNLOCKED';
 
-                                                setMessage(mem.content);
-                                                setMessageId(mem.id);
-                                                setRecipient({
-                                                    name: mem.recipient_name,
-                                                    phone: mem.recipient_phone || '',
-                                                    relationship: rel
-                                                });
-                                                router.push('/dashboard/edit');
-                                            }}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8"
-                                        >
-                                            수정
-                                        </Button>
-                                        <Button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(mem.id, mem.file_path, mem.file_size, mem.content);
-                                            }}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                        >
-                                            삭제
-                                        </Button>
+                            return (
+                                <div key={mem.id} className={`p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all cursor-pointer group ${isOpened
+                                        ? 'bg-amber-50/30 border-amber-200'
+                                        : 'bg-white border-slate-200'
+                                    }`}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xs text-slate-400">
+                                                    {new Date(mem.created_at).toLocaleDateString()} 작성
+                                                </span>
+                                                {isOpened && (
+                                                    <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full">
+                                                        📬 열람됨
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-lg font-bold text-slate-900">
+                                                To. {mem.recipient_name}
+                                            </h3>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            {!isOpened ? (
+                                                <>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // Preserve the original relationship value as-is
+                                                            const rel = mem.recipient_relationship || '';
+
+                                                            setMessage(mem.content);
+                                                            setMessageId(mem.id);
+                                                            setRecipient({
+                                                                name: mem.recipient_name,
+                                                                phone: mem.recipient_phone || '',
+                                                                relationship: rel
+                                                            });
+                                                            router.push('/dashboard/edit');
+                                                        }}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8"
+                                                    >
+                                                        수정
+                                                    </Button>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(mem.id, mem.file_path, mem.file_size, mem.content);
+                                                        }}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                    >
+                                                        삭제
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                                                    👁️ 읽기 전용
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
+                                    <p className="text-slate-600 leading-relaxed line-clamp-2">
+                                        {mem.content}
+                                    </p>
                                 </div>
-                                <p className="text-slate-600 leading-relaxed line-clamp-2">
-                                    {mem.content}
-                                </p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">

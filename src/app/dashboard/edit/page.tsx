@@ -164,8 +164,13 @@ export default function EditMessagePage() {
         const supabase = createClient();
         await supabase.storage.from('memories').remove([legacyFilePath]);
 
-        // Update Message
-        await supabase.from('messages').update({ file_path: null, file_size: 0 }).eq('id', messageId);
+        // Update Message - clear ALL file-related fields
+        await supabase.from('messages').update({
+            file_path: null,
+            file_size: 0,
+            file_type: null,
+            file_url: null
+        }).eq('id', messageId);
 
         // Update Storage
         const { data: profile } = await supabase.from('profiles').select('storage_used').eq('id', user?.id).single();
