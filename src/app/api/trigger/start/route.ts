@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email";
+import nodemailer from 'nodemailer';
 
 /**
  * Start absence verification process (Stage 1)
@@ -73,8 +73,20 @@ export async function POST(request: Request) {
 
         const confirmLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/message/confirm-alive?token=${token}`;
 
+        // Setup email transporter
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+
         // Send Stage 1 survival confirmation email to author
-        await sendEmail({
+        await transporter.sendMail({
+            from: process.env.SMTP_FROM,
             to: author.email,
             subject: "⚠️ AFTERM 생존 확인 요청 (7일 내 확인 필요)",
             html: `

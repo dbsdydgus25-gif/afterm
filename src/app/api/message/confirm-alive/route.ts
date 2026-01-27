@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email";
+import nodemailer from 'nodemailer';
 
 /**
  * Confirm author is alive
@@ -61,7 +61,18 @@ export async function GET(request: Request) {
 
         // Send notification to recipient
         if (message.recipient_email) {
-            await sendEmail({
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: Number(process.env.SMTP_PORT),
+                secure: false,
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+
+            await transporter.sendMail({
+                from: process.env.SMTP_FROM,
                 to: message.recipient_email,
                 subject: "메시지 열람 불가 안내",
                 html: `

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email";
+import nodemailer from 'nodemailer';
 
 /**
  * Cron job to process absence verification stages
@@ -19,6 +19,17 @@ export async function GET(request: Request) {
         console.log("=== ABSENCE VERIFICATION CRON JOB STARTED ===");
 
         const supabase = await createClient();
+
+        // Email transporter setup
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
 
         // === STAGE 1 → STAGE 2 (After 7 days) ===
         const sevenDaysAgo = new Date();
@@ -66,7 +77,8 @@ export async function GET(request: Request) {
                 const confirmLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/message/confirm-alive?token=${token}`;
 
                 // Send Stage 2 final confirmation email
-                await sendEmail({
+                await transporter.sendMail({
+                    from: process.env.SMTP_FROM,
                     to: author.email,
                     subject: "🚨 AFTERM 최종 생존 확인 (24시간 내 확인 필요)",
                     html: `
@@ -127,7 +139,8 @@ export async function GET(request: Request) {
 
                 // Send notification to recipient
                 if (message.recipient_email) {
-                    await sendEmail({
+                    await transporter.sendMail({
+                        from: process.env.SMTP_FROM,
                         to: message.recipient_email,
                         subject: "메시지가 공개되었습니다",
                         html: `
