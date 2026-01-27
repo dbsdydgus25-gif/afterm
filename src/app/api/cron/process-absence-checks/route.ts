@@ -1,6 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from 'nodemailer';
+
+// Admin client to bypass RLS
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+);
 
 /**
  * Cron job to process absence verification stages
@@ -18,7 +25,7 @@ export async function GET(request: Request) {
 
         console.log("=== ABSENCE VERIFICATION CRON JOB STARTED ===");
 
-        const supabase = await createClient();
+        const supabase = supabaseAdmin;
 
         // Email transporter setup
         const transporter = nodemailer.createTransport({

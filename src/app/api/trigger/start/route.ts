@@ -1,6 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from 'nodemailer';
+
+// Admin client to bypass RLS
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+);
 
 /**
  * Start absence verification process (Stage 1)
@@ -14,7 +21,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Message ID required" }, { status: 400 });
         }
 
-        const supabase = await createClient();
+        const supabase = supabaseAdmin;
 
         // Get message details
         const { data: message, error: msgError } = await supabase
