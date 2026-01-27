@@ -27,10 +27,10 @@ export async function POST(request: Request) {
 
         console.log(`User ${user.id} changing to ${targetPlan}`);
 
-        // Get current plan
+        // Get current plan and subscription info
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('plan, subscription_end_date')
+            .select('plan, subscription_end_date, auto_renew')
             .eq('id', user.id)
             .single();
 
@@ -44,42 +44,51 @@ export async function POST(request: Request) {
         const currentPlan = profile?.plan || 'free';
         console.log("Current plan:", currentPlan, "Target plan:", targetPlan);
 
-        // Handle Pro -> Basic downgrade
+        // Handle Pro -> Basic downgrade (subscription cancellation)
         if (currentPlan === 'pro' && targetPlan === 'free') {
-            console.log("Downgrading from Pro to Basic - archiving messages");
+            console.log("Canceling Pro subscription - setting auto_renew to false");
 
-            // Get all messages ordered by created_at DESC
-            const { data: messages, error: messagesError } = await supabase
-                .from('messages')
-                .select('id, created_at, archived')
-                .eq('user_id', user.id)
-                .eq('archived', false)
-                .order('created_at', { ascending: false });
+            // Don't change plan immediately - just cancel auto-renewal
+            // User keeps Pro until subscription_end_date
+            const { error: cancelError } = await supabase
+                .from('profiles')
+                .update({
+                    auto_renew: false,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
 
-            console.log("Messages fetch:", { count: messages?.length, error: messagesError });
-
-            if (messagesError) {
-                console.error("Messages fetch error:", messagesError);
-                return NextResponse.json({ error: "Failed to fetch messages: " + messagesError.message }, { status: 500 });
+            if (cancelError) {
+                console.error("Cancel error:", cancelError);
+                return NextResponse.json({ error: "Failed to cancel subscription: " + cancelError.message }, { status: 500 });
             }
 
-            if (messages && messages.length > 1) {
-                // Keep the most recent one, archive the rest
-                const messagesToArchive = messages.slice(1).map(m => m.id);
-                console.log("Archiving messages:", messagesToArchive);
+            console.log("Subscription cancelled - Pro will end at:", profile?.subscription_end_date);
 
-                const { error: archiveError } = await supabase
-                    .from('messages')
-                    .update({ archived: true })
-                    .in('id', messagesToArchive);
-
-                if (archiveError) {
-                    console.error("Archive error:", archiveError);
-                    return NextResponse.json({ error: "Failed to archive messages: " + archiveError.message }, { status: 500 });
-                }
-
-                console.log(`Archived ${messagesToArchive.length} messages`);
+            // Calculate remaining days
+            let remainingDays = 0;
+            if (profile?.subscription_end_date) {
+                const endDate = new Date(profile.subscription_end_date);
+                const now = new Date();
+                remainingDays = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
             }
+
+            // Update user metadata
+            await supabase.auth.updateUser({
+                data: { auto_renew: false }
+            });
+
+            const endDateFormatted = profile?.subscription_end_date
+                ? new Date(profile.subscription_end_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+                : '';
+
+            return NextResponse.json({
+                success: true,
+                cancelled: true,
+                remainingDays,
+                endDate: profile?.subscription_end_date,
+                message: `구독이 취소되었습니다. ${endDateFormatted}까지 Pro를 이용할 수 있습니다.`
+            });
         }
 
         // Handle Basic -> Pro upgrade
@@ -99,64 +108,41 @@ export async function POST(request: Request) {
             }
 
             console.log("Restored archived messages");
-        }
 
-        // Update plan in profiles table
-        console.log("Updating profile...");
-
-        // Prepare update data
-        const updateData: any = {
-            plan: targetPlan,
-            updated_at: new Date().toISOString()
-        };
-
-        // Set subscription_end_date for Pro upgrade
-        if (targetPlan === 'pro') {
+            // Set subscription dates for upgrade
             const renewalDate = new Date();
             renewalDate.setDate(renewalDate.getDate() + 30);
-            updateData.subscription_end_date = renewalDate.toISOString();
-            console.log("Setting subscription renewal date:", renewalDate);
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    plan: 'pro',
+                    subscription_end_date: renewalDate.toISOString(),
+                    auto_renew: true,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (updateError) {
+                console.error("Profile update error:", updateError);
+                return NextResponse.json({ error: "Failed to update plan: " + updateError.message }, { status: 500 });
+            }
+
+            // Update user metadata
+            await supabase.auth.updateUser({
+                data: { plan: 'pro', auto_renew: true }
+            });
+
+            return NextResponse.json({
+                success: true,
+                plan: 'pro',
+                message: '프로 플랜으로 업그레이드되었습니다!'
+            });
         }
 
-        const { error: updateError } = await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('id', user.id);
-
-        if (updateError) {
-            console.error("Profile update error:", updateError);
-            return NextResponse.json({ error: "Failed to update plan: " + updateError.message }, { status: 500 });
-        }
-
-        console.log("Profile updated successfully");
-
-        // Update user metadata for immediate reflection
-        console.log("Updating user metadata...");
-        const { error: metadataError } = await supabase.auth.updateUser({
-            data: { plan: targetPlan }
-        });
-
-        if (metadataError) {
-            console.error("Metadata update error:", metadataError);
-            // Don't fail the request for metadata error
-        }
-
-        console.log(`Plan changed successfully to ${targetPlan}`);
-
-        // Calculate remaining days for downgrade case
-        let remainingDays = 0;
-        if (currentPlan === 'pro' && targetPlan === 'free' && profile?.subscription_end_date) {
-            const endDate = new Date(profile.subscription_end_date);
-            const now = new Date();
-            remainingDays = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-        }
-
-        return NextResponse.json({
-            success: true,
-            plan: targetPlan,
-            remainingDays,
-            message: targetPlan === 'pro' ? '프로 플랜으로 업그레이드되었습니다!' : '베이직 플랜으로 변경되었습니다.'
-        });
+        // If we reach here, it means invalid plan transition
+        console.error("Invalid plan transition:", { currentPlan, targetPlan });
+        return NextResponse.json({ error: "Invalid plan transition" }, { status: 400 });
 
     } catch (error: any) {
         console.error("Plan change error:", error);

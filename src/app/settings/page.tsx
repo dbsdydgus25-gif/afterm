@@ -278,6 +278,7 @@ function SettingsContent() {
     const [isSaving, setIsSaving] = useState(false);
     const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
     const [renewalDate, setRenewalDate] = useState<string | null>(null);
+    const [autoRenew, setAutoRenew] = useState<boolean>(true);
 
     useEffect(() => {
         setMounted(true);
@@ -289,15 +290,17 @@ function SettingsContent() {
             setProfileImage(metadata.avatar_url || "");
             setIsAuthChecking(false);
 
-            // Fetch Phone from Profiles
+            // Fetch subscription info from Profiles
             const fetchProfile = async () => {
                 const supabase = createClient();
                 const { data } = await supabase
                     .from('profiles')
-                    .select('phone')
+                    .select('phone, subscription_end_date, auto_renew')
                     .eq('id', user.id)
                     .single();
                 if (data?.phone) setPhone(data.phone);
+                if (data?.subscription_end_date) setRenewalDate(data.subscription_end_date);
+                setAutoRenew(data?.auto_renew ?? true);
             };
             fetchProfile();
         }
@@ -676,10 +679,18 @@ function SettingsContent() {
                                             {plan === 'pro' ? 'Active' : 'Basic'}
                                         </div>
                                     </div>
-                                    {plan === 'pro' && renewalDate && (
+                                    {plan === 'pro' && renewalDate && autoRenew && (
                                         <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                                             <p className="text-sm text-blue-900">
                                                 <span className="font-semibold">다음 갱신일:</span> {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {plan === 'pro' && renewalDate && !autoRenew && (
+                                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                            <p className="text-sm text-red-900 font-semibold mb-1">⚠️ 구독 취소 예정</p>
+                                            <p className="text-xs text-red-700">
+                                                {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 이후 Basic 플랜으로 자동 전환됩니다.
                                             </p>
                                         </div>
                                     )}
