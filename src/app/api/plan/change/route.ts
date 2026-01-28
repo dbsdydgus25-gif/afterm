@@ -118,8 +118,20 @@ export async function POST(request: Request) {
             }
 
             // Set subscription dates
-            // If switching, we reset start date to now and end date to +term
-            const renewalDate = new Date();
+            // If switching, we extend from the *current end date* if it exists and is in the future.
+            // Otherwise, start from now.
+            const now = new Date();
+            let baseDate = now;
+
+            if (profile?.subscription_end_date) {
+                const currentEndDate = new Date(profile.subscription_end_date);
+                if (currentEndDate > now) {
+                    baseDate = currentEndDate;
+                }
+            }
+
+            const renewalDate = new Date(baseDate);
+
             if (billingCycle === 'yearly') {
                 renewalDate.setFullYear(renewalDate.getFullYear() + 1); // Add 1 year
             } else {

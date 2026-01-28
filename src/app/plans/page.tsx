@@ -122,17 +122,24 @@ export default function PlansPage() {
                     {/* Pro Plan */}
                     <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
                         <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
-                        <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
+
+                        {/* Header with Badge */}
+                        <div className="relative mb-2 inline-block">
+                            <h3 className="text-2xl font-bold text-blue-900">PRO</h3>
+                            {billingCycle === "yearly" && (
+                                <span className="absolute -top-3 -right-20 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold animate-bounce-subtle">
+                                    17% SAVE
+                                </span>
+                            )}
+                        </div>
+
                         {billingCycle === "monthly" ? (
                             <div className="text-4xl font-extrabold text-slate-900 mb-6">
                                 990원 <span className="text-base font-normal text-slate-500">/ 월</span>
                             </div>
                         ) : (
-                            <div className="text-4xl font-extrabold text-slate-900 mb-6 flex items-center gap-3">
+                            <div className="text-4xl font-extrabold text-slate-900 mb-6">
                                 9,900원 <span className="text-base font-normal text-slate-500">/ 년</span>
-                                <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">
-                                    17% SAVE
-                                </span>
                             </div>
                         )}
                         <ul className="space-y-4 mb-8 text-left pl-4">
