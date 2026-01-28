@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getMessageSenderInfo } from "@/app/actions/viewMessage";
+import { getMessageSenderInfo, getUnlockedMessageContent } from "@/app/actions/viewMessage";
 import { notifySenderOfView } from "@/app/actions/notifySenderOfView";
 import { reportIssue } from "@/app/actions/reportIssue";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,15 @@ export default function MessageViewPage() {
         const fetchMessageInfo = async () => {
             if (!messageId) return;
 
+            // 0. Check if ALREADY UNLOCKED (Redirect immediately if so)
+            // Import this action at the top: import { getMessageSenderInfo, getUnlockedMessageContent } from "@/app/actions/viewMessage";
+            const unlockedCheck = await getUnlockedMessageContent(messageId);
+            if (unlockedCheck?.success) {
+                // Already unlocked -> Go directly to Auth page (which will display content)
+                window.location.href = `/view/${messageId}/auth`;
+                return;
+            }
+
             // 1. Fetch Sender Info via Server Action (Bypass RLS)
             const result = await getMessageSenderInfo(messageId);
 
@@ -36,18 +45,6 @@ export default function MessageViewPage() {
                 setError(result.error || "메시지를 찾을 수 없거나 접근 권한이 없습니다.");
             } else {
                 setSenderName(result.senderName);
-
-                // 2. (Disabled) Trigger Email Notification on View
-                // User requirement: Only send email when "Problem" is reported.
-                /*
-                if (!notificationSentRef.current) {
-                    notificationSentRef.current = true;
-                    console.log("Triggering view notification...");
-                    notifySenderOfView(messageId).then(res => {
-                        if (!res.success) console.error("Notification failed:", res.error);
-                    });
-                }
-                */
             }
             setLoading(false);
         };

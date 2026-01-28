@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getMessageSenderInfo } from "@/app/actions/viewMessage";
+import { getMessageSenderInfo, getUnlockedMessageContent } from "@/app/actions/viewMessage";
 import { Button } from "@/components/ui/button";
 import { Loader2, Lock, Unlock, AlertTriangle, Send, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -31,59 +31,35 @@ export default function AuthViewPage() {
             const initPage = async () => {
                 const supabase = createClient();
 
-                // Fetch message info
+                // 1. Try to fetch as UNLOCKED Content (Public)
+                const unlockedResult = await getUnlockedMessageContent(messageId);
+
+                if (unlockedResult?.success) {
+                    // Message is UNLOCKED! Show immediately.
+                    setMessageContent(unlockedResult.content);
+                    setRecipientName(unlockedResult.recipientName);
+                    setRelationship(unlockedResult.recipientRelationship || '');
+                    setSenderName(unlockedResult.senderName || '');
+                    setAttachments(unlockedResult.attachments || []);
+
+                    setIsInitialLoading(false);
+                    setMode('VIEW');
+                    return;
+                }
+
+                // 2. If Locked, fetch basic Sender Info & Status
                 const result = await getMessageSenderInfo(messageId);
                 if (result.senderName) setSenderName(result.senderName);
 
-                // Check if current user is the author and message is UNLOCKED
-                const { data: { user } } = await supabase.auth.getUser();
+                // Check trigger status
                 const { data: messageData } = await supabase
                     .from('messages')
-                    .select('user_id, status, content, recipient_name, recipient_relationship, is_triggered')
+                    .select('status, is_triggered, retry_count, last_reminder_sent_at')
                     .eq('id', messageId)
                     .single();
 
                 if (messageData) {
                     setStatusData(messageData);
-
-                    // If user is the author and message is UNLOCKED, auto-display
-                    if (user && messageData.user_id === user.id && messageData.status === 'UNLOCKED') {
-                        // Fetch attachments
-                        const { data: attachments } = await supabase
-                            .from('message_attachments')
-                            .select('*')
-                            .eq('message_id', messageId)
-                            .order('created_at', { ascending: true });
-
-                        // Generate signed URLs
-                        const attachmentUrls = [];
-                        if (attachments && attachments.length > 0) {
-                            for (const att of attachments) {
-                                const { data: signedData } = await supabase.storage
-                                    .from('memories')
-                                    .createSignedUrl(att.file_path, 3600);
-
-                                if (signedData?.signedUrl) {
-                                    attachmentUrls.push({
-                                        url: signedData.signedUrl,
-                                        type: att.file_type,
-                                        size: att.file_size
-                                    });
-                                }
-                            }
-                        }
-
-                        // Set all data and switch to VIEW mode
-                        setMessageContent(messageData.content);
-                        setRecipientName(messageData.recipient_name);
-                        setRelationship(messageData.recipient_relationship || '');
-                        setAttachments(attachmentUrls);
-                        setSenderName(result.senderName || '');
-                        setIsInitialLoading(false); // IMPORTANT: Set before changing mode
-                        setMode('VIEW');
-                        return;
-                    }
-
                     if (messageData.is_triggered) {
                         setMode('OPTION2'); // Show Trigger Status
                     }

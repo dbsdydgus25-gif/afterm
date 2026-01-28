@@ -66,3 +66,76 @@ export async function getMessageSenderInfo(messageId: string) {
         return { error: `서버 오류: ${err.message || JSON.stringify(err)}` };
     }
 }
+
+/**
+ * FETCH UNLOCKED CONTENT (For Recipients)
+ * Returns content ONLY if status is 'UNLOCKED'
+ */
+export async function getUnlockedMessageContent(messageId: string) {
+    if (!messageId) return { error: "Message ID required" };
+
+    try {
+        // 1. Fetch Message status & content (Admin bypass)
+        const { data: message, error } = await supabaseAdmin
+            .from('messages')
+            .select('id, user_id, status, content, recipient_name, recipient_relationship, created_at')
+            .eq('id', messageId)
+            .single();
+
+        if (error || !message) {
+            return { error: "Message not found" };
+        }
+
+        // 2. Security Check: status MUST be UNLOCKED
+        if (message.status !== 'UNLOCKED') {
+            return {
+                isLocked: true,
+                senderId: message.user_id // Return ID so client can fetch sender name via other action
+            };
+        }
+
+        // 3. Fetch Sender Info
+        const senderInfo = await getMessageSenderInfo(messageId);
+        const senderName = senderInfo.senderName || "Unknown";
+
+        // 4. Fetch Attachments
+        const { data: attachments } = await supabaseAdmin
+            .from('message_attachments')
+            .select('*')
+            .eq('message_id', messageId)
+            .order('created_at', { ascending: true });
+
+        // 5. Generate Signed URLs for attachments
+        const attachmentUrls = [];
+        if (attachments && attachments.length > 0) {
+            for (const att of attachments) {
+                // If public, we might not need signed URL, but sticking to secure pattern
+                const { data: signedData } = await supabaseAdmin.storage
+                    .from('memories')
+                    .createSignedUrl(att.file_path, 3600); // 1 Hour
+
+                if (signedData?.signedUrl) {
+                    attachmentUrls.push({
+                        url: signedData.signedUrl,
+                        type: att.file_type,
+                        size: att.file_size
+                    });
+                }
+            }
+        }
+
+        return {
+            success: true,
+            content: message.content,
+            recipientName: message.recipient_name,
+            recipientRelationship: message.recipient_relationship,
+            senderName,
+            attachments: attachmentUrls,
+            date: message.created_at
+        };
+
+    } catch (err: any) {
+        console.error("getUnlockedMessageContent error:", err);
+        return { error: err.message };
+    }
+}
