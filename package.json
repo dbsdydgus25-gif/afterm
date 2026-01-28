@@ -1,6 +1,7 @@
 {
   "name": "afterm",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "engines": {
     "node": ">=18.17.0"

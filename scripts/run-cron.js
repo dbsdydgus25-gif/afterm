@@ -1,11 +1,11 @@
-const https = require('http'); // Using http for localhost
+import http from 'http'; // Using http for localhost
 
 console.log("=== AFTERM LOCAL CRON SIMULATOR ===");
 console.log("Simulating periodic checks every 60 seconds...");
 console.log("Press Ctrl+C to stop.\n");
 
 function triggerCron() {
-    const req = https.request('http://localhost:3000/api/cron/process', { method: 'GET' }, (res) => {
+    const req = http.request('http://localhost:3000/api/cron/process', { method: 'GET' }, (res) => {
         let data = '';
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => {
