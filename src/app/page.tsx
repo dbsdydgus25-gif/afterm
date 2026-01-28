@@ -19,6 +19,7 @@ export default function Home() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
   const [messageCount, setMessageCount] = useState(0);
@@ -80,7 +81,7 @@ export default function Home() {
       const res = await fetch('/api/plan/change', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPlan })
+        body: JSON.stringify({ targetPlan, billingCycle })
       });
 
       const data = await res.json();
@@ -724,6 +725,33 @@ export default function Home() {
               </p>
             </motion.div>
 
+            {/* Billing Cycle Toggle */}
+            <div className="flex justify-center mb-12">
+              <div className="bg-slate-100 p-1 rounded-full inline-flex relative">
+                <button
+                  onClick={() => setBillingCycle("monthly")}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${billingCycle === "monthly"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  월간 결제
+                </button>
+                <button
+                  onClick={() => setBillingCycle("yearly")}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${billingCycle === "yearly"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                    }`}
+                >
+                  연간 결제
+                  <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                    17% SAVE
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {/* Basic Plan */}
               <div className="rounded-3xl p-8 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300">
@@ -752,7 +780,15 @@ export default function Home() {
               <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
                 <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
                 <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
-                <div className="text-4xl font-extrabold text-slate-900 mb-6">990원 <span className="text-base font-normal text-slate-500">/ 월</span></div>
+                {billingCycle === "monthly" ? (
+                  <div className="text-4xl font-extrabold text-slate-900 mb-6">
+                    990원 <span className="text-base font-normal text-slate-500">/ 월</span>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-extrabold text-slate-900 mb-6">
+                    9,900원 <span className="text-base font-normal text-slate-500">/ 년</span>
+                  </div>
+                )}
                 <ul className="space-y-4 mb-8 text-left pl-4">
                   <li className="flex items-center gap-3 text-slate-700 font-medium">
                     <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
@@ -764,7 +800,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <Button
-                  onClick={() => handleSubscribe("Pro", "990원")}
+                  onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
                   disabled={plan === 'pro'}
                   className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -818,7 +854,7 @@ export default function Home() {
       <PaymentModal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
-        plan={selectedPlan.name}
+        planName={selectedPlan.name}
         price={selectedPlan.price}
       />
 
@@ -826,6 +862,7 @@ export default function Home() {
         isOpen={isPlanModalOpen}
         onClose={() => setIsPlanModalOpen(false)}
         targetPlan={targetPlan}
+        billingCycle={billingCycle}
         currentPlan={plan === 'pro' ? 'pro' : 'free'}
         onConfirm={handlePlanChange}
       />

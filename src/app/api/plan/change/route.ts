@@ -95,6 +95,9 @@ export async function POST(request: Request) {
         if (currentPlan === 'free' && targetPlan === 'pro') {
             console.log("Upgrading from Basic to Pro - restoring archived messages");
 
+            const { billingCycle = 'monthly' } = body;
+            console.log("Billing Cycle:", billingCycle);
+
             // Restore all archived messages
             const { error: restoreError } = await supabase
                 .from('messages')
@@ -111,12 +114,17 @@ export async function POST(request: Request) {
 
             // Set subscription dates for upgrade
             const renewalDate = new Date();
-            renewalDate.setDate(renewalDate.getDate() + 30);
+            if (billingCycle === 'yearly') {
+                renewalDate.setFullYear(renewalDate.getFullYear() + 1); // Add 1 year
+            } else {
+                renewalDate.setDate(renewalDate.getDate() + 30); // Add 30 days default
+            }
 
             const { error: updateError } = await supabase
                 .from('profiles')
                 .update({
                     plan: 'pro',
+                    billing_cycle: billingCycle,
                     subscription_end_date: renewalDate.toISOString(),
                     auto_renew: true,
                     updated_at: new Date().toISOString()
@@ -136,7 +144,8 @@ export async function POST(request: Request) {
             return NextResponse.json({
                 success: true,
                 plan: 'pro',
-                message: '프로 플랜으로 업그레이드되었습니다!'
+                billingCycle,
+                message: billingCycle === 'yearly' ? '연간 프로 플랜으로 업그레이드되었습니다!' : '프로 플랜으로 업그레이드되었습니다!'
             });
         }
 

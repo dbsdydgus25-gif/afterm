@@ -11,13 +11,19 @@ interface PlanConfirmModalProps {
     remainingDays?: number;
     endDate?: string;
     onConfirm: () => Promise<void>;
+    billingCycle?: "monthly" | "yearly";
 }
 
-export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, endDate, onConfirm }: PlanConfirmModalProps) {
+export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, endDate, onConfirm, billingCycle = "monthly" }: PlanConfirmModalProps) {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const planName = targetPlan === "pro" ? "AFTERM Pro" : "AFTERM Basic";
-    const price = targetPlan === "pro" ? "990원" : "무료";
+
+    // Determine price based on plan and billing cycle
+    let price = "무료";
+    if (targetPlan === "pro") {
+        price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
+    }
 
     // Determine title and message
     let title = "결제 정보 확인";
@@ -81,6 +87,14 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
                                     <span className="text-slate-600 font-medium">결제 금액</span>
                                     <span className="text-blue-600 font-black text-xl">{price}</span>
                                 </div>
+                                {targetPlan === "pro" && (
+                                    <div className="flex justify-between items-center py-3 border-t border-slate-100">
+                                        <span className="text-slate-600 font-medium">결제 주기</span>
+                                        <span className="text-slate-900 font-bold text-lg">
+                                            {billingCycle === "yearly" ? "연간 결제 (17% 할인)" : "월간 결제"}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {warningMessage && (
