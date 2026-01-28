@@ -37,17 +37,16 @@ export async function GET(request: Request) {
             }
         });
 
-        // === STAGE 1 → STAGE 2 (After 1 minute - TESTING) ===
-        // const sevenDaysAgo = new Date();
-        // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const stage1Threshold = new Date();
-        stage1Threshold.setMinutes(stage1Threshold.getMinutes() - 1); // 1 Minute for testing
+        // === STAGE 1 → STAGE 2 (After 7 days) ===
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        // Test logic removed
 
         const { data: stage1Messages } = await supabase
             .from('messages')
             .select('id, user_id, recipient_email, recipient_phone, content')
             .eq('absence_check_stage', 1)
-            .lt('stage1_sent_at', stage1Threshold.toISOString());
+            .lt('stage1_sent_at', sevenDaysAgo.toISOString());
 
         console.log(`Found ${stage1Messages?.length || 0} messages to move from stage 1 to stage 2`);
 
@@ -81,22 +80,21 @@ export async function GET(request: Request) {
                     timestamp: Date.now()
                 })).toString('base64');
 
-                // const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
-                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'; // Fallback for local testing if needed, or PROD
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
                 const confirmLink = `${siteUrl}/api/message/confirm-alive?token=${token}`;
 
                 // Send Stage 2 final confirmation email
                 await transporter.sendMail({
                     from: `"AFTERM" <${process.env.GMAIL_USER}>`,
                     to: author.email,
-                    subject: "🚨 AFTERM 최종 생존 확인 (긴급)",
+                    subject: "🚨 AFTERM 최종 생존 확인 (24시간 내 확인 필요)",
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                             <h2 style="color: #dc2626;">🚨 최종 생존 확인</h2>
                             <p>안녕하세요,</p>
-                            <p>메시지에 대한 마지막 생존 확인입니다.</p>
+                            <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>에 대한 마지막 생존 확인입니다.</p>
                             <p style="color: #dc2626; font-weight: bold;">
-                                곧 메시지가 공개됩니다. 생존하셨다면 즉시 확인해주세요.
+                                24시간 이내에 이 메일을 확인하거나 아래 버튼을 클릭하지 않으면 메시지가 자동으로 공개됩니다.
                             </p>
                             
                             <div style="margin: 30px 0; text-align: center;">
@@ -105,6 +103,10 @@ export async function GET(request: Request) {
                                     긴급: 생존 확인하기
                                 </a>
                             </div>
+                            
+                            <p style="color: #6b7280; font-size: 14px;">
+                                이메일은 최종 경고입니다. 24시간 후 메시지가 공개됩니다.
+                            </p>
                         </div>
                     `
                 });
@@ -117,17 +119,15 @@ export async function GET(request: Request) {
             }
         }
 
-        // === STAGE 2 → UNLOCK MESSAGE (After 1 minute - TESTING) ===
-        // const twentyFourHoursAgo = new Date();
-        // twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-        const stage2Threshold = new Date();
-        stage2Threshold.setMinutes(stage2Threshold.getMinutes() - 1); // 1 Minute for testing
+        // === STAGE 2 → UNLOCK MESSAGE (After 24 hours) ===
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
         const { data: stage2Messages } = await supabase
             .from('messages')
             .select('id, recipient_email, recipient_phone, content')
             .eq('absence_check_stage', 2)
-            .lt('stage2_sent_at', stage2Threshold.toISOString());
+            .lt('stage2_sent_at', twentyFourHoursAgo.toISOString());
 
         console.log(`Found ${stage2Messages?.length || 0} messages to unlock after stage 2`);
 
