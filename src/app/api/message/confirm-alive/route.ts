@@ -76,6 +76,7 @@ export async function GET(request: Request) {
                 }
             });
 
+
             await transporter.sendMail({
                 from: `"AFTERM" <${process.env.GMAIL_USER}>`,
                 to: message.recipient_email,
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                         <h2 style="color: #059669;">작성자 생존 확인됨</h2>
                         <p>안녕하세요,</p>
-                        <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>의 작성자가 직접 메일을 확인했습니다.</p>
+                        <p>작성자가 직접 메일을 확인했습니다.</p>
                         <p style="color: #dc2626; font-weight: bold;">
                             작성자의 부재가 아니므로 메시지는 열람할 수 없습니다.
                         </p>

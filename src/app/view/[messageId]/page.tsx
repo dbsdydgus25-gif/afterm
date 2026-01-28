@@ -19,6 +19,7 @@ export default function MessageViewPage() {
     const [error, setError] = useState("");
 
     const [showWarningModal, setShowWarningModal] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // 알림 중복 발송 방지
     const notificationSentRef = useRef(false);
@@ -200,16 +201,30 @@ export default function MessageViewPage() {
                                 취소
                             </Button>
                             <Button
+                                disabled={isProcessing}
                                 onClick={async () => {
-                                    setShowWarningModal(false);
-                                    // 메일 발송
-                                    await notifySenderOfView(messageId);
-                                    // 인증 페이지로 이동
-                                    window.location.href = `/view/${messageId}/auth`;
+                                    setIsProcessing(true);
+                                    try {
+                                        // 메일 발송
+                                        await notifySenderOfView(messageId);
+                                        // 인증 페이지로 이동
+                                        window.location.href = `/view/${messageId}/auth`;
+                                    } catch (e) {
+                                        console.error(e);
+                                        setIsProcessing(false);
+                                        alert("처리 중 오류가 발생했습니다.");
+                                    }
                                 }}
                                 className="h-12 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
                             >
-                                확인
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        처리 중...
+                                    </>
+                                ) : (
+                                    "확인"
+                                )}
                             </Button>
                         </div>
                     </div>

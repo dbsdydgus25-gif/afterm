@@ -119,7 +119,7 @@ export async function POST(request: Request) {
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #dc2626;">⚠️ 생존 확인 요청</h2>
                     <p>안녕하세요,</p>
-                    <p><strong>${message.recipient_name || '수신인'}</strong>님이 <strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong> 메시지에 대해 부재 확인을 요청했습니다.</p>
+                    <p><strong>${message.recipient_name || '수신인'}</strong>님이 메시지에 대해 부재 확인을 요청했습니다.</p>
                     <p>7일 이내에 이 메일을 확인하거나 아래 버튼을 클릭해주세요.</p>
                     
                    <div style="margin: 30px 0; text-align: center;">
