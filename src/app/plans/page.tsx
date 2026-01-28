@@ -9,7 +9,7 @@ import { useState } from "react";
 
 export default function PlansPage() {
     const router = useRouter();
-    const { plan } = useMemoryStore();
+    const { plan, billingCycle: currentBillingCycle } = useMemoryStore();
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -154,14 +154,16 @@ export default function PlansPage() {
                         </ul>
                         <Button
                             onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
-                            disabled={isPro && !(billingCycle === "yearly")}
+                            disabled={isPro && currentBillingCycle === billingCycle}
                             className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {!isPro
                                 ? "PRO로 업그레이드"
-                                : billingCycle === "yearly"
-                                    ? "연간 플랜으로 변경"
-                                    : "현재 이용 중"
+                                : currentBillingCycle === billingCycle
+                                    ? "현재 이용 중"
+                                    : billingCycle === "yearly"
+                                        ? "연간 플랜으로 변경"
+                                        : "월간 플랜으로 변경"
                             }
                         </Button>
                     </div>

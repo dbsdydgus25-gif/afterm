@@ -7,7 +7,7 @@ import { RestoreModal } from "@/components/auth/RestoreModal";
 import { usePathname, useRouter } from "next/navigation";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const { setUser, setPlan } = useMemoryStore();
+    const { setUser, setPlan, setBillingCycle } = useMemoryStore();
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [deletedAt, setDeletedAt] = useState<string>("");
     const [isRestoring, setIsRestoring] = useState(false);
@@ -143,9 +143,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 });
                 setIsRestoreModalOpen(false);
 
-                // Set Plan
+                // Set Plan & Billing Cycle
                 const userPlan = profile?.plan || profile?.subscription_tier || 'free';
+                const userBillingCycle = profile?.billing_cycle || 'monthly';
+
                 setPlan(userPlan as 'free' | 'pro');
+                setBillingCycle(userBillingCycle as 'monthly' | 'yearly');
             }
         } else {
             setUser(null);

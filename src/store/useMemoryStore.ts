@@ -37,6 +37,8 @@ interface MemoryStore {
 
     plan: 'free' | 'pro';
     setPlan: (plan: 'free' | 'pro') => void;
+    billingCycle: 'monthly' | 'yearly';
+    setBillingCycle: (billingCycle: 'monthly' | 'yearly') => void;
 
     file: File | null;
     setFile: (file: File | null) => void;
@@ -68,6 +70,8 @@ export const useMemoryStore = create<MemoryStore>()(
             // Plan State
             plan: 'free',
             setPlan: (plan: 'free' | 'pro') => set({ plan }),
+            billingCycle: 'monthly',
+            setBillingCycle: (billingCycle: 'monthly' | 'yearly') => set({ billingCycle }),
 
             // File State (Not persisted to localStorage to avoid serialize issues)
             file: null,

@@ -24,7 +24,7 @@ export default function Home() {
   const [selectedPlan, setSelectedPlan] = useState<{ name: "Standard" | "Pro", price: string }>({ name: "Pro", price: "₩4,900" });
   const [messageCount, setMessageCount] = useState(0);
 
-  const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
+  const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, setUser, plan, billingCycle: currentBillingCycle } = useMemoryStore();
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
   // Background slideshow logic
@@ -808,14 +808,16 @@ export default function Home() {
                 </ul>
                 <Button
                   onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
-                  disabled={plan === 'pro' && !(billingCycle === "yearly")}
+                  disabled={plan === 'pro' && currentBillingCycle === billingCycle}
                   className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {plan !== 'pro'
                     ? "PRO로 업그레이드"
-                    : billingCycle === "yearly"
-                      ? "연간 플랜으로 변경"
-                      : "현재 이용 중"
+                    : currentBillingCycle === billingCycle
+                      ? "현재 이용 중"
+                      : billingCycle === "yearly"
+                        ? "연간 플랜으로 변경"
+                        : "월간 플랜으로 변경"
                   }
                 </Button>
               </div>
