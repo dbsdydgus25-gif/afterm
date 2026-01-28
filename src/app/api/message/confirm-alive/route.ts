@@ -96,8 +96,8 @@ export async function GET(request: Request) {
 
         console.log(`Author ${userId} confirmed alive for message ${messageId}`);
 
-        // Redirect to main page
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/`);
+        // Redirect to confirmation page
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'}/confirmed`);
 
     } catch (error: any) {
         console.error("Confirm alive error:", error);

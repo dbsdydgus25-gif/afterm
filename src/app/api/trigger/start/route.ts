@@ -99,7 +99,8 @@ export async function POST(request: Request) {
             timestamp: Date.now()
         })).toString('base64');
 
-        const confirmLink = `${process.env.NEXT_PUBLIC_SITE_URL}/api/message/confirm-alive?token=${token}`;
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
+        const confirmLink = `${siteUrl}/api/message/confirm-alive?token=${token}`;
 
         // Setup email transporter
         const transporter = nodemailer.createTransport({
