@@ -89,7 +89,7 @@ export default function PlansPage() {
                         >
                             연간 결제
                             <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
-                                17% SAVE
+                                17%
                             </span>
                         </button>
                     </div>
@@ -128,8 +128,11 @@ export default function PlansPage() {
                                 990원 <span className="text-base font-normal text-slate-500">/ 월</span>
                             </div>
                         ) : (
-                            <div className="text-4xl font-extrabold text-slate-900 mb-6">
+                            <div className="text-4xl font-extrabold text-slate-900 mb-6 flex items-center gap-3">
                                 9,900원 <span className="text-base font-normal text-slate-500">/ 년</span>
+                                <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">
+                                    17% SAVE
+                                </span>
                             </div>
                         )}
                         <ul className="space-y-4 mb-8 text-left pl-4">
@@ -144,10 +147,15 @@ export default function PlansPage() {
                         </ul>
                         <Button
                             onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
-                            disabled={isPro}
+                            disabled={isPro && !(billingCycle === "yearly")}
                             className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isPro ? "현재 이용 중" : "PRO로 업그레이드"}
+                            {!isPro
+                                ? "PRO로 업그레이드"
+                                : billingCycle === "yearly"
+                                    ? "연간 플랜으로 변경"
+                                    : "현재 이용 중"
+                            }
                         </Button>
                     </div>
                 </div>

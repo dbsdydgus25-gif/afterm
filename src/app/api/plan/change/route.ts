@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         // Get current plan and subscription info
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('plan, subscription_end_date, auto_renew')
+            .select('plan, subscription_end_date, auto_renew, billing_cycle')
             .eq('id', user.id)
             .single();
 
@@ -91,14 +91,21 @@ export async function POST(request: Request) {
             });
         }
 
-        // Handle Basic -> Pro upgrade
-        if (currentPlan === 'free' && targetPlan === 'pro') {
-            console.log("Upgrading from Basic to Pro - restoring archived messages");
+        // Handle Basic -> Pro upgrade OR Pro Monthly -> Pro Yearly switch
+        if ((currentPlan === 'free' && targetPlan === 'pro') ||
+            (currentPlan === 'pro' && targetPlan === 'pro')) {
 
             const { billingCycle = 'monthly' } = body;
-            console.log("Billing Cycle:", billingCycle);
 
-            // Restore all archived messages
+            // Check if already on same cycle (default to 'monthly' if null)
+            const currentCycle = profile?.billing_cycle || 'monthly';
+            if (currentPlan === 'pro' && currentCycle === billingCycle) {
+                return NextResponse.json({ error: "이미 이용 중인 플랜입니다." }, { status: 400 });
+            }
+
+            console.log(`Processing Pro Upgrade/Switch. Current: ${currentPlan}, Target: ${targetPlan}, Cycle: ${billingCycle}`);
+
+            // Restore all archived messages (idempotent)
             const { error: restoreError } = await supabase
                 .from('messages')
                 .update({ archived: false })
@@ -110,9 +117,8 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: "Failed to restore messages: " + restoreError.message }, { status: 500 });
             }
 
-            console.log("Restored archived messages");
-
-            // Set subscription dates for upgrade
+            // Set subscription dates
+            // If switching, we reset start date to now and end date to +term
             const renewalDate = new Date();
             if (billingCycle === 'yearly') {
                 renewalDate.setFullYear(renewalDate.getFullYear() + 1); // Add 1 year
@@ -145,7 +151,7 @@ export async function POST(request: Request) {
                 success: true,
                 plan: 'pro',
                 billingCycle,
-                message: billingCycle === 'yearly' ? '연간 프로 플랜으로 업그레이드되었습니다!' : '프로 플랜으로 업그레이드되었습니다!'
+                message: billingCycle === 'yearly' ? '연간 프로 플랜으로 변경되었습니다!' : '프로 플랜으로 변경되었습니다!'
             });
         }
 
