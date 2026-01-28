@@ -24,6 +24,8 @@ interface Message {
     file_path?: string;
     file_size?: number;
     type?: "text" | "image" | "voice" | "video";
+    status?: string;
+    unlocked?: boolean;
 }
 
 export default function DashboardPage() {

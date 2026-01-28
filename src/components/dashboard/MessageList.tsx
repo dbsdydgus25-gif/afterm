@@ -15,6 +15,7 @@ interface Message {
     file_path?: string;
     type?: "text" | "image" | "voice" | "video";
     status?: string;
+    unlocked?: boolean;
 }
 
 interface MessageListProps {
@@ -61,7 +62,7 @@ export function MessageList({
     return (
         <div className="space-y-4">
             {messages.map((mem) => {
-                const isOpened = mem.status === 'UNLOCKED';
+                const isOpened = mem.status === 'UNLOCKED' || mem.unlocked === true;
 
                 return (
                     <div

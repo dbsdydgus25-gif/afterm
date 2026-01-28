@@ -214,7 +214,7 @@ export default function MyMemoriesPage() {
                 {memories.length > 0 ? (
                     <div className="space-y-4">
                         {memories.map((mem) => {
-                            const isOpened = mem.status === 'UNLOCKED';
+                            const isOpened = mem.status === 'UNLOCKED' || mem.unlocked === true;
 
                             return (
                                 <div
