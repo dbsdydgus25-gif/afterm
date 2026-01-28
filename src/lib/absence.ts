@@ -98,7 +98,8 @@ export async function processAbsenceChecks() {
                     await sendMessage({
                         to: message.recipient_phone,
                         text: `[AFTERM] 작성자의 부재가 확인되어 메시지가 공개되었습니다.\n확인하기: ${siteUrl}/view/${message.id}`,
-                        type: 'SMS'
+                        type: 'LMS',
+                        subject: 'AFTERM 알림'
                     });
                     console.log(`Unlock SMS sent to ${message.recipient_phone}`);
                     result.smsSent = true;
