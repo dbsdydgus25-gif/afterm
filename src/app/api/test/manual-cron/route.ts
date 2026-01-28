@@ -7,10 +7,13 @@ import { processAbsenceChecks } from "@/lib/absence";
 
 export async function GET(request: Request) {
     try {
-        console.log("[Manual Cron] Triggering processAbsenceChecks directly...");
+        const { searchParams } = new URL(request.url);
+        const messageId = searchParams.get('messageId') || undefined;
+
+        console.log(`[Manual Cron] Triggering processAbsenceChecks directly... (Target: ${messageId || 'ALL'})`);
 
         // Call the shared logic directly (Bypassing HTTP/Auth)
-        const result = await processAbsenceChecks();
+        const result = await processAbsenceChecks(messageId);
 
         return NextResponse.json({
             message: "Manual Trigger Executed Successfully",

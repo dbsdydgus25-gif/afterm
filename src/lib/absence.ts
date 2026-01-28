@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
     { auth: { persistSession: false } }
 );
 
-export async function processAbsenceChecks() {
+export async function processAbsenceChecks(targetMessageId?: string) {
     console.log("=== ABSENCE VERIFICATION PROCESS STARTED (Shared) ===");
 
     const supabase = supabaseAdmin;
@@ -28,11 +28,18 @@ export async function processAbsenceChecks() {
     const oneMinuteAgo = new Date();
     oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
 
-    const { data: stage2Messages } = await supabase
+    let query = supabase
         .from('messages')
         .select('id, recipient_email, recipient_phone, content')
         .eq('absence_check_stage', 2)
         .lt('stage2_sent_at', oneMinuteAgo.toISOString());
+
+    // Filter by Specific Message ID if provided (For limiting Manual Cron)
+    if (targetMessageId) {
+        query = query.eq('id', targetMessageId);
+    }
+
+    const { data: stage2Messages } = await query;
 
     console.log(`[TEST MODE] Found ${stage2Messages?.length || 0} messages to unlock after stage 2 (1 min)`);
 
@@ -53,6 +60,7 @@ export async function processAbsenceChecks() {
             await supabase
                 .from('messages')
                 .update({
+                    status: 'UNLOCKED',      // Critical for Dashboard
                     unlocked: true,
                     absence_check_stage: 3,
                     absence_confirmed: true  // Author absent

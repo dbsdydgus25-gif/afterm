@@ -12,7 +12,11 @@ export default function TestCronPage() {
         setLoading(true);
         setStatus(null);
         try {
-            const res = await fetch('/api/test/manual-cron');
+            let url = '/api/test/manual-cron';
+            if (messageId) {
+                url += `?messageId=${messageId}`;
+            }
+            const res = await fetch(url);
             const data = await res.json();
             setStatus({ type: "CRON", data });
         } catch (e: any) {
