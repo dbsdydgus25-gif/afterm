@@ -12,7 +12,8 @@ export async function GET(request: Request) {
         // but Next.js App Router exports are tricky to call directly due to Request/Response types.
 
         // Let's use fetch to the public URL with the secret.
-        const cronUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/cron/process-absence-checks`;
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
+        const cronUrl = `${siteUrl}/api/cron/process-absence-checks`;
 
         const res = await fetch(cronUrl, {
             headers: {
