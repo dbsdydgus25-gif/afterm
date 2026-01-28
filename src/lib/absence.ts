@@ -24,15 +24,15 @@ export async function processAbsenceChecks(targetMessageId?: string) {
         }
     });
 
-    // === STAGE 2 → UNLOCK MESSAGE (After 1 Minute - TEST MODE) ===
-    const oneMinuteAgo = new Date();
-    oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+    // === STAGE 2 → UNLOCK MESSAGE (After 48 Hours) ===
+    const fortyEightHoursAgo = new Date();
+    fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
 
     let query = supabase
         .from('messages')
         .select('id, recipient_email, recipient_phone, content')
         .eq('absence_check_stage', 2)
-        .lt('stage2_sent_at', oneMinuteAgo.toISOString());
+        .lt('stage2_sent_at', fortyEightHoursAgo.toISOString());
 
     // Filter by Specific Message ID if provided (For limiting Manual Cron)
     if (targetMessageId) {
@@ -41,7 +41,7 @@ export async function processAbsenceChecks(targetMessageId?: string) {
 
     const { data: stage2Messages } = await query;
 
-    console.log(`[TEST MODE] Found ${stage2Messages?.length || 0} messages to unlock after stage 2 (1 min)`);
+    console.log(`[ABSENCE CHECK] Found ${stage2Messages?.length || 0} messages pending unlock (48h check)`);
 
     const results = [];
 
@@ -61,7 +61,6 @@ export async function processAbsenceChecks(targetMessageId?: string) {
                 .from('messages')
                 .update({
                     status: 'UNLOCKED',      // Critical for Dashboard
-                    unlocked: true,
                     absence_check_stage: 3,
                     absence_confirmed: true  // Author absent
                 })
