@@ -76,7 +76,7 @@ export default function TestCronPage() {
                     disabled={loading}
                     className="w-full bg-red-100 text-red-700 hover:bg-red-200 h-16 text-lg"
                 >
-                    Fast Forward 48 Hours ⏩
+                    Fast Forward 48 Hours (TEST MODE) ⏩
                 </Button>
             </div>
 
