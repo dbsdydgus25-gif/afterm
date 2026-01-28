@@ -68,7 +68,7 @@ export default function MessageViewPage() {
         try {
             const res = await reportIssue(messageId);
             if (res.success) {
-                alert("확인 절차가 시작되었습니다.\n\n확인 메일이 발송되었습니다.\n1주일 내에 응답이 없으면 메시지가 공개됩니다.\n\n(또는 인증 대기 화면에서 직접 인증 가능합니다)");
+                alert("2단계 과정은 총 48시간이 필요합니다 (1단계: 메일 확인, 2단계: 48시간 확인) 작성자가 응답하지 않으면 메시지로 알림이 전달 될 예정입니다.");
                 window.location.href = `/view/${messageId}/auth`;
             } else {
                 alert(`오류가 발생했습니다: ${res.error}`);

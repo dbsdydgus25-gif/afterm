@@ -1,35 +1,24 @@
 import { NextResponse } from "next/server";
+import { processAbsenceChecks } from "@/lib/absence";
 
-// This route serves as a public wrapper to trigger the protected Cron Job internally.
+// This route serves as a public wrapper to trigger the Cron Job internally.
 // IN PRODUCTION, THIS SHOULD BE PROTECTED OR DISABLED.
 // For this testing phase, we allow it.
 
 export async function GET(request: Request) {
     try {
-        // Call the internal cron logic or valid HTTPS URL
-        // Calling localhost URL inside container might be tricky depending on env.
-        // It's safer to import the GET function from the cron route if possible, 
-        // but Next.js App Router exports are tricky to call directly due to Request/Response types.
+        console.log("[Manual Cron] Triggering processAbsenceChecks directly...");
 
-        // Let's use fetch to the public URL with the secret.
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
-        const cronUrl = `${siteUrl}/api/cron/process-absence-checks`;
-
-        const res = await fetch(cronUrl, {
-            headers: {
-                'Authorization': `Bearer ${process.env.CRON_SECRET}`
-            }
-        });
-
-        const data = await res.json();
+        // Call the shared logic directly (Bypassing HTTP/Auth)
+        const result = await processAbsenceChecks();
 
         return NextResponse.json({
-            message: "Manual Trigger Attempted",
-            cronStatus: res.status,
-            cronResult: data
+            message: "Manual Trigger Executed Successfully",
+            result
         });
 
     } catch (error: any) {
+        console.error("[Manual Cron] Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
