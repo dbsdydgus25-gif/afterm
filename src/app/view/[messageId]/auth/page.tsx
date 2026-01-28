@@ -319,11 +319,20 @@ export default function AuthViewPage() {
                         <button
                             onClick={handleStartTrigger}
                             disabled={loading}
-                            className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-red-500/50 hover:bg-zinc-800 transition-all text-left group"
+                            className={`w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800 transition-all text-left group ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-500/50 hover:bg-zinc-800'}`}
                         >
                             <div className="flex items-center justify-between mb-1">
-                                <span className="font-bold text-zinc-200">부재 확인 요청</span>
-                                <Send className="w-4 h-4 text-zinc-600 group-hover:text-red-400" />
+                                <span className="font-bold text-zinc-200">
+                                    {loading ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>요청 중...</span>
+                                        </div>
+                                    ) : (
+                                        "부재 확인 요청"
+                                    )}
+                                </span>
+                                {!loading && <Send className="w-4 h-4 text-zinc-600 group-hover:text-red-400" />}
                             </div>
                             <p className="text-xs text-zinc-500">작성자에게 확인 메일 발송 (응답 없을 시 공개)</p>
                         </button>
