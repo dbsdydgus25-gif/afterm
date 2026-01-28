@@ -37,17 +37,18 @@ export async function GET(request: Request) {
             }
         });
 
-        // === STAGE 2 → UNLOCK MESSAGE (After 48 hours) ===
-        const fortyEightHoursAgo = new Date();
-        fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48); // 48 Hours
+        // === STAGE 2 → UNLOCK MESSAGE (After 1 Minute - TEST MODE) ===
+        // Production would be 48 hours. Changed to 1 min for testing as requested.
+        const oneMinuteAgo = new Date();
+        oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
 
         const { data: stage2Messages } = await supabase
             .from('messages')
             .select('id, recipient_email, recipient_phone, content')
             .eq('absence_check_stage', 2)
-            .lt('stage2_sent_at', fortyEightHoursAgo.toISOString());
+            .lt('stage2_sent_at', oneMinuteAgo.toISOString());
 
-        console.log(`Found ${stage2Messages?.length || 0} messages to unlock after stage 2 (48h)`);
+        console.log(`[TEST MODE] Found ${stage2Messages?.length || 0} messages to unlock after stage 2 (1 min)`);
 
         let stage2Count = 0;
         for (const message of stage2Messages || []) {

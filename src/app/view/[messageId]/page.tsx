@@ -182,13 +182,14 @@ export default function MessageViewPage() {
                             </h3>
                             <div className="text-sm text-zinc-600 dark:text-zinc-400 space-y-3 leading-relaxed break-keep">
                                 <p className="font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-100 dark:border-amber-900/30">
-                                    이 메시지는 작성자가 <strong>문제가 있을 시에만</strong> 열람할 수 있도록 설정되어있습니다.
+                                    부재 여부는 <strong>총 2단계</strong>로 확인됩니다.
                                 </p>
-                                <p>
-                                    확인을 누르시면 <strong className="text-zinc-900 dark:text-zinc-100">작성자에게도 열람 메일이 갑니다.</strong>
-                                </p>
-                                <p className="text-xs text-zinc-500">
-                                    그래도 누르시겠습니까?
+                                <ul className="text-left space-y-2 text-xs bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-lg">
+                                    <li>1. 작성자에게 생존 확인 메일이 발송됩니다.</li>
+                                    <li>2. <strong>48시간</strong> 동안 응답이 없으면 메시지가 공개됩니다.</li>
+                                </ul>
+                                <p className="text-xs text-zinc-500 font-medium pt-2">
+                                    진행하시겠습니까?
                                 </p>
                             </div>
                         </div>
