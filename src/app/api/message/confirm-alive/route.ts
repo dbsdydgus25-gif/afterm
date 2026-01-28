@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from 'nodemailer';
+import { sendMessage } from "@/lib/solapi/client";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
         // Get message details
         const { data: message, error: msgError } = await supabase
             .from('messages')
-            .select('id, user_id, recipient_email, content, absence_check_stage')
+            .select('id, user_id, recipient_email, recipient_phone, content, absence_check_stage')
             .eq('id', messageId)
             .eq('user_id', userId)
             .single();
@@ -67,6 +68,7 @@ export async function GET(request: Request) {
         }
 
         // Send notification to recipient
+        // 1. Email (Legacy support)
         if (message.recipient_email) {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -75,7 +77,6 @@ export async function GET(request: Request) {
                     pass: process.env.GMAIL_APP_PASSWORD
                 }
             });
-
 
             await transporter.sendMail({
                 from: `"AFTERM" <${process.env.GMAIL_USER}>`,
@@ -92,6 +93,21 @@ export async function GET(request: Request) {
                     </div>
                 `
             });
+        }
+
+        // 2. SMS (Primary)
+        if (message.recipient_phone) {
+            try {
+                await sendMessage({
+                    to: message.recipient_phone,
+                    text: `[AFTERM] 작성자의 생존이 확인되어 메시지 열람이 제한됩니다. (본인 확인 완료)`,
+                    type: 'SMS'
+                });
+                console.log(`SMS sent to ${message.recipient_phone}`);
+            } catch (smsError) {
+                console.error("Failed to send SMS:", smsError);
+                // Non-blocking error
+            }
         }
 
         console.log(`Author ${userId} confirmed alive for message ${messageId}`);
