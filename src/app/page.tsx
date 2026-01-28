@@ -735,7 +735,7 @@ export default function Home() {
                     : "text-slate-500 hover:text-slate-900"
                     }`}
                 >
-                  월간 결제
+                  1개월 이용권
                 </button>
                 <button
                   onClick={() => setBillingCycle("yearly")}
@@ -744,7 +744,7 @@ export default function Home() {
                     : "text-slate-500 hover:text-slate-900"
                     }`}
                 >
-                  연간 결제
+                  1년 이용권
                   <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
                     17%
                   </span>
@@ -816,8 +816,8 @@ export default function Home() {
                     : currentBillingCycle === billingCycle
                       ? "현재 이용 중"
                       : billingCycle === "yearly"
-                        ? "연간 플랜으로 변경"
-                        : "월간 플랜으로 변경"
+                        ? "1년 이용권 구매"
+                        : "1개월 이용권 구매"
                   }
                 </Button>
               </div>

@@ -16,6 +16,8 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
+    "@tosspayments/payment-widget-sdk": "^0.12.1",
+    "@tosspayments/tosspayments-sdk": "^2.5.0",
     "@types/nodemailer": "^7.0.5",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

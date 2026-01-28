@@ -30,13 +30,12 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
     let warningMessage = "";
 
     if (currentPlan === "pro" && targetPlan === "free") {
-        title = "구독 취소 확인";
-        const endDateFormatted = endDate
-            ? new Date(endDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
-            : '';
-        warningMessage = `${endDateFormatted}까지 Pro 혜택을 계속 이용할 수 있습니다. 이후 Basic 플랜으로 자동 전환됩니다.`;
+        title = "이용권 연장 취소";
+        warningMessage = "현재 이용 중인 혜택은 만료일까지 유지됩니다.";
     } else if (currentPlan === "free" && targetPlan === "pro") {
-        warningMessage = "보관된 메시지가 모두 복원됩니다.";
+        warningMessage = "결제 즉시 보관된 메시지가 모두 복원됩니다.";
+    } else if (currentPlan === "pro" && targetPlan === "pro") {
+        warningMessage = "현재 만료일에서 이용 기간이 추가로 연장됩니다.";
     }
 
     const handleConfirm = async () => {

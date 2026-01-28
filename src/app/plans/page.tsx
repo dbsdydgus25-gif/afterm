@@ -5,49 +5,67 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { PlanConfirmModal } from "@/components/payment/PlanConfirmModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 
 export default function PlansPage() {
     const router = useRouter();
-    const { plan, billingCycle: currentBillingCycle } = useMemoryStore();
+    const { plan, billingCycle: currentBillingCycle, user } = useMemoryStore();
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-    const [remainingDays, setRemainingDays] = useState<number | undefined>();
-    const [endDate, setEndDate] = useState<string | undefined>();
+    const [tossPayments, setTossPayments] = useState<any>(null);
+
+    // Initialize Toss Payments
+    useEffect(() => {
+        const initToss = async () => {
+            try {
+                const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
+                if (clientKey) {
+                    const toss = await loadTossPayments(clientKey);
+                    setTossPayments(toss);
+                }
+            } catch (error) {
+                console.error("Failed to load Toss Payments:", error);
+            }
+        };
+        initToss();
+    }, []);
 
     const handleSubscribe = async (planName: string, price: string) => {
+        if (!user) {
+            router.push('/login');
+            return;
+        }
         const newPlan = planName === "Pro" ? "pro" : "free";
         setTargetPlan(newPlan);
         setIsPlanModalOpen(true);
     };
 
-    const handlePlanChange = async () => {
-        try {
-            const res = await fetch('/api/plan/change', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetPlan, billingCycle })
-            });
+    const handlePayment = async () => {
+        if (!tossPayments || !user) {
+            alert("결제 시스템을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+            return;
+        }
 
-            const data = await res.json();
-            if (data.success) {
-                if (data.cancelled) {
-                    // Subscription cancelled - stays Pro until end date
-                    setRemainingDays(data.remainingDays);
-                    setEndDate(data.endDate);
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    // Plan changed immediately (Pro upgrade)
-                    alert(data.message);
-                    window.location.reload();
-                }
-            } else {
-                alert(data.error || "플랜 변경 중 오류가 발생했습니다.");
-            }
+        try {
+            const amount = billingCycle === 'yearly' ? 9900 : 990;
+            const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const orderName = billingCycle === 'yearly' ? 'AFTERM 1년 이용권' : 'AFTERM 1개월 이용권';
+
+            // Request Payment (Card)
+            await tossPayments.requestPayment('카드', {
+                amount,
+                orderId,
+                orderName,
+                successUrl: `${window.location.origin}/payment/success?billingCycle=${billingCycle}`,
+                failUrl: `${window.location.origin}/payment/fail`,
+                customerName: user.name || "익명",
+                customerEmail: user.email || "",
+            });
         } catch (error) {
-            alert("플랜 변경 중 오류가 발생했습니다.");
+            console.error("Payment Request Error:", error);
+            // Toss Payments SDK handles redirects for errors too, but catches here if strictly JS error
         }
     };
 
@@ -78,7 +96,7 @@ export default function PlansPage() {
                                 : "text-slate-500 hover:text-slate-900"
                                 }`}
                         >
-                            월간 결제
+                            1개월 이용권
                         </button>
                         <button
                             onClick={() => setBillingCycle("yearly")}
@@ -87,7 +105,7 @@ export default function PlansPage() {
                                 : "text-slate-500 hover:text-slate-900"
                                 }`}
                         >
-                            연간 결제
+                            1년 이용권
                             <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
                                 17%
                             </span>
@@ -154,16 +172,15 @@ export default function PlansPage() {
                         </ul>
                         <Button
                             onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
-                            disabled={isPro && currentBillingCycle === billingCycle}
                             className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {!isPro
-                                ? "PRO로 업그레이드"
+                                ? "1개월 이용권 구매" // Default text, specific cycle logic handled by billingCycle
                                 : currentBillingCycle === billingCycle
-                                    ? "현재 이용 중"
+                                    ? "현재 이용 중 (연장하기)" // Allow extension even if current?
                                     : billingCycle === "yearly"
-                                        ? "연간 플랜으로 변경"
-                                        : "월간 플랜으로 변경"
+                                        ? "1년 이용권 구매"
+                                        : "1개월 이용권 구매"
                             }
                         </Button>
                     </div>
@@ -176,9 +193,7 @@ export default function PlansPage() {
                 targetPlan={targetPlan}
                 billingCycle={billingCycle}
                 currentPlan={plan === 'pro' ? 'pro' : 'free'}
-                remainingDays={remainingDays}
-                endDate={endDate}
-                onConfirm={handlePlanChange}
+                onConfirm={handlePayment} // Use Payment logic now
             />
         </div>
     );
