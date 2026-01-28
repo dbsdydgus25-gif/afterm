@@ -39,10 +39,14 @@ export async function sendMessage({ to, from, text, subject, type = 'SMS', kakao
     }
 
     try {
+        // Sanitize Phone Numbers (Remove dashes)
+        const cleanTo = to.replace(/[^0-9]/g, '');
+        const cleanFrom = sender.replace(/[^0-9]/g, '');
+
         // Construct Message Object
         const messageObj: any = {
-            to,
-            from: sender,
+            to: cleanTo,
+            from: cleanFrom,
             text,
             subject, // Added subject
             type // 'SMS' default, can be 'ATA' (AlimTalk)
