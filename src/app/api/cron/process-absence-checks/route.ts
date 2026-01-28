@@ -13,8 +13,8 @@ const supabaseAdmin = createClient(
 /**
  * Cron job to process absence verification stages
  * Runs every hour to:
- * 1. Move stage 1 (7+ days) → stage 2
- * 2. Move stage 2 (24+ hours) → unlock message
+ * 1. Move stage 2 (48+ hours) → unlock message
+ * (Stage 1 is now skipped, effectively merging request and warning)
  */
 export async function GET(request: Request) {
     try {
@@ -37,99 +37,17 @@ export async function GET(request: Request) {
             }
         });
 
-        // === STAGE 1 → STAGE 2 (After 7 days) ===
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        // Test logic removed
-
-        const { data: stage1Messages } = await supabase
-            .from('messages')
-            .select('id, user_id, recipient_email, recipient_phone, content')
-            .eq('absence_check_stage', 1)
-            .lt('stage1_sent_at', sevenDaysAgo.toISOString());
-
-        console.log(`Found ${stage1Messages?.length || 0} messages to move from stage 1 to stage 2`);
-
-        let stage1Count = 0;
-        for (const message of stage1Messages || []) {
-            try {
-                const now = new Date().toISOString();
-
-                // Update to stage 2
-                await supabase
-                    .from('messages')
-                    .update({
-                        absence_check_stage: 2,
-                        stage2_sent_at: now
-                    })
-                    .eq('id', message.id);
-
-                // Get author email directly from Auth
-                const { data: { user: author }, error: userError } = await supabase.auth.admin.getUserById(message.user_id);
-
-                if (userError || !author || !author.email) {
-                    console.error(`Author email not found for message ${message.id}`);
-                    continue;
-                }
-
-                // Generate confirmation token
-                const token = Buffer.from(JSON.stringify({
-                    messageId: message.id,
-                    userId: message.user_id,
-                    type: 'survival_check',
-                    timestamp: Date.now()
-                })).toString('base64');
-
-                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
-                const confirmLink = `${siteUrl}/api/message/confirm-alive?token=${token}`;
-
-                // Send Stage 2 final confirmation email
-                await transporter.sendMail({
-                    from: `"AFTERM" <${process.env.GMAIL_USER}>`,
-                    to: author.email,
-                    subject: "🚨 AFTERM 최종 생존 확인 (24시간 내 확인 필요)",
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                            <h2 style="color: #dc2626;">🚨 최종 생존 확인</h2>
-                            <p>안녕하세요,</p>
-                            <p><strong>${message.content ? (message.content.length > 20 ? message.content.substring(0, 20) + '...' : message.content) : '내용 없음'}</strong>에 대한 마지막 생존 확인입니다.</p>
-                            <p style="color: #dc2626; font-weight: bold;">
-                                24시간 이내에 이 메일을 확인하거나 아래 버튼을 클릭하지 않으면 메시지가 자동으로 공개됩니다.
-                            </p>
-                            
-                            <div style="margin: 30px 0; text-align: center;">
-                                <a href="${confirmLink}" 
-                                   style="background: #dc2626; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                                    긴급: 생존 확인하기
-                                </a>
-                            </div>
-                            
-                            <p style="color: #6b7280; font-size: 14px;">
-                                이메일은 최종 경고입니다. 24시간 후 메시지가 공개됩니다.
-                            </p>
-                        </div>
-                    `
-                });
-
-                console.log(`Moved message ${message.id} to stage 2, sent final email to ${author.email}`);
-                stage1Count++;
-
-            } catch (error) {
-                console.error(`Failed to process stage 1 message ${message.id}:`, error);
-            }
-        }
-
-        // === STAGE 2 → UNLOCK MESSAGE (After 24 hours) ===
-        const twentyFourHoursAgo = new Date();
-        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        // === STAGE 2 → UNLOCK MESSAGE (After 48 hours) ===
+        const fortyEightHoursAgo = new Date();
+        fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48); // 48 Hours
 
         const { data: stage2Messages } = await supabase
             .from('messages')
             .select('id, recipient_email, recipient_phone, content')
             .eq('absence_check_stage', 2)
-            .lt('stage2_sent_at', twentyFourHoursAgo.toISOString());
+            .lt('stage2_sent_at', fortyEightHoursAgo.toISOString());
 
-        console.log(`Found ${stage2Messages?.length || 0} messages to unlock after stage 2`);
+        console.log(`Found ${stage2Messages?.length || 0} messages to unlock after stage 2 (48h)`);
 
         let stage2Count = 0;
         for (const message of stage2Messages || []) {
@@ -171,12 +89,6 @@ export async function GET(request: Request) {
 
                 // 2. SMS (Primary)
                 if (message.recipient_phone) {
-                    // Import inside loop or ensure imported at top. 
-                    // Since I can't easily add import at top with this ReplaceBlock, 
-                    // I will trust the import exists or add it in a separate call if needed. 
-                    // Wait, I haven't added the import yet to this file. 
-                    // I will add the import in a separate tool call.
-                    // For now, I'll use the function assuming it's imported.
                     try {
                         await sendMessage({
                             to: message.recipient_phone,
@@ -197,11 +109,10 @@ export async function GET(request: Request) {
             }
         }
 
-        console.log(`=== CRON COMPLETED: ${stage1Count} moved to stage 2, ${stage2Count} unlocked ===`);
+        console.log(`=== CRON COMPLETED: ${stage2Count} unlocked ===`);
 
         return NextResponse.json({
             success: true,
-            stage1ToStage2: stage1Count,
             stage2Unlocked: stage2Count
         });
 

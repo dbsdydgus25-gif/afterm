@@ -76,13 +76,13 @@ export async function POST(request: Request) {
 
         const now = new Date().toISOString();
 
-        // Update message to stage 1
+        // Update message to stage 2 directly (Skip Stage 1)
         const { error: updateError } = await supabase
             .from('messages')
             .update({
-                absence_check_stage: 1,
+                absence_check_stage: 2, // Start at Stage 2
                 absence_check_requested_at: now,
-                stage1_sent_at: now
+                stage2_sent_at: now     // Mark stage 2 as sent immediately
             })
             .eq('id', messageId);
 
@@ -111,38 +111,42 @@ export async function POST(request: Request) {
             }
         });
 
-        // Send Stage 1 survival confirmation email to author
+        // Send Survival Confirmation Email (48 Hours Warning)
         await transporter.sendMail({
             from: `"AFTERM" <${process.env.GMAIL_USER}>`,
             to: author.email,
-            subject: "⚠️ AFTERM 생존 확인 요청 (7일 내 확인 필요)",
+            subject: "🚨 AFTERM 생존 확인 요청 (48시간 내 확인 필요)",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #dc2626;">⚠️ 생존 확인 요청</h2>
+                    <h2 style="color: #dc2626;">🚨 생존 확인 요청</h2>
                     <p>안녕하세요,</p>
                     <p><strong>${message.recipient_name || '수신인'}</strong>님이 메시지에 대해 부재 확인을 요청했습니다.</p>
-                    <p>7일 이내에 이 메일을 확인하거나 아래 버튼을 클릭해주세요.</p>
+                    
+                    <p style="font-size: 16px; line-height: 1.6;">
+                        이 요청은 작성자의 생존 여부를 확인하기 위한 절차입니다.<br>
+                        <strong>48시간 이내</strong>에 아래 버튼을 눌러 생존을 확인해주세요.
+                    </p>
+                    
+                    <p style="color: #dc2626; font-weight: bold; margin-top: 10px;">
+                        응답이 없으면 작성자의 부재로 간주되어 메시지가 공개됩니다.
+                    </p>
                     
                    <div style="margin: 30px 0; text-align: center;">
                         <a href="${confirmLink}" 
-                           style="background: #2563eb; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                            생존 확인하기
+                           style="background: #dc2626; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                            생존 확인하기 (본인 인증)
                         </a>
                     </div>
-                    
-                    <p style="color: #6b7280; font-size: 14px;">
-                        확인하지 않으면 2단계 최종 확인이 진행됩니다.
-                    </p>
                 </div>
             `
         });
 
-        console.log(`Absence check started for message ${messageId}, stage 1 email sent to ${author.email}`);
+        console.log(`Absence check started for message ${messageId}, stage 2 (48h) email sent to ${author.email}`);
 
         return NextResponse.json({
             success: true,
-            stage: 1,
-            message: "1단계 생존 확인 메일이 발송되었습니다."
+            stage: 2,
+            message: "생존 확인 메일이 발송되었습니다. (48시간 대기 시작)"
         });
 
     } catch (error: any) {

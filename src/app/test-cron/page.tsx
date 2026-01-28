@@ -49,7 +49,7 @@ export default function TestCronPage() {
             <div>
                 <h1 className="text-2xl font-bold mb-2">Absence Verification Simulator</h1>
                 <p className="text-gray-600">
-                    Use this tool to test the <strong>Real Production Logic</strong> (7 Days / 24 Hours) instantly.
+                    Test the <strong>New Simplified Flow</strong> (Request &rarr; 48H Wait &rarr; Unlock).
                 </p>
             </div>
 
@@ -62,41 +62,24 @@ export default function TestCronPage() {
                     onChange={(e) => setMessageId(e.target.value)}
                     className="w-full p-3 border rounded-lg font-mono text-sm"
                 />
-                <p className="text-sm text-gray-500">
-                    * You can find the ID in the URL of the View page (e.g. /view/<strong>uuid</strong>) or in the dashboard.
-                </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                    <h3 className="font-medium text-blue-600">Stage 1 Simulation</h3>
-                    <p className="text-sm text-gray-500">Simulate "7 Days Passed" since request.</p>
-                    <Button
-                        onClick={() => timeTravel("fast-forward-7days")}
-                        disabled={loading}
-                        className="w-full bg-blue-100 text-blue-700 hover:bg-blue-200"
-                    >
-                        Fast Forward 7 Days
-                    </Button>
-                </div>
-
-                <div className="space-y-4">
-                    <h3 className="font-medium text-red-600">Stage 2 Simulation</h3>
-                    <p className="text-sm text-gray-500">Simulate "24 Hours Passed" since final warning.</p>
-                    <Button
-                        onClick={() => timeTravel("fast-forward-24hours")}
-                        disabled={loading}
-                        className="w-full bg-red-100 text-red-700 hover:bg-red-200"
-                    >
-                        Fast Forward 24 Hours
-                    </Button>
-                </div>
+            <div className="space-y-4">
+                <h3 className="font-medium text-red-600">Time Travel</h3>
+                <p className="text-sm text-gray-500">Simulate "48 Hours Passed" since the confirmation email was sent.</p>
+                <Button
+                    onClick={() => timeTravel("fast-forward-48hours")}
+                    disabled={loading}
+                    className="w-full bg-red-100 text-red-700 hover:bg-red-200 h-16 text-lg"
+                >
+                    Fast Forward 48 Hours ⏩
+                </Button>
             </div>
 
             <div className="pt-6 border-t">
                 <h2 className="font-semibold text-lg mb-4">2. Trigger Check</h2>
                 <p className="text-gray-600 mb-4">
-                    After fast-forwarding, run the checker to process the message.
+                    Run the checker to unlock the message if time has passed.
                 </p>
                 <Button onClick={runCron} disabled={loading} size="lg" className="w-full">
                     {loading ? "Processing..." : "Run Absence Check Now"}

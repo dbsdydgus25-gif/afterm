@@ -19,38 +19,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Message ID required" }, { status: 400 });
         }
 
-        if (action === "fast-forward-7days") {
-            // Set stage1_sent_at to 8 days ago
-            const eightDaysAgo = new Date();
-            eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
+        if (action === "fast-forward-48hours") {
+            // Set stage2_sent_at to 49 hours ago to trigger unlock
+            const fortyNineHoursAgo = new Date();
+            fortyNineHoursAgo.setHours(fortyNineHoursAgo.getHours() - 49);
 
             const { error } = await supabaseAdmin
                 .from('messages')
                 .update({
-                    stage1_sent_at: eightDaysAgo.toISOString(),
-                    absence_check_stage: 1 // Ensure stage is 1
-                })
-                .eq('id', messageId);
-
-            if (error) throw error;
-            return NextResponse.json({ success: true, message: "Fast forwarded 8 days" });
-        }
-
-        if (action === "fast-forward-24hours") {
-            // Set stage2_sent_at to 25 hours ago
-            const twentyFiveHoursAgo = new Date();
-            twentyFiveHoursAgo.setHours(twentyFiveHoursAgo.getHours() - 25);
-
-            const { error } = await supabaseAdmin
-                .from('messages')
-                .update({
-                    stage2_sent_at: twentyFiveHoursAgo.toISOString(),
+                    stage2_sent_at: fortyNineHoursAgo.toISOString(),
                     absence_check_stage: 2 // Ensure stage is 2
                 })
                 .eq('id', messageId);
 
             if (error) throw error;
-            return NextResponse.json({ success: true, message: "Fast forwarded 25 hours" });
+            return NextResponse.json({ success: true, message: "Fast forwarded 49 hours" });
         }
 
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
