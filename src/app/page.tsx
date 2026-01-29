@@ -140,7 +140,7 @@ export default function Home() {
         onClick={() => router.push('/plans')}
         className="fixed top-20 left-0 w-full bg-indigo-600 text-white z-40 py-2 shadow-md animate-slide-down cursor-pointer hover:bg-indigo-700 transition-colors"
       >
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm md:text-base font-bold flex items-center justify-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 text-center text-[10px] sm:text-xs md:text-base font-bold flex items-center justify-center gap-2">
           <span>🎉 오픈 기념 특별 이벤트! 지금 시작하면 PRO 플랜 3개월 무료 증정</span>
           <span className="bg-white text-indigo-600 text-xs px-2 py-0.5 rounded-full animate-pulse">Limited</span>
         </div>
@@ -148,7 +148,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex flex-col items-center w-full">
-        <section className="relative w-full flex flex-col items-center justify-center px-4 pt-24 pb-12 md:pt-32 md:pb-16 min-h-[90vh] overflow-hidden transition-colors duration-1000 ease-in-out">
+        <section className="relative w-full flex flex-col items-center justify-center px-4 pt-40 pb-12 md:pt-32 md:pb-16 min-h-[90vh] overflow-hidden transition-colors duration-1000 ease-in-out">
 
           {/* Background Slideshow */}
           <div className="absolute inset-0 z-0">
@@ -528,13 +528,11 @@ export default function Home() {
                 </div>
                 <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                   그리운 마음을<br />
-                  <span className="text-blue-600">온라인 추모관</span>에<br />
-                  남겨보세요.
+                  <span className="text-blue-600">온라인 추모관</span>에 남겨보세요.
                 </h2>
-                <p className="text-base md:text-lg text-slate-500 leading-relaxed">
-                  시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.<br />
-                  소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과 함께<br />
-                  따뜻한 메시지를 나누세요.
+                <p className="text-sm md:text-lg text-slate-500 leading-relaxed break-keep">
+                  시공간의 제약 없이, 언제 어디서나 고인을<br className="block md:hidden" /> 추억할 수 있습니다.<br />
+                  소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과<br className="block md:hidden" /> 함께 따뜻한 메시지를 나누세요.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
@@ -564,8 +562,8 @@ export default function Home() {
               <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                 삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
               </h2>
-              <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed">
-                웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
+              <p className="text-sm md:text-xl max-w-2xl mx-auto leading-relaxed break-keep">
+                웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br />
                 많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
               </p>
             </motion.div>
