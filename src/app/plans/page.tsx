@@ -194,7 +194,11 @@ export default function PlansPage() {
             <Script
                 src="https://js.tosspayments.com/v1/payment"
                 onLoad={() => {
-                    const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+                    // Fallback to hardcoded test key if env var fails in Vercel
+                    const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "test_ck_vZnjEJeQVxzzGjy7yj6Y8PmOoBN0";
+
+                    console.log("Using Client Key:", clientKey ? `${clientKey.substring(0, 10)}...` : "None");
+
                     if (window.TossPayments && clientKey) {
                         try {
                             tossPaymentsRef.current = window.TossPayments(clientKey);
