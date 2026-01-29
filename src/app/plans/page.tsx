@@ -37,7 +37,7 @@ export default function PlansPage() {
 
     const handlePayment = async () => {
         if (!tossPaymentsRef.current) {
-            alert("결제 시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
+            alert("결제 시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요. (SDK 로딩 중)");
             return;
         }
 
@@ -45,6 +45,8 @@ export default function PlansPage() {
             const amount = billingCycle === 'yearly' ? 9900 : 990;
             const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const orderName = billingCycle === 'yearly' ? 'AFTERM 1년 이용권' : 'AFTERM 1개월 이용권';
+
+            console.log("Requesting Payment with:", { amount, orderId, orderName });
 
             // Request Payment (Card)
             await tossPaymentsRef.current.requestPayment('카드', {
@@ -56,8 +58,9 @@ export default function PlansPage() {
                 customerName: user?.name || "익명",
                 customerEmail: user?.email || "",
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Payment Request Error:", error);
+            alert(`결제 요청 중 오류가 발생했습니다: ${error.message || error}`);
         }
     };
 
