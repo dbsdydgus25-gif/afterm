@@ -174,7 +174,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
               className="space-y-4"
             >
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.2] break-keep drop-shadow-sm whitespace-nowrap">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-snug break-keep drop-shadow-sm whitespace-nowrap">
                 <motion.span
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -197,9 +197,10 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
-                className="text-xs sm:text-lg text-gray-500 font-medium tracking-normal break-keep"
+                className="text-sm sm:text-lg text-gray-500 font-medium tracking-normal break-keep bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm"
               >
-                소중한 사람들을 위한 마지막 센스<br />
+                소중한 사람들을 위한 마지막 센스<br className="hidden sm:block" />
+                <span className="sm:inline hidden text-slate-400 mx-2">|</span>
                 미리 저장하는 안부인사
               </motion.p>
             </motion.div>
@@ -250,14 +251,14 @@ export default function Home() {
         </section>
 
         {/* New Service Process Explanation Section */}
-        <section className="w-full bg-white py-24 border-b border-slate-100">
+        <section className="w-full bg-white py-16 md:py-24 border-b border-slate-100">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="text-center mb-16 space-y-4">
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-xs font-bold tracking-wide">HOW IT WORKS</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+            <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-wide">HOW IT WORKS</span>
+              <h2 className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight">
                 마음이 전달되는 과정
               </h2>
-              <p className="text-slate-500 text-lg">
+              <p className="text-slate-500 text-sm md:text-lg">
                 가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
               </p>
             </div>
@@ -341,22 +342,22 @@ export default function Home() {
 
 
         {/* Feature Section (Dark) */}
-        <section className="w-full bg-slate-900 text-white py-32 overflow-hidden relative">
+        <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
           <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-center">
 
               {/* Text Content */}
-              <div className="md:col-span-5 space-y-10 text-left">
+              <div className="md:col-span-5 space-y-8 md:space-y-10 text-left">
                 <motion.div
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: false, margin: "-100px" }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="space-y-6"
+                  className="space-y-4 md:space-y-6"
                 >
-                  <h2 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight">
+                  <h2 className="text-2xl md:text-5xl font-bold leading-tight tracking-tight">
                     남겨진 사람들에게<br />
                     <span className="text-blue-400">가장 소중한 선물</span>이<br />
                     됩니다.
@@ -369,7 +370,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: false, margin: "-100px" }}
                   transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-                  className="text-lg text-slate-400 leading-relaxed break-keep"
+                  className="text-base md:text-lg text-slate-400 leading-relaxed break-keep"
                 >
                   AFTERM(에프텀)은 당신의 생애 데이터를 안전하게 보관하고,
                   지정된 시점에 소중한 사람들에게 전달합니다.
@@ -525,12 +526,12 @@ export default function Home() {
                 <div className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide">
                   NEW SERVICE
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                   그리운 마음을<br />
                   <span className="text-blue-600">온라인 추모관</span>에<br />
                   남겨보세요.
                 </h2>
-                <p className="text-lg text-slate-500 leading-relaxed">
+                <p className="text-base md:text-lg text-slate-500 leading-relaxed">
                   시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.<br />
                   소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과 함께<br />
                   따뜻한 메시지를 나누세요.
@@ -550,20 +551,20 @@ export default function Home() {
         </section>
 
         {/* Trend Section (Real News - Infinite Rolling) */}
-        <section className="w-full bg-slate-50 py-32 overflow-hidden">
+        <section className="w-full bg-slate-50 py-20 md:py-32 overflow-hidden">
           <div className="max-w-[1920px] mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.3 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="text-center mb-16 space-y-6 px-6"
+              className="text-center mb-10 md:mb-16 space-y-4 md:space-y-6 px-6"
             >
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">TREND</span>
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">TREND</span>
+              <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                 삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
               </h2>
-              <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+              <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed">
                 웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
                 많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
               </p>
@@ -723,14 +724,14 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.3 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="mb-16 space-y-4"
+              className="mb-10 md:mb-16 space-y-4"
             >
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide mb-2">PRICING</span>
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight">
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">PRICING</span>
+              <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                 오픈 기념 특별 혜택<br className="sm:hidden" />
                 <span className="text-blue-600">3개월 무료 체험</span>
               </h2>
-              <p className="text-slate-500 text-xl max-w-2xl mx-auto leading-relaxed">
+              <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed">
                 지금 바로 시작하세요.<br />
                 90일 동안 PRO 플랜의 모든 기능을 무료로 제공합니다.
               </p>
@@ -839,8 +840,8 @@ export default function Home() {
         </section>
 
         {/* Closing Section */}
-        <section className="w-full py-24 bg-slate-900 text-center border-t border-slate-800">
-          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose px-4 break-keep">
+        <section className="w-full py-16 md:py-24 bg-slate-900 text-center border-t border-slate-800">
+          <h2 className="text-xl md:text-4xl font-extrabold text-white mb-8 md:mb-10 leading-relaxed md:leading-loose px-4 break-keep">
             당신의 이야기는 <span className="text-blue-500">계속 기억됩니다.</span>
           </h2>
           <motion.div
