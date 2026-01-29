@@ -197,7 +197,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.7 }}
-                className="text-sm sm:text-lg text-gray-500 font-medium tracking-normal break-keep bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm"
+                className="text-sm sm:text-lg text-gray-500 font-medium tracking-normal break-keep"
               >
                 소중한 사람들을 위한 마지막 센스<br className="hidden sm:block" />
                 <span className="sm:inline hidden text-slate-400 mx-2">|</span>
