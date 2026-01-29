@@ -257,7 +257,7 @@ export default function Home() {
               <h2 className="text-xl md:text-4xl font-bold text-slate-900 leading-tight">
                 마음이 전달되는 과정
               </h2>
-              <p className="text-slate-500 text-[11px] md:text-lg leading-normal md:leading-relaxed">
+              <p className="text-slate-500 text-[11px] md:text-lg leading-normal md:leading-relaxed tracking-tighter w-full">
                 가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
               </p>
             </div>
@@ -529,7 +529,7 @@ export default function Home() {
                   그리운 마음을<br />
                   <span className="text-blue-600">온라인 추모관</span>에 남겨보세요.
                 </h2>
-                <p className="text-[11px] md:text-lg text-slate-500 leading-normal md:leading-relaxed break-keep w-full">
+                <p className="text-[11px] md:text-lg text-slate-500 leading-normal md:leading-relaxed tracking-tighter w-full">
                   시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.<br />
                   소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과 함께<br />
                   따뜻한 메시지를 나누세요.
@@ -562,8 +562,8 @@ export default function Home() {
               <h2 className="text-xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
                 월간 트렌드
               </h2>
-              <p className="text-[11px] md:text-lg text-slate-500 w-full mx-auto leading-normal md:leading-relaxed break-keep">
-                웰다잉(Well-dying) 트렌드부터 디지털 유산 관리 팁까지,<br />
+              <p className="text-[11px] md:text-lg text-slate-500 w-full mx-auto leading-normal md:leading-relaxed tracking-tighter break-keep">
+                웰다잉(Well-dying) 트렌드부터 디지털 유산 관리 팁까지.<br />
                 당신의 소중한 삶과 마무리를 위한 인사이트를 보내드립니다.
               </p>
             </motion.div>
