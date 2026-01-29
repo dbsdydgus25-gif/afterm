@@ -42,7 +42,6 @@ export default async function SpaceDetailPage({ params }: PageProps) {
     const isOwner = user?.id === space.owner_id;
 
     return (
-    return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
 
             {/* Mobile Navigation Header */}
