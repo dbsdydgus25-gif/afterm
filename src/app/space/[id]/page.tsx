@@ -130,25 +130,19 @@ export default async function SpaceDetailPage({ params }: PageProps) {
 
                 {/* Composer */}
                 <section className="mb-10">
-                    <MemoryComposer spaceId={space.id} spaceType={space.space_type} onSuccess={() => {
-                        // In a server component we can't easily revalidate without a server action.
-                        // For MVP, we might rely on router.refresh() inside the client component or just simple reload.
-                        // We'll handle this in the client component 'onSuccess' prop via `router.refresh()`.
-                        // (Wait, `MemoryComposer` accepts onSuccess but `router` is needed there).
-                        // Actually `MemoryComposer` needs `useRouter` to refresh.
-                    }} />
+                    <MemoryComposer spaceId={space.id} spaceType={space.space_type} />
                 </section>
 
 
                 {/* Timeline */}
                 <section className="space-y-6">
                     <div className="flex items-center justify-between px-2 mb-2">
-                        <h3 className="font-bold text-stone-800 text-lg">Memories</h3>
-                        <span className="text-xs text-stone-400 font-medium bg-stone-100 px-2 py-1 rounded-full">{memories?.length || 0}개의 기록</span>
+                        <h3 className="font-bold text-slate-800 text-lg">Memories</h3>
+                        <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded-full">{memories?.length || 0}개의 기록</span>
                     </div>
 
                     {(!memories || memories.length === 0) ? (
-                        <div className="py-20 text-center text-stone-400 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                        <div className="py-20 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                             <p>아직 기록된 추억이 없습니다.</p>
                             <p className="text-sm mt-1">첫 번째 기억을 남겨보세요.</p>
                         </div>

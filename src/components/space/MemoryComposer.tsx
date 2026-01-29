@@ -11,8 +11,8 @@ import { useRouter } from "next/navigation";
 
 interface MemoryComposerProps {
     spaceId: string;
-    spaceType: "PERSONAL" | "REMEMBRANCE";
-    onSuccess: () => void;
+    spaceType: string;
+    onSuccess?: () => void;
 }
 
 export function MemoryComposer({ spaceId, spaceType, onSuccess }: MemoryComposerProps) {
@@ -96,7 +96,7 @@ export function MemoryComposer({ spaceId, spaceType, onSuccess }: MemoryComposer
             setContent("");
             setIsOpen(false);
             router.refresh();
-            onSuccess();
+            onSuccess?.();
         }
     };
 
@@ -104,12 +104,12 @@ export function MemoryComposer({ spaceId, spaceType, onSuccess }: MemoryComposer
         return (
             <div
                 onClick={() => setIsOpen(true)}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition-shadow text-stone-400 flex items-center gap-4"
+                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition-shadow text-slate-400 flex items-center gap-4 group"
             >
-                <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
-                    <div className="w-4 h-4 text-stone-300">✎</div>
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                    <div className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors">✎</div>
                 </div>
-                <span>
+                <span className="group-hover:text-slate-600 transition-colors">
                     {spaceType === 'PERSONAL' ? '오늘의 기억을 기록해보세요.' : '따뜻한 추억을 남겨주세요.'}
                 </span>
             </div>
@@ -117,11 +117,11 @@ export function MemoryComposer({ spaceId, spaceType, onSuccess }: MemoryComposer
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden animate-fade-in-up">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden animate-fade-in-up">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-stone-50 flex justify-between items-center bg-[#FDFBF7]">
-                <span className="font-bold text-stone-800">기억 기록하기</span>
-                <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-stone-600">
+            <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white">
+                <span className="font-bold text-slate-900">기억 기록하기</span>
+                <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">
                     <X size={20} />
                 </button>
             </div>
@@ -131,22 +131,22 @@ export function MemoryComposer({ spaceId, spaceType, onSuccess }: MemoryComposer
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={spaceType === 'PERSONAL' ? "어떤 순간을 기억하고 싶으신가요?" : "고인과의 소중한 추억을 나눠주세요."}
-                    className="min-h-[150px] text-base border-stone-200 focus:border-stone-400 focus:ring-stone-100 bg-white resize-none"
+                    className="min-h-[150px] text-base border-slate-200 focus:border-blue-500 focus:ring-blue-50 bg-white resize-none"
                 />
 
                 <div className="flex justify-between items-center pt-2">
-                    <div className="flex gap-2 text-stone-400">
-                        <button className="p-2 hover:bg-stone-50 rounded-full transition-colors" title="사진 추가">
+                    <div className="flex gap-2 text-slate-400">
+                        <button className="p-2 hover:bg-slate-50 rounded-full transition-colors" title="사진 추가">
                             <ImageIcon size={20} />
                         </button>
-                        <button className="p-2 hover:bg-stone-50 rounded-full transition-colors" title="날짜 변경">
+                        <button className="p-2 hover:bg-slate-50 rounded-full transition-colors" title="날짜 변경">
                             <Calendar size={20} />
                         </button>
                     </div>
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !content.trim()}
-                        className="bg-stone-800 hover:bg-stone-700 text-white rounded-xl px-6"
+                        className="bg-slate-900 hover:bg-blue-600 text-white rounded-xl px-6 transition-colors shadow-sm"
                     >
                         {isSubmitting ? "기록 중..." : "기록하기"}
                     </Button>
