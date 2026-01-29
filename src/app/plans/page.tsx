@@ -5,8 +5,15 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { PlanConfirmModal } from "@/components/payment/PlanConfirmModal";
-import { useState, useEffect } from "react";
-import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import { useState, useRef } from "react";
+import Script from "next/script";
+
+// Add window type definition for TossPayments
+declare global {
+    interface Window {
+        TossPayments: any;
+    }
+}
 
 export default function PlansPage() {
     const router = useRouter();
@@ -14,23 +21,9 @@ export default function PlansPage() {
     const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
-    const [tossPayments, setTossPayments] = useState<any>(null);
 
-    // Initialize Toss Payments
-    useEffect(() => {
-        const initToss = async () => {
-            try {
-                const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || "";
-                if (clientKey) {
-                    const toss = await loadTossPayments(clientKey);
-                    setTossPayments(toss);
-                }
-            } catch (error) {
-                console.error("Failed to load Toss Payments:", error);
-            }
-        };
-        initToss();
-    }, []);
+    // Use Ref to store the Toss instance to avoid re-rendering loops
+    const tossPaymentsRef = useRef<any>(null);
 
     const handleSubscribe = async (planName: string, price: string) => {
         if (!user) {
@@ -43,8 +36,8 @@ export default function PlansPage() {
     };
 
     const handlePayment = async () => {
-        if (!tossPayments || !user) {
-            alert("결제 시스템을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        if (!tossPaymentsRef.current) {
+            alert("결제 시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
             return;
         }
 
@@ -54,18 +47,17 @@ export default function PlansPage() {
             const orderName = billingCycle === 'yearly' ? 'AFTERM 1년 이용권' : 'AFTERM 1개월 이용권';
 
             // Request Payment (Card)
-            await tossPayments.requestPayment('카드', {
+            await tossPaymentsRef.current.requestPayment('카드', {
                 amount,
                 orderId,
                 orderName,
                 successUrl: `${window.location.origin}/payment/success?billingCycle=${billingCycle}`,
                 failUrl: `${window.location.origin}/payment/fail`,
-                customerName: user.name || "익명",
-                customerEmail: user.email || "",
+                customerName: user?.name || "익명",
+                customerEmail: user?.email || "",
             });
         } catch (error) {
             console.error("Payment Request Error:", error);
-            // Toss Payments SDK handles redirects for errors too, but catches here if strictly JS error
         }
     };
 
@@ -194,6 +186,21 @@ export default function PlansPage() {
                 billingCycle={billingCycle}
                 currentPlan={plan === 'pro' ? 'pro' : 'free'}
                 onConfirm={handlePayment} // Use Payment logic now
+            />
+
+            <Script
+                src="https://js.tosspayments.com/v1/payment"
+                onLoad={() => {
+                    const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+                    if (window.TossPayments && clientKey) {
+                        try {
+                            tossPaymentsRef.current = window.TossPayments(clientKey);
+                            console.log("Toss V1 SDK Loaded & Initialized");
+                        } catch (e) {
+                            console.error("Failed to init Toss V1:", e);
+                        }
+                    }
+                }}
             />
         </div>
     );
