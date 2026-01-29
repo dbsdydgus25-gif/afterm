@@ -12,30 +12,44 @@ interface PlanConfirmModalProps {
     endDate?: string;
     onConfirm: () => Promise<void>;
     billingCycle?: "monthly" | "yearly";
+    isFreeTrial?: boolean;
 }
 
-export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, endDate, onConfirm, billingCycle = "monthly" }: PlanConfirmModalProps) {
+export function PlanConfirmModal({
+    isOpen,
+    onClose,
+    targetPlan,
+    currentPlan,
+    remainingDays,
+    endDate,
+    onConfirm,
+    billingCycle = "monthly",
+    isFreeTrial = false
+}: PlanConfirmModalProps) {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const planName = targetPlan === "pro" ? "AFTERM Pro" : "AFTERM Basic";
 
-    // Determine price based on plan and billing cycle
+    // Determine price
     let price = "무료";
     if (targetPlan === "pro") {
-        price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
+        if (isFreeTrial) {
+            price = "0원 (2개월)";
+        } else {
+            price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
+        }
     }
 
     // Determine title and message
-    let title = "결제 정보 확인";
+    let title = "플랜 변경 확인";
     let warningMessage = "";
 
-    if (currentPlan === "pro" && targetPlan === "free") {
+    if (isFreeTrial && targetPlan === "pro") {
+        title = "무료 체험 시작";
+        warningMessage = "2개월 뒤에는 자동으로 Basic 플랜으로 전환됩니다. (자동 결제 없음)";
+    } else if (currentPlan === "pro" && targetPlan === "free") {
         title = "이용권 연장 취소";
         warningMessage = "현재 이용 중인 혜택은 만료일까지 유지됩니다.";
-    } else if (currentPlan === "free" && targetPlan === "pro") {
-        warningMessage = "결제 즉시 보관된 메시지가 모두 복원됩니다.";
-    } else if (currentPlan === "pro" && targetPlan === "pro") {
-        warningMessage = "현재 만료일에서 이용 기간이 추가로 연장됩니다.";
     }
 
     const handleConfirm = async () => {
@@ -74,7 +88,7 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
 
                             <div className="text-center mb-8">
                                 <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
-                                <p className="text-slate-500">선택하신 플랜을 확인해주세요.</p>
+                                <p className="text-slate-500">선택하신 정보를 확인해주세요.</p>
                             </div>
 
                             <div className="space-y-4 mb-6">
@@ -86,14 +100,6 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
                                     <span className="text-slate-600 font-medium">결제 금액</span>
                                     <span className="text-blue-600 font-black text-xl">{price}</span>
                                 </div>
-                                {targetPlan === "pro" && (
-                                    <div className="flex justify-between items-center py-3 border-t border-slate-100">
-                                        <span className="text-slate-600 font-medium">결제 주기</span>
-                                        <span className="text-slate-900 font-bold text-lg">
-                                            {billingCycle === "yearly" ? "연간 결제 (17% 할인)" : "월간 결제"}
-                                        </span>
-                                    </div>
-                                )}
                             </div>
 
                             {warningMessage && (
@@ -117,13 +123,9 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
                                     disabled={isProcessing}
                                     className="flex-1 h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/30"
                                 >
-                                    {isProcessing ? "처리 중..." : "결제하기"}
+                                    {isProcessing ? "처리 중..." : (isFreeTrial ? "무료로 시작하기" : "변경하기")}
                                 </Button>
                             </div>
-
-                            <p className="text-xs text-center text-slate-400 mt-4">
-                                * 실제 결제가 이루어지지 않는 시뮬레이션입니다.
-                            </p>
                         </div>
                     </motion.div>
                 </>
