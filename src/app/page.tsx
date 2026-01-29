@@ -826,95 +826,60 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    메시지 전송: 최대 100개
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 font-medium">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">✓</span>
-                    저장공간: 1GB (사진, 영상, 음성)
-                  </li>
-                </ul>
-                <Button
-                  onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
-                  disabled={plan === 'pro' && currentBillingCycle === billingCycle}
-                  className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {plan !== 'pro'
-                    ? "PRO로 업그레이드"
-                    : currentBillingCycle === billingCycle
-                      ? "현재 이용 중"
-                      : billingCycle === "yearly"
-                        ? "1년 이용권 구매"
-                        : "1개월 이용권 구매"
-                  }
-                </Button>
-              </div >
-            </div >
-          </div >
-        </section >
 
-    {/* Closing Section */ }
-    < section className = "w-full py-24 bg-slate-900 text-center border-t border-slate-800" >
-          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose px-4 break-keep">
-            당신의 이야기는 <span className="text-blue-500">계속 기억됩니다.</span>
-          </h2>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.5 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Button
-              onClick={() => {
+{/* Closing Section */ }
+<section className="w-full py-24 bg-slate-900 text-center border-t border-slate-800">
+    <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-10 leading-relaxed md:leading-loose px-4 break-keep">
+        당신의 이야기는 <span className="text-blue-500">계속 기억됩니다.</span>
+    </h2>
+    <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.5 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+    >
+        <Button
+            onClick={() => {
                 if (user) {
-                  if (plan !== 'pro' && messageCount >= 1) {
-                    if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n100개 저장이 가능한 PRO 플랜으로 업그레이드 하시겠습니까?")) {
-                      handleSubscribe("Pro", "990원");
+                    if (plan !== 'pro' && messageCount >= 1) {
+                        if (confirm("무료 플랜은 메시지를 1개까지만 저장할 수 있습니다.\n100개 저장이 가능한 PRO 플랜으로 업그레이드 하시겠습니까?")) {
+                            handleSubscribe("Pro", "990원");
+                        }
+                        return;
                     }
-                    return;
-                  }
-                  if (plan === 'pro' && messageCount >= 100) {
-                    alert("PRO 플랜의 최대 메시지 저장 개수(100개)를 초과했습니다.");
-                    return;
-                  }
-                  router.push('/create');
+                    if (plan === 'pro' && messageCount >= 100) {
+                        alert("PRO 플랜의 최대 메시지 저장 개수(100개)를 초과했습니다.");
+                        return;
+                    }
+                    router.push('/create');
                 } else {
-                  sessionStorage.setItem('login_redirect_active', 'true');
-                  router.push('/login');
+                    sessionStorage.setItem('login_redirect_active', 'true');
+                    router.push('/login');
                 }
-              }}
-              size="lg"
-              className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
-            >
-              시작하기
-            </Button>
-          </motion.div>
-        </section >
-      </main >
+            }}
+            size="lg"
+            className="px-16 py-8 text-xl rounded-full bg-white text-slate-900 hover:bg-slate-100 shadow-2xl hover:shadow-xl transition-all hover:-translate-y-1 font-bold"
+        >
+            시작하기
+        </Button>
+    </motion.div>
+</section>
+        </main >
 
-    {/* <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */ }
-    < PaymentModal
-  isOpen = { isPaymentOpen }
-  onClose = {() => setIsPaymentOpen(false)
-}
-planName = { selectedPlan.name }
-price = { selectedPlan.price }
-  />
-
-  <PlanConfirmModal
-    isOpen={isPlanModalOpen}
-    onClose={() => setIsPlanModalOpen(false)}
-    targetPlan={targetPlan}
-    billingCycle={billingCycle}
-    currentPlan={plan === 'pro' ? 'pro' : 'free'}
-    onConfirm={handlePlanChange}
-  />
+    <PlanConfirmModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        targetPlan={targetPlan}
+        currentPlan={plan === 'pro' ? 'pro' : 'free'}
+        onConfirm={handlePlanChange}
+        billingCycle={billingCycle}
+    />
 
 {/* Footer */ }
 <footer className="py-12 border-t border-slate-100 bg-white">
-  <div className="max-w-7xl mx-auto px-6 text-center">
-    <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v1.0)</p>
-  </div>
+    <div className="max-w-7xl mx-auto px-6 text-center">
+        <p className="text-sm text-gray-400 font-medium tracking-wide">© 2026 AFTERM. All rights reserved. (v1.0)</p>
+    </div>
 </footer>
     </div >
   );
