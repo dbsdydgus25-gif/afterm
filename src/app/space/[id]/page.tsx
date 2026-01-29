@@ -42,23 +42,24 @@ export default async function SpaceDetailPage({ params }: PageProps) {
     const isOwner = user?.id === space.owner_id;
 
     return (
-        <div className="min-h-screen bg-[#FDFBF7] text-stone-800 font-sans selection:bg-stone-200">
+    return (
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
 
-            {/* Navigation Header */}
-            <header className="fixed top-0 left-0 w-full z-20 bg-white/80 backdrop-blur-md border-b border-stone-100/50 transition-all">
-                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <Link href="/space" className="p-2 -ml-2 text-stone-500 hover:text-stone-800 transition-colors">
+            {/* Mobile Navigation Header */}
+            <header className="md:hidden fixed top-0 left-0 w-full z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all">
+                <div className="flex items-center justify-between h-14 px-4">
+                    <Link href="/space" className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors">
                         <ChevronLeft size={24} />
                     </Link>
-                    <h1 className="font-bold text-stone-800 truncate px-4 text-center text-sm md:text-base">
+                    <h1 className="font-bold text-slate-900 truncate px-4 text-center text-sm">
                         {space.name}
                     </h1>
                     <div className="flex gap-1">
-                        <button className="p-2 text-stone-400 hover:text-stone-800 transition-colors">
+                        <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors">
                             <Share size={20} />
                         </button>
                         {isOwner && (
-                            <button className="p-2 text-stone-400 hover:text-stone-800 transition-colors">
+                            <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors">
                                 <Settings size={20} />
                             </button>
                         )}
@@ -67,22 +68,24 @@ export default async function SpaceDetailPage({ params }: PageProps) {
             </header>
 
             {/* Main Content */}
-            <main className="max-w-2xl mx-auto pt-20 pb-32 px-4 md:px-0">
+            <main className="max-w-2xl mx-auto pt-20 md:pt-10 pb-32 px-4 md:px-0">
 
                 {/* Space Intro Card */}
-                <section className="bg-white rounded-3xl p-8 mb-8 shadow-sm border border-stone-100 text-center space-y-4">
-                    <div className="w-24 h-24 mx-auto rounded-full bg-[#F5F0E6] flex items-center justify-center text-3xl shadow-inner">
+                <section className="bg-white rounded-2xl p-8 mb-8 border border-slate-200 text-center space-y-4 shadow-sm">
+                    <div className="w-24 h-24 mx-auto rounded-full bg-blue-50 flex items-center justify-center text-3xl ring-4 ring-white shadow-sm">
                         {/* Profile Image Logic: If exists use img, else emoji/initial */}
                         {space.profile_image ? (
                             <img src={space.profile_image} alt={space.name} className="w-full h-full object-cover rounded-full" />
                         ) : (
-                            <span>🌿</span>
+                            <span className="text-blue-500">
+                                {space.space_type === 'PERSONAL' ? '👤' : '🕊️'}
+                            </span>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-bold text-stone-900">{space.name}</h2>
-                        <p className="text-stone-500 text-sm md:text-base leading-relaxed break-keep px-4">
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{space.name}</h2>
+                        <p className="text-slate-500 text-sm md:text-base leading-relaxed break-keep px-4">
                             {space.intro_text || (space.space_type === 'PERSONAL'
                                 ? "나의 소중한 기록들을 모아두는 공간입니다."
                                 : "우리가 사랑했던 순간들을 기억합니다.")}
@@ -90,7 +93,7 @@ export default async function SpaceDetailPage({ params }: PageProps) {
                     </div>
 
                     {/* Stats or simple decoration line */}
-                    <div className="w-10 h-1 bg-stone-100 mx-auto rounded-full mt-6"></div>
+                    <div className="w-10 h-1 bg-slate-100 mx-auto rounded-full mt-6"></div>
                 </section>
 
                 {/* Composer */}
