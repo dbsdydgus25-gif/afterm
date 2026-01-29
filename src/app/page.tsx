@@ -199,8 +199,7 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.7 }}
                 className="text-sm sm:text-lg text-gray-500 font-medium tracking-normal break-keep"
               >
-                소중한 사람들을 위한 마지막 센스<br className="hidden sm:block" />
-                <span className="sm:inline hidden text-slate-400 mx-2">|</span>
+                소중한 사람들을 위한 마지막 센스<br />
                 미리 저장하는 안부인사
               </motion.p>
             </motion.div>
@@ -258,7 +257,7 @@ export default function Home() {
               <h2 className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight">
                 마음이 전달되는 과정
               </h2>
-              <p className="text-slate-500 text-sm md:text-lg">
+              <p className="text-slate-500 text-xs sm:text-sm md:text-lg">
                 가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
               </p>
             </div>
@@ -530,7 +529,7 @@ export default function Home() {
                   그리운 마음을<br />
                   <span className="text-blue-600">온라인 추모관</span>에 남겨보세요.
                 </h2>
-                <p className="text-sm md:text-lg text-slate-500 leading-relaxed break-keep">
+                <p className="text-xs sm:text-sm md:text-lg text-slate-500 leading-relaxed break-keep">
                   시공간의 제약 없이, 언제 어디서나 고인을<br className="block md:hidden" /> 추억할 수 있습니다.<br />
                   소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과<br className="block md:hidden" /> 함께 따뜻한 메시지를 나누세요.
                 </p>
@@ -558,13 +557,13 @@ export default function Home() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-center mb-10 md:mb-16 space-y-4 md:space-y-6 px-6"
             >
-              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">TREND</span>
+              <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">NEWSLETTER</span>
               <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
-                삶을 미리 정리하는,<br className="md:hidden" /> 새로운 라이프스타일
+                월간 트렌드
               </h2>
-              <p className="text-sm md:text-xl max-w-2xl mx-auto leading-relaxed break-keep">
-                웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br />
-                많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
+              <p className="text-xs sm:text-sm md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed break-keep">
+                웰다잉(Well-dying) 트렌드부터 디지털 유산 관리 팁까지.<br />
+                당신의 소중한 삶과 마무리를 위한 인사이트를 보내드립니다.
               </p>
             </motion.div>
 
