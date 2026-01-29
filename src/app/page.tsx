@@ -505,8 +505,8 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="mt-6 pt-4 border-t border-slate-100 flex justify-center">
-                    <Link href="/memorial" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                      추모관 방문하기 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                    <Link href="/space" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                      기억 공간 입장하기 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                     </Link>
                   </div>
                 </div>
@@ -536,11 +536,11 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
-                    onClick={() => router.push('/memorial')}
+                    onClick={() => window.open('/space', '_blank')}
                     size="lg"
                     className="px-8 h-14 text-lg bg-slate-900 text-white hover:bg-slate-800 rounded-xl shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
                   >
-                    추모관 둘러보기
+                    기억 공간 입장하기
                   </Button>
                 </div>
               </motion.div>

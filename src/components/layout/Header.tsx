@@ -70,7 +70,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
         { name: "회사소개", href: "/about" },
         { name: "공지사항", href: "/notice" },
         { name: "월간 트렌드", href: "/newsletter" },
-        { name: "추모관", href: "/memorial" },
+        { name: "기억 공간", href: "/space" },
     ];
 
     return (
@@ -96,6 +96,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 <Link
                                     key={link.href}
                                     href={link.href}
+                                    target={link.href === "/space" ? "_blank" : undefined}
                                     className={`text-sm font-medium transition-colors ${pathname === link.href
                                         ? "text-blue-600 font-bold"
                                         : "text-slate-500 hover:text-blue-600"
@@ -161,6 +162,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     <Link
                                         key={link.href}
                                         href={link.href}
+                                        target={link.href === "/space" ? "_blank" : undefined}
                                         className={`text-lg font-medium transition-colors ${pathname === link.href
                                             ? "text-blue-600 font-bold"
                                             : "text-slate-600"
