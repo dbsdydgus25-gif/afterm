@@ -12,44 +12,36 @@ interface PlanConfirmModalProps {
     endDate?: string;
     onConfirm: () => Promise<void>;
     billingCycle?: "monthly" | "yearly";
-    isFreeTrial?: boolean;
 }
 
-export function PlanConfirmModal({
-    isOpen,
-    onClose,
-    targetPlan,
-    currentPlan,
-    remainingDays,
-    endDate,
-    onConfirm,
-    billingCycle = "monthly",
-    isFreeTrial = false
-}: PlanConfirmModalProps) {
+export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, remainingDays, endDate, onConfirm, billingCycle = "monthly" }: PlanConfirmModalProps) {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const planName = targetPlan === "pro" ? "AFTERM Pro" : "AFTERM Basic";
 
-    // Determine price
+    // Determine price based on plan and billing cycle
     let price = "무료";
     if (targetPlan === "pro") {
-        if (isFreeTrial) {
-            price = "0원 (2개월)";
-        } else {
-            price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
-        }
+        // Show Standard Price but strike through or mention Free Trial
+        // price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
+
+        // "3-Month Free Trial" display logic
+        price = "0원 (3개월 무료 체험)";
     }
 
     // Determine title and message
-    let title = "플랜 변경 확인";
+    let title = "결제 정보 확인";
     let warningMessage = "";
 
-    if (isFreeTrial && targetPlan === "pro") {
-        title = "무료 체험 시작";
-        warningMessage = "2개월 뒤에는 자동으로 Basic 플랜으로 전환됩니다. (자동 결제 없음)";
-    } else if (currentPlan === "pro" && targetPlan === "free") {
-        title = "이용권 연장 취소";
-        warningMessage = "현재 이용 중인 혜택은 만료일까지 유지됩니다.";
+    if (currentPlan === "pro" && targetPlan === "free") {
+        title = "구독 취소 확인";
+        const endDateFormatted = endDate
+            ? new Date(endDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
+            : '';
+        warningMessage = `${endDateFormatted}까지 Pro 혜택을 계속 이용할 수 있습니다. 이후 Basic 플랜으로 자동 전환됩니다.`;
+    } else if (currentPlan === "free" && targetPlan === "pro") {
+        title = "3개월 무료 체험 시작";
+        warningMessage = "보관된 메시지가 모두 복원되며, 오늘부터 90일간 무료로 이용할 수 있습니다.";
     }
 
     const handleConfirm = async () => {
@@ -88,7 +80,7 @@ export function PlanConfirmModal({
 
                             <div className="text-center mb-8">
                                 <h2 className="text-2xl font-bold text-slate-900 mb-2">{title}</h2>
-                                <p className="text-slate-500">선택하신 정보를 확인해주세요.</p>
+                                <p className="text-slate-500">선택하신 플랜을 확인해주세요.</p>
                             </div>
 
                             <div className="space-y-4 mb-6">
@@ -100,6 +92,15 @@ export function PlanConfirmModal({
                                     <span className="text-slate-600 font-medium">결제 금액</span>
                                     <span className="text-blue-600 font-black text-xl">{price}</span>
                                 </div>
+                                {targetPlan === "pro" && (
+                                    <div className="flex justify-between items-center py-3 border-t border-slate-100">
+                                        <span className="text-slate-600 font-medium">프로모션</span>
+                                        <span className="text-slate-900 font-bold text-base text-right">
+                                            3개월(90일) 무료 체험<br />
+                                            <span className="text-xs text-slate-400 font-normal">체험 종료 후 자동 결제 없음</span>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {warningMessage && (
@@ -123,9 +124,13 @@ export function PlanConfirmModal({
                                     disabled={isProcessing}
                                     className="flex-1 h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/30"
                                 >
-                                    {isProcessing ? "처리 중..." : (isFreeTrial ? "무료로 시작하기" : "변경하기")}
+                                    {isProcessing ? "처리 중..." : (targetPlan === 'pro' && currentPlan === 'free' ? "무료 체험 시작하기" : "확인")}
                                 </Button>
                             </div>
+
+                            <p className="text-xs text-center text-slate-400 mt-4">
+                                * 체험 기간 동안 비용은 청구되지 않습니다.
+                            </p>
                         </div>
                     </motion.div>
                 </>
