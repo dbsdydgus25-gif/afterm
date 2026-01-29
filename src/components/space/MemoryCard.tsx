@@ -39,27 +39,27 @@ export function MemoryCard({ memory, isOwner, isAuthor, onDelete }: MemoryCardPr
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden mb-6"
+            className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 hover:shadow-md transition-shadow"
         >
             {/* Header */}
-            <div className="px-5 py-4 flex justify-between items-center bg-white">
+            <div className="px-5 py-4 flex justify-between items-center bg-white border-b border-slate-50">
                 <div className="flex items-center gap-3">
-                    <div className={`w-2 h-8 rounded-full ${memory.type === 'MY' ? 'bg-stone-800' : 'bg-blue-400'}`}></div>
+                    <div className={`w-2 h-8 rounded-full ${memory.type === 'MY' ? 'bg-slate-800' : 'bg-blue-500'}`}></div>
                     <div>
-                        <div className="text-sm font-bold text-stone-800">
+                        <div className="text-sm font-bold text-slate-900">
                             {memory.type === 'MY' ? '나의 기록' : '친구가 남긴 기억'}
                         </div>
-                        <div className="text-xs text-stone-400">{dateStr}</div>
+                        <div className="text-xs text-slate-400">{dateStr}</div>
                     </div>
                 </div>
 
                 {(isOwner || isAuthor) && (
                     <div className="relative group">
-                        <button className="text-stone-400 hover:text-stone-600 p-1">
+                        <button className="text-slate-400 hover:text-slate-600 p-1">
                             <MoreHorizontal size={20} />
                         </button>
                         {/* Dropdown for delete (Simple implementation) */}
-                        <div className="absolute right-0 mt-1 w-24 bg-white border border-stone-100 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                        <div className="absolute right-0 mt-1 w-24 bg-white border border-slate-100 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                             <button
                                 onClick={() => onDelete?.(memory.id)}
                                 className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-50 flex items-center gap-2"
@@ -73,7 +73,7 @@ export function MemoryCard({ memory, isOwner, isAuthor, onDelete }: MemoryCardPr
 
             {/* Image (if exists) */}
             {memory.image_url && (
-                <div className="relative w-full aspect-video bg-stone-50 border-y border-stone-100">
+                <div className="relative w-full aspect-video bg-slate-50 border-b border-slate-100">
                     {/* In real app, use Next/Image with remote patterns allowed, for now using img tag for broader compatibility if patterns not set */}
                     <img
                         src={memory.image_url}
@@ -85,13 +85,13 @@ export function MemoryCard({ memory, isOwner, isAuthor, onDelete }: MemoryCardPr
 
             {/* Content */}
             <div className="px-6 py-5">
-                <p className="text-stone-700 leading-relaxed whitespace-pre-wrap text-[15px]">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">
                     {displayContent}
                 </p>
                 {isLongText && (
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-stone-400 text-xs mt-2 hover:text-stone-600 font-medium"
+                        className="text-slate-400 text-xs mt-2 hover:text-blue-600 font-medium"
                     >
                         {isExpanded ? "접기" : "더 보기"}
                     </button>
@@ -99,16 +99,16 @@ export function MemoryCard({ memory, isOwner, isAuthor, onDelete }: MemoryCardPr
             </div>
 
             {/* Footer / Actions */}
-            <div className="px-6 py-3 border-t border-stone-50 flex gap-4 text-stone-400">
-                <button className="flex items-center gap-1.5 hover:text-red-400 transition-colors text-sm group">
+            <div className="px-6 py-3 border-t border-slate-50 flex gap-4 text-slate-400">
+                <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors text-sm group">
                     <Heart size={18} className="group-hover:fill-current" />
                     {/* <span>좋아요</span> */}
                 </button>
-                <button className="flex items-center gap-1.5 hover:text-blue-400 transition-colors text-sm">
+                <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-sm">
                     <MessageCircle size={18} />
                     {/* <span>댓글</span> */}
                 </button>
-                <button className="flex items-center gap-1.5 hover:text-stone-600 transition-colors ml-auto">
+                <button className="flex items-center gap-1.5 hover:text-slate-800 transition-colors ml-auto">
                     <Share2 size={18} />
                 </button>
             </div>

@@ -21,25 +21,58 @@ export default async function SpaceDetailPage({ params }: PageProps) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // 1. Fetch Space Info
-    const { data: space, error: spaceError } = await supabase
-        .from("life_spaces")
-        .select("*")
-        .eq("id", id)
-        .single();
+    // Debugging: Wrap in try-catch to identify the 500 error cause
+    let space = null;
+    let memories = [];
+    let isOwner = false;
+    let errorDebug = null;
 
-    if (spaceError || !space) {
-        notFound();
+    try {
+        // 1. Fetch Space Info
+        const { data: spaceData, error: spaceError } = await supabase
+            .from("life_spaces")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (spaceError || !spaceData) {
+            console.error("Space Error:", spaceError);
+            // notFound(); // Don't call notFound inside try catch for now, let's see errors
+            if (spaceError) throw new Error(`Space Fetch Error: ${spaceError.message}`);
+            return <div className="p-10 text-center">Space Not Found (ID: {id})</div>;
+        }
+        space = spaceData;
+
+        // 2. Fetch Memories
+        const { data: memoriesData, error: memoriesError } = await supabase
+            .from("memories")
+            .select("*")
+            .eq("space_id", id)
+            .order("memory_date", { ascending: false });
+
+        if (memoriesError) {
+            console.error("Memories Error:", memoriesError);
+            throw new Error(`Memories Fetch Error: ${memoriesError.message}`);
+        }
+        memories = memoriesData || [];
+
+        isOwner = user?.id === space.owner_id;
+
+    } catch (err: any) {
+        console.error("CRITICAL ERROR:", err);
+        return (
+            <div className="p-10 text-red-500 bg-white">
+                <h1 className="text-xl font-bold mb-4">Server Error Debugging</h1>
+                <pre className="bg-slate-100 p-4 rounded overflow-auto text-xs">
+                    {JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}
+                </pre>
+                <p className="mt-4">
+                    Message: {err?.message || "Unknown error"}
+                </p>
+                <p>Space ID: {id}</p>
+            </div>
+        );
     }
-
-    // 2. Fetch Memories
-    const { data: memories, error: memoriesError } = await supabase
-        .from("memories")
-        .select("*")
-        .eq("space_id", id)
-        .order("memory_date", { ascending: false }); // Latest memories first
-
-    const isOwner = user?.id === space.owner_id;
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
