@@ -19,7 +19,7 @@ export default function SpaceLayout({
                     <NavItem href="/space" icon={<Home size={24} />} label="홈" />
                     <NavItem href="/space/search" icon={<Search size={24} />} label="검색" />
                     <NavItem href="/space/activity" icon={<Heart size={24} />} label="활동" />
-                    <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="만들기" />
+                    <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="공간 추가" />
                     <NavItem href="/space/profile" icon={<User size={24} />} label="프로필" />
                 </nav>
 
