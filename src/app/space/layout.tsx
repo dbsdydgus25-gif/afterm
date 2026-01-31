@@ -1,12 +1,23 @@
+"use client";
 
 import Link from "next/link";
 import { Home, Search, Heart, User, PlusSquare, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SpaceLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const router = useRouter();
+
+    const handleProtectedClick = (e: React.MouseEvent, href: string) => {
+        if (href === "/space/create") {
+            e.preventDefault();
+            alert("기억 공간(추모 공간) 기능은 아직 준비 중입니다.");
+        }
+    };
+
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900 font-sans">
             {/* Desktop Sidebar */}
@@ -19,7 +30,12 @@ export default function SpaceLayout({
                     <NavItem href="/space" icon={<Home size={24} />} label="홈" />
                     <NavItem href="/space/search" icon={<Search size={24} />} label="검색" />
                     <NavItem href="/space/activity" icon={<Heart size={24} />} label="활동" />
-                    <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="공간 추가" />
+                    <NavItem
+                        href="/space/create"
+                        icon={<PlusSquare size={24} />}
+                        label="공간 추가"
+                        onClick={(e) => handleProtectedClick(e, "/space/create")}
+                    />
                     <NavItem href="/space/profile" icon={<User size={24} />} label="프로필" />
                 </nav>
 
@@ -48,10 +64,11 @@ export default function SpaceLayout({
     );
 }
 
-function NavItem({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+function NavItem({ href, icon, label, onClick }: { href: string; icon: React.ReactNode; label: string; onClick?: (e: React.MouseEvent) => void }) {
     return (
         <Link
             href={href}
+            onClick={onClick}
             className="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all group"
         >
             <span className="group-hover:text-blue-600 transition-colors">{icon}</span>
