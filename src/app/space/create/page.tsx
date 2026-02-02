@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, User, Heart } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 
 export default function CreateSpace() {
     const router = useRouter();
-    const [spaceType, setSpaceType] = useState<'personal' | 'memorial'>('personal');
     const [formData, setFormData] = useState({
         name: '',
         handle: '',
@@ -37,7 +36,7 @@ export default function CreateSpace() {
                 handle: formData.handle.toLowerCase(),
                 name: formData.name,
                 bio: formData.bio,
-                space_type: spaceType
+                space_type: 'memorial'
             })
             .select()
             .single();
@@ -62,60 +61,38 @@ export default function CreateSpace() {
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </button>
-                    <h1 className="text-[16px] font-bold">새 공간 만들기</h1>
+                    <h1 className="text-[16px] font-bold">새 기억공간 만들기</h1>
                 </div>
             </div>
 
             {/* Content */}
             <div className="p-4 space-y-6">
-                {/* Space Type */}
-                <div className="space-y-3">
-                    <h2 className="text-[14px] font-bold text-gray-900">공간 유형</h2>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            onClick={() => setSpaceType('personal')}
-                            className={`p-4 rounded-lg border-2 transition-all ${spaceType === 'personal'
-                                    ? 'border-blue-600 bg-blue-50'
-                                    : 'border-gray-200 bg-white'
-                                }`}
-                        >
-                            <User className={`w-8 h-8 mx-auto mb-2 ${spaceType === 'personal' ? 'text-blue-600' : 'text-gray-400'
-                                }`} />
-                            <div className="text-[14px] font-semibold text-gray-900">내 공간</div>
-                            <div className="text-[11px] text-gray-500 mt-1">나의 일상 기록</div>
-                        </button>
-
-                        <button
-                            onClick={() => setSpaceType('memorial')}
-                            className={`p-4 rounded-lg border-2 transition-all ${spaceType === 'memorial'
-                                    ? 'border-blue-600 bg-blue-50'
-                                    : 'border-gray-200 bg-white'
-                                }`}
-                        >
-                            <Heart className={`w-8 h-8 mx-auto mb-2 ${spaceType === 'memorial' ? 'text-blue-600' : 'text-gray-400'
-                                }`} />
-                            <div className="text-[14px] font-semibold text-gray-900">기억공간</div>
-                            <div className="text-[11px] text-gray-500 mt-1">추모의 공간</div>
-                        </button>
+                {/* Memorial Type Info */}
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Heart className="w-6 h-6 text-blue-600" />
+                        <h2 className="text-[15px] font-bold text-gray-900">기억공간</h2>
                     </div>
+                    <p className="text-[13px] text-gray-600">
+                        소중한 사람을 기억하고 추모하는 공간입니다
+                    </p>
                 </div>
 
                 {/* Form */}
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-[12px] text-gray-500 font-medium">이름</label>
+                        <label className="text-[12px] text-gray-500 font-medium">이름 *</label>
                         <input
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="w-full px-3 py-2 text-[14px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder={spaceType === 'personal' ? '홍길동' : '사랑하는 엄마'}
+                            placeholder="사랑하는 엄마"
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[12px] text-gray-500 font-medium">핸들 (@username)</label>
+                        <label className="text-[12px] text-gray-500 font-medium">핸들 (@username) *</label>
                         <div className="flex items-center gap-2">
                             <span className="text-[14px] text-gray-400">@</span>
                             <input
@@ -123,9 +100,12 @@ export default function CreateSpace() {
                                 value={formData.handle}
                                 onChange={(e) => setFormData({ ...formData, handle: e.target.value.toLowerCase() })}
                                 className="flex-1 px-3 py-2 text-[14px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="username"
+                                placeholder="memorial_mom"
                             />
                         </div>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                            한 번 설정하면 변경할 수 없습니다
+                        </p>
                     </div>
 
                     <div className="space-y-1">
@@ -144,7 +124,7 @@ export default function CreateSpace() {
                         disabled={loading}
                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-[14px] font-semibold py-2.5 rounded-lg transition-colors"
                     >
-                        {loading ? '생성 중...' : '공간 만들기'}
+                        {loading ? '생성 중...' : '기억공간 만들기'}
                     </button>
                 </div>
             </div>

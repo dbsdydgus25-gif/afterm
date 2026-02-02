@@ -55,6 +55,10 @@ export function SpaceSwitcher({ currentSpaceId }: SpaceSwitcherProps) {
         router.push('/space/create');
     };
 
+    const getSpaceLabel = (space: Space) => {
+        return space.space_type === 'memorial' ? '기억공간' : '내 공간';
+    };
+
     if (!currentSpace) return null;
 
     return (
@@ -62,13 +66,10 @@ export function SpaceSwitcher({ currentSpaceId }: SpaceSwitcherProps) {
             {/* Trigger Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition-colors"
             >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    {currentSpace.name[0]}
-                </div>
-                <span className="text-[14px] font-semibold text-gray-900">
-                    {currentSpace.name}
+                <span className="text-[15px] font-semibold text-gray-900">
+                    {getSpaceLabel(currentSpace)}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -80,22 +81,19 @@ export function SpaceSwitcher({ currentSpaceId }: SpaceSwitcherProps) {
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2">
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2">
                         {spaces.map((space) => (
                             <button
                                 key={space.id}
                                 onClick={() => handleSwitch(space)}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors"
                             >
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
-                                    {space.name[0]}
-                                </div>
-                                <div className="flex-1 text-left">
+                                <div className="text-left">
                                     <div className="text-[14px] font-semibold text-gray-900">
-                                        {space.name}
+                                        {getSpaceLabel(space)}
                                     </div>
                                     <div className="text-[12px] text-gray-500">
-                                        @{space.handle}
+                                        {space.name}
                                     </div>
                                 </div>
                                 {space.id === currentSpace.id && (
@@ -104,17 +102,15 @@ export function SpaceSwitcher({ currentSpaceId }: SpaceSwitcherProps) {
                             </button>
                         ))}
 
-                        {/* Create New Space */}
+                        {/* Create New Memorial Space */}
                         <div className="border-t border-gray-100 mt-2 pt-2">
                             <button
                                 onClick={handleCreateSpace}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-blue-600 transition-colors"
                             >
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Plus className="w-5 h-5 text-blue-600" />
-                                </div>
+                                <Plus className="w-4 h-4" />
                                 <span className="text-[14px] font-semibold">
-                                    새 공간 만들기
+                                    새 기억공간 만들기
                                 </span>
                             </button>
                         </div>

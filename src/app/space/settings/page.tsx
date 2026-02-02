@@ -55,7 +55,6 @@ export default function SpaceSettings() {
             .from('spaces')
             .update({
                 name: formData.name,
-                handle: formData.handle,
                 bio: formData.bio,
                 updated_at: new Date().toISOString()
             })
@@ -65,7 +64,7 @@ export default function SpaceSettings() {
             alert('저장 실패: ' + error.message);
         } else {
             alert('저장되었습니다!');
-            router.push(`/space/${formData.handle}`);
+            router.push(`/space/${space.handle}`);
         }
         setSaving(false);
     };
@@ -139,11 +138,14 @@ export default function SpaceSettings() {
                             <input
                                 type="text"
                                 value={formData.handle}
-                                onChange={(e) => setFormData({ ...formData, handle: e.target.value.toLowerCase() })}
-                                className="flex-1 px-3 py-2 text-[14px] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled
+                                className="flex-1 px-3 py-2 text-[14px] border border-gray-200 rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed"
                                 placeholder="username"
                             />
                         </div>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                            핸들은 변경할 수 없습니다 (고유 ID)
+                        </p>
                     </div>
 
                     <div className="space-y-1">
