@@ -44,6 +44,9 @@ interface MemoryStore {
     setFile: (file: File | null) => void;
     files: File[];
     setFiles: (files: File[]) => void;
+
+    messageCount: number;
+    setMessageCount: (count: number) => void;
 }
 
 export const useMemoryStore = create<MemoryStore>()(
@@ -78,6 +81,9 @@ export const useMemoryStore = create<MemoryStore>()(
             setFile: (file) => set({ file }),
             files: [],
             setFiles: (files) => set({ files }),
+
+            messageCount: 0,
+            setMessageCount: (count) => set({ messageCount: count }),
         }),
         {
             name: 'memory-storage', // unique name

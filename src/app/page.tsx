@@ -173,7 +173,7 @@ export default function AppEntryPage() {
                         className="absolute bottom-6 left-0 w-full flex justify-center gap-6"
                     >
                         <button
-                            onClick={() => router.push('/about')}
+                            onClick={() => router.push('/service')}
                             className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1"
                         >
                             서비스 소개 &rarr;

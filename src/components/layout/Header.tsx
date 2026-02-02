@@ -67,6 +67,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const isTransparent = transparentOnTop && !isScrolled && !isMobileMenuOpen;
 
     const navLinks = [
+        { name: "서비스 안내", href: "/service" },
         { name: "회사소개", href: "/about" },
         { name: "공지사항", href: "/notice" },
         { name: "월간 트렌드", href: "/newsletter" },
