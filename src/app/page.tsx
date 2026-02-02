@@ -7,6 +7,7 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export default function AppEntryPage() {
     const router = useRouter();
@@ -187,5 +188,9 @@ export default function AppEntryPage() {
                 </div>
             </motion.div>
         </div>
+        
+        {/* Footer */ }
+    <Footer />
+    </>
     );
 }
