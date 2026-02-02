@@ -39,6 +39,26 @@ export default async function SpaceActivity() {
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
+    // Get my comments
+    const { data: myComments } = await supabase
+        .from("memory_comments")
+        .select(`
+            id,
+            memory_id,
+            content,
+            created_at,
+            memory:memory_id (
+                id,
+                content,
+                space:space_id (
+                    handle,
+                    name
+                )
+            )
+        `)
+        .eq("space_id", mySpace.id)
+        .order("created_at", { ascending: false });
+
     return (
         <div className="max-w-[430px] mx-auto min-h-screen">
             {/* Header */}
@@ -51,6 +71,7 @@ export default async function SpaceActivity() {
             {/* Activity List */}
             <ActivityList
                 requests={pendingRequests || []}
+                myComments={myComments || []}
                 mySpaceId={mySpace.id}
             />
         </div>
