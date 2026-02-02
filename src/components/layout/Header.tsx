@@ -270,7 +270,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                 {[
                                                     { name: "내 정보", tab: "profile" },
                                                     { name: "계정 설정", tab: "security" },
-                                                    { name: "멤버십", tab: "billing" }
+                                                    { name: "플랜 관리", tab: "billing" }
                                                 ].map((item, idx) => (
                                                     <div key={item.tab}>
                                                         <button

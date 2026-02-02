@@ -231,19 +231,6 @@ export default function ServiceGuidePage() {
                                     지정된 시점에 소중한 사람들에게 전달합니다.<br className="block md:hidden" />
                                     단순한 메시지를 넘어, 당신의 목소리와 온기를 전하세요.
                                 </motion.p>
-
-                                <ul className="space-y-6 pt-4">
-                                    {[
-                                        "클라우드 기반의 안전한 데이터 영구 보관",
-                                        "원하는 시점(생일, 기념일 등)에 예약 전송",
-                                        "가족, 연인, 친구별 맞춤 메시지 설정"
-                                    ].map((item, i) => (
-                                        <li key={i} className="flex items-start gap-4 text-slate-300 group">
-                                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 group-hover:scale-125 transition-transform" />
-                                            <span className="text-lg leading-snug group-hover:text-blue-200 transition-colors">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
                             </div>
 
                             {/* Visual Mockups */}
@@ -301,7 +288,7 @@ export default function ServiceGuidePage() {
                 </section>
 
                 {/* Pricing Section (Restored & Promoted) */}
-                <section className="w-full bg-white py-24 relative">
+                <section className="w-full bg-slate-50 py-24 relative">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
@@ -312,36 +299,34 @@ export default function ServiceGuidePage() {
                         >
                             <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">PRICING</span>
                             <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
-                                자유로운 여정의 시작<br className="sm:hidden" />
-                                <span className="text-blue-600">3개월 무료 체험</span>
+                                당신을 위한 최적의 플랜을 선택하세요.
                             </h2>
-                            <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed">
-                                지금 바로 시작하세요.<br />
-                                90일 동안 PRO 플랜의 모든 기능을 무료로 제공합니다.
+                            <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed break-keep">
+                                에프텀은 당신의 소중한 메시지를 안전하게 보관하고, 지정된 시점에 전달합니다.
                             </p>
                         </motion.div>
 
                         {/* Billing Cycle Toggle */}
-                        <div className="flex justify-center mb-12">
-                            <div className="bg-slate-100 p-1 rounded-full inline-flex relative">
+                        <div className="flex justify-center mb-16">
+                            <div className="bg-white p-1 rounded-full inline-flex relative border border-slate-200 shadow-sm">
                                 <button
                                     onClick={() => setBillingCycle("monthly")}
                                     className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${billingCycle === "monthly"
-                                        ? "bg-white text-slate-900 shadow-sm"
+                                        ? "bg-slate-900 text-white shadow-md"
                                         : "text-slate-500 hover:text-slate-900"
                                         }`}
                                 >
-                                    1개월 이용권
+                                    월간 결제
                                 </button>
                                 <button
                                     onClick={() => setBillingCycle("yearly")}
                                     className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${billingCycle === "yearly"
-                                        ? "bg-white text-slate-900 shadow-sm"
+                                        ? "bg-slate-900 text-white shadow-md"
                                         : "text-slate-500 hover:text-slate-900"
                                         }`}
                                 >
-                                    1년 이용권
-                                    <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">
+                                    연간 결제
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${billingCycle === 'yearly' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}`}>
                                         17%
                                     </span>
                                 </button>
@@ -350,23 +335,25 @@ export default function ServiceGuidePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
                             {/* Basic Plan */}
-                            <div className="rounded-3xl p-8 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300">
+                            <div className="rounded-3xl p-10 border border-slate-200 bg-white relative hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center">
                                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Basic</h3>
-                                <div className="text-4xl font-extrabold text-slate-900 mb-6">무료</div>
-                                <ul className="space-y-4 mb-8">
-                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
-                                        <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs text-center">✓</span>
+                                <div className="text-4xl font-black text-slate-900 mb-8">무료</div>
+
+                                <ul className="space-y-4 mb-10 w-full max-w-xs text-left mx-auto">
+                                    <li className="flex items-center gap-3 text-slate-600 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs text-center flex-shrink-0">✓</div>
                                         메시지 전송: 딱 1개 전송
                                     </li>
-                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
-                                        <span className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-xs text-center">✓</span>
+                                    <li className="flex items-center gap-3 text-slate-600 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs text-center flex-shrink-0">✓</div>
                                         저장공간: 10mb (텍스트 위주)
                                     </li>
                                 </ul>
-                                <div className="text-center">
+
+                                <div className="w-full mt-auto">
                                     <Button
                                         onClick={() => router.push('/plans')}
-                                        className="w-full py-6 rounded-xl text-lg bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-bold shadow-sm"
+                                        className="w-full py-7 rounded-xl text-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold shadow-sm"
                                     >
                                         {plan === 'free' ? "현재 이용 중" : "Basic으로 변경"}
                                     </Button>
@@ -374,46 +361,42 @@ export default function ServiceGuidePage() {
                             </div>
 
                             {/* Pro Plan */}
-                            <div className="rounded-3xl p-8 border border-blue-100 bg-blue-50/50 relative hover:shadow-2xl transition-all duration-300 transform md:-translate-y-4">
-                                <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-xl rounded-tr-3xl text-sm font-bold">Popular</div>
+                            <div className="rounded-3xl p-10 border-2 border-blue-500/20 bg-blue-50/30 relative hover:shadow-2xl transition-all duration-300 flex flex-col items-center text-center transform md:-translate-y-4">
+                                <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1.5 rounded-bl-xl rounded-tr-2xl text-sm font-bold">Popular</div>
 
                                 {/* Promo Badge */}
-                                <div className="absolute -top-4 right-1/2 translate-x-1/2 md:translate-x-0 md:-right-6 bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-bounce">
-                                    🎁 3개월 무료
+                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-rose-500 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg animate-bounce whitespace-nowrap z-10 rotate-[-2deg]">
+                                    🎁 3개월 무료 체험 진행 중!
                                 </div>
 
-                                <div className="relative mb-2 inline-block">
-                                    <h3 className="text-2xl font-bold text-blue-900">PRO</h3>
-                                    <div className="absolute -right-20 -top-1 w-16 h-16 bg-gradient-to-tr from-yellow-200 to-amber-300 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                                <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
+                                <div className="flex items-baseline gap-1 mb-8">
+                                    <span className="text-5xl font-black text-slate-900">{billingCycle === 'monthly' ? '990원' : '9,900원'}</span>
+                                    <span className="text-slate-500 font-medium text-lg">/{billingCycle === 'monthly' ? '월' : '년'}</span>
                                 </div>
 
-                                <div className="flex items-baseline gap-2 mb-6">
-                                    <span className="text-4xl font-extrabold text-slate-900">{billingCycle === 'monthly' ? '₩4,900' : '₩49,000'}</span>
-                                    <span className="text-slate-500 font-medium">/{billingCycle === 'monthly' ? '월' : '년'}</span>
-                                </div>
-
-                                <ul className="space-y-4 mb-8">
-                                    <li className="flex items-center gap-3 text-slate-900 font-bold">
-                                        <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center">✓</span>
-                                        메시지 100개 저장
+                                <ul className="space-y-4 mb-10 w-full max-w-xs text-left mx-auto">
+                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
+                                        메시지 전송: 최대 100개
                                     </li>
-                                    <li className="flex items-center gap-3 text-slate-900 font-bold">
-                                        <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center">✓</span>
-                                        동영상/사진 1GB 저장
+                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
+                                        저장공간: 1GB (사진, 영상, 음성)
                                     </li>
-                                    <li className="flex items-center gap-3 text-slate-900 font-bold">
-                                        <span className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center">✓</span>
+                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
                                         발송 날짜 지정 가능
                                     </li>
                                 </ul>
 
-                                <div className="text-center">
+                                <div className="w-full mt-auto">
                                     <Button
-                                        onClick={() => handleSubscribe("Pro", billingCycle === 'monthly' ? "4,900원" : "49,000원")}
+                                        onClick={() => handleSubscribe("Pro", billingCycle === 'monthly' ? "990원" : "9,900원")}
                                         disabled={plan === 'pro'}
-                                        className="w-full py-6 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg md:shadow-blue-500/30"
+                                        className="w-full py-7 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/20"
                                     >
-                                        {plan === 'pro' ? "이미 이용 중입니다" : "3개월 무료로 시작하기"}
+                                        {plan === 'pro' ? "이미 이용 중입니다" : "3개월 무료 체험 시작하기"}
                                     </Button>
                                     <p className="mt-3 text-xs text-slate-500 font-medium">
                                         * 언제든지 해지 가능합니다.
@@ -443,7 +426,7 @@ export default function ServiceGuidePage() {
                 isOpen={isPaymentOpen}
                 onClose={() => setIsPaymentOpen(false)}
                 planName={targetPlan === "pro" ? "Pro" : "Standard"}
-                price={targetPlan === "pro" ? (billingCycle === "monthly" ? "4,900원" : "49,000원") : "0원"}
+                price={targetPlan === "pro" ? (billingCycle === "monthly" ? "990원" : "9,900원") : "0원"}
             />
 
         </div>
