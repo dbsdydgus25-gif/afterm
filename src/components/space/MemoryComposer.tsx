@@ -76,6 +76,10 @@ export function MemoryComposer({ isOpen, onClose, onSuccess }: MemoryComposerPro
 
     const handleSubmit = async () => {
         if (!content.trim()) return;
+        if (!mySpace) {
+            alert("Space가 로드되지 않았습니다. 페이지를 새로고침해주세요.");
+            return;
+        }
 
         setLoading(true);
         const supabase = createClient();

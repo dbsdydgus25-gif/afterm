@@ -31,6 +31,7 @@ export default function SpaceSettings() {
                 .from('spaces')
                 .select('*')
                 .eq('owner_id', user.id)
+                .eq('space_type', 'personal')
                 .single();
 
             if (spaceData) {
