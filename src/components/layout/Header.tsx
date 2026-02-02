@@ -156,7 +156,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden bg-white border-b border-slate-200 overflow-hidden"
+                            className="md:hidden bg-white border-b border-slate-200 overflow-y-auto max-h-[calc(100vh-80px)]"
                         >
                             <div className="px-6 py-6 space-y-6 flex flex-col">
                                 {navLinks.map((link) => (
