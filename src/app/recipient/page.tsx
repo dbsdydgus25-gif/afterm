@@ -104,7 +104,6 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
-                        recipient_email: formData.email,
                         recipient_relationship: formData.relationship,
                         updated_at: new Date().toISOString(),
                         // Only update legacy columns if we have new files. 
@@ -157,7 +156,6 @@ export default function RecipientPage() {
                         content: message,
                         recipient_name: formData.name,
                         recipient_phone: formData.phone,
-                        recipient_email: formData.email,
                         recipient_relationship: formData.relationship,
                         file_url: null,
                         file_path: legacyFilePath, // Backward compatibility
@@ -340,7 +338,7 @@ export default function RecipientPage() {
                     <Button
                         type="submit"
                         disabled={!formData.agreed || isSaving}
-                        className="w-full h-12 rounded-xl text-sm font-bold gap-1 bg-slate-900 hover:bg-slate-800"
+                        className="w-full h-12 rounded-xl text-sm font-bold gap-1 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
                     >
                         {isSaving ? "저장 중..." : "소중한 기억 저장하기"} <ArrowRight className="w-3.5 h-3.5" />
                     </Button>

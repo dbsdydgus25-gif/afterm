@@ -229,7 +229,7 @@ export default function CreatePage() {
                         <Button
                             onClick={handleNext}
                             size="lg"
-                            className="w-full h-12 text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg"
+                            className="w-full h-12 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200"
                         >
                             다음으로
                         </Button>

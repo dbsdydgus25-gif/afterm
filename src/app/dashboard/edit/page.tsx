@@ -198,6 +198,10 @@ export default function EditMessagePage() {
     };
 
     const handleSave = async () => {
+        if (!user) {
+            alert("로그인 정보가 없습니다. 다시 로그인해주세요.");
+            return;
+        }
         if (!message.trim()) {
             alert("메시지를 입력해주세요.");
             return;

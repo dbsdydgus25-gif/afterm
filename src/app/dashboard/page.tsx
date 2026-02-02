@@ -7,7 +7,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import { User, LogOut, CreditCard, Trash2, ChevronDown } from "lucide-react";
+import { User, LogOut, CreditCard, Trash2, ChevronDown, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
@@ -323,12 +323,7 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                <Button
-                    onClick={() => router.push('/create')}
-                    className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-base shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
-                >
-                    <span>✨</span> 새 기억 남기기
-                </Button>
+
 
                 {/* My Memories List */}
                 <section className="space-y-4">
@@ -367,6 +362,14 @@ export default function DashboardPage() {
                     )}
                 </section>
 
+
+                {/* Floating Action Button for New Memory */}
+                <button
+                    onClick={() => router.push('/create')}
+                    className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 shadow-blue-500/30"
+                >
+                    <Plus className="w-8 h-8" />
+                </button>
             </main>
         </div>
     );

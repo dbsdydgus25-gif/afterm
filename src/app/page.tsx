@@ -115,7 +115,7 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* Hero Content (Centered) */}
-                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center space-y-8">
+                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-center min-h-screen px-6 pt-32 pb-10 text-center space-y-8">
 
                     {/* Typography (Scaled down for mobile as requested) */}
                     <div className="flex flex-col items-center gap-4">
@@ -146,7 +146,7 @@ export default function AppEntryPage() {
                                 <span className="text-blue-600 inline-block mr-1">1분이면</span>
                                 <span className="inline-block">괜찮아</span>
                             </h1>
-                            <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-normal break-keep bg-white/50 backdrop-blur-sm py-1 px-3 rounded-full inline-block shadow-sm">
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-normal break-keep inline-block mt-2">
                                 소중한 사람들을 위한 마지막 센스, 미리 저장하는 안부인사
                             </p>
                         </motion.div>
