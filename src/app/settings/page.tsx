@@ -285,6 +285,13 @@ function SettingsContent() {
 
     useEffect(() => {
         setMounted(true);
+
+        // Check if user is logged in
+        if (mounted && !user) {
+            router.push('/login?returnTo=/settings');
+            return;
+        }
+
         const initProfile = async () => {
             if (user) {
                 setCustomName(user.name);
