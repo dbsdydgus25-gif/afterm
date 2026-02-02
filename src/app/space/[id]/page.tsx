@@ -1,166 +1,185 @@
+"use client";
 
-import { createClient } from "@/lib/supabase/server";
-import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
-import { MemoryComposer } from "@/components/space/MemoryComposer";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { SpaceHeader } from "@/components/space/SpaceHeader";
 import { MemoryCard } from "@/components/space/MemoryCard";
-import { Button } from "@/components/ui/button";
-import { Settings, Share, ChevronLeft } from "lucide-react";
 
-interface PageProps {
-    params: Promise<{
-        id: string;
-    }>;
+interface Memory {
+    id: string;
+    content?: string;
+    voice_url?: string;
+    is_secret: boolean;
+    allowed_viewers: string[];
+    created_at: string;
+    writer: {
+        handle: string;
+        name: string;
+        avatar_url?: string;
+    };
 }
 
-export default async function SpaceDetailPage({ params }: PageProps) {
-    const { id } = await params;
-    const supabase = await createClient();
+export default function SpacePage() {
+    const params = useParams();
+    const router = useRouter();
+    // Allow both @username and username (remove @ if present)
+    const handle = (params.id as string)?.replace(/^@/, '');
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const [space, setSpace] = useState<any>(null);
+    const [memories, setMemories] = useState<Memory[]>([]);
+    const [mySpace, setMySpace] = useState<any>(null);
+    const [relationship, setRelationship] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    // Debugging: Wrap in try-catch to identify the 500 error cause
-    let space = null;
-    let memories = [];
-    let isOwner = false;
-    let errorDebug = null;
+    useEffect(() => {
+        const fetchData = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
 
-    try {
-        // 1. Fetch Space Info
-        const { data: spaceData, error: spaceError } = await supabase
-            .from("life_spaces")
-            .select("*")
-            .eq("id", id)
-            .single();
+            if (!user) {
+                window.location.href = '/login?returnTo=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
 
-        if (spaceError || !spaceData) {
-            console.error("Space Error:", spaceError);
-            // notFound(); // Don't call notFound inside try catch for now, let's see errors
-            if (spaceError) throw new Error(`Space Fetch Error: ${spaceError.message}`);
-            return <div className="p-10 text-center">Space Not Found (ID: {id})</div>;
+            // Get my space
+            const { data: mySpaceData } = await supabase
+                .from('spaces')
+                .select('*')
+                .eq('owner_id', user.id)
+                .single();
+
+            setMySpace(mySpaceData);
+
+            // Get target space by handle
+            const { data: spaceData } = await supabase
+                .from('spaces')
+                .select('*')
+                .eq('handle', handle)
+                .single();
+
+            setSpace(spaceData);
+
+            if (!spaceData) {
+                setLoading(false);
+                return;
+            }
+
+            // Get relationship
+            if (mySpaceData && mySpaceData.id !== spaceData.id) {
+                const { data: rel } = await supabase
+                    .from('relationships')
+                    .select('*')
+                    .eq('follower_id', mySpaceData.id)
+                    .eq('following_id', spaceData.id)
+                    .single();
+
+                setRelationship(rel);
+            }
+
+            // Get memories
+            const { data: memoriesData } = await supabase
+                .from('memories')
+                .select(`
+                    *,
+                    writer:writer_id (
+                        handle,
+                        name,
+                        avatar_url
+                    )
+                `)
+                .eq('space_id', spaceData.id)
+                .order('created_at', { ascending: false });
+
+            setMemories(memoriesData || []);
+            setLoading(false);
+        };
+
+        if (handle) {
+            fetchData();
         }
-        space = spaceData;
+    }, [handle]);
 
-        // 2. Fetch Memories
-        const { data: memoriesData, error: memoriesError } = await supabase
-            .from("memories")
-            .select("*")
-            .eq("space_id", id)
-            .order("memory_date", { ascending: false });
+    const handleFollow = async () => {
+        await fetch('/api/space/relationships', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: relationship ? 'unfollow' : 'follow',
+                targetSpaceId: space.id
+            })
+        });
+        window.location.reload();
+    };
 
-        if (memoriesError) {
-            console.error("Memories Error:", memoriesError);
-            throw new Error(`Memories Fetch Error: ${memoriesError.message}`);
-        }
-        memories = memoriesData || [];
+    const handleSettings = () => {
+        router.push('/space/settings');
+    };
 
-        isOwner = user?.id === space.owner_id;
-
-    } catch (err: any) {
-        console.error("CRITICAL ERROR:", err);
+    if (loading) {
         return (
-            <div className="p-10 text-red-500 bg-white">
-                <h1 className="text-xl font-bold mb-4">Server Error Debugging</h1>
-                <pre className="bg-slate-100 p-4 rounded overflow-auto text-xs">
-                    {JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}
-                </pre>
-                <p className="mt-4">
-                    Message: {err?.message || "Unknown error"}
-                </p>
-                <p>Space ID: {id}</p>
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-[14px] text-gray-400">로딩 중...</div>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-
-            {/* Mobile Navigation Header */}
-            <header className="md:hidden fixed top-0 left-0 w-full z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all">
-                <div className="flex items-center justify-between h-14 px-4">
-                    <Link href="/space" className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors">
-                        <ChevronLeft size={24} />
-                    </Link>
-                    <h1 className="font-bold text-slate-900 truncate px-4 text-center text-sm">
-                        {space.name}
-                    </h1>
-                    <div className="flex gap-1">
-                        <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors">
-                            <Share size={20} />
-                        </button>
-                        {isOwner && (
-                            <button className="p-2 text-slate-400 hover:text-slate-800 transition-colors">
-                                <Settings size={20} />
-                            </button>
-                        )}
-                    </div>
+    if (!space) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center">
+                    <h1 className="text-[18px] font-bold text-gray-900 mb-2">공간을 찾을 수 없습니다</h1>
+                    <p className="text-[14px] text-gray-500">@{handle}</p>
                 </div>
-            </header>
+            </div>
+        );
+    }
 
-            {/* Main Content */}
-            <main className="max-w-2xl mx-auto pt-20 md:pt-10 pb-32 px-4 md:px-0">
+    const isOwner = mySpace?.id === space.id;
 
-                {/* Space Intro Card */}
-                <section className="bg-white rounded-2xl p-8 mb-8 border border-slate-200 text-center space-y-4 shadow-sm">
-                    <div className="w-24 h-24 mx-auto rounded-full bg-blue-50 flex items-center justify-center text-3xl ring-4 ring-white shadow-sm">
-                        {/* Profile Image Logic: If exists use img, else emoji/initial */}
-                        {space.profile_image ? (
-                            <img src={space.profile_image} alt={space.name} className="w-full h-full object-cover rounded-full" />
-                        ) : (
-                            <span className="text-blue-500">
-                                {space.space_type === 'PERSONAL' ? '👤' : '🕊️'}
-                            </span>
-                        )}
+    return (
+        <div className="min-h-screen bg-white">
+            <SpaceHeader
+                space={space}
+                isOwner={isOwner}
+                relationshipStatus={
+                    isOwner ? 'none' :
+                        !relationship ? 'none' :
+                            relationship.status
+                }
+                followerCount={0}
+                followingCount={0}
+                onFollow={handleFollow}
+                onSettings={handleSettings}
+            />
+
+            {/* Memories Feed */}
+            <div className="max-w-[430px] mx-auto">
+                {memories.length === 0 ? (
+                    <div className="py-20 text-center">
+                        <p className="text-[14px] text-gray-400">아직 기억이 없습니다</p>
                     </div>
+                ) : (
+                    memories.map((memory) => {
+                        const canView =
+                            isOwner ||
+                            memory.writer.handle === mySpace?.handle ||
+                            (!memory.is_secret) ||
+                            (memory.is_secret && memory.allowed_viewers.includes(mySpace?.id));
 
-                    <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{space.name}</h2>
-                        <p className="text-slate-500 text-sm md:text-base leading-relaxed break-keep px-4">
-                            {space.intro_text || (space.space_type === 'PERSONAL'
-                                ? "나의 소중한 기록들을 모아두는 공간입니다."
-                                : "우리가 사랑했던 순간들을 기억합니다.")}
-                        </p>
-                    </div>
-
-                    {/* Stats or simple decoration line */}
-                    <div className="w-10 h-1 bg-slate-100 mx-auto rounded-full mt-6"></div>
-                </section>
-
-                {/* Composer */}
-                <section className="mb-10">
-                    <MemoryComposer spaceId={space.id} spaceType={space.space_type} />
-                </section>
-
-
-                {/* Timeline */}
-                <section className="space-y-6">
-                    <div className="flex items-center justify-between px-2 mb-2">
-                        <h3 className="font-bold text-slate-800 text-lg">Memories</h3>
-                        <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2 py-1 rounded-full">{memories?.length || 0}개의 기록</span>
-                    </div>
-
-                    {(!memories || memories.length === 0) ? (
-                        <div className="py-20 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                            <p>아직 기록된 추억이 없습니다.</p>
-                            <p className="text-sm mt-1">첫 번째 기억을 남겨보세요.</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-6">
-                            {memories.map((memory) => (
-                                <MemoryCard
-                                    key={memory.id}
-                                    memory={memory}
-                                    isOwner={isOwner}
-                                    isAuthor={user?.id === memory.author_id}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </section>
-
-            </main>
+                        return (
+                            <MemoryCard
+                                key={memory.id}
+                                memory={memory}
+                                canView={canView}
+                                onRequestAccess={() => {
+                                    alert('열람 요청 기능은 곧 추가됩니다.');
+                                }}
+                            />
+                        );
+                    })
+                )}
+            </div>
         </div>
     );
 }

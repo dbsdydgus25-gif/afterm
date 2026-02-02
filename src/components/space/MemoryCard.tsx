@@ -1,117 +1,85 @@
-
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { motion, AnimatePresence } from "framer-motion";
-import { MoreHorizontal, Heart, MessageCircle, Share2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
-interface Memory {
-    id: string;
-    content: string;
-    image_url?: string;
-    memory_date: string; // or Date
-    type: "MY" | "FRIEND";
-    author_id: string; // simpler for now, ideally extended with author profile
-    created_at: string;
-}
+import { Lock } from "lucide-react";
 
 interface MemoryCardProps {
-    memory: Memory;
-    isOwner: boolean; // Is the viewer the owner of the space?
-    isAuthor: boolean; // Is the viewer the author of this memory?
-    onDelete?: (id: string) => void;
+    memory: {
+        id: string;
+        content?: string;
+        voice_url?: string;
+        is_secret: boolean;
+        created_at: string;
+        writer: {
+            handle: string;
+            name: string;
+            avatar_url?: string;
+        };
+    };
+    canView: boolean;
+    onRequestAccess?: () => void;
 }
 
-export function MemoryCard({ memory, isOwner, isAuthor, onDelete }: MemoryCardProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const dateStr = format(new Date(memory.memory_date), "yyyy년 M월 d일", { locale: ko });
-
-    // Clean content for display (handle multiline)
-    const content = memory.content;
-    const isLongText = content.length > 150;
-    const displayContent = isExpanded ? content : content.slice(0, 150) + (isLongText ? "..." : "");
+export function MemoryCard({ memory, canView, onRequestAccess }: MemoryCardProps) {
+    const isBlurred = memory.is_secret && !canView;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 hover:shadow-md transition-shadow"
-        >
+        <div className="border-b border-gray-100 py-4 px-4 hover:bg-blue-50/20 transition-colors">
             {/* Header */}
-            <div className="px-5 py-4 flex justify-between items-center bg-white border-b border-slate-50">
-                <div className="flex items-center gap-3">
-                    <div className={`w-2 h-8 rounded-full ${memory.type === 'MY' ? 'bg-slate-800' : 'bg-blue-500'}`}></div>
-                    <div>
-                        <div className="text-sm font-bold text-slate-900">
-                            {memory.type === 'MY' ? '나의 기록' : '친구가 남긴 기억'}
-                        </div>
-                        <div className="text-xs text-slate-400">{dateStr}</div>
+            <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                    {memory.writer.name[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[14px] font-semibold text-gray-900 truncate">
+                            {memory.writer.name}
+                        </span>
+                        <span className="text-[12px] text-gray-400">@{memory.writer.handle}</span>
                     </div>
                 </div>
-
-                {(isOwner || isAuthor) && (
-                    <div className="relative group">
-                        <button className="text-slate-400 hover:text-slate-600 p-1">
-                            <MoreHorizontal size={20} />
-                        </button>
-                        {/* Dropdown for delete (Simple implementation) */}
-                        <div className="absolute right-0 mt-1 w-24 bg-white border border-slate-100 shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                            <button
-                                onClick={() => onDelete?.(memory.id)}
-                                className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-50 flex items-center gap-2"
-                            >
-                                <Trash2 size={12} /> 삭제
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <time className="text-[12px] text-gray-400">
+                    {format(new Date(memory.created_at), 'M월 d일', { locale: ko })}
+                </time>
             </div>
-
-            {/* Image (if exists) */}
-            {memory.image_url && (
-                <div className="relative w-full aspect-video bg-slate-50 border-b border-slate-100">
-                    {/* In real app, use Next/Image with remote patterns allowed, for now using img tag for broader compatibility if patterns not set */}
-                    <img
-                        src={memory.image_url}
-                        alt="Memory"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            )}
 
             {/* Content */}
-            <div className="px-6 py-5">
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-[15px]">
-                    {displayContent}
-                </p>
-                {isLongText && (
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-slate-400 text-xs mt-2 hover:text-blue-600 font-medium"
-                    >
-                        {isExpanded ? "접기" : "더 보기"}
-                    </button>
+            <div className="pl-10">
+                {isBlurred ? (
+                    <div className="relative">
+                        <div className="backdrop-blur-xl bg-white/40 rounded-lg p-4 border border-blue-100">
+                            <div className="flex items-center justify-center gap-2 text-blue-500">
+                                <Lock className="w-4 h-4" />
+                                <span className="text-[13px] font-medium">시크릿 메모리</span>
+                            </div>
+                            {onRequestAccess && (
+                                <button
+                                    onClick={onRequestAccess}
+                                    className="mt-3 w-full text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 py-2 px-3 rounded-lg transition-colors shadow-sm"
+                                >
+                                    열람 요청하기
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {memory.content && (
+                            <p className="text-[14px] text-gray-900 leading-relaxed whitespace-pre-wrap">
+                                {memory.content}
+                            </p>
+                        )}
+                        {memory.voice_url && (
+                            <audio
+                                src={memory.voice_url}
+                                controls
+                                className="mt-2 w-full max-w-sm h-10"
+                            />
+                        )}
+                    </>
                 )}
             </div>
-
-            {/* Footer / Actions */}
-            <div className="px-6 py-3 border-t border-slate-50 flex gap-4 text-slate-400">
-                <button className="flex items-center gap-1.5 hover:text-red-500 transition-colors text-sm group">
-                    <Heart size={18} className="group-hover:fill-current" />
-                    {/* <span>좋아요</span> */}
-                </button>
-                <button className="flex items-center gap-1.5 hover:text-blue-500 transition-colors text-sm">
-                    <MessageCircle size={18} />
-                    {/* <span>댓글</span> */}
-                </button>
-                <button className="flex items-center gap-1.5 hover:text-slate-800 transition-colors ml-auto">
-                    <Share2 size={18} />
-                </button>
-            </div>
-        </motion.div>
+        </div>
     );
 }
