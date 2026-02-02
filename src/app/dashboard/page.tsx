@@ -317,7 +317,7 @@ export default function DashboardPage() {
 
                         {/* Right: Storage Usage */}
                         <div className="pl-6">
-                            <h3 className="text-slate-500 font-bold text-xs mb-3">남은 용량</h3>
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">사용 중인 용량</h3>
                             <StorageWidget plan={plan} userId={user?.id} compact={true} />
                         </div>
                     </div>

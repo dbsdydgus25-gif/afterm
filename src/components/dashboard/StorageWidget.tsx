@@ -51,13 +51,10 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
     }, [userId]);
 
     const limit = plan === 'pro' ? LIMIT_PRO : LIMIT_BASIC;
-    const remaining = Math.max(0, limit - storageUsed);
     const percent = Math.min(100, (storageUsed / limit) * 100);
 
-    const remainingMB = (remaining / (1024 * 1024)).toFixed(0); // Show as whole number if compact to save space, or keep 2 decimals? User said "smaller". Let's use 0 decimals for MB if > 1, or 1 if < 1. Actually existing 2 decimals is fine but layout matters.
-    // User requested "much smaller".
-    const remainingVal = (remaining / (1024 * 1024));
-    const remainingText = remainingVal > 100 ? remainingVal.toFixed(0) : remainingVal.toFixed(1);
+    const usedMB = (storageUsed / (1024 * 1024));
+    const usedText = usedMB > 100 ? usedMB.toFixed(0) : usedMB.toFixed(1);
 
     // Max Storage
     const MAX_STORAGE_MB = (limit / (1024 * 1024)).toFixed(0);
@@ -68,10 +65,10 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
         return (
             <div>
                 {/* Header is handled by parent grid to ensure alignment */}
-                {/* <h3 className="text-slate-500 font-bold text-xs mb-3">남은 용량</h3> */}
+                {/* <h3 className="text-slate-500 font-bold text-xs mb-3">사용 중인 용량</h3> */}
                 <div className="flex items-end gap-1.5 mb-2">
                     <span className="text-2xl font-black text-slate-900 leading-none">
-                        {remainingText}
+                        {usedText}
                         <span className="text-xs font-bold ml-0.5">MB</span>
                     </span>
                     <span className="text-xs text-slate-400 font-medium mb-1">
@@ -91,10 +88,10 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
 
     return (
         <div className="p-6 h-full flex flex-col justify-center">
-            <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 용량</h3>
+            <h3 className="text-slate-500 font-medium mb-4 text-sm">사용 중인 용량</h3>
             <div className="flex items-end gap-2 mb-2">
                 <span className="text-3xl font-bold text-slate-900">
-                    {(remaining / (1024 * 1024)).toFixed(2)}MB
+                    {usedText}MB
                 </span>
                 <span className="text-sm text-slate-400 mb-1">
                     / {MAX_STORAGE_MB}MB
@@ -107,7 +104,7 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
                     style={{ width: `${Math.min(percent, 100)}%` }}
                 />
             </div>
-            <p className="text-xs text-slate-400 text-right">{(storageUsed / (1024 * 1024)).toFixed(2)}MB 사용됨 ({percent.toFixed(1)}%)</p>
+            <p className="text-xs text-slate-400 text-right">{percent.toFixed(1)}% 사용됨</p>
         </div>
     );
 }
