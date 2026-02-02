@@ -11,6 +11,7 @@ interface ProfileDropdownProps {
         name: string;
         email: string;
         image?: string;
+        user_metadata?: any;
     };
     plan: string;
     onLogout: () => void;
@@ -61,7 +62,9 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                     >
                         <div className="p-3 border-b border-slate-50">
                             <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                            <p className="text-xs text-slate-500 truncate">
+                                {user["user_metadata"]?.username ? `@${user["user_metadata"]?.username}` : user.email}
+                            </p>
                         </div>
                         <div className="p-1">
                             <button

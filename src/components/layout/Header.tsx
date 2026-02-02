@@ -123,7 +123,8 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     user={{
                                         name: user.name,
                                         email: user.email,
-                                        image: user.user_metadata?.avatar_url || user.image
+                                        image: user.user_metadata?.avatar_url || user.image,
+                                        user_metadata: user.user_metadata
                                     }}
                                     plan={plan}
                                     onLogout={handleLogout}
@@ -230,7 +231,9 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                         <p className="font-bold text-slate-900 text-lg flex items-center gap-2">
                                                             {user.name}
                                                         </p>
-                                                        <p className="text-sm text-slate-500 truncate">{user.email}</p>
+                                                        <p className="text-sm text-slate-500 truncate">
+                                                            {user.user_metadata?.username ? `@${user.user_metadata.username}` : user.email}
+                                                        </p>
                                                     </div>
                                                     <span className={`transform transition-transform ${isProfileStatsOpen ? "rotate-90" : ""}`}>
                                                         ›

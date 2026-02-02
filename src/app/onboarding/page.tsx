@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Camera, ArrowLeft, ArrowRight, Loader2, Check, ChevronDown } from "lucide-react";
+import { Camera, ArrowLeft, ArrowRight, Loader2, Check, ChevronDown, CheckCircle2 } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, THIRD_PARTY_PROVISION, ENTRUSTMENT } from "@/lib/compliance";
 
@@ -37,9 +37,10 @@ export default function OnboardingPage() {
     const [sendingCode, setSendingCode] = useState(false);
 
     // Step 2: Profile
+    // Step 2: Profile
     const [name, setName] = useState("");
-    const [nickname, setNickname] = useState("");
-    const [bio, setBio] = useState("");
+    const [username, setUsername] = useState("");
+    const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
     const [profileImage, setProfileImage] = useState("");
 
 
@@ -48,7 +49,7 @@ export default function OnboardingPage() {
         if (user) {
             // Pre-fill
             setName(user.user_metadata?.full_name || user.name || "");
-            setNickname(user.user_metadata?.nickname || "");
+            setUsername(user.user_metadata?.username || "");
             setProfileImage(user.user_metadata?.avatar_url || user.image || "");
             const metaPhone = user.user_metadata?.phone || "";
             if (metaPhone) {
@@ -250,6 +251,24 @@ export default function OnboardingPage() {
         }
     };
 
+    const checkUsernameAvailability = async () => {
+        if (!username || username.length < 3) {
+            setUsernameAvailable(false);
+            return;
+        }
+        try {
+            const res = await fetch('/api/user/check-username', {
+                method: 'POST',
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            setUsernameAvailable(data.available);
+        } catch (error) {
+            console.error(error);
+            setUsernameAvailable(null);
+        }
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -271,8 +290,8 @@ export default function OnboardingPage() {
     };
 
     const handleFinalSubmit = async () => {
-        if (!name.trim() || !nickname.trim()) {
-            alert("이름과 별명을 입력해주세요.");
+        if (!name.trim() || !username.trim()) {
+            alert("이름과 아이디를 입력해주세요.");
             return;
         }
         setLoading(true);
@@ -281,8 +300,7 @@ export default function OnboardingPage() {
             const updates = {
                 full_name: name,
                 name: name,
-                nickname: nickname,
-                bio: bio,
+                username: username, // New
                 phone: phone.replace(/-/g, ''),
                 avatar_url: profileImage,
                 onboarding_completed: true
@@ -568,7 +586,7 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <div>
                                 <label className="text-sm font-bold text-slate-700">이름</label>
                                 <input
@@ -579,29 +597,39 @@ export default function OnboardingPage() {
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-bold text-slate-700">별명</label>
-                                <input
-                                    value={nickname}
-                                    onChange={(e) => setNickname(e.target.value)}
-                                    placeholder="별명 입력"
-                                    className="w-full p-3 rounded-xl border border-slate-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm font-bold text-slate-700">한 줄 소개</label>
-                                <textarea
-                                    value={bio}
-                                    onChange={(e) => setBio(e.target.value)}
-                                    rows={2}
-                                    placeholder="자기소개를 입력해주세요."
-                                    className="w-full p-3 rounded-xl border border-slate-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                                />
+                                <label className="text-sm font-bold text-slate-700">아이디 (ID)</label>
+                                <div className="relative">
+                                    <input
+                                        value={username}
+                                        onChange={(e) => {
+                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '');
+                                            setUsername(val);
+                                            setUsernameAvailable(null); // Reset check
+                                        }}
+                                        onBlur={checkUsernameAvailability}
+                                        placeholder="영문, 숫자, ., _ 만 사용 가능"
+                                        className={`w-full p-3 rounded-xl border mt-1 outline-none font-medium ${usernameAvailable === false ? 'border-red-300 focus:ring-red-200' :
+                                            usernameAvailable === true ? 'border-green-300 focus:ring-green-200' :
+                                                'border-slate-200 focus:ring-2 focus:ring-blue-500'
+                                            }`}
+                                    />
+                                    {usernameAvailable === true && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pt-1 text-green-500">
+                                            <CheckCircle2 className="w-5 h-5" />
+                                        </div>
+                                    )}
+                                </div>
+                                <p className={`text-xs mt-1.5 ml-1 ${usernameAvailable === false ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+                                    {usernameAvailable === false ? "이미 사용 중인 아이디입니다." :
+                                        usernameAvailable === true ? "사용 가능한 아이디입니다." :
+                                            "나만의 고유한 아이디를 만들어보세요."}
+                                </p>
                             </div>
                         </div>
 
                         <Button
                             onClick={handleFinalSubmit}
-                            disabled={loading || !name || !nickname}
+                            disabled={loading || !name || !username || usernameAvailable !== true}
                             className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-lg shadow-blue-500/20"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "시작하기"}

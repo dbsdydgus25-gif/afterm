@@ -22,8 +22,9 @@ interface MemoryStore {
             avatar_url?: string;
             name?: string;
             full_name?: string;
-            nickname?: string;
-            bio?: string;
+            username?: string; // Unique ID
+            nickname?: string; // Legacy support (to be removed)
+            bio?: string;      // Legacy support (to be removed)
             deleted_at?: string;
             phone?: string;
             onboarding_completed?: boolean;

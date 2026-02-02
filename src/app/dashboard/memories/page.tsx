@@ -172,15 +172,14 @@ export default function MyMemoriesPage() {
                         )}
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            {user?.name || "사용자"}
-                            {user?.user_metadata?.nickname && (
-                                <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                                    @{user.user_metadata.nickname}
+                        <h2 className="text-lg font-bold text-slate-900 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
+                            <span>{user?.name || "사용자"}</span>
+                            {user?.user_metadata?.username && (
+                                <span className="text-sm font-medium text-slate-500">
+                                    @{user.user_metadata.username}
                                 </span>
                             )}
                         </h2>
-                        <p className="text-xs text-slate-500 line-clamp-1">{user?.user_metadata?.bio || "자기소개를 입력해주세요."}</p>
                     </div>
                 </section>
 

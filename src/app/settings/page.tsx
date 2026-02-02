@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WithdrawModal } from "@/components/auth/WithdrawModal";
-import { User, Shield, CreditCard, LogOut, ChevronRight, Camera } from "lucide-react";
+import { User, Shield, Key, CreditCard, LogOut, Camera, Smartphone, AlertCircle, CheckCircle2 } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 import { PhoneUpdateModal } from "@/components/settings/PhoneUpdateModal";
 
@@ -269,26 +269,30 @@ function SettingsContent() {
     const [mounted, setMounted] = useState(false);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-    // Profile Edit States
+    // Profile Tab State
     const [customName, setCustomName] = useState("");
-    const [nickname, setNickname] = useState("");
-    const [bio, setBio] = useState("");
-    const [profileImage, setProfileImage] = useState("");
+    const [username, setUsername] = useState("");
+    const [usernameError, setUsernameError] = useState<string | null>(null);
+    const [usernameChecked, setUsernameChecked] = useState(false);
     const [phone, setPhone] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
+    const [profileImage, setProfileImage] = useState("");
+
+    // Security Tab State
     const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [renewalDate, setRenewalDate] = useState<string | null>(null);
     const [autoRenew, setAutoRenew] = useState<boolean>(true);
 
     useEffect(() => {
         setMounted(true);
         if (user) {
-            setCustomName(user.name || "");
-            const metadata = user.user_metadata || {};
-            setNickname(metadata.nickname || "");
-            setBio(metadata.bio || "");
-            setProfileImage(metadata.avatar_url || "");
-            setIsAuthChecking(false);
+            setCustomName(user.name);
+            setUsername(user.user_metadata?.username || "");
+            setUsernameChecked(!!user.user_metadata?.username); // Assume existing is valid
+            setProfileImage(user.image || user.user_metadata?.avatar_url || "");
+            if (user.user_metadata?.phone) {
+                setPhone(user.user_metadata.phone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
+            }
 
             // Fetch subscription info from Profiles
             const fetchProfile = async () => {
@@ -305,6 +309,42 @@ function SettingsContent() {
             fetchProfile();
         }
     }, [user]);
+
+    const checkUsername = async () => {
+        if (!username) {
+            setUsernameError("아이디를 입력해주세요.");
+            setUsernameChecked(false);
+            return;
+        }
+        if (username === user?.user_metadata?.username) {
+            setUsernameError(null);
+            setUsernameChecked(true);
+            return;
+        }
+        if (username.length < 3) {
+            setUsernameError("3자 이상이어야 합니다.");
+            setUsernameChecked(false);
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/user/check-username', {
+                method: 'POST',
+                body: JSON.stringify({ username })
+            });
+            const data = await res.json();
+            if (data.available) {
+                setUsernameError(null);
+                setUsernameChecked(true);
+            } else {
+                setUsernameError(data.message || "사용할 수 없는 아이디입니다.");
+                setUsernameChecked(false);
+            }
+        } catch (error) {
+            setUsernameError("확인 중 오류가 발생했습니다.");
+            setUsernameChecked(false);
+        }
+    };
 
     // Removed direct redirect to prevent loops
     // AuthProvider handles main protection
@@ -355,45 +395,42 @@ function SettingsContent() {
 
     const handleSaveProfile = async () => {
         if (!user) return;
+
+        if (usernameChecked === false && username !== user.user_metadata?.username) {
+            alert("아이디 중복 확인이 필요합니다.");
+            return;
+        }
+
         setIsSaving(true);
         const supabase = createClient();
 
         try {
             const updates = {
-                name: customName, // Allow updating display name in metadata
-                nickname: nickname,
-                bio: bio,
+                name: customName,
+                username: username,
                 avatar_url: profileImage
             };
 
-            // 1. Update Auth Metadata (Backup / Session)
+            // 1. Update Profile Table
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update(updates)
+                .eq('id', user.id);
+
+            if (profileError) throw profileError;
+
+            // 2. Update Auth Metadata
             const { error: authError } = await supabase.auth.updateUser({
                 data: updates
             });
 
             if (authError) throw authError;
 
-            // 2. Update Public Profiles Table (Persistence)
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .upsert({
-                    id: user.id,
-                    full_name: customName,
-                    nickname: nickname,
-                    avatar_url: profileImage,
-                    phone: phone, // Save Phone
-                    updated_at: new Date().toISOString()
-                });
-
-            if (profileError) throw profileError;
-
-            await supabase.auth.refreshSession();
-
-            // Update local store
+            // 3. Update Local State
             setUser({
                 ...user,
                 name: customName,
-                image: profileImage, // Force update local image
+                image: profileImage,
                 user_metadata: {
                     ...user.user_metadata,
                     ...updates
@@ -612,30 +649,52 @@ function SettingsContent() {
                                         </div>
 
                                         <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
-                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">별명</label>
-                                            <input
-                                                type="text"
-                                                value={nickname}
-                                                onChange={(e) => setNickname(e.target.value)}
-                                                className="flex-1 p-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                                                placeholder="별명을 입력하세요"
-                                            />
-                                        </div>
-
-                                        <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
-                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">소개</label>
-                                            <textarea
-                                                value={bio}
-                                                onChange={(e) => setBio(e.target.value)}
-                                                rows={3}
-                                                className="flex-1 p-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
-                                                placeholder="자기소개를 간단히 남겨주세요."
-                                            />
+                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">아이디</label>
+                                            <div className="flex-1">
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={username}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '');
+                                                            setUsername(val);
+                                                            setUsernameError(null);
+                                                            if (val !== user.user_metadata?.username) {
+                                                                setUsernameChecked(false);
+                                                            } else {
+                                                                setUsernameChecked(true); // Original is valid
+                                                            }
+                                                        }}
+                                                        onBlur={checkUsername}
+                                                        className={`w-full p-2 rounded-lg border text-sm outline-none transition-all ${usernameError ? 'border-red-300 focus:ring-red-200' :
+                                                            usernameChecked ? 'border-green-300 focus:ring-green-200' :
+                                                                'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                                                            }`}
+                                                        placeholder="영문, 숫자, ., _ 만 사용 가능"
+                                                    />
+                                                    {usernameChecked && !usernameError && (
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                                                            <CheckCircle2 className="w-4 h-4" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+                                                    {usernameError ? (
+                                                        <span className="text-red-500 font-bold">{usernameError}</span>
+                                                    ) : (
+                                                        `@${username || "username"} 형식으로 표시됩니다.`
+                                                    )}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="flex justify-end pt-2">
-                                        <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs">
+                                        <Button
+                                            onClick={handleSaveProfile}
+                                            disabled={isSaving || (username !== user.user_metadata?.username && !usernameChecked) || !!usernameError}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs"
+                                        >
                                             {isSaving ? "저장 중..." : "변경사항 저장"}
                                         </Button>
                                     </div>
