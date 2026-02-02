@@ -59,39 +59,15 @@ export default function CreatePage() {
         const selectedFiles = e.target.files;
         if (selectedFiles) {
             const newFiles = Array.from(selectedFiles);
-            const supabase = createClient();
+            const MAX_TOTAL_SIZE = 10 * 1024 * 1024; // 10MB Limit for Everyone
 
-            // Plan Constraints
-            const MAX_FILE_SIZE_BASIC = 10 * 1024 * 1024; // 10MB
-            const MAX_STORAGE_PRO = 1 * 1024 * 1024 * 1024; // 1GB
+            // Calculate current total size
+            const currentTotalSize = files.reduce((acc, file) => acc + file.size, 0);
+            const newFilesSize = newFiles.reduce((acc, file) => acc + file.size, 0);
 
-            // 1. Basic Plan Check: Per File Limit
-            if (plan !== 'pro') {
-                for (const file of newFiles) {
-                    if (file.size > MAX_FILE_SIZE_BASIC) {
-                        alert(`Basic 요금제에서는 10MB 이하의 파일만 업로드할 수 있습니다.\n파일 '${file.name}'의 크기가 제한을 초과했습니다.\n\n대용량 업로드를 원하시면 Pro 요금제로 업그레이드 해주세요.`);
-                        return;
-                    }
-                }
-            }
-
-            // 2. Pro Plan Check: Total Storage Limit
-            if (plan === 'pro' && user?.id) {
-                // Fetch current usage
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('storage_used')
-                    .eq('id', user.id)
-                    .single();
-
-                const currentUsage = profile?.storage_used || 0;
-                const newFilesSize = newFiles.reduce((acc, file) => acc + file.size, 0);
-                const pendingFilesSize = files.reduce((acc, file) => acc + file.size, 0); // Already staged files
-
-                if (currentUsage + pendingFilesSize + newFilesSize > MAX_STORAGE_PRO) {
-                    alert(`저장 용량(1GB)을 초과하여 업로드할 수 없습니다.\n현재 사용량: ${(currentUsage / (1024 * 1024)).toFixed(1)}MB`);
-                    return;
-                }
+            if (currentTotalSize + newFilesSize > MAX_TOTAL_SIZE) {
+                alert(`한 메시지당 첨부 파일 용량은 총 10MB로 제한됩니다.\n현재: ${(currentTotalSize / (1024 * 1024)).toFixed(1)}MB / 추가: ${(newFilesSize / (1024 * 1024)).toFixed(1)}MB`);
+                return;
             }
 
             setFiles([...files, ...newFiles]);
@@ -244,7 +220,7 @@ export default function CreatePage() {
                                 />
                             </div>
                             <div className="text-[10px] text-slate-300">
-                                {files.length > 0 ? `${(totalSize / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 1GB
+                                {files.length > 0 ? `${(totalSize / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 10MB
                             </div>
                         </div>
                     </div>
