@@ -64,19 +64,25 @@ export default function OnboardingPage() {
                 console.log("User ID:", user.id);
                 console.log("User email:", user.email);
 
-                // First check if user already has nickname (onboarding complete)
+                // First check if user already has completed onboarding
                 // Use user_metadata to bypass RLS issues
                 const userMetadata = user.user_metadata;
-                // Only 'nickname' proves they finished our onboarding.
-                // Social login provides full_name, so we MUST NOT use it as a completion flag.
-                const hasNickname = !!userMetadata?.nickname;
+
+                // Check MULTIPLE indicators of completion (to support existing users):
+                // 1. onboarding_completed flag (most reliable)
+                // 2. Has username (they went through profile setup)
+                // 3. Has nickname (new users after this fix)
+                const hasCompleted =
+                    !!userMetadata?.onboarding_completed ||
+                    !!userMetadata?.username ||
+                    !!userMetadata?.nickname;
 
                 console.log("Profile data (metadata):", userMetadata);
-                console.log("Has nickname:", hasNickname);
+                console.log("Has completed onboarding:", hasCompleted);
 
                 // If user already completed onboarding, redirect to home
-                if (hasNickname) {
-                    console.log(">>> User already has nickname (from metadata), redirecting to home");
+                if (hasCompleted) {
+                    console.log(">>> User already completed onboarding, redirecting to home");
                     // Force hard redirect
                     window.location.href = "/";
                     return;
