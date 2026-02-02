@@ -144,9 +144,7 @@ export default function MyMemoriesPage() {
                     >
                         <ArrowLeft className="w-4 h-4" /> 돌아가기
                     </button>
-                    <Button onClick={() => router.push('/create')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-4 py-2 text-sm">
-                        + 새 기억 남기기
-                    </Button>
+                    {/* Header button removed, moved to below stats */}
                 </div>
 
                 <h1 className="text-xl font-bold text-slate-900 mb-6">나의 기억 보관함</h1>
@@ -217,6 +215,13 @@ export default function MyMemoriesPage() {
                         </div>
                     </div>
                 </section>
+
+                <Button
+                    onClick={() => router.push('/create')}
+                    className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-base shadow-lg shadow-slate-200 mb-10 flex items-center justify-center gap-2"
+                >
+                    <span>✨</span> 새 기억 남기기
+                </Button>
 
                 {memories.length > 0 ? (
                     <div className="space-y-4">
