@@ -34,6 +34,7 @@ export default function DashboardPage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
     // State for Signed URLs
     const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
 
@@ -334,7 +335,7 @@ export default function DashboardPage() {
                     <h2 className="text-lg font-bold text-slate-900 px-1">나의 기억 보관함</h2>
 
                     <MessageList
-                        messages={messages}
+                        messages={messages.slice((currentPage - 1) * 3, currentPage * 3)}
                         loading={loading}
                         imageUrls={imageUrls}
                         onEdit={handleEdit}
@@ -346,17 +347,25 @@ export default function DashboardPage() {
                             router.push('/create');
                         }}
                     />
-                </section>
 
-                {/* Upgrade CTA */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-white text-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    <h3 className="text-xl font-bold mb-2 relative z-10">더 많은 분들에게 마음을 남기고 싶으신가요?</h3>
-                    <p className="text-slate-400 mb-6 relative z-10 text-sm">Pro 플랜으로 업그레이드 하고<br />더 많은 메시지와 저장 공간을 이용해보세요.</p>
-                    <Button onClick={() => router.push('/plans')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-5 rounded-xl text-base relative z-10 shadow-lg shadow-blue-900/50">
-                        Pro 플랜 알아보기
-                    </Button>
-                </div>
+                    {/* Pagination */}
+                    {messages.length > 3 && (
+                        <div className="flex justify-center gap-2 pt-4 pb-8">
+                            {Array.from({ length: Math.ceil(messages.length / 3) }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-8 h-8 rounded-full text-sm font-bold transition-colors ${currentPage === page
+                                        ? "bg-slate-900 text-white"
+                                        : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </section>
 
             </main>
         </div>
