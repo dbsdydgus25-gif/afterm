@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Header } from "@/components/layout/Header";
 
 export default function AppEntryPage() {
     const router = useRouter();
@@ -88,6 +89,9 @@ export default function AppEntryPage() {
                 )}
             </AnimatePresence>
 
+            {/* Header */}
+            <Header transparentOnTop={true} />
+
             {/* Main Content (Revealed after Splash) */}
             <motion.div
                 className="flex-1 flex flex-col items-center w-full relative"
@@ -164,27 +168,6 @@ export default function AppEntryPage() {
                             계속 작성하기
                         </Button>
                     </div>
-
-                    {/* Service Info Link (New Requirement) */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="absolute bottom-6 left-0 w-full flex justify-center gap-6"
-                    >
-                        <button
-                            onClick={() => router.push('/service')}
-                            className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1"
-                        >
-                            서비스 소개 &rarr;
-                        </button>
-                        <button
-                            onClick={() => router.push('/space')}
-                            className="text-xs font-semibold text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-1"
-                        >
-                            공간 둘러보기 &rarr;
-                        </button>
-                    </motion.div>
 
                 </div>
             </motion.div>
