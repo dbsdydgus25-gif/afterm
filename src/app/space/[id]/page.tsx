@@ -151,38 +151,38 @@ export default function UserSpacePage() {
 
                 {/* Profile */}
                 <div className="px-4 pb-4">
-                    <div className="flex items-start gap-4 mb-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                    <div className="flex items-start gap-4 mb-3">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-lg font-bold shadow-md">
                             {space.name[0]}
                         </div>
                         <div className="flex-1">
-                            <h1 className="text-[16px] font-bold text-gray-900">{space.name}</h1>
-                            <p className="text-[14px] text-gray-500">@{space.handle}</p>
+                            <h1 className="text-[15px] font-bold text-gray-900">{space.name}</h1>
+                            <p className="text-[13px] text-gray-500">@{space.handle}</p>
                         </div>
                         {!isOwner && (
                             <button
                                 onClick={handleFollow}
-                                className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-colors ${!relationship
+                                className={`px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${!relationship
                                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                                         : relationship.status === 'pending'
                                             ? 'bg-blue-100 text-blue-600'
                                             : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
                                     }`}
                             >
-                                {!relationship && <><UserPlus className="w-3.5 h-3.5 inline mr-1" />팔로우</>}
-                                {relationship?.status === 'pending' && <><Clock className="w-3.5 h-3.5 inline mr-1" />대기중</>}
-                                {relationship?.status === 'accepted' && <><Users className="w-3.5 h-3.5 inline mr-1" />친구</>}
+                                {!relationship && <><UserPlus className="w-3 h-3 inline mr-1" />팔로우</>}
+                                {relationship?.status === 'pending' && <><Clock className="w-3 h-3 inline mr-1" />대기중</>}
+                                {relationship?.status === 'accepted' && <><Users className="w-3 h-3 inline mr-1" />친구</>}
                             </button>
                         )}
                     </div>
 
                     {space.bio && (
-                        <p className="text-[14px] text-gray-700 leading-relaxed mb-4">
+                        <p className="text-[13px] text-gray-700 leading-relaxed mb-3">
                             {space.bio}
                         </p>
                     )}
 
-                    <div className="text-[13px]">
+                    <div className="text-[12px]">
                         <span className="font-semibold text-gray-900">{friendCount}</span>
                         <span className="text-gray-500 ml-1">친구</span>
                     </div>

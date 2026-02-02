@@ -137,7 +137,9 @@ export function MemoryFeed({ memories, mySpaceId }: MemoryFeedProps) {
     return (
         <div>
             {memories.map((memory) => {
-                const canView = !memory.is_secret || memory.allowed_viewers.includes(mySpaceId);
+                const canView = !memory.is_secret ||
+                    memory.allowed_viewers.includes(mySpaceId) ||
+                    memory.writer.handle === mySpaceId; // Can view own secrets
                 const isExpanded = expandedComments.has(memory.id);
                 const memoryComments = comments[memory.id] || [];
 
