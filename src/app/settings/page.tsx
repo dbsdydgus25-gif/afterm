@@ -616,13 +616,20 @@ function SettingsContent() {
                                                         )}
                                                         <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                                             <Camera className="w-4 h-4 text-white" />
-                                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                                            <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                                                         </label>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Felix")} className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium hover:bg-slate-50 transition-colors">남자 캐릭터</button>
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Lisa")} className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium hover:bg-slate-50 transition-colors">여자 캐릭터</button>
+                                                <div>
+                                                    <button
+                                                        onClick={() => document.getElementById('profile-upload')?.click()}
+                                                        className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                                                    >
+                                                        프로필 변경
+                                                    </button>
+                                                    <p className="text-[10px] text-slate-400 mt-1">
+                                                        10MB 이하의 이미지
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
