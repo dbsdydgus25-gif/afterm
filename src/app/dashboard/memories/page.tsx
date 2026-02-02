@@ -191,16 +191,16 @@ export default function MyMemoriesPage() {
                         <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 메시지</h3>
                         <div className="flex items-end gap-2 mb-2">
                             <span className="text-3xl font-bold text-slate-900">
-                                {plan === 'pro' ? '∞' : Math.max(0, 1 - memories.length)}
+                                {plan === 'pro' ? Math.max(0, 100 - memories.length) : Math.max(0, 1 - memories.length)}
                             </span>
                             <span className="text-sm text-slate-400 mb-1">
-                                / {plan === 'pro' ? '무제한' : '1개'}
+                                / {plan === 'pro' ? '100개' : '1개'}
                             </span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                                style={{ width: plan === 'pro' ? '100%' : `${(memories.length / 1) * 100}%` }}
+                                style={{ width: plan === 'pro' ? `${(memories.length / 100) * 100}%` : `${(memories.length / 1) * 100}%` }}
                             />
                         </div>
                     </div>

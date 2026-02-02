@@ -200,20 +200,36 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                 }`}
                                         >
                                             {user.user_metadata?.avatar_url || user.image ? (
-                                                <SecureAvatar
-                                                    src={user.user_metadata?.avatar_url || user.image}
-                                                    alt="Profile"
-                                                    className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
-                                                />
+                                                <div className="relative">
+                                                    <SecureAvatar
+                                                        src={user.user_metadata?.avatar_url || user.image}
+                                                        alt="Profile"
+                                                        className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
+                                                    />
+                                                    {plan === 'pro' && (
+                                                        <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white">
+                                                            PRO
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ) : (
-                                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                                                    {user.name?.[0]}
+                                                <div className="relative">
+                                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
+                                                        {user.name?.[0]}
+                                                    </div>
+                                                    {plan === 'pro' && (
+                                                        <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white">
+                                                            PRO
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <p className="font-bold text-slate-900 text-lg">{user.name}</p>
+                                                        <p className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                                                            {user.name}
+                                                        </p>
                                                         <p className="text-sm text-slate-500 truncate">{user.email}</p>
                                                     </div>
                                                     <span className={`transform transition-transform ${isProfileStatsOpen ? "rotate-90" : ""}`}>
@@ -236,7 +252,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                                 <div className="flex justify-between items-center text-sm mb-1">
                                                                     <span className="text-slate-500">남은 메시지</span>
                                                                     <span className="font-bold text-blue-600">
-                                                                        {plan === 'pro' ? '무제한' : (1 - (messageCount || 0)) + '개'}
+                                                                        {plan === 'pro' ? (100 - (messageCount || 0)) + '개' : (1 - (messageCount || 0)) + '개'}
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex justify-between items-center text-sm">

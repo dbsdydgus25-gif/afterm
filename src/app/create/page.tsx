@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,41 @@ export default function CreatePage() {
     const router = useRouter();
     const { message, setMessage, files, setFiles, plan, user } = useMemoryStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [currentCount, setCurrentCount] = useState<number | null>(null);
 
-    // In a real app, we would check for authentication here
-    // useEffect(() => { if (!user) router.push('/'); }, []);
+    useEffect(() => {
+        const fetchCount = async () => {
+            if (user?.id) {
+                const supabase = createClient();
+                // Match the logic in dashboard: Basic users limit applies to non-archived (active) messages
+                let query = supabase.from('messages').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+
+                if (plan !== 'pro') {
+                    query = query.eq('archived', false);
+                }
+
+                const { count } = await query;
+                if (count !== null) setCurrentCount(count);
+            }
+        };
+        fetchCount();
+    }, [user, plan]);
 
     const handleNext = () => {
         if (!message.trim()) {
             alert("메시지를 입력해주세요.");
             return;
         }
+
+        // Message Limit Check
+        const LIMIT = plan === 'pro' ? 100 : 1;
+        if (currentCount !== null && currentCount >= LIMIT) {
+            alert(plan === 'pro'
+                ? "Pro 요금제의 메시지 보관 한도(100개)를 초과했습니다."
+                : "Basic 요금제에서는 메시지를 1개만 보관할 수 있습니다.\n추가 작성을 원하시면 Pro 요금제로 업그레이드 해주세요.");
+            return;
+        }
+
         router.push("/recipient");
     };
 
