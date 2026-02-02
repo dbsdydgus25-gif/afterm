@@ -1,93 +1,191 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMemoryStore } from "@/store/useMemoryStore";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
-export default function HomePage() {
+export default function AppEntryPage() {
+    const router = useRouter();
+    const [showSplash, setShowSplash] = useState(true);
+    // Use the same states as the original page to ensure compatibility
+    const { message, setMessage, user, plan, setMessageCount } = useMemoryStore();
+    const [currentBgIndex, setCurrentBgIndex] = useState(0);
+
+    // Background slideshow logic (Same as original)
+    const backgrounds = [
+        "bg-gradient-to-br from-orange-50 to-amber-50",
+        "bg-gradient-to-br from-blue-50 to-indigo-50",
+        "bg-gradient-to-br from-rose-50 to-pink-50",
+    ];
+
+    useEffect(() => {
+        const hasShownSplash = sessionStorage.getItem('splash_shown');
+
+        if (hasShownSplash) {
+            setShowSplash(false);
+        } else {
+            const timer = setTimeout(() => {
+                setShowSplash(false);
+                sessionStorage.setItem('splash_shown', 'true');
+            }, 2000); // 2 seconds splash
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentBgIndex((prev) => (prev + 1) % backgrounds.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const handleContinue = () => {
+        if (!message.trim()) {
+            alert("메시지를 입력해주세요.");
+            return;
+        }
+        // Logic from original page:
+        // If logged in -> go to /create (to add media)
+        // If guest -> go to /login with returnTo
+
+        if (user) {
+            router.push('/create');
+        } else {
+            alert("로그인 후 계속 작성이 가능합니다.");
+            router.push('/login?returnTo=/create');
+        }
+    };
+
     return (
-        <div className="flex flex-col min-h-screen font-sans bg-white pb-16">
-            <Header transparentOnTop={false} />
+        <div className="flex flex-col min-h-screen font-sans overflow-hidden relative">
 
-            <main className="flex-1">
-                {/* Hero Section */}
-                <section className="px-6 py-12 bg-gray-50 mb-8">
-                    <h1 className="text-3xl font-black text-gray-900 leading-tight mb-4">
-                        당신의 기억을<br />
-                        <span className="text-blue-600">영원히</span> 남기세요
-                    </h1>
-                    <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                        생의 마지막 순간, 사랑하는 사람들에게<br />
-                        전하고 싶은 진심을 미리 준비하세요.
-                    </p>
-                    <Link
-                        href="/create"
-                        className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors"
+            {/* Splash Screen (White + Logo as requested) */}
+            <AnimatePresence>
+                {showSplash && (
+                    <motion.div
+                        className="absolute inset-0 z-[100] flex items-center justify-center bg-white"
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8 }}
                     >
-                        기억 남기기 시작하기
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                </section>
-
-                {/* Features */}
-                <section className="px-6 space-y-8 mb-12">
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl">
-                            🔒
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-1">안전한 보관</h3>
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                                모든 데이터는 암호화되어 안전하게 보관되며, 지정된 수신인만 확인할 수 있습니다.
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 1.2, opacity: 0 }}
+                            transition={{ duration: 1.2, ease: "easeOut" }}
+                            className="text-center"
+                        >
+                            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-blue-600">
+                                AFTERM
+                            </h1>
+                            <p className="mt-2 text-sm text-slate-400 font-medium tracking-wide">
+                                당신의 기억을 영원히
                             </p>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl">
-                            ⏳
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-1">타임캡슐 전송</h3>
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                                내가 설정한 시점에 소중한 메시지가 자동으로 전달됩니다.
+            {/* Header */}
+            <Header transparentOnTop={true} />
+
+            {/* Main Content (Revealed after Splash) */}
+            <motion.div
+                className="flex-1 flex flex-col items-center w-full relative"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showSplash ? 0 : 1 }}
+                transition={{ duration: 0.5 }}
+            >
+                {/* Background (From Original) */}
+                <div className="absolute inset-0 z-0">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentBgIndex}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1.5 }}
+                            className={`absolute inset-0 ${backgrounds[currentBgIndex]}`}
+                        />
+                    </AnimatePresence>
+                    <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
+                </div>
+
+                {/* Hero Content (Centered) */}
+                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-center min-h-screen px-6 pt-32 pb-10 text-center space-y-8">
+
+                    {/* Typography (Scaled down for mobile as requested) */}
+                    <div className="flex flex-col items-center gap-4">
+                        {/* Promo Banner */}
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                            onClick={() => router.push('/plans')}
+                            className="bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 shadow-sm cursor-pointer hover:bg-indigo-100 transition-colors"
+                        >
+                            <span className="text-[10px] sm:text-xs font-bold text-indigo-600 flex items-center gap-1.5 whitespace-nowrap">
+                                🎉 <span className="underline decoration-indigo-300 decoration-2 underline-offset-2">오픈 기념</span> PRO 플랜 3개월 무료 체험!
+                            </span>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-3"
+                        >
+                            {/* H1: User complained about "Everything is too big". 
+                            Original: text-2xl sm:text-4xl... 
+                            New: text-xl sm:text-2xl (Smaller) */}
+                            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900 leading-snug break-keep drop-shadow-sm whitespace-nowrap">
+                                <span className="inline-block mr-1">갑자기 떠나도</span>
+                                <span className="text-blue-600 inline-block mr-1">1분이면</span>
+                                <span className="inline-block">괜찮아</span>
+                            </h1>
+                            <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-normal break-keep inline-block mt-2">
+                                소중한 사람들을 위한 마지막 센스, 미리 저장하는 안부인사
                             </p>
-                        </div>
-                    </div>
+                        </motion.div>
 
-                    <div className="flex gap-4">
-                        <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl">
-                            🕊️
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-1">온라인 추모관</h3>
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                                나만의 공간에서 삶을 기록하고, 떠난 후에도 서로를 기억할 수 있습니다.
-                            </p>
-                        </div>
-                    </div>
-                </section>
+                        {/* Core Feature (Card Input) - Exact Logic but Smaller UI */}
+                        <div className="w-full space-y-4 animate-fade-in delay-75">
+                            <div className="group relative">
+                                {/* Reduced glow effect size */}
+                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl blur opacity-20 transition duration-500"></div>
 
-                {/* Banner */}
-                <section className="px-6 mb-12">
-                    <div className="bg-gray-900 rounded-2xl p-6 text-white relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="font-bold text-lg mb-2">프리미엄 플랜 오픈</h3>
-                            <p className="text-xs text-gray-400 mb-4">
-                                더 많은 용량과 영구 보관 서비스를<br />
-                                지금 바로 경험해보세요.
-                            </p>
-                            <Link href="/plans" className="text-xs font-bold underline decoration-blue-500 underline-offset-4">
-                                자세히 보기
-                            </Link>
-                        </div>
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[50px] opacity-20 transform translate-x-10 -translate-y-10"></div>
-                    </div>
-                </section>
+                                <div className="relative">
+                                    <Textarea
+                                        value={message}
+                                        onChange={(e) => {
+                                            if (e.target.value.length <= 500) {
+                                                setMessage(e.target.value);
+                                            }
+                                        }}
+                                        placeholder="이곳에 당신의 이야기를 담아주세요..."
+                                        className="w-full min-h-[200px] text-sm leading-relaxed p-5 rounded-2xl bg-white/80 backdrop-blur-md border border-white shadow-lg resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 placeholder:text-slate-400 text-slate-800 transition-all font-sans"
+                                    />
+                                    <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 font-medium bg-white/50 px-2 py-1 rounded-full">
+                                        {message.length} / 500자
+                                    </div>
+                                </div>
+                            </div>
 
-                <Footer />
-            </main>
+                            <Button
+                                size="lg"
+                                onClick={handleContinue}
+                                className="w-full h-12 text-base font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all active:scale-95"
+                            >
+                                계속 작성하기
+                            </Button>
+                        </div>
+
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 }
