@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -11,18 +11,29 @@ export async function POST(req: NextRequest) {
 
     const { action, targetSpaceId } = await req.json();
 
-    // Get current user's space
+    // Get current user's PERSONAL space (not memorial)
     const { data: mySpace } = await supabase
         .from('spaces')
         .select('id')
         .eq('owner_id', user.id)
+        .eq('space_type', 'personal')
         .single();
 
     if (!mySpace) {
-        return NextResponse.json({ error: 'Space not found' }, { status: 404 });
+        return NextResponse.json({ error: 'Personal space not found' }, { status: 404 });
     }
 
+    // Allow following own memorial spaces
+    // (same owner_id but different space_id is OK)
+
+
     if (action === 'follow') {
+        // Prevent following the exact same space (personal following personal)
+        // But allow personal space to follow memorial spaces of same owner
+        if (mySpace.id === targetSpaceId) {
+            return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 });
+        }
+
         // Create follow request (pending)
         const { data, error } = await supabase
             .from('relationships')
@@ -35,6 +46,10 @@ export async function POST(req: NextRequest) {
             .single();
 
         if (error) {
+            // Check if already following
+            if (error.code === '23505') {
+                return NextResponse.json({ error: 'Already following or request pending' }, { status: 409 });
+            }
             return NextResponse.json({ error: error.message }, { status: 400 });
         }
 
@@ -78,7 +93,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
