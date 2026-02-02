@@ -124,7 +124,8 @@ export default function AppEntryPage() {
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5, duration: 0.5 }}
-                            className="bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 shadow-sm"
+                            onClick={() => router.push('/service')}
+                            className="bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 shadow-sm cursor-pointer hover:bg-indigo-100 transition-colors"
                         >
                             <span className="text-[10px] sm:text-xs font-bold text-indigo-600 flex items-center gap-1.5 whitespace-nowrap">
                                 🎉 <span className="underline decoration-indigo-300 decoration-2 underline-offset-2">오픈 기념</span> PRO 플랜 3개월 무료 체험!

@@ -20,6 +20,10 @@ export default function ServiceGuidePage() {
     const { user, plan } = useMemoryStore();
 
     const handleSubscribe = (planName: "Standard" | "Pro", price: string) => {
+        if (!user) {
+            router.push('/login?returnTo=/service');
+            return;
+        }
         const newPlan = planName === "Pro" ? "pro" : "free";
         setTargetPlan(newPlan);
         setIsPlanModalOpen(true);
