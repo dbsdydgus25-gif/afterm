@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, Settings, UserPlus, Clock, Users } from "lucide-react";
 import { MemoryFeed } from "@/components/space/MemoryFeed";
+import { SpaceSwitcher } from "@/components/space/SpaceSwitcher";
 import Link from "next/link";
 
 export default function UserSpacePage() {
@@ -52,7 +53,7 @@ export default function UserSpacePage() {
                 return;
             }
 
-            // Get friend count (mutual relationships)
+            // Get friend count
             const { count } = await supabase
                 .from('relationships')
                 .select('*', { count: 'exact', head: true })
@@ -61,7 +62,7 @@ export default function UserSpacePage() {
 
             setFriendCount(count || 0);
 
-            // Get relationship if not my space
+            // Get relationship
             if (mySpaceData && mySpaceData.id !== spaceData.id) {
                 const { data: rel } = await supabase
                     .from('relationships')
@@ -134,9 +135,13 @@ export default function UserSpacePage() {
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
                 <div className="flex items-center justify-between px-4 py-3">
-                    <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-lg">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
+                    {isOwner ? (
+                        <SpaceSwitcher currentSpaceId={space.id} />
+                    ) : (
+                        <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-lg">
+                            <ArrowLeft className="w-5 h-5" />
+                        </button>
+                    )}
                     {isOwner && (
                         <Link href="/space/settings" className="p-2 hover:bg-gray-100 rounded-lg">
                             <Settings className="w-5 h-5" />
@@ -177,7 +182,6 @@ export default function UserSpacePage() {
                         </p>
                     )}
 
-                    {/* Friend Count */}
                     <div className="text-[13px]">
                         <span className="font-semibold text-gray-900">{friendCount}</span>
                         <span className="text-gray-500 ml-1">친구</span>
