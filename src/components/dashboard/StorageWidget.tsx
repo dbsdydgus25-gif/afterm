@@ -25,42 +25,24 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
             const supabase = createClient();
 
             try {
-                // 1. Calculate text content size from messages
-                const { data: messages, error: msgError } = await supabase
-                    .from('messages')
-                    .select('id, content, file_size')
-                    .eq('user_id', userId);
+                // Fetch storage_used directly from profiles
+                // This ensures consistency with the upload logic which updates this value
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('storage_used')
+                    .eq('id', userId)
+                    .single();
 
-                if (msgError) throw msgError;
-
-                let totalSize = 0;
-                const messageIds: string[] = [];
-
-                if (messages) {
-                    for (const msg of messages) {
-                        messageIds.push(msg.id);
-                        if (msg.content) totalSize += new Blob([msg.content]).size;
-                        if (msg.file_size) totalSize += msg.file_size;
-                    }
+                if (error) {
+                    throw error;
                 }
 
-                if (messageIds.length > 0) {
-                    const { data: attachments, error: attError } = await supabase
-                        .from('message_attachments')
-                        .select('file_size')
-                        .in('message_id', messageIds);
-
-                    if (!attError && attachments) {
-                        for (const att of attachments) {
-                            totalSize += att.file_size || 0;
-                        }
-                    }
+                if (profile) {
+                    setStorageUsed(profile.storage_used || 0);
                 }
-
-                setStorageUsed(totalSize);
             } catch (error) {
-                console.error("Error calculating storage:", error);
-                setStorageUsed(0);
+                console.error("Error fetching storage usage:", error);
+                // Fallback to 0 or keep previous
             }
             setLoading(false);
         };
