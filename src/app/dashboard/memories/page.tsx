@@ -152,61 +152,69 @@ export default function MyMemoriesPage() {
                 <h1 className="text-xl font-bold text-slate-900 mb-6">나의 기억 보관함</h1>
 
                 {/* Profile Section (Unified Design) */}
-                <section className="mb-6 p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="relative flex-shrink-0">
+                <section className="mb-6 flex flex-col items-center">
+                    <div className="relative mb-3">
                         {user?.image || user?.user_metadata?.avatar_url ? (
                             <SecureAvatar
                                 src={user?.image || user?.user_metadata?.avatar_url}
                                 alt="Profile"
-                                className="w-12 h-12 rounded-full shadow-sm"
+                                className="w-20 h-20 rounded-full shadow-sm"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-slate-500">
+                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-slate-500">
                                 {user?.name?.[0] || "U"}
                             </div>
                         )}
                         {plan === 'pro' && (
-                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-md">
-                                <span className="text-white font-bold text-[8px]">PRO</span>
+                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-[10px]">PRO</span>
                             </div>
                         )}
                     </div>
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-900 flex flex-col md:flex-row md:items-center gap-0.5 md:gap-2">
-                            <span>{user?.name || "사용자"}</span>
-                            {user?.user_metadata?.username && (
-                                <span className="text-sm font-medium text-slate-500">
-                                    @{user.user_metadata.username}
-                                </span>
-                            )}
-                        </h2>
-                    </div>
+
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6">
+                        <span>{user?.name || "사용자"}</span>
+                        {user?.user_metadata?.username && (
+                            <span className="text-sm font-medium text-slate-400">
+                                @{user.user_metadata.username}
+                            </span>
+                        )}
+                        <button
+                            onClick={() => router.push('/settings?tab=profile')}
+                            className="text-xs text-slate-400 hover:text-slate-600 ml-1"
+                        >
+                            설정 &gt;
+                        </button>
+                    </h2>
                 </section>
 
-                {/* Stats Section */}
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {/* Left: Message Usage */}
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 className="text-slate-500 font-medium mb-3 text-xs">남은 메시지</h3>
-                        <div className="flex items-end gap-2 mb-2">
-                            <span className="text-2xl font-bold text-slate-900">
-                                {plan === 'pro' ? Math.max(0, 100 - memories.length) : Math.max(0, 1 - memories.length)}
-                            </span>
-                            <span className="text-xs text-slate-400 mb-1">
-                                / {plan === 'pro' ? '100개' : '1개'}
-                            </span>
+                {/* Combined Stats Block */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-8">
+                    <div className="grid grid-cols-2 gap-8 divide-x divide-slate-100">
+                        {/* Left: Message Usage */}
+                        <div className="px-2">
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">남은 메시지</h3>
+                            <div className="flex items-end gap-1.5 mb-2">
+                                <span className="text-3xl font-black text-slate-900 leading-none">
+                                    {plan === 'pro' ? Math.max(0, 100 - memories.length) : Math.max(0, 1 - memories.length)}
+                                </span>
+                                <span className="text-xs text-slate-400 font-medium mb-1">
+                                    / {plan === 'pro' ? '100' : '1'}
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+                                <div
+                                    className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                                    style={{ width: plan === 'pro' ? `${(memories.length / 100) * 100}%` : `${(memories.length / 1) * 100}%` }}
+                                />
+                            </div>
                         </div>
-                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                                style={{ width: plan === 'pro' ? `${(memories.length / 100) * 100}%` : `${(memories.length / 1) * 100}%` }}
-                            />
-                        </div>
-                    </div>
 
-                    {/* Right: Storage Usage */}
-                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                        <StorageWidget plan={plan} userId={user?.id} />
+                        {/* Right: Storage Usage */}
+                        <div className="pl-6">
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">남은 용량</h3>
+                            <StorageWidget plan={plan} userId={user?.id} compact={true} />
+                        </div>
                     </div>
                 </section>
 

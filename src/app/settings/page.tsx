@@ -674,35 +674,13 @@ function SettingsContent() {
                                                     <input
                                                         type="text"
                                                         value={username}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '');
-                                                            setUsername(val);
-                                                            setUsernameError(null);
-                                                            if (val !== user.user_metadata?.username) {
-                                                                setUsernameChecked(false);
-                                                            } else {
-                                                                setUsernameChecked(true); // Original is valid
-                                                            }
-                                                        }}
-                                                        onBlur={checkUsername}
-                                                        className={`w-full p-2 rounded-lg border text-sm outline-none transition-all ${usernameError ? 'border-red-300 focus:ring-red-200' :
-                                                            usernameChecked ? 'border-green-300 focus:ring-green-200' :
-                                                                'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                                            }`}
-                                                        placeholder="영문, 숫자, ., _ 만 사용 가능"
+                                                        disabled
+                                                        className="w-full p-2 rounded-lg border border-slate-200 text-sm bg-slate-50 text-slate-500 cursor-not-allowed outline-none"
+                                                        placeholder="아이디"
                                                     />
-                                                    {usernameChecked && !usernameError && (
-                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                                                            <CheckCircle2 className="w-4 h-4" />
-                                                        </div>
-                                                    )}
                                                 </div>
                                                 <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-                                                    {usernameError ? (
-                                                        <span className="text-red-500 font-bold">{usernameError}</span>
-                                                    ) : (
-                                                        `@${username || "username"} 형식으로 표시됩니다.`
-                                                    )}
+                                                    * 아이디는 가입 후 변경할 수 없습니다.
                                                 </p>
                                             </div>
                                         </div>
