@@ -35,6 +35,7 @@ export default function UserSpacePage() {
                 .from('spaces')
                 .select('*')
                 .eq('owner_id', user.id)
+                .eq('space_type', 'personal')
                 .single();
 
             setMySpace(mySpaceData);
@@ -163,10 +164,10 @@ export default function UserSpacePage() {
                             <button
                                 onClick={handleFollow}
                                 className={`px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors ${!relationship
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : relationship.status === 'pending'
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : relationship.status === 'pending'
+                                        ? 'bg-blue-100 text-blue-600'
+                                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
                                     }`}
                             >
                                 {!relationship && <><UserPlus className="w-3 h-3 inline mr-1" />팔로우</>}

@@ -42,9 +42,12 @@ export function MemoryComposer({ isOpen, onClose, onSuccess }: MemoryComposerPro
             .from("spaces")
             .select("*")
             .eq("owner_id", user.id)
+            .eq("space_type", "personal")
             .single();
 
         setMySpace(space);
+
+        if (!space) return;
 
         // Get friends (mutual relationships)
         const { data: relationships } = await supabase
@@ -60,9 +63,14 @@ export function MemoryComposer({ isOpen, onClose, onSuccess }: MemoryComposerPro
             .eq("follower_id", space.id)
             .eq("status", "accepted");
 
-        const friendsList = relationships
-            ?.map(r => r.following as unknown as FriendSpace)
-            .filter(Boolean) || [];
+        const friendsList = (relationships || [])
+            .map(r => {
+                const f = r.following;
+                if (!f || typeof f !== 'object' || !('id' in f)) return null;
+                return f as FriendSpace;
+            })
+            .filter((f): f is FriendSpace => f !== null);
+
         setFriends(friendsList);
     };
 
