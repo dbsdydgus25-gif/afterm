@@ -13,6 +13,7 @@ interface Memory {
     is_secret: boolean;
     allowed_viewers: string[];
     recipient_id?: string;
+    writer_id: string;
     created_at: string;
     writer: {
         handle: string;
@@ -137,9 +138,11 @@ export function MemoryFeed({ memories, mySpaceId }: MemoryFeedProps) {
     return (
         <div>
             {memories.map((memory) => {
+                // Fix: Check writer_id, not handle
+                const isMyPost = memory.writer_id === mySpaceId;
                 const canView = !memory.is_secret ||
                     memory.allowed_viewers.includes(mySpaceId) ||
-                    memory.writer.handle === mySpaceId; // Can view own secrets
+                    isMyPost; // Can always view own posts
                 const isExpanded = expandedComments.has(memory.id);
                 const memoryComments = comments[memory.id] || [];
 

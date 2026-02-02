@@ -144,7 +144,7 @@ export default function UserSpacePage() {
                         </button>
                     )}
                     {isOwner && (
-                        <Link href="/space/settings" className="p-2 hover:bg-gray-100 rounded-lg">
+                        <Link href={`/space/settings?space_id=${space.id}`} className="p-2 hover:bg-gray-100 rounded-lg">
                             <Settings className="w-5 h-5" />
                         </Link>
                     )}
