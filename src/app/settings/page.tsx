@@ -427,12 +427,12 @@ function SettingsContent() {
         <div className="min-h-screen bg-white">
             <Header />
 
-            <div className="flex max-w-7xl mx-auto pt-24 min-h-[calc(100vh-80px)]">
+            <div className="flex max-w-7xl mx-auto pt-20 px-4 min-h-[calc(100vh-80px)]">
                 {/* Left Sidebar (Notion Style) */}
-                <aside className="w-64 flex-shrink-0 px-4 py-8 border-r border-slate-100 hidden md:block">
-                    <div className="mb-6 px-3">
-                        <p className="text-xs font-bold text-slate-400 mb-2">계정</p>
-                        <div className="flex items-center gap-3 mb-6">
+                <aside className="w-64 flex-shrink-0 py-8 border-r border-slate-100 hidden md:block">
+                    <div className="mb-6 px-2">
+                        <p className="text-[10px] font-bold text-slate-400 mb-2">계정</p>
+                        <div className="flex items-center gap-2 mb-4">
                             {user.image || user.user_metadata?.avatar_url ? (
                                 <SecureAvatar
                                     src={user.image || user.user_metadata?.avatar_url}
@@ -440,55 +440,55 @@ function SettingsContent() {
                                     className="w-8 h-8 rounded-md"
                                 />
                             ) : (
-                                <div className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                                <div className="w-8 h-8 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
                                     {user.name?.[0] || "U"}
                                 </div>
                             )}
                             <div className="overflow-hidden">
                                 <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
-                                <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                                <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
                             </div>
                         </div>
                     </div>
 
-                    <nav className="space-y-1">
+                    <nav className="space-y-0.5">
                         <button
                             onClick={() => setActiveTab("profile")}
-                            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${activeTab === "profile"
+                            className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 ${activeTab === "profile"
                                 ? "bg-slate-100 text-slate-900 font-bold"
                                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                         >
-                            <User className="w-4 h-4" />
+                            <User className="w-3.5 h-3.5" />
                             내 정보
                         </button>
                         <button
                             onClick={() => setActiveTab("security")}
-                            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${activeTab === "security"
+                            className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 ${activeTab === "security"
                                 ? "bg-slate-100 text-slate-900 font-bold"
                                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                         >
-                            <Shield className="w-4 h-4" />
+                            <Shield className="w-3.5 h-3.5" />
                             계정 설정
                         </button>
                         <button
                             onClick={() => setActiveTab("billing")}
-                            className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 ${activeTab === "billing"
+                            className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 ${activeTab === "billing"
                                 ? "bg-slate-100 text-slate-900 font-bold"
                                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                         >
-                            <CreditCard className="w-4 h-4" />
+                            <CreditCard className="w-3.5 h-3.5" />
                             멤버십
                         </button>
 
                         <div className="border-t border-slate-100 my-2 pt-2">
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                                className="w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
                             >
-                                <LogOut className="w-4 h-4" />
+                                <LogOut className="w-3.5 h-3.5" />
                                 로그아웃
                             </button>
                         </div>
@@ -496,26 +496,57 @@ function SettingsContent() {
                 </aside>
 
                 {/* Right Content Area */}
-                <main className="flex-1 px-8 py-8 md:px-12">
-                    <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <main className="flex-1 py-8 md:px-8">
+                    {/* Mobile Tabs */}
+                    <div className="md:hidden flex overflow-x-auto gap-2 mb-6 border-b border-slate-100 pb-2 scrollbar-hide">
+                        <button
+                            onClick={() => setActiveTab("profile")}
+                            className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${activeTab === "profile"
+                                ? "bg-slate-900 text-white font-bold"
+                                : "text-slate-500 bg-slate-50"
+                                }`}
+                        >
+                            내 정보
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("security")}
+                            className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${activeTab === "security"
+                                ? "bg-slate-900 text-white font-bold"
+                                : "text-slate-500 bg-slate-50"
+                                }`}
+                        >
+                            계정 설정
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("billing")}
+                            className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors ${activeTab === "billing"
+                                ? "bg-slate-900 text-white font-bold"
+                                : "text-slate-500 bg-slate-50"
+                                }`}
+                        >
+                            멤버십
+                        </button>
+                    </div>
+
+                    <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {/* 1. Profile Tab */}
                         {activeTab === "profile" && (
                             <div>
-                                <h2 className="text-xl font-bold text-slate-900 mb-1">내 정보</h2>
-                                <p className="text-sm text-slate-500 mb-8 border-b border-slate-100 pb-4">
+                                <h2 className="text-lg font-bold text-slate-900 mb-1">내 정보</h2>
+                                <p className="text-xs text-slate-500 mb-6 border-b border-slate-100 pb-4">
                                     프로필 사진과 개인 정보를 수정할 수 있습니다.
                                 </p>
 
-                                <div className="grid gap-8">
+                                <div className="grid gap-6">
                                     {/* Profile Image - Horizontal Layout */}
-                                    <div className="flex items-start gap-8">
-                                        <div className="w-24 flex-shrink-0">
-                                            <span className="text-sm font-bold text-slate-700">프로필 사진</span>
+                                    <div className="flex items-start gap-6">
+                                        <div className="w-20 flex-shrink-0">
+                                            <span className="text-xs font-bold text-slate-700">프로필 사진</span>
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-6">
+                                            <div className="flex items-center gap-4">
                                                 <div className="relative group">
-                                                    <div className="w-20 h-20 rounded-full overflow-hidden border border-slate-200 shadow-sm bg-slate-50 relative">
+                                                    <div className="w-16 h-16 rounded-full overflow-hidden border border-slate-200 shadow-sm bg-slate-50 relative">
                                                         {profileImage ? (
                                                             <SecureAvatar
                                                                 src={profileImage}
@@ -523,19 +554,19 @@ function SettingsContent() {
                                                                 className="w-full h-full"
                                                             />
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 font-bold text-2xl">
+                                                            <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400 font-bold text-lg">
                                                                 {customName?.[0] || "U"}
                                                             </div>
                                                         )}
                                                         <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                                            <Camera className="w-5 h-5 text-white" />
+                                                            <Camera className="w-4 h-4 text-white" />
                                                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                                                         </label>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Felix")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">남자 캐릭터</button>
-                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Lisa")} className="px-3 py-1.5 rounded-md border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors">여자 캐릭터</button>
+                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Felix")} className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium hover:bg-slate-50 transition-colors">남자 캐릭터</button>
+                                                    <button onClick={() => setProfileImage("https://api.dicebear.com/9.x/adventurer/svg?seed=Lisa")} className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium hover:bg-slate-50 transition-colors">여자 캐릭터</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -544,67 +575,67 @@ function SettingsContent() {
                                     <div className="h-px bg-slate-100" />
 
                                     {/* Fields */}
-                                    <div className="space-y-6">
-                                        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
-                                            <label className="w-24 pt-3 text-sm font-bold text-slate-700">이름</label>
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
+                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">이름</label>
                                             <input
                                                 type="text"
                                                 value={customName}
                                                 onChange={(e) => setCustomName(e.target.value)}
-                                                className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                                className="flex-1 p-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                                             />
                                         </div>
 
-                                        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
-                                            <label className="w-24 pt-3 text-sm font-bold text-slate-700">전화번호</label>
+                                        <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
+                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">전화번호</label>
                                             <div className="flex-1">
                                                 <div className="flex gap-2">
                                                     <input
                                                         type="tel"
                                                         value={phone}
                                                         disabled
-                                                        className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none"
+                                                        className="flex-1 p-2 rounded-lg border border-slate-200 text-sm bg-slate-50 text-slate-500 cursor-not-allowed focus:outline-none"
                                                         placeholder="등록된 전화번호 없음"
                                                     />
                                                     <Button
                                                         onClick={() => setIsPhoneModalOpen(true)}
-                                                        className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 rounded-lg text-xs"
+                                                        className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 rounded-lg text-xs"
                                                     >
                                                         {phone ? "번호 변경" : "번호 등록"}
                                                     </Button>
                                                 </div>
-                                                <p className="text-xs text-slate-400 mt-1">
+                                                <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
                                                     * 생존 확인(Dead Man's Switch) 기능을 위해 본인 명의 휴대폰 번호가 필요합니다.<br />
                                                     * 수신인 인증 시, 이 번호로 인증번호가 발송됩니다.
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
-                                            <label className="w-24 pt-3 text-sm font-bold text-slate-700">별명</label>
+                                        <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
+                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">별명</label>
                                             <input
                                                 type="text"
                                                 value={nickname}
                                                 onChange={(e) => setNickname(e.target.value)}
-                                                className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                                className="flex-1 p-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                                                 placeholder="별명을 입력하세요"
                                             />
                                         </div>
 
-                                        <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-8">
-                                            <label className="w-24 pt-3 text-sm font-bold text-slate-700">소개</label>
+                                        <div className="flex flex-col md:flex-row md:items-start gap-1 md:gap-6">
+                                            <label className="w-20 pt-2 text-xs font-bold text-slate-700">소개</label>
                                             <textarea
                                                 value={bio}
                                                 onChange={(e) => setBio(e.target.value)}
                                                 rows={3}
-                                                className="flex-1 p-2.5 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
+                                                className="flex-1 p-2 rounded-lg border border-slate-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
                                                 placeholder="자기소개를 간단히 남겨주세요."
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-end pt-4">
-                                        <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 rounded-lg text-sm">
+                                    <div className="flex justify-end pt-2">
+                                        <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs">
                                             {isSaving ? "저장 중..." : "변경사항 저장"}
                                         </Button>
                                     </div>
@@ -615,39 +646,39 @@ function SettingsContent() {
                         {/* 2. Security Tab */}
                         {activeTab === "security" && (
                             <div>
-                                <h2 className="text-xl font-bold text-slate-900 mb-1">계정 설정</h2>
-                                <p className="text-sm text-slate-500 mb-8 border-b border-slate-100 pb-4">
+                                <h2 className="text-lg font-bold text-slate-900 mb-1">계정 설정</h2>
+                                <p className="text-xs text-slate-500 mb-6 border-b border-slate-100 pb-4">
                                     계정 보안 및 로그인 관련 설정을 관리합니다.
                                 </p>
 
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between py-4 border-b border-slate-50">
+                                    <div className="flex items-center justify-between py-2 border-b border-slate-50">
                                         <div>
-                                            <h3 className="font-bold text-slate-900 text-sm">이메일</h3>
-                                            <p className="text-xs text-slate-500 mt-1">{user.email}</p>
+                                            <h3 className="font-bold text-slate-900 text-xs">이메일</h3>
+                                            <p className="text-[10px] text-slate-500 mt-1">{user.email}</p>
                                         </div>
                                     </div>
 
                                     {/* Password Change Section (Local Users Only) */}
                                     {user.app_metadata?.provider === 'email' && (
-                                        <div className="py-4 border-b border-slate-50">
-                                            <h3 className="font-bold text-slate-900 text-sm mb-4">비밀번호 변경</h3>
+                                        <div className="py-2 border-b border-slate-50">
+                                            <h3 className="font-bold text-slate-900 text-xs mb-3">비밀번호 변경</h3>
                                             <PasswordChangeForm userPhone={phone} />
                                         </div>
                                     )}
 
                                     <div>
-                                        <h3 className="font-bold text-slate-900 text-sm mb-4 text-red-600">위험 구역</h3>
-                                        <div className="bg-red-50 rounded-lg p-4 border border-red-100">
+                                        <h3 className="font-bold text-slate-900 text-xs mb-2 text-red-600">위험 구역</h3>
+                                        <div className="bg-red-50 rounded-lg p-3 border border-red-100">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <h4 className="font-bold text-red-700 text-sm">회원 탈퇴</h4>
-                                                    <p className="text-xs text-red-500 mt-1">계정을 영구적으로 삭제하거나 비활성화합니다.</p>
+                                                    <h4 className="font-bold text-red-700 text-xs">회원 탈퇴</h4>
+                                                    <p className="text-[10px] text-red-500 mt-0.5">계정을 영구적으로 삭제하거나 비활성화합니다.</p>
                                                 </div>
                                                 <Button
                                                     onClick={() => setIsWithdrawModalOpen(true)}
                                                     variant="ghost"
-                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 text-xs font-bold"
+                                                    className="text-red-600 hover:bg-red-100 hover:text-red-700 text-[10px] font-bold h-7"
                                                 >
                                                     탈퇴하기
                                                 </Button>
@@ -661,37 +692,37 @@ function SettingsContent() {
                         {/* 3. Billing Tab */}
                         {activeTab === "billing" && (
                             <div>
-                                <h2 className="text-xl font-bold text-slate-900 mb-1">멤버십</h2>
-                                <p className="text-sm text-slate-500 mb-8 border-b border-slate-100 pb-4">
+                                <h2 className="text-lg font-bold text-slate-900 mb-1">멤버십</h2>
+                                <p className="text-xs text-slate-500 mb-6 border-b border-slate-100 pb-4">
                                     현재 이용 중인 플랜을 확인하고 관리합니다.
                                 </p>
 
-                                <div className="bg-white rounded-xl border border-slate-200 p-6">
-                                    <div className="flex items-center justify-between mb-6">
+                                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                                    <div className="flex items-center justify-between mb-4">
                                         <div>
-                                            <p className="text-sm text-slate-500 font-medium mb-1">현재 플랜</p>
-                                            <h3 className="text-2xl font-bold text-slate-900">
+                                            <p className="text-xs text-slate-500 font-medium mb-1">현재 플랜</p>
+                                            <h3 className="text-xl font-bold text-slate-900">
                                                 {plan === 'pro' ? 'PRO Plan' : 'Free Plan'}
                                             </h3>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-full text-xs font-bold ${plan === 'pro' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                                        <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${plan === 'pro' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
                                             }`}>
                                             {plan === 'pro' ? 'Active' : 'Basic'}
                                         </div>
                                     </div>
                                     {plan === 'pro' && renewalDate && autoRenew && (
-                                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                                            <p className="text-sm text-blue-900">
-                                                <span className="font-semibold">다음 갱신일:</span> {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                                            <p className="text-xs text-blue-900">
+                                                <span className="font-bold">다음 갱신일:</span> {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                                             </p>
                                         </div>
                                     )}
                                     {plan === 'pro' && renewalDate && !autoRenew && (
-                                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
-                                                    <p className="text-sm text-red-900 font-semibold mb-1">⚠️ 구독 취소 예정</p>
-                                                    <p className="text-xs text-red-700">
+                                                    <p className="text-xs text-red-900 font-bold mb-0.5">⚠️ 구독 취소 예정</p>
+                                                    <p className="text-[10px] text-red-700">
                                                         {new Date(renewalDate).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 이후 Basic 플랜으로 자동 전환됩니다.
                                                     </p>
                                                 </div>
@@ -715,7 +746,7 @@ function SettingsContent() {
                                                             }
                                                         }
                                                     }}
-                                                    className="ml-3 px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors whitespace-nowrap"
+                                                    className="ml-2 px-2 py-1 text-[10px] font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors whitespace-nowrap"
                                                 >
                                                     구독 재개
                                                 </button>
@@ -724,7 +755,7 @@ function SettingsContent() {
                                     )}
                                     <Link href="/plans" className="w-full">
                                         <div
-                                            className="w-full h-10 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-sm flex items-center justify-center cursor-pointer transition-colors"
+                                            className="w-full h-9 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 text-xs flex items-center justify-center cursor-pointer transition-colors"
                                         >
                                             플랜 업그레이드 / 관리
                                         </div>
@@ -746,6 +777,8 @@ function SettingsContent() {
             />
         </div>
     );
+
+
 }
 
 export default function SettingsPage() {

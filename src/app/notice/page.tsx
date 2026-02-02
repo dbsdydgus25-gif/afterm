@@ -15,13 +15,13 @@ export default function NoticePage() {
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
             <Header />
-            <main className="flex-1 max-w-4xl mx-auto px-6 pt-32 pb-20 w-full animate-fade-in">
-                <h1 className="text-4xl font-bold text-slate-900 mb-12">공지사항</h1>
+            <main className="flex-1 max-w-4xl mx-auto px-6 pt-24 pb-20 w-full animate-fade-in">
+                <h1 className="text-2xl font-bold text-slate-900 mb-8">공지사항</h1>
                 <div className="divide-y divide-slate-100">
                     {notices.map((notice) => (
-                        <div key={notice.id} className="py-6 flex justify-between items-center hover:bg-slate-50 px-4 -mx-4 rounded-xl transition-colors cursor-pointer">
-                            <span className="text-lg font-medium text-slate-800">{notice.title}</span>
-                            <span className="text-sm text-slate-400">{notice.date}</span>
+                        <div key={notice.id} className="py-4 flex justify-between items-center hover:bg-slate-50 px-3 -mx-3 rounded-lg transition-colors cursor-pointer">
+                            <span className="text-sm font-medium text-slate-800">{notice.title}</span>
+                            <span className="text-xs text-slate-400">{notice.date}</span>
                         </div>
                     ))}
                 </div>

@@ -149,55 +149,55 @@ export default function MyMemoriesPage() {
                     </Button>
                 </div>
 
-                <h1 className="text-2xl font-bold text-slate-900 mb-8">나의 기억 보관함</h1>
+                <h1 className="text-xl font-bold text-slate-900 mb-6">나의 기억 보관함</h1>
 
                 {/* Profile Section (Unified Design) */}
-                <section className="mb-8 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-6">
+                <section className="mb-6 p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center gap-4">
                     <div className="relative flex-shrink-0">
                         {user?.image || user?.user_metadata?.avatar_url ? (
                             <SecureAvatar
                                 src={user?.image || user?.user_metadata?.avatar_url}
                                 alt="Profile"
-                                className="w-16 h-16 rounded-full shadow-sm"
+                                className="w-12 h-12 rounded-full shadow-sm"
                             />
                         ) : (
-                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-slate-500">
+                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-slate-500">
                                 {user?.name?.[0] || "U"}
                             </div>
                         )}
                         {plan === 'pro' && (
-                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-md">
-                                <span className="text-white font-bold text-[10px]">PRO</span>
+                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-md">
+                                <span className="text-white font-bold text-[8px]">PRO</span>
                             </div>
                         )}
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                             {user?.name || "사용자"}
                             {user?.user_metadata?.nickname && (
-                                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
                                     @{user.user_metadata.nickname}
                                 </span>
                             )}
                         </h2>
-                        <p className="text-sm text-slate-500 line-clamp-1">{user?.user_metadata?.bio || "자기소개를 입력해주세요."}</p>
+                        <p className="text-xs text-slate-500 line-clamp-1">{user?.user_metadata?.bio || "자기소개를 입력해주세요."}</p>
                     </div>
                 </section>
 
                 {/* Stats Section */}
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     {/* Left: Message Usage */}
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 className="text-slate-500 font-medium mb-4 text-sm">남은 메시지</h3>
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 className="text-slate-500 font-medium mb-3 text-xs">남은 메시지</h3>
                         <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-slate-900">
+                            <span className="text-2xl font-bold text-slate-900">
                                 {plan === 'pro' ? Math.max(0, 100 - memories.length) : Math.max(0, 1 - memories.length)}
                             </span>
-                            <span className="text-sm text-slate-400 mb-1">
+                            <span className="text-xs text-slate-400 mb-1">
                                 / {plan === 'pro' ? '100개' : '1개'}
                             </span>
                         </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
                                 style={{ width: plan === 'pro' ? `${(memories.length / 100) * 100}%` : `${(memories.length / 1) * 100}%` }}
@@ -206,7 +206,7 @@ export default function MyMemoriesPage() {
                     </div>
 
                     {/* Right: Storage Usage */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                         <StorageWidget plan={plan} userId={user?.id} />
                     </div>
                 </section>
@@ -219,7 +219,7 @@ export default function MyMemoriesPage() {
                             return (
                                 <div
                                     key={mem.id}
-                                    className={`p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all cursor-pointer group ${isOpened
+                                    className={`p-4 rounded-xl border shadow-sm hover:shadow-md transition-all cursor-pointer group ${isOpened
                                         ? 'bg-amber-50/30 border-amber-200'
                                         : 'bg-white border-slate-200'
                                         }`}
@@ -230,19 +230,19 @@ export default function MyMemoriesPage() {
                                         }
                                     }}
                                 >
-                                    <div className="flex justify-between items-start mb-4">
+                                    <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="text-xs text-slate-400">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[10px] text-slate-400">
                                                     {new Date(mem.created_at).toLocaleDateString()} 작성
                                                 </span>
                                                 {isOpened && (
-                                                    <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full">
+                                                    <span className="px-1.5 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full">
                                                         📬 열람됨
                                                     </span>
                                                 )}
                                             </div>
-                                            <h3 className="text-lg font-bold text-slate-900">
+                                            <h3 className="text-base font-bold text-slate-900">
                                                 To. {mem.recipient_name}
                                             </h3>
                                         </div>
@@ -266,7 +266,7 @@ export default function MyMemoriesPage() {
                                                         }}
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8"
+                                                        className="h-7 text-xs px-2"
                                                     >
                                                         수정
                                                     </Button>
@@ -277,19 +277,19 @@ export default function MyMemoriesPage() {
                                                         }}
                                                         variant="ghost"
                                                         size="sm"
-                                                        className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                        className="h-7 text-xs px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
                                                     >
                                                         삭제
                                                     </Button>
                                                 </>
                                             ) : (
-                                                <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                                                <span className="text-[10px] text-amber-600 font-medium flex items-center gap-1">
                                                     👁️ 읽기 전용
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-slate-600 leading-relaxed line-clamp-2">
+                                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
                                         {mem.content}
                                     </p>
                                 </div>
@@ -297,11 +297,11 @@ export default function MyMemoriesPage() {
                         })}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                        <div className="text-5xl mb-4">📭</div>
-                        <p className="text-slate-900 font-bold text-lg mb-2">아직 남긴 기억이 없습니다.</p>
-                        <p className="text-slate-500 mb-6">소중한 사람에게 마음을 전해보세요.</p>
-                        <Button onClick={() => router.push('/create')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl px-6 py-3">
+                    <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-200">
+                        <div className="text-4xl mb-3">📭</div>
+                        <p className="text-slate-900 font-bold text-base mb-1">아직 남긴 기억이 없습니다.</p>
+                        <p className="text-xs text-slate-500 mb-4">소중한 사람에게 마음을 전해보세요.</p>
+                        <Button onClick={() => router.push('/create')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg px-4 py-2.5 text-xs">
                             첫 번째 기억 남기기
                         </Button>
                     </div>
