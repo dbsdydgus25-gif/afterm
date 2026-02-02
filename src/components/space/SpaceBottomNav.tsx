@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Plus, Heart, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface SpaceBottomNavProps {
     onCompose?: () => void;
@@ -11,6 +12,27 @@ interface SpaceBottomNavProps {
 
 export function SpaceBottomNav({ onCompose }: SpaceBottomNavProps) {
     const pathname = usePathname();
+    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAvatar = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: space } = await supabase
+                    .from('spaces')
+                    .select('avatar_url')
+                    .eq('owner_id', user.id)
+                    .eq('space_type', 'personal')
+                    .single();
+
+                if (space) {
+                    setAvatarUrl(space.avatar_url);
+                }
+            }
+        };
+        fetchAvatar();
+    }, []);
 
     const isActive = (path: string) => {
         if (path === '/space' && pathname === '/space') return true;
@@ -67,7 +89,13 @@ export function SpaceBottomNav({ onCompose }: SpaceBottomNavProps) {
                     className={`flex flex-col items-center gap-1 px-4 py-2 ${isActive('/space/profile') || pathname?.includes('/space/') && !pathname?.includes('/space/s') && !pathname?.includes('/space/a') ? 'text-blue-600' : 'text-gray-500'
                         }`}
                 >
-                    <User className="w-6 h-6" />
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-100">
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            <User className="w-4 h-4" />
+                        )}
+                    </div>
                     <span className="text-[10px] font-medium">프로필</span>
                 </Link>
             </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Settings, UserPlus, Clock, Users } from "lucide-react";
+import { ArrowLeft, Settings, UserPlus, Clock, Users, Share2, Edit2, Layout, UserCog } from "lucide-react";
 import { MemoryFeed } from "@/components/space/MemoryFeed";
 import { SpaceSwitcher } from "@/components/space/SpaceSwitcher";
 import Link from "next/link";
@@ -143,11 +143,9 @@ export default function UserSpacePage() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                     )}
-                    {isOwner && (
-                        <Link href={`/space/settings?space_id=${space.id}`} className="p-2 hover:bg-gray-100 rounded-lg">
-                            <Settings className="w-5 h-5" />
-                        </Link>
-                    )}
+                    <button onClick={handleShare} className="p-2 hover:bg-gray-100 rounded-lg">
+                        <Share2 className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Profile */}
@@ -181,6 +179,48 @@ export default function UserSpacePage() {
                         <p className="text-[13px] text-gray-700 leading-relaxed mb-3">
                             {space.bio}
                         </p>
+                    )}
+
+                    {isOwner && (
+                        <div className="grid grid-cols-3 gap-2 mb-4 pt-1">
+                            <Link href="/space/settings?tab=profile" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">프로필 편집</span>
+                            </Link>
+                            <Link href="/space/settings?tab=pages" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">페이지</span>
+                            </Link>
+                            <Link href="/space/settings?tab=settings" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">계정</span>
+                            </Link>
+                        </div>
+                    )}
+
+                    {isOwner && (
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            <Link href="/space/settings?tab=profile" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                <span className="text-[12px] font-semibold text-gray-900">프로필 편집</span>
+                            </Link>
+                            <Link href="/space/settings?tab=pages" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                <span className="text-[12px] font-semibold text-gray-900">페이지</span>
+                            </Link>
+                            <Link href="/space/settings?tab=settings" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                                <span className="text-[12px] font-semibold text-gray-900">계정</span>
+                            </Link>
+                        </div>
+                    )}
+
+                    {isOwner && (
+                        <div className="grid grid-cols-3 gap-2 mb-4 pt-1">
+                            <Link href="/space/settings?tab=profile" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">프로필 편집</span>
+                            </Link>
+                            <Link href="/space/settings?tab=pages" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">페이지</span>
+                            </Link>
+                            <Link href="/space/settings?tab=settings" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
+                                <span className="text-[12px] font-semibold text-gray-900">계정</span>
+                            </Link>
+                        </div>
                     )}
 
                     <div className="text-[12px]">
