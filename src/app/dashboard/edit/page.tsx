@@ -86,11 +86,12 @@ export default function EditMessagePage() {
         if (e.target.files) {
             const selectedFiles = Array.from(e.target.files);
 
-            const LIMIT = plan === 'pro' ? 1024 * 1024 * 1024 : 500 * 1024 * 1024;
+
+            const LIMIT = 10 * 1024 * 1024; // 10MB for all users
 
             for (const file of selectedFiles) {
                 if (file.size > LIMIT) {
-                    alert(`파일 '${file.name}'의 크기는 ${plan === 'pro' ? '1GB' : '500MB'}를 초과할 수 없습니다.`);
+                    alert(`파일 '${file.name}'의 크기는 10MB를 초과할 수 없습니다.`);
                     return;
                 }
             }
@@ -277,7 +278,7 @@ export default function EditMessagePage() {
             }
 
             alert("메시지가 수정되었습니다.");
-            router.push('/dashboard/memories');
+            router.push('/dashboard');
         } catch (error: any) {
             console.error("Save error:", error);
             alert(error.message || "저장 중 오류가 발생했습니다.");
@@ -315,7 +316,7 @@ export default function EditMessagePage() {
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-bold text-slate-700">사진/영상 첨부</label>
                             <span className="text-xs text-slate-400">
-                                {plan === 'pro' ? '최대 1GB' : '최대 500MB'}
+                                최대 10MB
                             </span>
                         </div>
 

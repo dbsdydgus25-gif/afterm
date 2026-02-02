@@ -92,11 +92,12 @@ export function MessageList({
                             </div>
 
                             {!isOpened ? (
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-4 bg-white/80 backdrop-blur-sm p-1 rounded-lg">
-                                    <Button onClick={(e) => { e.stopPropagation(); onEdit(mem); }} variant="ghost" size="sm" className="h-8 text-slate-500 hover:text-blue-600 text-xs font-bold">
+                                <div className="flex gap-1 absolute right-4 top-4 bg-white p-1 rounded-lg shadow-sm border border-slate-100">
+                                    <Button onClick={(e) => { e.stopPropagation(); onEdit(mem); }} variant="ghost" size="sm" className="h-8 text-slate-500 hover:text-blue-600 text-xs font-bold px-2">
                                         수정
                                     </Button>
-                                    <Button onClick={(e) => { e.stopPropagation(); onDelete(mem.id); }} variant="ghost" size="sm" className="h-8 text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs font-bold">
+                                    <div className="w-px h-4 bg-slate-200 my-auto"></div>
+                                    <Button onClick={(e) => { e.stopPropagation(); onDelete(mem.id); }} variant="ghost" size="sm" className="h-8 text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs font-bold px-2">
                                         삭제
                                     </Button>
                                 </div>
