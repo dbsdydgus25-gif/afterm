@@ -11,12 +11,7 @@ export default function SpaceLayout({
 }) {
     const router = useRouter();
 
-    const handleProtectedClick = (e: React.MouseEvent, href: string) => {
-        if (href === "/space/create") {
-            e.preventDefault();
-            alert("기억 공간(추모 공간) 기능은 아직 준비 중입니다.");
-        }
-    };
+
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900 font-sans">
@@ -29,13 +24,8 @@ export default function SpaceLayout({
                 <nav className="flex-1 space-y-1">
                     <NavItem href="/space" icon={<Home size={24} />} label="홈" />
                     <NavItem href="/space/search" icon={<Search size={24} />} label="검색" />
+                    <NavItem href="/create" icon={<PlusSquare size={24} />} label="기록하기" />
                     <NavItem href="/space/activity" icon={<Heart size={24} />} label="활동" />
-                    <NavItem
-                        href="/space/create"
-                        icon={<PlusSquare size={24} />}
-                        label="공간 추가"
-                        onClick={(e) => handleProtectedClick(e, "/space/create")}
-                    />
                     <NavItem href="/space/profile" icon={<User size={24} />} label="프로필" />
                 </nav>
 
@@ -56,7 +46,7 @@ export default function SpaceLayout({
             <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-50 safe-area-bottom">
                 <MobileNavItem href="/space" icon={<Home size={24} />} />
                 <MobileNavItem href="/space/search" icon={<Search size={24} />} />
-                <MobileNavItem href="/space/create" icon={<PlusSquare size={24} />} />
+                <MobileNavItem href="/create" icon={<PlusSquare size={24} />} />
                 <MobileNavItem href="/space/activity" icon={<Heart size={24} />} />
                 <MobileNavItem href="/space/profile" icon={<User size={24} />} />
             </nav>
