@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface MemoryStore {
     message: string;
@@ -88,6 +88,7 @@ export const useMemoryStore = create<MemoryStore>()(
         }),
         {
             name: 'memory-storage', // unique name
+            storage: createJSONStorage(() => sessionStorage),
             partialize: (state) => ({ message: state.message, recipient: state.recipient, messageId: state.messageId }), // Only persist draft data (exclude file)
         }
     )

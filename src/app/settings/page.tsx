@@ -285,30 +285,49 @@ function SettingsContent() {
 
     useEffect(() => {
         setMounted(true);
-        if (user) {
-            setCustomName(user.name);
-            setUsername(user.user_metadata?.username || "");
-            setUsernameChecked(!!user.user_metadata?.username); // Assume existing is valid
-            setProfileImage(user.image || user.user_metadata?.avatar_url || "");
-            if (user.user_metadata?.phone) {
-                setPhone(user.user_metadata.phone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
-            }
+        const initProfile = async () => {
+            if (user) {
+                setCustomName(user.name);
+                setUsername(user.user_metadata?.username || "");
+                setUsernameChecked(!!user.user_metadata?.username);
+                setProfileImage(user.image || user.user_metadata?.avatar_url || "");
+                if (user.user_metadata?.phone) {
+                    setPhone(user.user_metadata.phone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
+                }
 
-            // Fetch subscription info from Profiles
-            const fetchProfile = async () => {
                 const supabase = createClient();
                 const { data } = await supabase
                     .from('profiles')
                     .select('phone, subscription_end_date, auto_renew')
                     .eq('id', user.id)
                     .single();
+
                 if (data?.phone) setPhone(data.phone);
                 if (data?.subscription_end_date) setRenewalDate(data.subscription_end_date);
                 setAutoRenew(data?.auto_renew ?? true);
-            };
-            fetchProfile();
+
+                setIsAuthChecking(false);
+            } else {
+                // If no user in store, check session
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    router.push('/login');
+                } else {
+                    // Session exists, header/auth provider should handlesetUser
+                    // But to be safe, we can just wait or trigger a refresh?
+                    // For now, let's just let it be, assuming AuthProvider will fire.
+                    // But if it takes too long, we might spin forever.
+                    // As a fallback:
+                    setIsAuthChecking(false);
+                }
+            }
+        };
+
+        if (mounted) {
+            initProfile();
         }
-    }, [user]);
+    }, [user, mounted]);
 
     const checkUsername = async () => {
         if (!username) {
