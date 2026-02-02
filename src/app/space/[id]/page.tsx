@@ -110,6 +110,12 @@ export default function UserSpacePage() {
         window.location.reload();
     };
 
+    const handleShare = () => {
+        const url = `https://afterm.co.kr/space/${space.handle}`;
+        navigator.clipboard.writeText(url);
+        alert('프로필 링크가 복사되었습니다!');
+    };
+
     if (loading) {
         return (
             <div className="max-w-[430px] mx-auto min-h-screen flex items-center justify-center">
