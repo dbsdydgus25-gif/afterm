@@ -269,7 +269,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                                             <Button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    router.push('/dashboard/memories');
+                                                                    router.push('/dashboard');
                                                                     setIsMobileMenuOpen(false);
                                                                 }}
                                                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 text-sm font-bold shadow-md shadow-blue-200"

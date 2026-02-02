@@ -134,11 +134,7 @@ export function MessageList({
                 );
             })}
 
-            <div className="pt-4 flex justify-center">
-                <Button onClick={onCreateNew} variant="outline" className="text-slate-500 border-slate-200 hover:bg-slate-50 font-medium text-sm">
-                    + 새 기억 추가하기
-                </Button>
-            </div>
+            {/* Button Removed */}
         </div>
     );
 }

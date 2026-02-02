@@ -277,19 +277,13 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="text-center sm:text-left">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-1 flex items-center justify-center sm:justify-start gap-2">
-                            {user?.name || "사용자"}
-                            {user?.user_metadata?.nickname && (
-                                <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                                    @{user.user_metadata.nickname}
-                                </span>
-                            )}
+                        <h1 className="text-2xl font-bold text-slate-900 mb-0.5 flex flex-col sm:block">
+                            <span>{user?.name || "사용자"}</span>
                         </h1>
-                        <p className="text-slate-600 mb-2 whitespace-pre-line text-sm max-w-lg">
-                            {user?.user_metadata?.bio || "자기소개를 입력해주세요."}
-                        </p>
-                        {plan === 'pro' && (
-                            <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">PRO MEMBER</span>
+                        {user?.user_metadata?.username && (
+                            <p className="text-sm font-medium text-slate-400">
+                                @{user.user_metadata.username}
+                            </p>
                         )}
                     </div>
                 </Link>
@@ -301,10 +295,10 @@ export default function DashboardPage() {
                         <div className="px-2">
                             <h3 className="text-slate-500 font-bold text-xs mb-3">남은 메시지</h3>
                             <div className="flex items-end gap-1.5 mb-2">
-                                <span className="text-3xl font-black text-slate-900 leading-none">
-                                    {plan === 'pro' ? 100 - messages.length : 1 - messages.length}
+                                <span className="text-2xl font-black text-slate-900 leading-none">
+                                    {plan === 'pro' ? Math.max(0, 100 - messages.length) : Math.max(0, 1 - messages.length)}
                                 </span>
-                                <span className="text-xs text-slate-400 font-medium mb-1">
+                                <span className="text-xs text-slate-400 font-medium mb-0.5">
                                     / {plan === 'pro' ? '100' : '1'}
                                 </span>
                             </div>
@@ -328,12 +322,16 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {/* My Memories List (Text Centric) */}
-                <section className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-slate-900">나의 기억 보관함</h2>
-                        <Button onClick={() => router.push('/dashboard/memories')} variant="ghost" size="sm" className="text-slate-500">전체보기</Button>
-                    </div>
+                <Button
+                    onClick={() => router.push('/create')}
+                    className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-base shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
+                >
+                    <span>✨</span> 새 기억 남기기
+                </Button>
+
+                {/* My Memories List */}
+                <section className="space-y-4">
+                    <h2 className="text-lg font-bold text-slate-900 px-1">나의 기억 보관함</h2>
 
                     <MessageList
                         messages={messages}
@@ -353,9 +351,9 @@ export default function DashboardPage() {
                 {/* Upgrade CTA */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-white text-center relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    <h3 className="text-2xl font-bold mb-2 relative z-10">더 많은 분들에게 마음을 남기고 싶으신가요?</h3>
-                    <p className="text-slate-400 mb-6 relative z-10">Pro 플랜으로 업그레이드 하고<br />더 많은 메시지와 저장 공간을 이용해보세요.<br />당신을 기억하고 싶어 하는 사람은 많습니다.</p>
-                    <Button onClick={() => router.push('/plans')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-6 rounded-xl text-lg relative z-10 shadow-lg shadow-blue-900/50">
+                    <h3 className="text-xl font-bold mb-2 relative z-10">더 많은 분들에게 마음을 남기고 싶으신가요?</h3>
+                    <p className="text-slate-400 mb-6 relative z-10 text-sm">Pro 플랜으로 업그레이드 하고<br />더 많은 메시지와 저장 공간을 이용해보세요.</p>
+                    <Button onClick={() => router.push('/plans')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-5 rounded-xl text-base relative z-10 shadow-lg shadow-blue-900/50">
                         Pro 플랜 알아보기
                     </Button>
                 </div>

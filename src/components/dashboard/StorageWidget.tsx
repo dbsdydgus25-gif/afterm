@@ -88,9 +88,9 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
                 {/* Header is handled by parent grid to ensure alignment */}
                 {/* <h3 className="text-slate-500 font-bold text-xs mb-3">남은 용량</h3> */}
                 <div className="flex items-end gap-1.5 mb-2">
-                    <span className="text-3xl font-black text-slate-900 leading-none">
+                    <span className="text-2xl font-black text-slate-900 leading-none">
                         {remainingText}
-                        <span className="text-sm font-bold ml-0.5">MB</span>
+                        <span className="text-xs font-bold ml-0.5">MB</span>
                     </span>
                     <span className="text-xs text-slate-400 font-medium mb-1">
                         / {MAX_STORAGE_MB}MB
