@@ -1,30 +1,65 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { MemoryFeed } from "@/components/space/MemoryFeed";
 
-export default async function SpaceRedirect() {
+export default async function SpaceHome() {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    // 로그인 안 한 경우 → 로그인 페이지로
     if (!user) {
         redirect("/login?returnTo=/space");
     }
 
-    // 로그인한 경우 → 내 Space 가져오기
+    // Get my space
     const { data: mySpace } = await supabase
         .from("spaces")
-        .select("handle")
+        .select("*")
         .eq("owner_id", user.id)
         .single();
 
-    // Space가 있으면 내 Space로 리다이렉트
-    if (mySpace?.handle) {
-        redirect(`/space/${mySpace.handle}`);
+    if (!mySpace) {
+        redirect("/onboarding");
     }
 
-    // Space가 없으면 생성 페이지로 (fallback)
-    redirect("/onboarding");
+    // Get friend spaces (mutual relationships)
+    const { data: friendships } = await supabase
+        .from("relationships")
+        .select("following_id")
+        .eq("follower_id", mySpace.id)
+        .eq("status", "accepted");
+
+    const friendIds = friendships?.map(f => f.following_id) || [];
+    const allSpaceIds = [mySpace.id, ...friendIds];
+
+    // Get memories from me and friends
+    const { data: memories } = await supabase
+        .from("memories")
+        .select(`
+            *,
+            writer:writer_id (
+                handle,
+                name,
+                avatar_url
+            )
+        `)
+        .in("space_id", allSpaceIds)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+    return (
+        <div className="max-w-[430px] mx-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-10">
+                <div className="px-4 py-4">
+                    <h1 className="text-[20px] font-bold text-gray-900">홈</h1>
+                </div>
+            </div>
+
+            {/* Feed */}
+            <MemoryFeed
+                memories={memories || []}
+                mySpaceId={mySpace.id}
+            />
+        </div>
+    );
 }

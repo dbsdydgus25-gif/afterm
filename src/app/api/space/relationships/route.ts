@@ -56,17 +56,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: error.message }, { status: 400 });
         }
 
-        // Check if mutual
-        const { data: reverse } = await supabase
-            .from('relationships')
-            .select('status')
-            .eq('follower_id', mySpace.id)
-            .eq('following_id', targetSpaceId)
-            .single();
-
-        const isMutual = reverse?.status === 'accepted';
-
-        return NextResponse.json({ success: true, isMutual });
+        return NextResponse.json({ success: true, isMutual: true });
     }
 
     if (action === 'unfollow') {
@@ -85,4 +75,26 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+}
+
+export async function DELETE(req: NextRequest) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { requestId } = await req.json();
+
+    const { error } = await supabase
+        .from('relationships')
+        .delete()
+        .eq('id', requestId);
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
 }

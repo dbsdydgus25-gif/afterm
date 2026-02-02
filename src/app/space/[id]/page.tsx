@@ -3,33 +3,20 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { SpaceHeader } from "@/components/space/SpaceHeader";
-import { MemoryCard } from "@/components/space/MemoryCard";
+import { ArrowLeft, Settings, UserPlus, Clock, Users } from "lucide-react";
+import { MemoryFeed } from "@/components/space/MemoryFeed";
+import Link from "next/link";
 
-interface Memory {
-    id: string;
-    content?: string;
-    voice_url?: string;
-    is_secret: boolean;
-    allowed_viewers: string[];
-    created_at: string;
-    writer: {
-        handle: string;
-        name: string;
-        avatar_url?: string;
-    };
-}
-
-export default function SpacePage() {
+export default function UserSpacePage() {
     const params = useParams();
     const router = useRouter();
-    // Allow both @username and username (remove @ if present)
     const handle = (params.id as string)?.replace(/^@/, '');
 
     const [space, setSpace] = useState<any>(null);
-    const [memories, setMemories] = useState<Memory[]>([]);
+    const [memories, setMemories] = useState<any[]>([]);
     const [mySpace, setMySpace] = useState<any>(null);
     const [relationship, setRelationship] = useState<any>(null);
+    const [friendCount, setFriendCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -38,7 +25,7 @@ export default function SpacePage() {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
-                window.location.href = '/login?returnTo=' + encodeURIComponent(window.location.pathname);
+                window.location.href = '/login?returnTo=/space/' + handle;
                 return;
             }
 
@@ -51,7 +38,7 @@ export default function SpacePage() {
 
             setMySpace(mySpaceData);
 
-            // Get target space by handle
+            // Get target space
             const { data: spaceData } = await supabase
                 .from('spaces')
                 .select('*')
@@ -65,7 +52,16 @@ export default function SpacePage() {
                 return;
             }
 
-            // Get relationship
+            // Get friend count (mutual relationships)
+            const { count } = await supabase
+                .from('relationships')
+                .select('*', { count: 'exact', head: true })
+                .eq('follower_id', spaceData.id)
+                .eq('status', 'accepted');
+
+            setFriendCount(count || 0);
+
+            // Get relationship if not my space
             if (mySpaceData && mySpaceData.id !== spaceData.id) {
                 const { data: rel } = await supabase
                     .from('relationships')
@@ -112,13 +108,9 @@ export default function SpacePage() {
         window.location.reload();
     };
 
-    const handleSettings = () => {
-        router.push('/space/settings');
-    };
-
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="max-w-[430px] mx-auto min-h-screen flex items-center justify-center">
                 <div className="text-[14px] text-gray-400">로딩 중...</div>
             </div>
         );
@@ -126,7 +118,7 @@ export default function SpacePage() {
 
     if (!space) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="max-w-[430px] mx-auto min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-[18px] font-bold text-gray-900 mb-2">공간을 찾을 수 없습니다</h1>
                     <p className="text-[14px] text-gray-500">@{handle}</p>
@@ -138,48 +130,63 @@ export default function SpacePage() {
     const isOwner = mySpace?.id === space.id;
 
     return (
-        <div className="min-h-screen bg-white">
-            <SpaceHeader
-                space={space}
-                isOwner={isOwner}
-                relationshipStatus={
-                    isOwner ? 'none' :
-                        !relationship ? 'none' :
-                            relationship.status
-                }
-                followerCount={0}
-                followingCount={0}
-                onFollow={handleFollow}
-                onSettings={handleSettings}
-            />
+        <div className="max-w-[430px] mx-auto min-h-screen">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+                <div className="flex items-center justify-between px-4 py-3">
+                    <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-lg">
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    {isOwner && (
+                        <Link href="/space/settings" className="p-2 hover:bg-gray-100 rounded-lg">
+                            <Settings className="w-5 h-5" />
+                        </Link>
+                    )}
+                </div>
 
-            {/* Memories Feed */}
-            <div className="max-w-[430px] mx-auto">
-                {memories.length === 0 ? (
-                    <div className="py-20 text-center">
-                        <p className="text-[14px] text-gray-400">아직 기억이 없습니다</p>
+                {/* Profile */}
+                <div className="px-4 pb-4">
+                    <div className="flex items-start gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                            {space.name[0]}
+                        </div>
+                        <div className="flex-1">
+                            <h1 className="text-[16px] font-bold text-gray-900">{space.name}</h1>
+                            <p className="text-[14px] text-gray-500">@{space.handle}</p>
+                        </div>
+                        {!isOwner && (
+                            <button
+                                onClick={handleFollow}
+                                className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-colors ${!relationship
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : relationship.status === 'pending'
+                                            ? 'bg-blue-100 text-blue-600'
+                                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                                    }`}
+                            >
+                                {!relationship && <><UserPlus className="w-3.5 h-3.5 inline mr-1" />팔로우</>}
+                                {relationship?.status === 'pending' && <><Clock className="w-3.5 h-3.5 inline mr-1" />대기중</>}
+                                {relationship?.status === 'accepted' && <><Users className="w-3.5 h-3.5 inline mr-1" />친구</>}
+                            </button>
+                        )}
                     </div>
-                ) : (
-                    memories.map((memory) => {
-                        const canView =
-                            isOwner ||
-                            memory.writer.handle === mySpace?.handle ||
-                            (!memory.is_secret) ||
-                            (memory.is_secret && memory.allowed_viewers.includes(mySpace?.id));
 
-                        return (
-                            <MemoryCard
-                                key={memory.id}
-                                memory={memory}
-                                canView={canView}
-                                onRequestAccess={() => {
-                                    alert('열람 요청 기능은 곧 추가됩니다.');
-                                }}
-                            />
-                        );
-                    })
-                )}
+                    {space.bio && (
+                        <p className="text-[14px] text-gray-700 leading-relaxed mb-4">
+                            {space.bio}
+                        </p>
+                    )}
+
+                    {/* Friend Count */}
+                    <div className="text-[13px]">
+                        <span className="font-semibold text-gray-900">{friendCount}</span>
+                        <span className="text-gray-500 ml-1">친구</span>
+                    </div>
+                </div>
             </div>
+
+            {/* Memories */}
+            <MemoryFeed memories={memories} mySpaceId={mySpace?.id || ''} />
         </div>
     );
 }
