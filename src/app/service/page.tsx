@@ -37,13 +37,13 @@ export default function ServiceGuidePage() {
 
                 {/* Service Process Explanation Section (How It Works) */}
                 <section className="w-full bg-white py-16 md:py-24 border-b border-slate-100">
-                    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                        <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
-                            <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-wide">HOW IT WORKS</span>
-                            <h2 className="text-xl md:text-4xl font-bold text-slate-900 leading-tight">
+                    <div className="max-w-[430px] mx-auto px-4">
+                        <div className="text-center mb-6 space-y-2">
+                            <span className="inline-block py-0.5 px-2 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold tracking-wide">HOW IT WORKS</span>
+                            <h2 className="text-base font-bold text-slate-900 leading-tight">
                                 마음이 전달되는 과정
                             </h2>
-                            <p className="text-slate-500 text-[11px] md:text-lg leading-normal md:leading-relaxed tracking-tighter w-full">
+                            <p className="text-slate-500 text-[10px] leading-normal">
                                 가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
                             </p>
                         </div>
@@ -65,9 +65,9 @@ export default function ServiceGuidePage() {
                                     <div className="absolute inset-0 bg-blue-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 01</div>
-                                    <h3 className="text-xl font-bold text-slate-900">기억 저장</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
+                                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-full text-[9px] font-bold text-slate-500 mb-1">STEP 01</div>
+                                    <h3 className="text-sm font-bold text-slate-900">기억 저장</h3>
+                                    <p className="text-slate-500 leading-relaxed text-[10px]">
                                         소중한 사람에게 전하고 싶은 이야기,<br />
                                         사진, 영상을 미리 작성하세요.<br />
                                         모든 데이터는 암호화되어 안전하게 저장됩니다.
@@ -88,9 +88,9 @@ export default function ServiceGuidePage() {
                                     <div className="absolute inset-0 bg-indigo-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 02</div>
-                                    <h3 className="text-xl font-bold text-slate-900">안전 보관</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
+                                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-full text-[9px] font-bold text-slate-500 mb-1">STEP 02</div>
+                                    <h3 className="text-sm font-bold text-slate-900">안전 보관</h3>
+                                    <p className="text-slate-500 leading-relaxed text-[10px]">
                                         당신이 지정한 순간이 올 때까지<br />
                                         메시지는 철저히 비공개로 보관됩니다.<br />
                                         클라우드 서버에서 영구적으로 관리됩니다.
@@ -111,9 +111,9 @@ export default function ServiceGuidePage() {
                                     <div className="absolute inset-0 bg-amber-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 03</div>
-                                    <h3 className="text-xl font-bold text-slate-900">전달 및 열람</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
+                                    <div className="inline-block px-2 py-0.5 bg-slate-100 rounded-full text-[9px] font-bold text-slate-500 mb-1">STEP 03</div>
+                                    <h3 className="text-sm font-bold text-slate-900">전달 및 열람</h3>
+                                    <p className="text-slate-500 leading-relaxed text-[10px]">
                                         지정된 시점에 수신인에게 알림이 전송됩니다.<br />
                                         수신인은 본인 인증(휴대폰)을 거친 후<br />
                                         당신의 메시지를 열람할 수 있습니다.
@@ -176,11 +176,11 @@ export default function ServiceGuidePage() {
                                 <div className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide">
                                     NEW SERVICE
                                 </div>
-                                <h2 className="text-xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                                <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
                                     그리운 마음을<br />
                                     <span className="text-blue-600">온라인 추모관</span>에 남겨보세요.
                                 </h2>
-                                <p className="text-[11px] md:text-lg text-slate-500 leading-normal md:leading-relaxed tracking-tighter w-full">
+                                <p className="text-[10px] text-slate-500 leading-normal">
                                     시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.<br />
                                     소중한 분을 위한 디지털 공간을 만들고, 가족 친지들과 함께<br />
                                     따뜻한 메시지를 나누세요.
@@ -216,12 +216,12 @@ export default function ServiceGuidePage() {
                                     transition={{ duration: 0.8, ease: "easeOut" }}
                                     className="space-y-4 md:space-y-6"
                                 >
-                                    <h2 className="text-2xl md:text-5xl font-bold leading-tight tracking-tight">
+                                    <h2 className="text-lg font-bold leading-tight tracking-tight">
                                         남겨진 사람들에게<br />
                                         <span className="text-blue-400">가장 소중한 선물</span>이<br />
                                         됩니다.
                                     </h2>
-                                    <div className="w-16 h-1.5 bg-blue-500 rounded-full"></div>
+                                    <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
                                 </motion.div>
 
                                 <motion.p
@@ -229,10 +229,10 @@ export default function ServiceGuidePage() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: false, margin: "-100px" }}
                                     transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-                                    className="text-[13px] md:text-lg text-slate-400 leading-snug md:leading-relaxed break-keep"
+                                    className="text-[10px] text-slate-400 leading-snug break-keep"
                                 >
-                                    AFTERM(에프텀)은 당신의 생애 데이터를 안전하게 보관하고,<br className="block md:hidden" />
-                                    지정된 시점에 소중한 사람들에게 전달합니다.<br className="block md:hidden" />
+                                    AFTERM(에프텀)은 당신의 생애 데이터를 안전하게 보관하고,<br />
+                                    지정된 시점에 소중한 사람들에게 전달합니다.<br />
                                     단순한 메시지를 넘어, 당신의 목소리와 온기를 전하세요.
                                 </motion.p>
                             </div>
@@ -301,11 +301,11 @@ export default function ServiceGuidePage() {
                             transition={{ duration: 0.8, ease: "easeOut" }}
                             className="mb-10 md:mb-16 space-y-4"
                         >
-                            <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">PRICING</span>
-                            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                            <span className="inline-block py-0.5 px-2 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold tracking-wide mb-2">PRICING</span>
+                            <h2 className="text-base font-bold text-slate-900 tracking-tight leading-tight">
                                 당신을 위한 최적의 플랜을 선택하세요.
                             </h2>
-                            <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed break-keep">
+                            <p className="text-slate-500 text-[10px] max-w-[380px] mx-auto leading-relaxed break-keep">
                                 에프텀은 당신의 소중한 메시지를 안전하게 보관하고, 지정된 시점에 전달합니다.
                             </p>
                         </motion.div>

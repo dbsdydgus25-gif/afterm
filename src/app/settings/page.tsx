@@ -483,7 +483,7 @@ function SettingsContent() {
         <div className="min-h-screen bg-white">
             <Header />
 
-            <div className="flex max-w-7xl mx-auto pt-20 px-4 min-h-[calc(100vh-80px)]">
+            <div className="flex max-w-[430px] mx-auto pt-20 px-4 min-h-[calc(100vh-80px)]">
                 {/* Left Sidebar (Notion Style) */}
                 <aside className="w-64 flex-shrink-0 py-8 border-r border-slate-100 hidden md:block">
                     <div className="mb-6 px-2">
