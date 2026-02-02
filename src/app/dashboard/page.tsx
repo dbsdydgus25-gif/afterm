@@ -294,38 +294,37 @@ export default function DashboardPage() {
                     </div>
                 </Link>
 
-                {/* Stats Section: Messages & Storage */}
-                <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Left: Message Usage */}
-                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <div className="flex justify-between items-end mb-2">
-                            <div>
-                                <h3 className="text-slate-500 text-sm font-medium mb-1">남은 메시지</h3>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-3xl font-bold text-slate-900">
-                                        {plan === 'pro' ? 100 - messages.length : 1 - messages.length}
-                                    </span>
-                                    <span className="text-sm text-slate-400 font-medium">
-                                        / {plan === 'pro' ? '100개' : '1개'}
-                                    </span>
-                                </div>
+                {/* Stats Section: Messages & Storage (Unified Compact Design) */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <div className="grid grid-cols-2 gap-8 divide-x divide-slate-100">
+                        {/* Left: Message Usage */}
+                        <div className="px-2">
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">남은 메시지</h3>
+                            <div className="flex items-end gap-1.5 mb-2">
+                                <span className="text-3xl font-black text-slate-900 leading-none">
+                                    {plan === 'pro' ? 100 - messages.length : 1 - messages.length}
+                                </span>
+                                <span className="text-xs text-slate-400 font-medium mb-1">
+                                    / {plan === 'pro' ? '100' : '1'}
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+                                <div
+                                    className="h-full bg-slate-900 rounded-full transition-all duration-500 ease-out"
+                                    style={{
+                                        width: plan === 'pro'
+                                            ? `${Math.min((messages.length / 100) * 100, 100)}%`
+                                            : `${Math.min((messages.length / 1) * 100, 100)}%`
+                                    }}
+                                />
                             </div>
                         </div>
-                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                            <div
-                                className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
-                                style={{
-                                    width: plan === 'pro'
-                                        ? `${Math.min((messages.length / 100) * 100, 100)}%`
-                                        : `${Math.min((messages.length / 1) * 100, 100)}%`
-                                }}
-                            />
-                        </div>
-                    </div>
 
-                    {/* Right: Storage Usage */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <StorageWidget plan={plan} userId={user?.id} />
+                        {/* Right: Storage Usage */}
+                        <div className="pl-6">
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">남은 용량</h3>
+                            <StorageWidget plan={plan} userId={user?.id} compact={true} />
+                        </div>
                     </div>
                 </section>
 

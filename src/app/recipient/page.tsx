@@ -242,36 +242,36 @@ export default function RecipientPage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black p-6">
-            <div className="w-full max-w-md space-y-8 animate-fade-in">
+            <div className="w-full max-w-md space-y-6 animate-fade-in">
 
-                <div className="space-y-2 text-center">
-                    <h1 className="text-3xl font-bold tracking-tight">
+                <div className="space-y-1 text-center">
+                    <h1 className="text-xl font-bold tracking-tight">
                         누구에게 전할까요?
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                         당신의 소중한 이야기가 안전하게 전달됩니다.
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-zinc-900 p-8 rounded-3xl shadow-sm border border-black/5">
+                <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-black/5">
 
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                                <User className="w-4 h-4 text-primary" /> 이름
+                    <div className="space-y-3">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1.5">
+                                <User className="w-3.5 h-3.5 text-slate-500" /> 이름
                             </label>
                             <input
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="받으실 분의 성함"
-                                className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-primary" /> 연락처
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold leading-none flex items-center gap-1.5">
+                                <Phone className="w-3.5 h-3.5 text-slate-500" /> 연락처
                             </label>
                             <input
                                 required
@@ -279,13 +279,13 @@ export default function RecipientPage() {
                                 value={formData.phone}
                                 onChange={handlePhoneChange}
                                 placeholder="010-0000-0000"
-                                className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-slate-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Heart className="w-4 h-4 text-primary" /> 관계
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold leading-none flex items-center gap-1.5">
+                                <Heart className="w-3.5 h-3.5 text-slate-500" /> 관계
                             </label>
                             <div className="space-y-2">
                                 <select
@@ -298,7 +298,7 @@ export default function RecipientPage() {
                                             setFormData({ ...formData, relationship: val });
                                         }
                                     }}
-                                    className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
                                 >
                                     <option value="가족">가족</option>
                                     <option value="친구">친구</option>
@@ -313,7 +313,7 @@ export default function RecipientPage() {
                                         value={formData.relationship}
                                         onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
                                         placeholder="직접 입력 (예: 이웃, 선생님)"
-                                        className="flex h-12 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring animate-in fade-in slide-in-from-top-2"
+                                        className="flex h-10 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black animate-in fade-in slide-in-from-top-2"
                                         autoFocus
                                     />
                                 )}
@@ -321,17 +321,17 @@ export default function RecipientPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 pt-2">
+                    <div className="flex items-center space-x-2 pt-1">
                         <input
                             type="checkbox"
                             id="agreed"
                             checked={formData.agreed}
                             onChange={(e) => setFormData({ ...formData, agreed: e.target.checked })}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            className="h-3.5 w-3.5 rounded border-gray-300 text-black focus:ring-black"
                         />
                         <label
                             htmlFor="agreed"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
+                            className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-500"
                         >
                             알림 수신 및 개인정보 처리에 동의합니다. (필수)
                         </label>
@@ -340,9 +340,9 @@ export default function RecipientPage() {
                     <Button
                         type="submit"
                         disabled={!formData.agreed || isSaving}
-                        className="w-full h-14 rounded-2xl text-lg gap-2"
+                        className="w-full h-12 rounded-xl text-sm font-bold gap-1 bg-slate-900 hover:bg-slate-800"
                     >
-                        {isSaving ? "저장 중..." : "소중한 기억 저장하기"} <ArrowRight className="w-4 h-4" />
+                        {isSaving ? "저장 중..." : "소중한 기억 저장하기"} <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
 
                 </form>

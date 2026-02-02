@@ -108,21 +108,21 @@ export default function CreatePage() {
                 <div className="text-sm font-medium text-slate-500">기억 남기기 (1/2)</div>
             </header>
 
-            <main className="flex-1 max-w-2xl w-full mx-auto p-6 flex flex-col gap-8">
-                <div className="space-y-2 mt-8">
-                    <h1 className="text-2xl font-bold text-slate-900">
+            <main className="flex-1 max-w-2xl w-full mx-auto p-6 flex flex-col gap-6">
+                <div className="space-y-1 mt-4">
+                    <h1 className="text-lg font-bold text-slate-900">
                         남기고 싶은 이야기를<br />
                         자유롭게 작성해주세요.
                     </h1>
-                    <p className="text-slate-500">사진이나 동영상도 함께 첨부할 수 있습니다.</p>
+                    <p className="text-xs text-slate-500">사진이나 동영상도 함께 첨부할 수 있습니다.</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col min-h-[400px]">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col min-h-[350px]">
                     <Textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="사랑하는 사람에게 전하고 싶은 말을 적어보세요..."
-                        className="flex-1 w-full p-4 text-lg leading-relaxed resize-none border-none focus-visible:ring-0 placeholder:text-slate-300 text-slate-800"
+                        className="flex-1 w-full p-2 text-sm leading-relaxed resize-none border-none focus-visible:ring-0 placeholder:text-slate-300 text-slate-800"
                     />
 
                     {/* File List Preview */}
@@ -130,8 +130,8 @@ export default function CreatePage() {
                         <div className="flex gap-2 overflow-x-auto py-2 mb-2 px-1">
                             {files.map((file, idx) => (
                                 <div key={idx} className="relative flex-shrink-0 bg-slate-50 border border-slate-200 rounded-lg p-2 pr-6 flex items-center gap-2">
-                                    <span className="text-xl">{file.type.startsWith('video') ? '🎥' : '📷'}</span>
-                                    <div className="max-w-[100px] truncate text-xs font-medium text-slate-700">
+                                    <span className="text-lg">{file.type.startsWith('video') ? '🎥' : '📷'}</span>
+                                    <div className="max-w-[100px] truncate text-[10px] font-medium text-slate-700">
                                         {file.name}
                                     </div>
                                     <button
@@ -145,14 +145,14 @@ export default function CreatePage() {
                         </div>
                     )}
 
-                    <div className="border-t border-slate-100 pt-4 mt-auto flex items-center justify-between">
+                    <div className="border-t border-slate-100 pt-3 mt-auto flex items-center justify-between">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
                             >
-                                <span className="text-xl">📎</span>
-                                <span className="text-sm font-medium">
+                                <span className="text-lg">📎</span>
+                                <span className="text-xs font-medium">
                                     파일 추가
                                 </span>
                             </button>
@@ -165,7 +165,7 @@ export default function CreatePage() {
                                 onChange={handleFileSelect}
                             />
                         </div>
-                        <div className="text-xs text-slate-300">
+                        <div className="text-[10px] text-slate-300">
                             {files.length > 0 ? `${(totalSize / (1024 * 1024)).toFixed(1)}MB / ` : ""} 최대 1GB
                         </div>
                     </div>
@@ -175,7 +175,7 @@ export default function CreatePage() {
                     <Button
                         onClick={handleNext}
                         size="lg"
-                        className="w-full h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20"
+                        className="w-full h-12 text-sm font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg"
                     >
                         다음으로
                     </Button>
