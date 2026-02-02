@@ -41,6 +41,7 @@ export default function OnboardingPage() {
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+    const [usernameError, setUsernameError] = useState<string | null>(null);
     const [profileImage, setProfileImage] = useState("");
 
 
@@ -251,11 +252,16 @@ export default function OnboardingPage() {
         }
     };
 
+
+
     const checkUsernameAvailability = async () => {
         if (!username || username.length < 3) {
             setUsernameAvailable(false);
+            setUsernameError("3자 이상이어야 합니다.");
             return;
         }
+
+        setLoading(true);
         try {
             const res = await fetch('/api/user/check-username', {
                 method: 'POST',
@@ -263,9 +269,17 @@ export default function OnboardingPage() {
             });
             const data = await res.json();
             setUsernameAvailable(data.available);
+            if (!data.available) {
+                setUsernameError(data.message || data.error || "사용할 수 없는 아이디입니다.");
+            } else {
+                setUsernameError(null);
+            }
         } catch (error) {
             console.error(error);
-            setUsernameAvailable(null);
+            setUsernameAvailable(false);
+            setUsernameError("확인 중 오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -600,29 +614,39 @@ export default function OnboardingPage() {
                                 <label className="text-sm font-bold text-slate-700">아이디 (ID)</label>
                                 <div className="relative">
                                     <input
+                                        type="text"
                                         value={username}
                                         onChange={(e) => {
                                             const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '');
                                             setUsername(val);
-                                            setUsernameAvailable(null); // Reset check
+                                            setUsernameAvailable(null);
+                                            setUsernameError(null);
                                         }}
                                         onBlur={checkUsernameAvailability}
-                                        placeholder="영문, 숫자, ., _ 만 사용 가능"
-                                        className={`w-full p-3 rounded-xl border mt-1 outline-none font-medium ${usernameAvailable === false ? 'border-red-300 focus:ring-red-200' :
-                                            usernameAvailable === true ? 'border-green-300 focus:ring-green-200' :
-                                                'border-slate-200 focus:ring-2 focus:ring-blue-500'
+                                        placeholder="영문 소문자, 숫자, ., _"
+                                        className={`w-full p-3 pl-10 rounded-xl border outline-none font-medium transition-all ${usernameAvailable === false ? 'border-red-300 bg-red-50 focus:border-red-500' :
+                                            usernameAvailable === true ? 'border-green-300 bg-green-50 focus:border-green-500' :
+                                                'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                                             }`}
                                     />
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</div>
                                     {usernameAvailable === true && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pt-1 text-green-500">
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
                                             <CheckCircle2 className="w-5 h-5" />
                                         </div>
                                     )}
+                                    {loading && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
                                 </div>
-                                <p className={`text-xs mt-1.5 ml-1 ${usernameAvailable === false ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
-                                    {usernameAvailable === false ? "이미 사용 중인 아이디입니다." :
-                                        usernameAvailable === true ? "사용 가능한 아이디입니다." :
-                                            "나만의 고유한 아이디를 만들어보세요."}
+                                <p className="text-xs mt-1.5 ml-1 h-4">
+                                    {usernameAvailable === false ? (
+                                        <span className="text-red-500 font-bold">{usernameError || "이미 사용 중인 아이디입니다."}</span>
+                                    ) : (
+                                        <span className="text-slate-400">3자 이상, 특수문자는 . _ 만 가능합니다.</span>
+                                    )}
                                 </p>
                             </div>
                         </div>
