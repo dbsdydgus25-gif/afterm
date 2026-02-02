@@ -40,6 +40,10 @@ export default async function SpaceHome() {
                 handle,
                 name,
                 avatar_url
+            ),
+            recipient:recipient_id (
+                handle,
+                name
             )
         `)
         .in("space_id", allSpaceIds)
@@ -48,10 +52,15 @@ export default async function SpaceHome() {
 
     return (
         <div className="max-w-[430px] mx-auto">
-            {/* Header */}
+            {/* Header with AFTERM Logo */}
             <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-10">
-                <div className="px-4 py-4">
-                    <h1 className="text-[20px] font-bold text-gray-900">홈</h1>
+                <div className="px-4 py-3 flex items-center justify-center">
+                    <a
+                        href="/"
+                        className="text-[18px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                        AFTERM
+                    </a>
                 </div>
             </div>
 
