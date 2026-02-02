@@ -77,10 +77,30 @@ export function MessageList({
                     >
                         <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-3">
-                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${mem.type === 'image' ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'
-                                    }`}>
-                                    {mem.type === 'image' ? 'PHOTO' : 'TEXT'}
-                                </span>
+                                {(() => {
+                                    const type = (mem as any).file_type || mem.type || 'text';
+                                    let label = 'TEXT';
+                                    let style = 'bg-blue-50 text-blue-600';
+
+                                    if (type.includes('image')) {
+                                        label = '사진';
+                                        style = 'bg-indigo-50 text-indigo-600';
+                                    } else if (type.includes('video')) {
+                                        label = '영상';
+                                        style = 'bg-rose-50 text-rose-600';
+                                    } else if (type.includes('audio') || type.includes('voice')) {
+                                        label = '음성';
+                                        style = 'bg-emerald-50 text-emerald-600';
+                                    } else {
+                                        label = '텍스트';
+                                    }
+
+                                    return (
+                                        <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${style}`}>
+                                            {label}
+                                        </span>
+                                    );
+                                })()}
                                 <span className="text-xs text-slate-400 font-medium">
                                     {format(new Date(mem.created_at), 'yyyy.MM.dd', { locale: ko })}
                                 </span>
@@ -109,13 +129,6 @@ export function MessageList({
                         </div>
 
                         <div className="flex gap-4">
-                            {/* Thumbnail if image exists */}
-                            {mem.file_path && imageUrls[mem.id] && (
-                                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 border border-slate-100">
-                                    <img src={imageUrls[mem.id]} alt="memory" className="w-full h-full object-cover" />
-                                </div>
-                            )}
-
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
                                     To. {mem.recipient_name}
