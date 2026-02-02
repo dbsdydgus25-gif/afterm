@@ -314,7 +314,8 @@ export default function OnboardingPage() {
             const updates = {
                 full_name: name,
                 name: name,
-                username: username, // New
+                username: username,
+                nickname: username, // CRITICAL: This is the key field checked in onboarding detection
                 phone: phone.replace(/-/g, ''),
                 avatar_url: profileImage,
                 onboarding_completed: true
