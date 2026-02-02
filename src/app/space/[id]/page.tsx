@@ -201,34 +201,6 @@ export default function UserSpacePage() {
                         </div>
                     )}
 
-                    {isOwner && (
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                            <Link href="/space/settings?tab=profile" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                                <span className="text-[12px] font-semibold text-gray-900">프로필 편집</span>
-                            </Link>
-                            <Link href="/space/settings?tab=pages" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                                <span className="text-[12px] font-semibold text-gray-900">페이지</span>
-                            </Link>
-                            <Link href="/space/settings?tab=settings" className="flex flex-col items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                                <span className="text-[12px] font-semibold text-gray-900">계정</span>
-                            </Link>
-                        </div>
-                    )}
-
-                    {isOwner && (
-                        <div className="grid grid-cols-3 gap-2 mb-4 pt-1">
-                            <Link href="/space/settings?tab=profile" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
-                                <span className="text-[12px] font-semibold text-gray-900">프로필 편집</span>
-                            </Link>
-                            <Link href="/space/settings?tab=pages" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
-                                <span className="text-[12px] font-semibold text-gray-900">페이지</span>
-                            </Link>
-                            <Link href="/space/settings?tab=settings" className="flex flex-col items-center justify-center py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-100">
-                                <span className="text-[12px] font-semibold text-gray-900">계정</span>
-                            </Link>
-                        </div>
-                    )}
-
                     <div className="text-[12px]">
                         <span className="font-semibold text-gray-900">{friendCount}</span>
                         <span className="text-gray-500 ml-1">친구</span>
