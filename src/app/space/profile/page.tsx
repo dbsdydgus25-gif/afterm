@@ -12,12 +12,13 @@ export default async function SpaceProfile() {
     // Get my space
     const { data: mySpace } = await supabase
         .from("spaces")
-        .select("handle")
+        .select("*")
         .eq("owner_id", user.id)
+        .eq("space_type", "personal")
         .single();
 
-    if (!mySpace?.handle) {
-        redirect("/onboarding");
+    if (!mySpace) {
+        redirect("/space"); // Will auto-create in home page
     }
 
     // Redirect to my @username page

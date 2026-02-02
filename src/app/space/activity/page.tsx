@@ -13,12 +13,13 @@ export default async function SpaceActivity() {
     // Get my space
     const { data: mySpace } = await supabase
         .from("spaces")
-        .select("id")
+        .select("*")
         .eq("owner_id", user.id)
+        .eq("space_type", "personal")
         .single();
 
     if (!mySpace) {
-        redirect("/onboarding");
+        redirect("/space"); // Will auto-create in home page
     }
 
     // Get pending follow requests (people who want to follow me)

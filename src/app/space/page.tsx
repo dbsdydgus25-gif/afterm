@@ -11,14 +11,33 @@ export default async function SpaceHome() {
     }
 
     // Get my space
-    const { data: mySpace } = await supabase
+    let { data: mySpace } = await supabase
         .from("spaces")
         .select("*")
         .eq("owner_id", user.id)
+        .eq("space_type", "personal")
         .single();
 
+    // Auto-create space if it doesn't exist
     if (!mySpace) {
-        redirect("/onboarding");
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("user_id", user.id)
+            .single();
+
+        const { data: newSpace } = await supabase
+            .from("spaces")
+            .insert({
+                owner_id: user.id,
+                handle: profile?.username || user.email?.split('@')[0] || 'user',
+                name: profile?.username || 'User',
+                space_type: 'personal'
+            })
+            .select()
+            .single();
+
+        mySpace = newSpace;
     }
 
     // Get friend spaces (mutual relationships)
