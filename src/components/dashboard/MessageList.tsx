@@ -16,6 +16,7 @@ interface Message {
     type?: "text" | "image" | "voice" | "video";
     status?: string;
     unlocked?: boolean;
+    message_attachments?: { file_type: string }[];
 }
 
 interface MessageListProps {
@@ -78,7 +79,18 @@ export function MessageList({
                         <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-3">
                                 {(() => {
-                                    const type = (mem as any).file_type || mem.type || 'text';
+                                    // Determine type from attachments or legacy field
+                                    let type = (mem as any).file_type || mem.type || 'text';
+
+                                    // Check attachments if available
+                                    if (mem.message_attachments && mem.message_attachments.length > 0) {
+                                        const types = mem.message_attachments.map(a => a.file_type);
+                                        if (types.some(t => t.includes('video'))) type = 'video';
+                                        else if (types.some(t => t.includes('image'))) type = 'image';
+                                        else if (types.some(t => t.includes('audio') || t.includes('voice'))) type = 'voice';
+                                        else type = 'text'; // Fallback if attachment has weird type
+                                    }
+
                                     let label = 'TEXT';
                                     let style = 'bg-blue-50 text-blue-600';
 

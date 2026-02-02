@@ -26,6 +26,7 @@ interface Message {
     type?: "text" | "image" | "voice" | "video";
     status?: string;
     unlocked?: boolean;
+    message_attachments?: { file_type: string }[];
 }
 
 export default function DashboardPage() {
@@ -48,7 +49,7 @@ export default function DashboardPage() {
             // Build query with archived filter
             let query = supabase
                 .from('messages')
-                .select('*')
+                .select('*, message_attachments(file_type)')
                 .eq('user_id', user.id);
 
             // Basic users only see non-archived messages
