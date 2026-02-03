@@ -162,10 +162,6 @@ export default function VaultCreatePage() {
                     password_encrypted: encryptedPassword,
                     request_type: requestType,
                     notes,
-                    recipient_name: recipientName,
-                    recipient_phone: recipientPhone,
-                    recipient_relationship: recipientRelationship,
-                    pin_hint: pinHint,
                     legal_consent: true
                 })
                 .select()
