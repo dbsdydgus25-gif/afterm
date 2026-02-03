@@ -6,7 +6,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
@@ -15,7 +14,7 @@ export default function AppEntryPage() {
     const router = useRouter();
     const [showSplash, setShowSplash] = useState(true);
     // Use the same states as the original page to ensure compatibility
-    const { message, setMessage, user, plan, setMessageCount } = useMemoryStore();
+    const { user, plan, setMessageCount } = useMemoryStore();
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
 
     // States for service sections
@@ -60,22 +59,6 @@ export default function AppEntryPage() {
         return () => clearInterval(timer);
     }, []);
 
-    const handleContinue = () => {
-        if (!message.trim()) {
-            alert("메시지를 입력해주세요.");
-            return;
-        }
-        // Logic from original page:
-        // If logged in -> go to /create (to add media)
-        // If guest -> go to /login with returnTo
-
-        if (user) {
-            router.push('/create');
-        } else {
-            alert("로그인 후 계속 작성이 가능합니다.");
-            router.push('/login?returnTo=/create');
-        }
-    };
 
     return (
         <div className="flex flex-col min-h-screen font-sans overflow-hidden relative">
@@ -165,30 +148,45 @@ export default function AppEntryPage() {
                             </p>
                         </motion.div>
 
-                        {/* Core Feature (Card Input) */}
+                        {/* Core Feature - Two Options */}
                         <div className="w-full space-y-4 animate-fade-in delay-75">
-                            <div className="px-1">
-                                <Textarea
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="당신의 기억을 남겨주세요..."
-                                    className="w-full min-h-36 text-base bg-white border-slate-200 focus:border-blue-500 rounded-2xl resize-none transition-all placeholder:text-slate-400 shadow-sm"
-                                />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Option 1: Memory Message */}
+                                <button
+                                    onClick={() => router.push('/create')}
+                                    className="group relative bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 active:scale-[0.98]"
+                                >
+                                    <div className="flex flex-col items-center text-center space-y-3">
+                                        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                            <span className="text-2xl">💌</span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900">
+                                            기억 남기기
+                                        </h3>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            소중한 사람들에게<br />전할 마음을 남겨보세요
+                                        </p>
+                                    </div>
+                                </button>
 
-                            <Button
-                                size="lg"
-                                onClick={() => {
-                                    if (!message.trim()) {
-                                        alert("메시지를 입력해주세요.");
-                                        return;
-                                    }
-                                    router.push('/create?message=' + encodeURIComponent(message));
-                                }}
-                                className="w-full h-12 text-base font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all active:scale-95"
-                            >
-                                계속 작성하기
-                            </Button>
+                                {/* Option 2: Digital Vault */}
+                                <button
+                                    onClick={() => router.push('/vault/create')}
+                                    className="group relative bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-100 active:scale-[0.98]"
+                                >
+                                    <div className="flex flex-col items-center text-center space-y-3">
+                                        <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                                            <span className="text-2xl">🔐</span>
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900">
+                                            디지털 유산
+                                        </h3>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            계정 정보를 안전하게<br />보관하고 전달하세요
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
