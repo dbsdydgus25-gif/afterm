@@ -20,15 +20,14 @@ export default function VaultViewPage() {
 
     const checkVaultExists = async () => {
         try {
-            const supabase = createClient();
-            const { data, error } = await supabase
-                .from('vault_items')
-                .select('id')
-                .eq('id', vaultId)
-                .single();
+            // Use API instead of direct DB access to bypass RLS for unauthenticated users
+            const res = await fetch(`/api/vault/${vaultId}`);
 
-            if (data && !error) {
-                setVaultExists(true);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.exists) {
+                    setVaultExists(true);
+                }
             }
         } catch (error) {
             console.error(error);

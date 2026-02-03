@@ -27,15 +27,13 @@ export default function VaultAuthPage() {
 
     const loadPinHint = async () => {
         try {
-            const supabase = createClient();
-            const { data } = await supabase
-                .from('vault_items')
-                .select('pin_hint')
-                .eq('id', vaultId)
-                .single();
-
-            if (data?.pin_hint) {
-                setPinHint(data.pin_hint);
+            // Use API instead of direct DB access
+            const res = await fetch(`/api/vault/${vaultId}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.exists && data.hint) {
+                    setPinHint(data.hint);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -51,35 +49,30 @@ export default function VaultAuthPage() {
         setLoading(true);
 
         try {
-            const supabase = createClient();
+            // Use API for PIN verification
+            const res = await fetch('/api/vault/verify-pin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: vaultId, pin })
+            });
 
-            // Get vault data with pin_hash
-            const { data: vault, error } = await supabase
-                .from('vault_items')
-                .select('*')
-                .eq('id', vaultId)
-                .single();
+            const data = await res.json();
 
-            if (error || !vault) {
-                alert("디지털 유산을 찾을 수 없습니다.");
+            if (!res.ok) {
+                if (res.status === 401) {
+                    alert("PIN이 일치하지 않습니다. 다시 시도해주세요.");
+                    setPin("");
+                } else {
+                    alert(data.error || "오류가 발생했습니다.");
+                }
                 return;
             }
 
-            // Verify PIN
-            const bcrypt = require('bcryptjs');
-            const isValid = await bcrypt.compare(pin, vault.pin_hash);
-
-            if (!isValid) {
-                alert("PIN이 일치하지 않습니다. 다시 시도해주세요.");
-                setPin("");
-                return;
-            }
-
-            // Decrypt password
-            const decryptedPassword = decryptPassword(vault.password_encrypted, pin);
+            // Client-side decryption using the encrypted password returned from server
+            const decryptedPassword = decryptPassword(data.vault.password_encrypted, pin);
 
             setVaultData({
-                ...vault,
+                ...data.vault,
                 password_decrypted: decryptedPassword
             });
             setVerified(true);
@@ -274,8 +267,8 @@ export default function VaultAuthPage() {
                         onClick={handleVerifyPin}
                         disabled={loading || pin.length < 4}
                         className={`w-full h-14 font-bold text-lg rounded-xl transition-all ${loading || pin.length < 4
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20'
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20'
                             }`}
                     >
                         {loading ? '확인 중...' : '확인'}
