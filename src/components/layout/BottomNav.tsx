@@ -1,8 +1,6 @@
-"use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, PenLine, User } from "lucide-react";
+import { Home, PenLine, User, Users } from "lucide-react";
 
 export function BottomNav() {
     const pathname = usePathname();
@@ -10,6 +8,7 @@ export function BottomNav() {
     const navItems = [
         { href: "/", icon: Home, label: "홈" },
         { href: "/create", icon: PenLine, label: "기억남기기" },
+        { href: "/space", icon: Users, label: "기억공간" },
         { href: "/settings", icon: User, label: "내정보" },
     ];
 
@@ -25,8 +24,8 @@ export function BottomNav() {
                             key={item.href}
                             href={item.href}
                             className={`flex flex-col items-center justify-center flex-1 gap-1 transition-colors ${isActive
-                                    ? "text-blue-600"
-                                    : "text-slate-500 hover:text-slate-700"
+                                ? "text-blue-600"
+                                : "text-slate-500 hover:text-slate-700"
                                 }`}
                         >
                             <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />

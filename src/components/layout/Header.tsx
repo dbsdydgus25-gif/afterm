@@ -67,11 +67,9 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     const isTransparent = transparentOnTop && !isScrolled && !isMobileMenuOpen;
 
     const navLinks = [
-        { name: "서비스 안내", href: "/service" },
         { name: "회사소개", href: "/about" },
         { name: "공지사항", href: "/notice" },
         { name: "월간 트렌드", href: "/newsletter" },
-        { name: "기억 공간", href: "/space" },
     ];
 
     return (
@@ -157,7 +155,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden fixed inset-x-0 top-20 bottom-0 bg-white border-b border-slate-200 overflow-y-auto"
+                            className="md:hidden bg-white border-b border-slate-200 overflow-y-auto"
                         >
                             <div className="px-6 py-6 space-y-6 flex flex-col pb-24">
                                 {navLinks.map((link) => (

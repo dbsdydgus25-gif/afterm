@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { Footer } from "@/components/layout/Footer";
 
 export default function AppEntryPage() {
     const router = useRouter();
@@ -187,6 +188,66 @@ export default function AppEntryPage() {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Service Explanation Section */}
+            <section className="relative z-10 w-full bg-white py-12 md:py-16 border-t border-slate-100">
+                <div className="max-w-5xl mx-auto px-6">
+                    <div className="text-center mb-10 space-y-2">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
+                            마음이 전달되는 과정
+                        </h2>
+                        <p className="text-slate-600 text-sm md:text-base">
+                            가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Step 1 */}
+                        <div className="flex flex-col items-center text-center space-y-4 bg-slate-50 p-6 rounded-2xl">
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-3xl">
+                                ✍️
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-xs font-bold text-slate-500">STEP 01</div>
+                                <h3 className="text-lg font-bold text-slate-900">기억 저장</h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    소중한 사람에게 전하고 싶은 이야기, 사진, 영상을 미리 작성하세요.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="flex flex-col items-center text-center space-y-4 bg-slate-50 p-6 rounded-2xl">
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-3xl">
+                                ⏰
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-xs font-bold text-slate-500">STEP 02</div>
+                                <h3 className="text-lg font-bold text-slate-900">자동 모니터링</h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    정기적인 안부 확인을 통해 당신의 상태를 체크합니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="flex flex-col items-center text-center space-y-4 bg-slate-50 p-6 rounded-2xl">
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center text-3xl">
+                                💌
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-xs font-bold text-slate-500">STEP 03</div>
+                                <h3 className="text-lg font-bold text-slate-900">마음 전달</h3>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    필요한 순간, 당신의 메시지를 소중한 사람에게 안전하게 전달합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <Footer />
             <BottomNav />
         </div>
     );
