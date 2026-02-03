@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, AlertTriangle, UserCheck } from "lucide-react";
+import { Shield, UserCheck } from "lucide-react";
 
 interface LegalConsentProps {
     onComplete: (consents: {
@@ -13,14 +13,17 @@ interface LegalConsentProps {
 
 export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
     const [financialConsent, setFinancialConsent] = useState(false);
-    const [platformConsent, setPlatformConsent] = useState(false);
     const [delegationConsent, setDelegationConsent] = useState(false);
 
-    const allChecked = financialConsent && platformConsent && delegationConsent;
+    const allChecked = financialConsent && delegationConsent;
 
     const handleContinue = () => {
         if (allChecked) {
-            onComplete({ financialConsent, platformConsent, delegationConsent });
+            onComplete({
+                financialConsent,
+                platformConsent: true, // Always true since we removed it
+                delegationConsent
+            });
         }
     };
 
@@ -66,31 +69,7 @@ export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
                     </label>
                 </div>
 
-                {/* 2. Platform Terms Consent */}
-                <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 md:p-6 hover:border-blue-300 transition-colors">
-                    <label className="flex items-start gap-4 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={platformConsent}
-                            onChange={(e) => setPlatformConsent(e.target.checked)}
-                            className="w-5 h-5 text-blue-600 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <AlertTriangle className="w-5 h-5 text-blue-600" />
-                                <span className="text-sm md:text-base font-bold text-slate-900">
-                                    (필수) 타 플랫폼 약관 위반 가능성을 인지했습니다.
-                                </span>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                                넷플릭스 등 제3자 계정 공유로 인한 이용 정지 등의 불이익은
-                                에프텀이 책임지지 않습니다.
-                            </p>
-                        </div>
-                    </label>
-                </div>
-
-                {/* 3. Delegation Consent */}
+                {/* 2. Delegation Consent */}
                 <div className="bg-white border-2 border-slate-200 rounded-2xl p-5 md:p-6 hover:border-blue-300 transition-colors">
                     <label className="flex items-start gap-4 cursor-pointer">
                         <input

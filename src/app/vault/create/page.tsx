@@ -169,7 +169,12 @@ export default function VaultCreatePage() {
 
             if (error) {
                 console.error("Vault creation error:", error);
-                alert("저장 중 오류가 발생했습니다.");
+                alert(`저장 중 오류가 발생했습니다.\n${error.message || '알 수 없는 오류'}`);
+                return;
+            }
+
+            if (!vaultItem) {
+                alert("저장에 실패했습니다. 다시 시도해주세요.");
                 return;
             }
 
