@@ -9,18 +9,14 @@ import {
     VAULT_REQUEST_TYPES,
     SUBSCRIPTION_PLATFORMS,
     SNS_PLATFORMS,
-    isFinancialPlatform,
     VaultCategory,
     VaultRequestType
 } from "@/lib/vault-constants";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VaultLegalConsent } from "@/components/vault/VaultLegalConsent";
-import { VaultStepIndicator, VaultMobileProgress } from "@/components/vault/VaultStepIndicator";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export default function VaultCreatePage() {
     const router = useRouter();
@@ -31,7 +27,7 @@ export default function VaultCreatePage() {
     // Step 0: Legal Consent
     const [legalConsents, setLegalConsents] = useState({
         financialConsent: false,
-        platformConsent: false,
+        platformConsent: false, // Legacy
         delegationConsent: false
     });
 
@@ -203,8 +199,6 @@ export default function VaultCreatePage() {
                 const message = `[에프텀] ${senderName}님이 보낸 디지털 유산이 도착했습니다. 아래 링크를 터치해서 확인해주세요.\n${vaultUrl}`;
 
                 console.log('Sending SMS to:', recipientPhone);
-                console.log('Message:', message);
-
                 const smsResponse = await fetch('/api/sms/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -214,23 +208,14 @@ export default function VaultCreatePage() {
                     })
                 });
 
-                const smsResult = await smsResponse.json();
-                console.log('SMS Response:', smsResult);
-
-                if (smsResponse.ok && smsResult.success) {
-                    // Mark notification as sent
+                if (smsResponse.ok) {
                     await supabase
                         .from('vault_items')
                         .update({ notification_sent: true })
                         .eq('id', vaultItem.id);
-
-                    console.log('SMS sent successfully!');
-                } else {
-                    console.error('SMS failed:', smsResult);
                 }
             } catch (smsError) {
                 console.error("SMS error:", smsError);
-                // Don't block the flow if SMS fails
             }
 
             alert("디지털 유산이 안전하게 저장되었습니다!");
@@ -258,291 +243,313 @@ export default function VaultCreatePage() {
         );
     }
 
+    const getStepTitle = () => {
+        switch (currentStep) {
+            case 0: return "서비스 이용 안내";
+            case 1: return "수신인 지정";
+            case 2: return "계정 정보 입력";
+            case 3: return "PIN 및 힌트 설정";
+            case 4: return "최종 확인";
+            default: return "";
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
-            <Header />
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            {/* Header */}
+            <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center px-6 justify-between sticky top-0 z-50">
+                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
+                <div className="text-sm font-medium text-slate-500">
+                    {getStepTitle()} ({currentStep + 1}/{TOTAL_STEPS})
+                </div>
+            </header>
 
-            <main className="flex-1 px-4 md:px-6 py-8 md:py-12">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex gap-8">
-                        {/* Main Content */}
-                        <div className="flex-1">
-                            {/* Mobile Progress */}
-                            <VaultMobileProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+            <main className="flex-1 max-w-md w-full mx-auto p-6 flex flex-col justify-center animate-fade-in pb-24">
+                {/* Step 0: Legal Consent */}
+                {currentStep === 0 && (
+                    <VaultLegalConsent onComplete={handleLegalConsentComplete} />
+                )}
 
-                            {/* Step 0: Legal Consent */}
-                            {currentStep === 0 && (
-                                <VaultLegalConsent onComplete={handleLegalConsentComplete} />
-                            )}
+                {/* Step 1: Recipient */}
+                {currentStep === 1 && (
+                    <div className="space-y-6">
+                        <div className="text-center space-y-2 mb-4">
+                            <h1 className="text-xl font-bold text-slate-900">
+                                누구에게 남기시겠습니까?
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                사후에 이 정보를 전달받을 분을 지정해주세요.
+                            </p>
+                        </div>
 
-                            {/* Step 1: Recipient */}
-                            {currentStep === 1 && (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
-                                        수신인 지정
-                                    </h2>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                이름
-                                            </label>
-                                            <Input
-                                                value={recipientName}
-                                                onChange={(e) => setRecipientName(e.target.value)}
-                                                placeholder="홍길동"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                휴대폰 번호
-                                            </label>
-                                            <Input
-                                                value={recipientPhone}
-                                                onChange={(e) => setRecipientPhone(e.target.value)}
-                                                placeholder="010-1234-5678"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                관계
-                                            </label>
-                                            <Input
-                                                value={recipientRelationship}
-                                                onChange={(e) => setRecipientRelationship(e.target.value)}
-                                                placeholder="가족, 친구 등"
-                                            />
-                                        </div>
-                                    </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">이름</label>
+                                <Input
+                                    value={recipientName}
+                                    onChange={(e) => setRecipientName(e.target.value)}
+                                    placeholder="홍길동"
+                                    className="h-12"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호</label>
+                                <Input
+                                    value={recipientPhone}
+                                    onChange={(e) => setRecipientPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
+                                    placeholder="010-1234-5678"
+                                    className="h-12"
+                                    maxLength={13}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">관계</label>
+                                <Input
+                                    value={recipientRelationship}
+                                    onChange={(e) => setRecipientRelationship(e.target.value)}
+                                    placeholder="가족, 친구 등"
+                                    className="h-12"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: Account Info */}
+                {currentStep === 2 && (
+                    <div className="space-y-6">
+                        <div className="text-center space-y-2 mb-4">
+                            <h1 className="text-xl font-bold text-slate-900">
+                                어떤 계정을 정리할까요?
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                정리하고 싶은 웹사이트나 앱 정보를 입력해주세요.
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                            {/* Category */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">카테고리</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(Object.keys(VAULT_CATEGORIES) as VaultCategory[]).map((cat) => (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => {
+                                                setCategory(cat);
+                                                setPlatformName('');
+                                            }}
+                                            className={`p-2 rounded-lg border text-xs font-medium transition-all h-10 ${category === cat
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold'
+                                                : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                                                }`}
+                                        >
+                                            {VAULT_CATEGORIES[cat]}
+                                        </button>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Step 2: Account Info */}
-                            {currentStep === 2 && (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-5">
-                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-                                        계정 정보 입력
-                                    </h2>
-
-                                    {/* Category */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            카테고리
-                                        </label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {(Object.keys(VAULT_CATEGORIES) as VaultCategory[]).map((cat) => (
-                                                <button
-                                                    key={cat}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCategory(cat);
-                                                        setPlatformName('');
-                                                    }}
-                                                    className={`p-2 md:p-3 rounded-lg border-2 text-xs md:text-sm font-medium transition-all ${category === cat
-                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                        : 'border-slate-200 hover:border-slate-300'
-                                                        }`}
-                                                >
-                                                    {VAULT_CATEGORIES[cat]}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Platform */}
-                                    {category !== 'other' ? (
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                플랫폼
-                                            </label>
-                                            <select
-                                                value={platformName}
-                                                onChange={(e) => setPlatformName(e.target.value)}
-                                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
-                                            >
-                                                <option value="">선택</option>
-                                                {getPlatformOptions().map((p) => (
-                                                    <option key={p} value={p}>{p}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                                플랫폼 이름
-                                            </label>
-                                            <Input
-                                                value={customPlatform}
-                                                onChange={(e) => setCustomPlatform(e.target.value)}
-                                                placeholder="직접 입력"
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Account ID */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            아이디/이메일
-                                        </label>
-                                        <Input
-                                            value={accountId}
-                                            onChange={(e) => setAccountId(e.target.value)}
-                                            placeholder="user@example.com"
-                                        />
-                                    </div>
-
-                                    {/* Password */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            비밀번호
-                                        </label>
-                                        <Input
-                                            type="password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="••••••••"
-                                        />
-                                    </div>
-
-                                    {/* Request Type */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            요청사항
-                                        </label>
-                                        <div className="space-y-2">
-                                            {(Object.keys(VAULT_REQUEST_TYPES) as VaultRequestType[]).map((type) => (
-                                                <label key={type} className="flex items-center gap-2 text-sm">
-                                                    <input
-                                                        type="radio"
-                                                        name="requestType"
-                                                        value={type}
-                                                        checked={requestType === type}
-                                                        onChange={(e) => setRequestType(e.target.value as VaultRequestType)}
-                                                        className="w-4 h-4"
-                                                    />
-                                                    {VAULT_REQUEST_TYPES[type]}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 3: PIN & Hint */}
-                            {currentStep === 3 && (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-5">
-                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-                                        PIN 및 힌트 설정
-                                    </h2>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            PIN 입력
-                                        </label>
-                                        <Input
-                                            type="password"
-                                            inputMode="numeric"
-                                            maxLength={6}
-                                            value={pin}
-                                            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                                            placeholder="설정한 PIN"
-                                            className="text-center text-lg tracking-widest"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            PIN 힌트
-                                        </label>
-                                        <Input
-                                            value={pinHint}
-                                            onChange={(e) => setPinHint(e.target.value)}
-                                            placeholder="예: 엄마 생일"
-                                        />
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            수신인이 PIN을 찾을 수 있도록 힌트를 남겨주세요
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            추가 메모 (선택)
-                                        </label>
-                                        <Textarea
-                                            value={notes}
-                                            onChange={(e) => setNotes(e.target.value)}
-                                            placeholder="수신인에게 전달할 메시지"
-                                            className="min-h-20 text-sm"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 4: Final Confirmation */}
-                            {currentStep === 4 && (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
-                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
-                                        최종 확인
-                                    </h2>
-                                    <div className="space-y-4 text-sm">
-                                        <div className="flex justify-between py-2 border-b">
-                                            <span className="text-slate-600">수신인</span>
-                                            <span className="font-medium">{recipientName} ({recipientRelationship})</span>
-                                        </div>
-                                        <div className="flex justify-between py-2 border-b">
-                                            <span className="text-slate-600">플랫폼</span>
-                                            <span className="font-medium">{category === 'other' ? customPlatform : platformName}</span>
-                                        </div>
-                                        <div className="flex justify-between py-2 border-b">
-                                            <span className="text-slate-600">아이디</span>
-                                            <span className="font-medium">{accountId}</span>
-                                        </div>
-                                        <div className="flex justify-between py-2 border-b">
-                                            <span className="text-slate-600">요청사항</span>
-                                            <span className="font-medium">{VAULT_REQUEST_TYPES[requestType]}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Navigation Buttons */}
-                            {currentStep > 0 && (
-                                <div className="flex gap-3 mt-6">
-                                    <Button
-                                        onClick={handlePrevStep}
-                                        variant="outline"
-                                        className="flex-1"
+                            {/* Platform */}
+                            {category !== 'other' ? (
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">플랫폼</label>
+                                    <select
+                                        value={platformName}
+                                        onChange={(e) => setPlatformName(e.target.value)}
+                                        className="w-full h-12 px-3 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
                                     >
-                                        <ArrowLeft className="w-4 h-4 mr-2" />
-                                        이전
-                                    </Button>
-                                    {currentStep < TOTAL_STEPS - 1 ? (
-                                        <Button
-                                            onClick={handleNextStep}
-                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                                        >
-                                            다음
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={handleSubmit}
-                                            disabled={loading}
-                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                                        >
-                                            {loading ? "저장 중..." : "저장하기"}
-                                        </Button>
-                                    )}
+                                        <option value="">선택해주세요</option>
+                                        {getPlatformOptions().map((p) => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">플랫폼 이름</label>
+                                    <Input
+                                        value={customPlatform}
+                                        onChange={(e) => setCustomPlatform(e.target.value)}
+                                        placeholder="직접 입력"
+                                        className="h-12"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Account ID & Password */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">아이디/이메일</label>
+                                <Input
+                                    value={accountId}
+                                    onChange={(e) => setAccountId(e.target.value)}
+                                    placeholder="user@example.com"
+                                    className="h-12"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호</label>
+                                <Input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="h-12"
+                                />
+                            </div>
+
+                            {/* Request Type */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">요청사항</label>
+                                <div className="space-y-2">
+                                    {(Object.keys(VAULT_REQUEST_TYPES) as VaultRequestType[]).map((type) => (
+                                        <label key={type} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50">
+                                            <input
+                                                type="radio"
+                                                name="requestType"
+                                                value={type}
+                                                checked={requestType === type}
+                                                onChange={(e) => setRequestType(e.target.value as VaultRequestType)}
+                                                className="w-4 h-4 text-blue-600"
+                                            />
+                                            <span className="text-sm text-slate-700">{VAULT_REQUEST_TYPES[type]}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: PIN & Hint */}
+                {currentStep === 3 && (
+                    <div className="space-y-6">
+                        <div className="text-center space-y-2 mb-4">
+                            <h1 className="text-xl font-bold text-slate-900">
+                                안전하게 잠그기
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                수신인만 열어볼 수 있도록 2차 비밀번호를 설정합니다.
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">PIN 설정 (6자리)</label>
+                                <Input
+                                    type="password"
+                                    inputMode="numeric"
+                                    maxLength={6}
+                                    value={pin}
+                                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="숫자 6자리 입력"
+                                    className="h-14 text-center text-xl tracking-widest font-mono"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">PIN 힌트</label>
+                                <Input
+                                    value={pinHint}
+                                    onChange={(e) => setPinHint(e.target.value)}
+                                    placeholder="예: 우리집 강아지 생일 (월일)"
+                                    className="h-12"
+                                />
+                                <p className="text-xs text-slate-500 mt-2 ml-1">
+                                    * 수신인이 알 수 있는 힌트를 남겨주세요.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">추가 메모 (선택)</label>
+                                <Textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="수신인에게 남길 말이 있다면 적어주세요."
+                                    className="min-h-[100px] text-sm resize-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 4: Final Confirmation */}
+                {currentStep === 4 && (
+                    <div className="space-y-6">
+                        <div className="text-center space-y-2 mb-4">
+                            <h1 className="text-xl font-bold text-slate-900">
+                                마지막으로 확인해주세요
+                            </h1>
+                            <p className="text-sm text-slate-500">
+                                작성하신 내용이 맞는지 확인해주세요.
+                            </p>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <span className="text-sm text-slate-500">수신인</span>
+                                <span className="text-sm font-bold text-slate-900">{recipientName}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <span className="text-sm text-slate-500">연락처</span>
+                                <span className="text-sm font-bold text-slate-900">{recipientPhone}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <span className="text-sm text-slate-500">플랫폼</span>
+                                <span className="text-sm font-bold text-slate-900">{category === 'other' ? customPlatform : platformName}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <span className="text-sm text-slate-500">아이디</span>
+                                <span className="text-sm font-bold text-slate-900">{accountId}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <span className="text-sm text-slate-500">요청사항</span>
+                                <span className="text-sm font-bold text-blue-600">{VAULT_REQUEST_TYPES[requestType]}</span>
+                            </div>
+                            {notes && (
+                                <div className="pt-2">
+                                    <span className="text-sm text-slate-500 block mb-2">추가 메모</span>
+                                    <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 whitespace-pre-wrap">
+                                        {notes}
+                                    </div>
                                 </div>
                             )}
                         </div>
-
-                        {/* Step Indicator (Desktop) */}
-                        <VaultStepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
                     </div>
-                </div>
+                )}
             </main>
 
-            <Footer />
+            {/* Bottom Sticky Action Bar */}
+            {currentStep > 0 && (
+                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 pb-8 z-40">
+                    <div className="max-w-md mx-auto flex gap-3">
+                        <Button
+                            onClick={handlePrevStep}
+                            variant="outline"
+                            className="flex-1 h-14 rounded-xl text-base font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                        >
+                            이전
+                        </Button>
+                        {currentStep < TOTAL_STEPS - 1 ? (
+                            <Button
+                                onClick={handleNextStep}
+                                className="flex-[2] h-14 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
+                            >
+                                다음 단계로
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="flex-[2] h-14 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
+                            >
+                                {loading ? "저장 중..." : "최종 저장하기"}
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
