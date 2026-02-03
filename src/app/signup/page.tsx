@@ -78,6 +78,14 @@ export default function SignupPage() {
             if (!data.success) {
                 // If registration failed, make sure to clean up any lingering session
                 await supabase.auth.signOut();
+
+                // If duplicate user, redirect to main page
+                if (data.error?.includes("이미 가입된")) {
+                    alert("이미 가입된 이메일입니다. 로그인 페이지로 이동합니다.");
+                    router.push("/login");
+                    return;
+                }
+
                 throw new Error(data.error || "회원가입 실패");
             }
 

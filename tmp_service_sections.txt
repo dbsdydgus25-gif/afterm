@@ -1,0 +1,2 @@
+// 서비스 페이지의 주요 섹션들을 메인 페이지로 복사하기 위한 임시 파일
+// 라인 38-412 (Service Process ~ Pricing Section)
