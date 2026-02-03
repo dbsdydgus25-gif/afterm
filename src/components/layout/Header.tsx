@@ -160,22 +160,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             className="md:hidden bg-white border-b border-slate-200 overflow-y-auto max-h-[calc(100vh-80px)]"
                         >
                             <div className="px-6 py-6 space-y-6 flex flex-col">
-                                {navLinks.map((link) => (
-                                    <Link
-                                        key={link.href}
-                                        href={link.href}
-                                        target={link.href === "/space" ? "_blank" : undefined}
-                                        className={`text-lg font-medium transition-colors ${pathname === link.href
-                                            ? "text-blue-600 font-bold"
-                                            : "text-slate-600"
-                                            }`}
-                                    >
-                                        {link.name}
-                                    </Link>
-                                ))}
-
-                                <div className="h-px bg-slate-100 my-2" />
-
+                                {/* Mobile menu simplified - only Contact link */}
                                 <Link
                                     href="/contact"
                                     className="text-lg font-medium text-slate-600"
