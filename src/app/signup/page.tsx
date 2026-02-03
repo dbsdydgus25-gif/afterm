@@ -76,6 +76,8 @@ export default function SignupPage() {
             const data = await res.json();
 
             if (!data.success) {
+                // If registration failed, make sure to clean up any lingering session
+                await supabase.auth.signOut();
                 throw new Error(data.error || "회원가입 실패");
             }
 
@@ -94,6 +96,8 @@ export default function SignupPage() {
             router.replace("/onboarding");
 
         } catch (error: any) {
+            // Clean up any session that might have been created
+            await supabase.auth.signOut();
             alert(error.message || "오류가 발생했습니다.");
         } finally {
             setLoading(false);

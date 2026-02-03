@@ -138,37 +138,34 @@ export default function AppEntryPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
-                            className="space-y-3"
+                            className="space-y-4"
                         >
-                            {/* H1: User complained about "Everything is too big". 
-                            Original: text-2xl sm:text-4xl... 
-                            New: text-xl sm:text-2xl (Smaller) */}
-                            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900 leading-snug break-keep drop-shadow-sm whitespace-nowrap">
-                                <span className="inline-block mr-1">갑자기 떠나도</span>
-                                <span className="text-blue-600 inline-block mr-1">1분이면</span>
+                            {/* Main Title - Much Larger */}
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight break-keep drop-shadow-sm">
+                                <span className="inline-block mr-2">갑자기 떠나도</span>
+                                <span className="text-blue-600 inline-block mr-2">1분이면</span>
                                 <span className="inline-block">괜찮아</span>
                             </h1>
-                            <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-normal break-keep inline-block mt-2">
+                            <p className="text-base sm:text-lg md:text-xl text-gray-600 font-medium tracking-normal break-keep mt-3">
                                 소중한 사람들을 위한 마지막 센스, 미리 저장하는 안부인사
                             </p>
                         </motion.div>
 
-                        {/* Core Feature (Card Input) - Exact Logic but Smaller UI */}
-                        <div className="w-full space-y-4 animate-fade-in delay-75">
+                        {/* Core Feature (Card Input) - Larger Textarea */}
+                        <div className="w-full space-y-5 animate-fade-in delay-75">
                             <div className="group relative">
-                                {/* Reduced glow effect size */}
+                                {/* Glow effect */}
                                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl blur opacity-20 transition duration-500"></div>
 
-                                <div className="relative">
+                                <div className="relative bg-white/90 backdrop-blur-sm p-6 rounded-2xl border border-slate-200/60 shadow-lg">
+                                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                                        To.
+                                    </label>
                                     <Textarea
                                         value={message}
-                                        onChange={(e) => {
-                                            if (e.target.value.length <= 500) {
-                                                setMessage(e.target.value);
-                                            }
-                                        }}
-                                        placeholder="이곳에 당신의 이야기를 담아주세요..."
-                                        className="w-full min-h-[200px] text-sm leading-relaxed p-5 rounded-2xl bg-white/80 backdrop-blur-md border border-white shadow-lg resize-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 placeholder:text-slate-400 text-slate-800 transition-all font-sans"
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        placeholder="당신의 기억을 남겨주세요..."
+                                        className="w-full min-h-40 text-base border-slate-200 focus:border-blue-400 rounded-xl resize-none transition-all"
                                     />
                                     <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 font-medium bg-white/50 px-2 py-1 rounded-full">
                                         {message.length} / 500자
@@ -242,6 +239,76 @@ export default function AppEntryPage() {
                                     필요한 순간, 당신의 메시지를 소중한 사람에게 안전하게 전달합니다.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Online Memorial Section */}
+            <section className="relative z-10 w-full bg-slate-50 py-16 md:py-20">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-12">
+                        <div className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-3">
+                            NEW SERVICE
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                            그리운 마음을 <span className="text-blue-600">온라인 추모관</span>에 남겨보세요
+                        </h2>
+                        <p className="text-slate-600 text-sm md:text-base max-w-2xl mx-auto">
+                            시공간의 제약 없이, 언제 어디서나 고인을 추억할 수 있습니다.
+                        </p>
+                    </div>
+                    <div className="flex justify-center">
+                        <Button
+                            onClick={() => router.push('/space')}
+                            size="lg"
+                            className="h-14 px-8 text-lg bg-slate-900 text-white hover:bg-slate-800 rounded-xl shadow-xl transition-all"
+                        >
+                            기억 공간 입장하기
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* Core Features Section */}
+            <section className="relative z-10 w-full bg-slate-900 text-white py-16 md:py-20">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                            남겨진 사람들에게 <span className="text-blue-400">가장 소중한 선물</span>이 됩니다
+                        </h2>
+                        <div className="w-16 h-1 bg-blue-500 rounded-full mx-auto mb-6"></div>
+                        <p className="text-slate-300 text-sm md:text-lg max-w-2xl mx-auto">
+                            AFTERM은 당신의 생애 데이터를 안전하게 보관하고, 지정된 시점에 소중한 사람들에게 전달합니다.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Feature 1 */}
+                        <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <div className="text-4xl mb-4">🔒</div>
+                            <h3 className="text-xl font-bold mb-2">완벽한 보안</h3>
+                            <p className="text-slate-400 text-sm">
+                                모든 메시지는 암호화되어 안전하게 보관됩니다.
+                            </p>
+                        </div>
+
+                        {/* Feature 2 */}
+                        <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <div className="text-4xl mb-4">⏰</div>
+                            <h3 className="text-xl font-bold mb-2">자동 전달</h3>
+                            <p className="text-slate-400 text-sm">
+                                지정된 시점에 자동으로 메시지가 전달됩니다.
+                            </p>
+                        </div>
+
+                        {/* Feature 3 */}
+                        <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <div className="text-4xl mb-4">💝</div>
+                            <h3 className="text-xl font-bold mb-2">멀티미디어 지원</h3>
+                            <p className="text-slate-400 text-sm">
+                                텍스트, 사진, 영상 모두 저장 가능합니다.
+                            </p>
                         </div>
                     </div>
                 </div>
