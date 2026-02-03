@@ -163,9 +163,18 @@ export default function OnboardingPage() {
                 setTimer(180);
                 alert("인증번호가 발송되었습니다.");
             } else {
+                // Check if duplicate phone error
+                if (data.error?.includes("이미 가입된")) {
+                    alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                    window.location.href = "/";
+                    return;
+                }
                 alert(data.error || "발송 실패");
             }
         } catch (error) {
+            console.error(error);
             alert("네트워크 오류가 발생했습니다.");
         } finally {
             setSendingCode(false);
