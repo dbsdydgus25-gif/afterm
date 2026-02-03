@@ -115,7 +115,7 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* Hero Content (Centered) */}
-                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-screen px-6 pt-24 md:pt-32 pb-24 md:pb-10 text-center space-y-6 md:space-y-8">
+                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-[85vh] md:min-h-screen px-6 pt-28 md:pt-32 pb-12 md:pb-10 text-center space-y-6 md:space-y-8">
 
                     {/* Typography (Scaled down for mobile as requested) */}
                     <div className="flex flex-col items-center gap-4">
@@ -192,7 +192,7 @@ export default function AppEntryPage() {
                 </div>
             </motion.div>
             {/* Service Process Explanation Section (How It Works) */}
-            <section className="w-full bg-white py-16 md:py-24 border-b border-slate-100">
+            <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
                         <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-wide">HOW IT WORKS</span>
