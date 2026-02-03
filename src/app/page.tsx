@@ -116,7 +116,7 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* Hero Content (Centered) */}
-                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-center min-h-screen px-6 pt-32 pb-10 text-center space-y-8">
+                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-screen px-6 pt-24 md:pt-32 pb-24 md:pb-10 text-center space-y-6 md:space-y-8">
 
                     {/* Typography (Scaled down for mobile as requested) */}
                     <div className="flex flex-col items-center gap-4">

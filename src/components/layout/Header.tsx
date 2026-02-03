@@ -77,7 +77,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
     return (
         <>
             <header
-                className={`fixed top-0 z-50 w-full transition-all duration-300 border-b ${isTransparent
+                className={`fixed top-0 z-[60] w-full transition-all duration-300 border-b ${isTransparent
                     ? "bg-transparent border-transparent"
                     : "bg-white/80 backdrop-blur-xl border-slate-200/50 shadow-sm"
                     }`}
@@ -157,14 +157,15 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden bg-white border-b border-slate-200 overflow-y-auto max-h-[calc(100vh-80px)]"
+                            className="md:hidden fixed inset-x-0 top-20 bottom-0 bg-white border-b border-slate-200 overflow-y-auto"
                         >
-                            <div className="px-6 py-6 space-y-6 flex flex-col">
+                            <div className="px-6 py-6 space-y-6 flex flex-col pb-24">
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.href}
                                         href={link.href}
                                         target={link.href === "/space" ? "_blank" : undefined}
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         className={`text-lg font-medium transition-colors ${pathname === link.href
                                             ? "text-blue-600 font-bold"
                                             : "text-slate-600"
@@ -178,6 +179,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
 
                                 <Link
                                     href="/contact"
+                                    onClick={() => setIsMobileMenuOpen(false)}
                                     className="text-lg font-medium text-slate-600"
                                 >
                                     문의하기
@@ -186,6 +188,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 {!user && (
                                     <Link
                                         href="/login"
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         className="pt-2 w-full flex items-center justify-center rounded-lg text-lg h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
                                     >
                                         로그인
