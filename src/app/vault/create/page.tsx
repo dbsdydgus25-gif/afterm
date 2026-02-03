@@ -132,19 +132,6 @@ export default function VaultCreatePage() {
                 return;
             }
 
-            // Check message count
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('message_count')
-                .eq('id', user.id)
-                .single();
-
-            if (!profile || profile.message_count <= 0) {
-                alert("남은 메시지 횟수가 부족합니다. 플랜을 업그레이드해주세요.");
-                router.push("/plans");
-                return;
-            }
-
             const finalPlatform = category === 'other' ? customPlatform : platformName;
 
             // Encrypt password
@@ -176,38 +163,6 @@ export default function VaultCreatePage() {
             if (!vaultItem) {
                 alert("저장에 실패했습니다. 다시 시도해주세요.");
                 return;
-            }
-
-            // Deduct message count
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                    message_count: profile.message_count - 1,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', user.id);
-
-            if (updateError) {
-                console.error("Message count update error:", updateError);
-            }
-
-            // Send notification to recipient (first time only)
-            if (vaultItem && !vaultItem.notification_sent) {
-                try {
-                    await fetch('/api/vault/notify-recipient', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            vaultItemId: vaultItem.id,
-                            recipientPhone: recipientPhone,
-                            recipientName: recipientName,
-                            senderName: user.user_metadata?.name || user.email
-                        })
-                    });
-                } catch (notifyError) {
-                    console.error("Notification error:", notifyError);
-                    // Don't block the flow if notification fails
-                }
             }
 
             alert("디지털 유산이 안전하게 저장되었습니다!");
