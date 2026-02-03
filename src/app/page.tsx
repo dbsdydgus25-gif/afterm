@@ -167,15 +167,15 @@ export default function AppEntryPage() {
 
                         {/* Core Feature (Card Input) */}
                         <div className="w-full space-y-4 animate-fade-in delay-75">
-                            <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
-                                <label className="block text-sm font-bold text-slate-900 mb-3 ml-1">
+                            <div className="px-1">
+                                <label className="block text-sm font-bold text-slate-800 mb-2 ml-1">
                                     To.
                                 </label>
                                 <Textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder="당신의 기억을 남겨주세요..."
-                                    className="w-full min-h-32 text-base border-slate-200 focus:border-blue-500 rounded-xl resize-none transition-all placeholder:text-slate-400"
+                                    className="w-full min-h-32 text-base bg-white border-slate-200 focus:border-blue-500 rounded-2xl resize-none transition-all placeholder:text-slate-400 shadow-sm"
                                 />
                             </div>
 
