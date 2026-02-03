@@ -185,25 +185,47 @@ export default function OnboardingPage() {
                 const cleanPhone = phone.replace(/-/g, '');
 
                 // Update Metadata for Persistence
-                await supabase.auth.updateUser({
+                const { error: opsError } = await supabase.auth.updateUser({
                     data: { phone_verified: true, phone: cleanPhone }
                 });
 
+                if (opsError) {
+                    console.error("Update error:", opsError);
+                    // Check for duplicate key error or similar
+                    if (opsError.message?.includes("already registered") || opsError.message?.includes("unique")) {
+                        alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
+                        await supabase.auth.signOut();
+                        window.location.href = "/";
+                        return;
+                    }
+                }
+
                 // Update Profiles
-                await supabase.from('profiles').upsert({
+                const { error: profileError } = await supabase.from('profiles').upsert({
                     id: user!.id,
                     phone: cleanPhone,
                     updated_at: new Date().toISOString()
                 });
+
+                if (profileError) {
+                    // Check for duplicate phone in profiles
+                    if (profileError.message?.includes("unique") || profileError.details?.includes("phone")) {
+                        alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
+                        await supabase.auth.signOut();
+                        window.location.href = "/";
+                        return;
+                    }
+                }
 
                 setIsVerified(true);
                 setIsCodeSent(false);
                 alert("인증이 완료되었습니다!");
                 setTimeout(() => setStep(2), 500); // Auto advance to Profile
             } else {
-                alert("인증번호가 올바르지 않거나 만료되었습니다.");
+                alert(data.error || "인증번호가 올바르지 않거나 만료되었습니다.");
             }
         } catch (error) {
+            console.error(error);
             alert("오류가 발생했습니다.");
         }
     };

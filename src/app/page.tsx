@@ -167,34 +167,32 @@ export default function AppEntryPage() {
 
                         {/* Core Feature (Card Input) */}
                         <div className="w-full space-y-4 animate-fade-in delay-75">
-                            <div className="group relative">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl blur opacity-20 transition duration-500"></div>
-
-                                <div className="relative bg-white/90 backdrop-blur-sm p-5 rounded-2xl border border-slate-200/60 shadow-lg">
-                                    <label className="block text-xs font-bold text-slate-700 mb-2">
-                                        To.
-                                    </label>
-                                    <Textarea
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                        placeholder="당신의 기억을 남겨주세요..."
-                                        className="w-full min-h-28 text-sm border-slate-200 focus:border-blue-400 rounded-xl resize-none transition-all"
-                                    />
-                                    <div className="absolute bottom-4 right-4 text-[10px] text-slate-400 font-medium bg-white/50 px-2 py-1 rounded-full">
-                                        {message.length} / 500자
-                                    </div>
-                                </div>
+                            <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+                                <label className="block text-sm font-bold text-slate-900 mb-3 ml-1">
+                                    To.
+                                </label>
+                                <Textarea
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="당신의 기억을 남겨주세요..."
+                                    className="w-full min-h-32 text-base border-slate-200 focus:border-blue-500 rounded-xl resize-none transition-all placeholder:text-slate-400"
+                                />
                             </div>
 
                             <Button
                                 size="lg"
-                                onClick={handleContinue}
+                                onClick={() => {
+                                    if (!message.trim()) {
+                                        alert("메시지를 입력해주세요.");
+                                        return;
+                                    }
+                                    router.push('/create?message=' + encodeURIComponent(message));
+                                }}
                                 className="w-full h-12 text-base font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all active:scale-95"
                             >
                                 계속 작성하기
                             </Button>
                         </div>
-
                     </div>
                 </div>
             </motion.div>
@@ -285,10 +283,10 @@ export default function AppEntryPage() {
                         </motion.div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* Online Memorial Section */}
-            <section className="w-full bg-slate-100/50 py-24 relative overflow-hidden">
+            < section className="w-full bg-slate-100/50 py-24 relative overflow-hidden" >
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -360,11 +358,11 @@ export default function AppEntryPage() {
                         </motion.div>
                     </div>
                 </div>
-            </section>
+            </section >
 
 
             {/* Feature Section (Dark) */}
-            <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative">
+            < section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative" >
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
                 <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
@@ -452,10 +450,10 @@ export default function AppEntryPage() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* Pricing Section (Restored & Promoted) */}
-            <section className="w-full bg-slate-50 py-24 relative">
+            < section className="w-full bg-slate-50 py-24 relative" >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
@@ -572,10 +570,10 @@ export default function AppEntryPage() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section >
 
             <Footer />
             <BottomNav />
-        </div>
+        </div >
     );
 }
