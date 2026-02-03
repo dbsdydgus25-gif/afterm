@@ -202,6 +202,9 @@ export default function VaultCreatePage() {
                 const vaultUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'}/vault/view/${vaultItem.id}`;
                 const message = `[에프텀] ${senderName}님이 보낸 디지털 유산이 도착했습니다. 아래 링크를 터치해서 확인해주세요.\n${vaultUrl}`;
 
+                console.log('Sending SMS to:', recipientPhone);
+                console.log('Message:', message);
+
                 const smsResponse = await fetch('/api/sms/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -211,12 +214,19 @@ export default function VaultCreatePage() {
                     })
                 });
 
-                if (smsResponse.ok) {
+                const smsResult = await smsResponse.json();
+                console.log('SMS Response:', smsResult);
+
+                if (smsResponse.ok && smsResult.success) {
                     // Mark notification as sent
                     await supabase
                         .from('vault_items')
                         .update({ notification_sent: true })
                         .eq('id', vaultItem.id);
+
+                    console.log('SMS sent successfully!');
+                } else {
+                    console.error('SMS failed:', smsResult);
                 }
             } catch (smsError) {
                 console.error("SMS error:", smsError);

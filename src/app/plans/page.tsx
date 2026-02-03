@@ -114,6 +114,10 @@ export default function PlansPage() {
                             </li>
                             <li className="flex items-center gap-2 text-slate-700 font-medium text-sm">
                                 <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-[10px] text-center">✓</span>
+                                디지털 유산: 1개
+                            </li>
+                            <li className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                                <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-[10px] text-center">✓</span>
                                 저장공간: 10mb (텍스트 위주)
                             </li>
                         </ul>
@@ -163,6 +167,10 @@ export default function PlansPage() {
                             <li className="flex items-center gap-2 text-slate-700 font-medium text-sm">
                                 <span className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] text-center">✓</span>
                                 메시지 전송: 최대 100개
+                            </li>
+                            <li className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                                <span className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] text-center">✓</span>
+                                디지털 유산: 10개
                             </li>
                             <li className="flex items-center gap-2 text-slate-700 font-medium text-sm">
                                 <span className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] text-center">✓</span>
