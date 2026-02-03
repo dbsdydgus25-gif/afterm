@@ -132,12 +132,38 @@ export default function VaultCreatePage() {
                 return;
             }
 
+            // Check vault count based on plan
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('plan')
+                .eq('id', user.id)
+                .single();
+
+            const plan = profile?.plan || 'basic';
+            const maxVaults = plan === 'pro' ? 10 : 1;
+
+            // Count existing vaults
+            const { count } = await supabase
+                .from('vault_items')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id);
+
+            if (count !== null && count >= maxVaults) {
+                alert(`${plan === 'pro' ? 'Pro' : 'Basic'} 플랜에서는 디지털 유산을 ${maxVaults}개까지만 저장할 수 있습니다.${plan === 'basic' ? '\nPro 플랜으로 업그레이드하시면 10개까지 저장 가능합니다.' : ''}`);
+                router.push('/plans');
+                return;
+            }
+
             const finalPlatform = category === 'other' ? customPlatform : platformName;
 
             // Encrypt password
             const encryptedPassword = encryptPassword(password, pin);
 
-            // Save to database
+            // Hash PIN for storage
+            const bcrypt = require('bcryptjs');
+            const pinHash = await bcrypt.hash(pin, 10);
+
+            // Save to database with recipient info
             const { data: vaultItem, error } = await supabase
                 .from("vault_items")
                 .insert({
@@ -149,6 +175,11 @@ export default function VaultCreatePage() {
                     password_encrypted: encryptedPassword,
                     request_type: requestType,
                     notes,
+                    recipient_name: recipientName,
+                    recipient_phone: recipientPhone,
+                    recipient_relationship: recipientRelationship,
+                    pin_hint: pinHint,
+                    pin_hash: pinHash,
                     legal_consent: true
                 })
                 .select()
@@ -163,6 +194,33 @@ export default function VaultCreatePage() {
             if (!vaultItem) {
                 alert("저장에 실패했습니다. 다시 시도해주세요.");
                 return;
+            }
+
+            // Send SMS to recipient
+            try {
+                const senderName = user.user_metadata?.name || user.email?.split('@')[0] || '사용자';
+                const vaultUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'}/vault/view/${vaultItem.id}`;
+                const message = `[에프텀] ${senderName}님이 보낸 디지털 유산이 도착했습니다. 아래 링크를 터치해서 확인해주세요.\n${vaultUrl}`;
+
+                const smsResponse = await fetch('/api/sms/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone: recipientPhone,
+                        message: message
+                    })
+                });
+
+                if (smsResponse.ok) {
+                    // Mark notification as sent
+                    await supabase
+                        .from('vault_items')
+                        .update({ notification_sent: true })
+                        .eq('id', vaultItem.id);
+                }
+            } catch (smsError) {
+                console.error("SMS error:", smsError);
+                // Don't block the flow if SMS fails
             }
 
             alert("디지털 유산이 안전하게 저장되었습니다!");

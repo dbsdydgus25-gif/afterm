@@ -37,6 +37,7 @@ export default function DashboardPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [vaultCount, setVaultCount] = useState(0);
     // State for Signed URLs
     const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
 
@@ -81,6 +82,15 @@ export default function DashboardPage() {
                 }
                 setImageUrls(urls);
             }
+
+            // Fetch vault count
+            const { count } = await supabase
+                .from('vault_items')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id);
+
+            setVaultCount(count || 0);
+
             setLoading(false);
         };
 
@@ -296,7 +306,7 @@ export default function DashboardPage() {
 
                 {/* Stats Section: Messages & Storage (Unified Compact Design) */}
                 <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                    <div className="grid grid-cols-2 gap-8 divide-x divide-slate-100">
+                    <div className="grid grid-cols-3 gap-4 divide-x divide-slate-100">
                         {/* Left: Message Usage */}
                         <div className="px-2">
                             <h3 className="text-slate-500 font-bold text-xs mb-3">남은 메시지</h3>
@@ -320,8 +330,31 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
+                        {/* Middle: Vault Usage */}
+                        <div className="px-2">
+                            <h3 className="text-slate-500 font-bold text-xs mb-3">디지털 유산</h3>
+                            <div className="flex items-end gap-1.5 mb-2">
+                                <span className="text-2xl font-black text-slate-900 leading-none">
+                                    {plan === 'pro' ? Math.max(0, 10 - vaultCount) : Math.max(0, 1 - vaultCount)}
+                                </span>
+                                <span className="text-xs text-slate-400 font-medium mb-0.5">
+                                    / {plan === 'pro' ? '10' : '1'}
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+                                <div
+                                    className="h-full bg-emerald-600 rounded-full transition-all duration-500 ease-out"
+                                    style={{
+                                        width: plan === 'pro'
+                                            ? `${Math.min((vaultCount / 10) * 100, 100)}%`
+                                            : `${Math.min((vaultCount / 1) * 100, 100)}%`
+                                    }}
+                                />
+                            </div>
+                        </div>
+
                         {/* Right: Storage Usage */}
-                        <div className="pl-6">
+                        <div className="px-2">
                             <h3 className="text-slate-500 font-bold text-xs mb-3">사용 중인 용량</h3>
                             <StorageWidget plan={plan} userId={user?.id} compact={true} />
                         </div>
