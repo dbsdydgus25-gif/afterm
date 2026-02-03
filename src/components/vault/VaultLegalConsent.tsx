@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Shield, UserCheck } from "lucide-react";
+import { Scale, Info } from "lucide-react";
 
 interface LegalConsentProps {
     onComplete: (consents: {
@@ -25,106 +25,89 @@ export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
     };
 
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-2xl mx-auto">
             {/* Header */}
             <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-4">
-                    <AlertTriangle className="w-8 h-8 text-red-600" />
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-50 mb-6">
+                    <Scale className="w-10 h-10 text-amber-600" />
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-                    계정 정보 저장 전 필수 확인
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+                    잠깐! 작성 전 확인해주세요
                 </h2>
                 <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                    금융 범죄 예방 및 안전한 상속을 위해<br className="md:hidden" />
-                    아래 내용을 반드시 동의해야 저장됩니다.
+                    안전하고 올바른 서비스 이용을 위해 안내합니다.
                 </p>
             </div>
 
-            {/* Consent Checkboxes */}
+            {/* Warning Boxes */}
             <div className="space-y-4 mb-8">
-                {/* 1. Financial Consent */}
-                <div className="bg-white border-2 border-red-200 rounded-2xl p-5 md:p-6 hover:border-red-300 transition-colors">
-                    <label className="flex items-start gap-4 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={financialConsent}
-                            onChange={(e) => setFinancialConsent(e.target.checked)}
-                            className="w-5 h-5 text-red-600 rounded mt-0.5 flex-shrink-0"
-                        />
+                {/* Warning 1: Financial */}
+                <div className="bg-white border-2 border-slate-200 rounded-2xl p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center">
+                            <span className="text-xl">⚠️</span>
+                        </div>
                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Shield className="w-5 h-5 text-red-600" />
-                                <span className="text-sm md:text-base font-bold text-slate-900">
-                                    (필수) 은행/증권 보안매체(비번, OTP)는 포함하지 않았습니다.
-                                </span>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                                전자금융거래법상 타인 양도가 금지된 금융 정보 저장은 불법이며,
-                                이에 대한 책임은 본인에게 있습니다.
+                            <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">
+                                법적 효력 없음
+                            </h3>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                                본 서비스(AFTERM)를 통해 작성된 메시지, 사진, 영상 등은{" "}
+                                <span className="font-bold text-slate-900">유언장으로서의 법적 효력을 갖지 않습니다.</span>
                             </p>
                         </div>
-                    </label>
+                    </div>
                 </div>
 
-                {/* 2. Platform Terms Consent */}
-                <div className="bg-white border-2 border-amber-200 rounded-2xl p-5 md:p-6 hover:border-amber-300 transition-colors">
-                    <label className="flex items-start gap-4 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={platformConsent}
-                            onChange={(e) => setPlatformConsent(e.target.checked)}
-                            className="w-5 h-5 text-amber-600 rounded mt-0.5 flex-shrink-0"
-                        />
+                {/* Warning 2: Platform Terms */}
+                <div className="bg-white border-2 border-slate-200 rounded-2xl p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                            <Info className="w-5 h-5 text-blue-600" />
+                        </div>
                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <AlertTriangle className="w-5 h-5 text-amber-600" />
-                                <span className="text-sm md:text-base font-bold text-slate-900">
-                                    (필수) 타 플랫폼 약관 위반 가능성을 인지했습니다.
-                                </span>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                                넷플릭스 등 제3자 계정 공유로 인한 이용 정지 등의 불이익은
-                                에프텀이 책임지지 않습니다.
+                            <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">
+                                법률 상담 권장
+                            </h3>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                                법적 구속력이 있는 유언을 남기고자 하시는 경우, 반드시 변호사나
+                                공증인 등 법률 전문가의 도움을 받으시기 바랍니다.
                             </p>
                         </div>
-                    </label>
+                    </div>
                 </div>
+            </div>
 
-                {/* 3. Delegation Consent */}
-                <div className="bg-white border-2 border-emerald-200 rounded-2xl p-5 md:p-6 hover:border-emerald-300 transition-colors">
-                    <label className="flex items-start gap-4 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={delegationConsent}
-                            onChange={(e) => setDelegationConsent(e.target.checked)}
-                            className="w-5 h-5 text-emerald-600 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <UserCheck className="w-5 h-5 text-emerald-600" />
-                                <span className="text-sm md:text-base font-bold text-slate-900">
-                                    (필수) 지정인에게 사후 정리 권한을 위임합니다.
-                                </span>
-                            </div>
-                            <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                                본인은 사후에 지정된 수신자가 내 계정에 접속하여
-                                데이터를 정리(해지/백업)하는 것에 동의합니다.
-                            </p>
-                        </div>
-                    </label>
-                </div>
+            {/* Consent Checkbox */}
+            <div className="bg-white border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={allChecked}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            setFinancialConsent(checked);
+                            setPlatformConsent(checked);
+                            setDelegationConsent(checked);
+                        }}
+                        className="w-5 h-5 text-blue-600 rounded mt-0.5 flex-shrink-0"
+                    />
+                    <span className="text-sm md:text-base text-slate-900 leading-relaxed">
+                        위 내용을 충분히 이해하였으며 동의합니다.
+                    </span>
+                </label>
             </div>
 
             {/* Continue Button */}
             <button
                 onClick={handleContinue}
                 disabled={!allChecked}
-                className={`w-full h-12 md:h-14 rounded-xl font-bold text-base md:text-lg transition-all ${allChecked
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20'
+                className={`w-full h-14 rounded-xl font-bold text-base md:text-lg transition-all ${allChecked
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20'
                         : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
             >
-                {allChecked ? '다음 단계로' : '모든 항목에 동의해주세요'}
+                확인했습니다
             </button>
         </div>
     );
