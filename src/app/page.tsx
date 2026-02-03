@@ -150,20 +150,20 @@ export default function AppEntryPage() {
 
                         {/* Core Feature - Two Options */}
                         <div className="w-full space-y-4 animate-fade-in delay-75">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3 md:gap-4">
                                 {/* Option 1: Memory Message */}
                                 <button
                                     onClick={() => router.push('/create')}
-                                    className="group relative bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 active:scale-[0.98]"
+                                    className="group relative bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 active:scale-[0.98]"
                                 >
-                                    <div className="flex flex-col items-center text-center space-y-3">
-                                        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                            <span className="text-2xl">💌</span>
+                                    <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                            <span className="text-xl md:text-2xl">💌</span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-900">
+                                        <h3 className="text-sm md:text-lg font-bold text-slate-900">
                                             기억 남기기
                                         </h3>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                        <p className="text-xs md:text-sm text-slate-500 leading-relaxed hidden md:block">
                                             소중한 사람들에게<br />전할 마음을 남겨보세요
                                         </p>
                                     </div>
@@ -172,16 +172,16 @@ export default function AppEntryPage() {
                                 {/* Option 2: Digital Vault */}
                                 <button
                                     onClick={() => router.push('/vault/create')}
-                                    className="group relative bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-100 active:scale-[0.98]"
+                                    className="group relative bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-100 active:scale-[0.98]"
                                 >
-                                    <div className="flex flex-col items-center text-center space-y-3">
-                                        <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                                            <span className="text-2xl">🔐</span>
+                                    <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                                            <span className="text-xl md:text-2xl">🔐</span>
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-900">
+                                        <h3 className="text-sm md:text-lg font-bold text-slate-900">
                                             디지털 유산
                                         </h3>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                        <p className="text-xs md:text-sm text-slate-500 leading-relaxed hidden md:block">
                                             계정 정보를 안전하게<br />보관하고 전달하세요
                                         </p>
                                     </div>

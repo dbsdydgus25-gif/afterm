@@ -13,6 +13,7 @@ import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 import { StorageWidget } from "@/components/dashboard/StorageWidget";
 import { MessageList } from "@/components/dashboard/MessageList";
+import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 
 interface Message {
     id: string;
@@ -247,6 +248,9 @@ export default function DashboardPage() {
                     </AnimatePresence>
                 </div>
             </header>
+
+            {/* Dashboard Tabs */}
+            <DashboardTabs />
 
             <main className="max-w-3xl mx-auto p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10">
 

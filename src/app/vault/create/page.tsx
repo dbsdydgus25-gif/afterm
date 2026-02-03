@@ -18,25 +18,43 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Lock, AlertTriangle } from "lucide-react";
+import { VaultLegalConsent } from "@/components/vault/VaultLegalConsent";
+import { VaultStepIndicator, VaultMobileProgress } from "@/components/vault/VaultStepIndicator";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function VaultCreatePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [hasPin, setHasPin] = useState<boolean | null>(null);
+    const [currentStep, setCurrentStep] = useState(0);
 
-    // Form states
+    // Step 0: Legal Consent
+    const [legalConsents, setLegalConsents] = useState({
+        financialConsent: false,
+        platformConsent: false,
+        delegationConsent: false
+    });
+
+    // Step 1: Recipient
+    const [recipientName, setRecipientName] = useState('');
+    const [recipientPhone, setRecipientPhone] = useState('');
+    const [recipientRelationship, setRecipientRelationship] = useState('');
+
+    // Step 2: Account Info
     const [category, setCategory] = useState<VaultCategory>('subscription');
     const [platformName, setPlatformName] = useState('');
     const [customPlatform, setCustomPlatform] = useState('');
     const [accountId, setAccountId] = useState('');
     const [password, setPassword] = useState('');
     const [requestType, setRequestType] = useState<VaultRequestType>('cancel');
-    const [notes, setNotes] = useState('');
-    const [legalConsent, setLegalConsent] = useState(false);
-    const [pin, setPin] = useState('');
 
-    // Check if user has PIN set up
+    // Step 3: PIN & Hint
+    const [pin, setPin] = useState('');
+    const [pinHint, setPinHint] = useState('');
+    const [notes, setNotes] = useState('');
+
+    const TOTAL_STEPS = 5;
+
     useEffect(() => {
         checkPinStatus();
     }, []);
@@ -58,7 +76,6 @@ export default function VaultCreatePage() {
                 .maybeSingle();
 
             if (!data) {
-                // No PIN set, redirect to setup
                 router.push("/vault/setup-pin");
                 return;
             }
@@ -70,40 +87,39 @@ export default function VaultCreatePage() {
         }
     };
 
-    const getPlatformOptions = () => {
-        if (category === 'subscription') return SUBSCRIPTION_PLATFORMS;
-        if (category === 'sns') return SNS_PLATFORMS;
-        return [];
+    const handleLegalConsentComplete = (consents: any) => {
+        setLegalConsents(consents);
+        setCurrentStep(1);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Validation
-        if (!legalConsent) {
-            alert("법적 동의가 필요합니다.");
-            return;
-        }
-
-        if (!pin) {
-            alert("PIN을 입력해주세요.");
-            return;
-        }
-
-        const finalPlatform = category === 'other' ? customPlatform : platformName;
-
-        if (!finalPlatform) {
-            alert("플랫폼을 선택하거나 입력해주세요.");
-            return;
-        }
-
-        // Check for financial keywords
-        if (isFinancialPlatform(finalPlatform)) {
-            if (!confirm("금융 관련 정보는 권장하지 않습니다. 계속하시겠습니까?")) {
+    const handleNextStep = () => {
+        // Validation for each step
+        if (currentStep === 1) {
+            if (!recipientName || !recipientPhone || !recipientRelationship) {
+                alert("수신인 정보를 모두 입력해주세요.");
+                return;
+            }
+        } else if (currentStep === 2) {
+            const finalPlatform = category === 'other' ? customPlatform : platformName;
+            if (!finalPlatform || !accountId || !password) {
+                alert("계정 정보를 모두 입력해주세요.");
+                return;
+            }
+        } else if (currentStep === 3) {
+            if (!pin || !pinHint) {
+                alert("PIN과 힌트를 입력해주세요.");
                 return;
             }
         }
 
+        setCurrentStep(prev => Math.min(prev + 1, TOTAL_STEPS - 1));
+    };
+
+    const handlePrevStep = () => {
+        setCurrentStep(prev => Math.max(prev - 1, 0));
+    };
+
+    const handleSubmit = async () => {
         setLoading(true);
 
         try {
@@ -116,11 +132,26 @@ export default function VaultCreatePage() {
                 return;
             }
 
-            // Encrypt password with PIN
+            // Check message count
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('message_count')
+                .eq('id', user.id)
+                .single();
+
+            if (!profile || profile.message_count <= 0) {
+                alert("남은 메시지 횟수가 부족합니다. 플랜을 업그레이드해주세요.");
+                router.push("/plans");
+                return;
+            }
+
+            const finalPlatform = category === 'other' ? customPlatform : platformName;
+
+            // Encrypt password
             const encryptedPassword = encryptPassword(password, pin);
 
             // Save to database
-            const { error } = await supabase
+            const { data: vaultItem, error } = await supabase
                 .from("vault_items")
                 .insert({
                     user_id: user.id,
@@ -131,8 +162,14 @@ export default function VaultCreatePage() {
                     password_encrypted: encryptedPassword,
                     request_type: requestType,
                     notes,
-                    legal_consent: legalConsent
-                });
+                    recipient_name: recipientName,
+                    recipient_phone: recipientPhone,
+                    recipient_relationship: recipientRelationship,
+                    pin_hint: pinHint,
+                    legal_consent: true
+                })
+                .select()
+                .single();
 
             if (error) {
                 console.error("Vault creation error:", error);
@@ -140,19 +177,53 @@ export default function VaultCreatePage() {
                 return;
             }
 
+            // Deduct message count
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    message_count: profile.message_count - 1,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
+
+            if (updateError) {
+                console.error("Message count update error:", updateError);
+            }
+
+            // Send notification to recipient (first time only)
+            if (vaultItem && !vaultItem.notification_sent) {
+                try {
+                    await fetch('/api/vault/notify-recipient', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            vaultItemId: vaultItem.id,
+                            recipientPhone: recipientPhone,
+                            recipientName: recipientName,
+                            senderName: user.user_metadata?.name || user.email
+                        })
+                    });
+                } catch (notifyError) {
+                    console.error("Notification error:", notifyError);
+                    // Don't block the flow if notification fails
+                }
+            }
+
             alert("디지털 유산이 안전하게 저장되었습니다!");
             router.push("/vault");
 
         } catch (error: any) {
             console.error(error);
-            if (error.message?.includes("Invalid PIN")) {
-                alert("PIN이 올바르지 않습니다.");
-            } else {
-                alert("오류가 발생했습니다.");
-            }
+            alert("오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }
+    };
+
+    const getPlatformOptions = () => {
+        if (category === 'subscription') return SUBSCRIPTION_PLATFORMS;
+        if (category === 'sns') return SNS_PLATFORMS;
+        return [];
     };
 
     if (hasPin === null) {
@@ -167,205 +238,283 @@ export default function VaultCreatePage() {
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Header />
 
-            <main className="flex-1 px-6 py-12">
-                <div className="max-w-2xl mx-auto">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 mb-4">
-                            <Lock className="w-8 h-8 text-emerald-600" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                            디지털 유산 등록
-                        </h1>
-                        <p className="text-slate-500">
-                            계정 정보를 안전하게 암호화하여 보관합니다
-                        </p>
-                    </div>
+            <main className="flex-1 px-4 md:px-6 py-8 md:py-12">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex gap-8">
+                        {/* Main Content */}
+                        <div className="flex-1">
+                            {/* Mobile Progress */}
+                            <VaultMobileProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-6">
+                            {/* Step 0: Legal Consent */}
+                            {currentStep === 0 && (
+                                <VaultLegalConsent onComplete={handleLegalConsentComplete} />
+                            )}
 
-                        {/* Category Selection */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                카테고리 선택
-                            </label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {(Object.keys(VAULT_CATEGORIES) as VaultCategory[]).map((cat) => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        onClick={() => {
-                                            setCategory(cat);
-                                            setPlatformName('');
-                                            setCustomPlatform('');
-                                        }}
-                                        className={`p-3 rounded-xl border-2 font-medium transition-all ${category === cat
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                : 'border-slate-200 hover:border-slate-300 text-slate-600'
-                                            }`}
-                                    >
-                                        {VAULT_CATEGORIES[cat]}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                            {/* Step 1: Recipient */}
+                            {currentStep === 1 && (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
+                                        수신인 지정
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                이름
+                                            </label>
+                                            <Input
+                                                value={recipientName}
+                                                onChange={(e) => setRecipientName(e.target.value)}
+                                                placeholder="홍길동"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                휴대폰 번호
+                                            </label>
+                                            <Input
+                                                value={recipientPhone}
+                                                onChange={(e) => setRecipientPhone(e.target.value)}
+                                                placeholder="010-1234-5678"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                관계
+                                            </label>
+                                            <Input
+                                                value={recipientRelationship}
+                                                onChange={(e) => setRecipientRelationship(e.target.value)}
+                                                placeholder="가족, 친구 등"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
-                        {/* Platform Selection */}
-                        {category !== 'other' ? (
-                            <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-3">
-                                    플랫폼 선택
-                                </label>
-                                <select
-                                    value={platformName}
-                                    onChange={(e) => setPlatformName(e.target.value)}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                    required
-                                >
-                                    <option value="">선택해주세요</option>
-                                    {getPlatformOptions().map((platform) => (
-                                        <option key={platform} value={platform}>
-                                            {platform}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        ) : (
-                            <div>
-                                <label className="block text-sm font-bold text-slate-900 mb-3">
-                                    플랫폼 이름 (직접 입력)
-                                </label>
-                                <Input
-                                    value={customPlatform}
-                                    onChange={(e) => setCustomPlatform(e.target.value)}
-                                    placeholder="예: 개인 블로그, 쇼핑몰 등"
-                                    required
-                                />
-                            </div>
-                        )}
+                            {/* Step 2: Account Info */}
+                            {currentStep === 2 && (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-5">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                                        계정 정보 입력
+                                    </h2>
 
-                        {/* Account ID */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                아이디 / 이메일
-                            </label>
-                            <Input
-                                value={accountId}
-                                onChange={(e) => setAccountId(e.target.value)}
-                                placeholder="로그인 ID 또는 이메일"
-                                required
-                            />
-                        </div>
+                                    {/* Category */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            카테고리
+                                        </label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {(Object.keys(VAULT_CATEGORIES) as VaultCategory[]).map((cat) => (
+                                                <button
+                                                    key={cat}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCategory(cat);
+                                                        setPlatformName('');
+                                                    }}
+                                                    className={`p-2 md:p-3 rounded-lg border-2 text-xs md:text-sm font-medium transition-all ${category === cat
+                                                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                        : 'border-slate-200 hover:border-slate-300'
+                                                        }`}
+                                                >
+                                                    {VAULT_CATEGORIES[cat]}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                        {/* Password */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                비밀번호
-                            </label>
-                            <Input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="계정 비밀번호"
-                                required
-                            />
-                        </div>
+                                    {/* Platform */}
+                                    {category !== 'other' ? (
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                플랫폼
+                                            </label>
+                                            <select
+                                                value={platformName}
+                                                onChange={(e) => setPlatformName(e.target.value)}
+                                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                                            >
+                                                <option value="">선택</option>
+                                                {getPlatformOptions().map((p) => (
+                                                    <option key={p} value={p}>{p}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                플랫폼 이름
+                                            </label>
+                                            <Input
+                                                value={customPlatform}
+                                                onChange={(e) => setCustomPlatform(e.target.value)}
+                                                placeholder="직접 입력"
+                                            />
+                                        </div>
+                                    )}
 
-                        {/* Financial Warning */}
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-red-800 leading-relaxed">
-                                <strong>중요:</strong> 은행, 증권, 카드 등 금융 관련 비밀번호는 입력하지 마세요.
-                                법적 책임 문제가 발생할 수 있습니다.
-                            </p>
-                        </div>
-
-                        {/* Request Type */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                요청 사항
-                            </label>
-                            <div className="space-y-2">
-                                {(Object.keys(VAULT_REQUEST_TYPES) as VaultRequestType[]).map((type) => (
-                                    <label
-                                        key={type}
-                                        className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 cursor-pointer"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="requestType"
-                                            value={type}
-                                            checked={requestType === type}
-                                            onChange={(e) => setRequestType(e.target.value as VaultRequestType)}
-                                            className="w-4 h-4 text-emerald-600"
+                                    {/* Account ID */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            아이디/이메일
+                                        </label>
+                                        <Input
+                                            value={accountId}
+                                            onChange={(e) => setAccountId(e.target.value)}
+                                            placeholder="user@example.com"
                                         />
-                                        <span className="text-sm text-slate-700">
-                                            {VAULT_REQUEST_TYPES[type]}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
+                                    </div>
+
+                                    {/* Password */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            비밀번호
+                                        </label>
+                                        <Input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+
+                                    {/* Request Type */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            요청사항
+                                        </label>
+                                        <div className="space-y-2">
+                                            {(Object.keys(VAULT_REQUEST_TYPES) as VaultRequestType[]).map((type) => (
+                                                <label key={type} className="flex items-center gap-2 text-sm">
+                                                    <input
+                                                        type="radio"
+                                                        name="requestType"
+                                                        value={type}
+                                                        checked={requestType === type}
+                                                        onChange={(e) => setRequestType(e.target.value as VaultRequestType)}
+                                                        className="w-4 h-4"
+                                                    />
+                                                    {VAULT_REQUEST_TYPES[type]}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: PIN & Hint */}
+                            {currentStep === 3 && (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 space-y-5">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                                        PIN 및 힌트 설정
+                                    </h2>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            PIN 입력
+                                        </label>
+                                        <Input
+                                            type="password"
+                                            inputMode="numeric"
+                                            maxLength={6}
+                                            value={pin}
+                                            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                                            placeholder="설정한 PIN"
+                                            className="text-center text-lg tracking-widest"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            PIN 힌트
+                                        </label>
+                                        <Input
+                                            value={pinHint}
+                                            onChange={(e) => setPinHint(e.target.value)}
+                                            placeholder="예: 엄마 생일"
+                                        />
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            수신인이 PIN을 찾을 수 있도록 힌트를 남겨주세요
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                            추가 메모 (선택)
+                                        </label>
+                                        <Textarea
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            placeholder="수신인에게 전달할 메시지"
+                                            className="min-h-20 text-sm"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 4: Final Confirmation */}
+                            {currentStep === 4 && (
+                                <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8">
+                                    <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
+                                        최종 확인
+                                    </h2>
+                                    <div className="space-y-4 text-sm">
+                                        <div className="flex justify-between py-2 border-b">
+                                            <span className="text-slate-600">수신인</span>
+                                            <span className="font-medium">{recipientName} ({recipientRelationship})</span>
+                                        </div>
+                                        <div className="flex justify-between py-2 border-b">
+                                            <span className="text-slate-600">플랫폼</span>
+                                            <span className="font-medium">{category === 'other' ? customPlatform : platformName}</span>
+                                        </div>
+                                        <div className="flex justify-between py-2 border-b">
+                                            <span className="text-slate-600">아이디</span>
+                                            <span className="font-medium">{accountId}</span>
+                                        </div>
+                                        <div className="flex justify-between py-2 border-b">
+                                            <span className="text-slate-600">요청사항</span>
+                                            <span className="font-medium">{VAULT_REQUEST_TYPES[requestType]}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Navigation Buttons */}
+                            {currentStep > 0 && (
+                                <div className="flex gap-3 mt-6">
+                                    <Button
+                                        onClick={handlePrevStep}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        <ArrowLeft className="w-4 h-4 mr-2" />
+                                        이전
+                                    </Button>
+                                    {currentStep < TOTAL_STEPS - 1 ? (
+                                        <Button
+                                            onClick={handleNextStep}
+                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                                        >
+                                            다음
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={handleSubmit}
+                                            disabled={loading}
+                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                                        >
+                                            {loading ? "저장 중..." : "저장하기"}
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Notes */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                추가 메모 (선택)
-                            </label>
-                            <Textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="지정인에게 전달할 추가 메시지나 안내사항"
-                                className="min-h-24"
-                            />
-                        </div>
-
-                        {/* Legal Consent */}
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={legalConsent}
-                                    onChange={(e) => setLegalConsent(e.target.checked)}
-                                    className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0"
-                                    required
-                                />
-                                <span className="text-sm text-slate-700 leading-relaxed">
-                                    본인은 지정인(수신자)에게 해당 계정의 접속 및 정리를 위임함에 동의합니다. (필수)
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* PIN Input */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-3">
-                                PIN 입력 (암호화 키)
-                            </label>
-                            <Input
-                                type="password"
-                                inputMode="numeric"
-                                maxLength={6}
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                                placeholder="설정한 PIN을 입력하세요"
-                                className="text-center text-xl tracking-widest"
-                                required
-                            />
-                            <p className="text-xs text-slate-500 mt-2">
-                                비밀번호 암호화를 위해 PIN이 필요합니다
-                            </p>
-                        </div>
-
-                        {/* Submit */}
-                        <Button
-                            type="submit"
-                            disabled={loading || !legalConsent}
-                            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
-                        >
-                            {loading ? "저장 중..." : "안전하게 저장하기"}
-                        </Button>
-                    </form>
+                        {/* Step Indicator (Desktop) */}
+                        <VaultStepIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+                    </div>
                 </div>
             </main>
 
