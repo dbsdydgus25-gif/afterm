@@ -10,10 +10,6 @@ export function RiskAwarenessSection() {
         fees: 8940000000
     });
 
-    // Carousel state
-    const targets = ["1인 가구", "고위험군", "환우분들"];
-    const [targetIndex, setTargetIndex] = useState(0);
-
     // Live counter effect
     useEffect(() => {
         const interval = setInterval(() => {
@@ -22,14 +18,6 @@ export function RiskAwarenessSection() {
                 fees: prev.fees + Math.floor(Math.random() * 15000)
             }));
         }, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
-    // Carousel interval
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTargetIndex(prev => (prev + 1) % targets.length);
-        }, 3000);
         return () => clearInterval(interval);
     }, []);
 
@@ -46,7 +34,7 @@ export function RiskAwarenessSection() {
 
             <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
 
-                {/* Left: Typography & Carousel */}
+                {/* Left: Typography & Static Text */}
                 <div className="space-y-8 text-center md:text-left">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -54,29 +42,21 @@ export function RiskAwarenessSection() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h2 className="text-3xl md:text-5xl font-serif text-white leading-tight mb-4">
+                        <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4">
                             예고 없는 부재,<br />
                             <span className="text-slate-400 text-2xl md:text-4xl">남겨진 것들은 어떻게 될까요?</span>
                         </h2>
                     </motion.div>
 
-                    <div className="h-16 flex items-center justify-center md:justify-start">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={targetIndex}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.5 }}
-                                className="text-blue-400 text-2xl md:text-3xl font-bold"
-                            >
-                                {targets[targetIndex]}에게 꼭 필요합니다
-                            </motion.div>
-                        </AnimatePresence>
+                    <div className="flex items-center justify-center md:justify-start">
+                        <div className="text-blue-400 text-2xl md:text-3xl font-bold leading-relaxed">
+                            복잡한 디지털 자산의<br />
+                            법적 절차와 정리
+                        </div>
                     </div>
 
                     <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-lg mx-auto md:mx-0">
-                        디지털 자산은 법적 절차가 복잡하여 유가족이 접근하기 가장 어려운 영역입니다.
+                        유가족이 접근하기 가장 어려운 영역입니다.
                         미리 정리하지 않으면 소중한 추억도, 금전적 가치도 영구히 소실될 수 있습니다.
                     </p>
                 </div>
