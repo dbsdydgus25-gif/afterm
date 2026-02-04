@@ -10,26 +10,16 @@ export function RiskAwarenessSection() {
         fees: 8940000000
     });
 
-    // Live counter effect
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCounts(prev => ({
-                accounts: prev.accounts + Math.floor(Math.random() * 3),
-                fees: prev.fees + Math.floor(Math.random() * 15000)
-            }));
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
+
 
     // Format numbers
     const formatNumber = (num: number) => new Intl.NumberFormat('ko-KR').format(num);
 
     return (
         <section className="w-full bg-slate-900 py-12 md:py-20 px-6 relative overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 md:w-96 md:h-96 bg-blue-500 rounded-full blur-[80px] md:blur-[128px]"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-96 md:h-96 bg-indigo-500 rounded-full blur-[80px] md:blur-[128px]"></div>
+            {/* Background Elements (Optimized: Removed heavy blurs) */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-b from-slate-900 via-slate-800/20 to-slate-900 opacity-50"></div>
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-24 items-center">
