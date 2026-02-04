@@ -102,8 +102,8 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* Hero Content (Centered) - Restored */}
-                {/* Hero Content (Centered) - Restored */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[85vh] md:min-h-screen px-6 pt-32 md:pt-40 pb-16 md:pb-20 text-center space-y-8 md:space-y-10">
+                {/* Hero Content (Centered) - Optimized */}
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-24 md:pt-40 pb-12 md:pb-20 text-center space-y-6 md:space-y-10">
                     {/* Background removed from here */}
 
                     {/* Typography */}
@@ -181,8 +181,8 @@ export default function AppEntryPage() {
                 </div>
 
 
-                {/* 2. Feature Section (Gift) - Moved from bottom */}
-                <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative">
+                {/* 2. Feature Section (Gift) - Optimized Spacing */}
+                <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
                     <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
@@ -230,7 +230,7 @@ export default function AppEntryPage() {
                                             whileInView={{ opacity: 1, y: 0 }}
                                             viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                                            className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
+                                            className="bg-slate-800/80 border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition hover:-translate-y-2 duration-500 shadow-xl"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function AppEntryPage() {
                                             whileInView={{ opacity: 1, y: 0 }}
                                             viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                                            className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
+                                            className="bg-slate-800/95 border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition hover:scale-[1.02] duration-500 z-10 shadow-xl"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -277,6 +277,7 @@ export default function AppEntryPage() {
                     <RiskAwarenessSection />
                 </div>
 
+                {/* 3. Service Process Explanation Section (How It Works) */}
                 {/* 3. Service Process Explanation Section (How It Works) */}
                 <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -367,7 +368,8 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 4. Online Memorial Section */}
-                <section className="w-full bg-slate-100/50 py-24 relative overflow-hidden">
+                {/* 4. Online Memorial Section */}
+                <section className="w-full bg-slate-100/50 py-16 md:py-24 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -442,7 +444,8 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 5. Pricing Section (Restored & Promoted) */}
-                <section className="w-full bg-slate-50 py-24 relative">
+                {/* 5. Pricing Section (Restored & Promoted) */}
+                <section className="w-full bg-slate-50 py-16 md:py-24 relative">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
@@ -562,7 +565,8 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 6. New Bottom Section */}
-                <section className="w-full bg-white py-24 px-6 text-center border-t border-slate-100">
+                {/* 6. New Bottom Section */}
+                <section className="w-full bg-white py-16 md:py-24 px-6 text-center border-t border-slate-100">
                     <div className="max-w-3xl mx-auto space-y-10">
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}

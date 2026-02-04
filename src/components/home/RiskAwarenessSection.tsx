@@ -25,17 +25,17 @@ export function RiskAwarenessSection() {
     const formatNumber = (num: number) => new Intl.NumberFormat('ko-KR').format(num);
 
     return (
-        <section className="w-full bg-slate-900 py-20 px-6 relative overflow-hidden">
+        <section className="w-full bg-slate-900 py-12 md:py-20 px-6 relative overflow-hidden">
             {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-[128px]"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-[128px]"></div>
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 md:w-96 md:h-96 bg-blue-500 rounded-full blur-[80px] md:blur-[128px]"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-96 md:h-96 bg-indigo-500 rounded-full blur-[80px] md:blur-[128px]"></div>
             </div>
 
-            <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
+            <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-24 items-center">
 
                 {/* Left: Typography & Static Text */}
-                <div className="space-y-8 text-center md:text-left">
+                <div className="space-y-6 md:space-y-8 text-center md:text-left">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -64,7 +64,7 @@ export function RiskAwarenessSection() {
                 {/* Right: Data Visualization */}
                 <div className="space-y-6">
                     {/* Card 1: Abandoned Accounts */}
-                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500 shadow-2xl">
+                    <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500 shadow-xl">
                         <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-30 transition-opacity">
                             <AlertTriangle className="w-24 h-24 text-yellow-500" />
                         </div>
@@ -83,7 +83,7 @@ export function RiskAwarenessSection() {
                     </div>
 
                     {/* Card 2: Wasted Fees */}
-                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-red-500/50 transition-all duration-500 shadow-2xl">
+                    <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-red-500/50 transition-all duration-500 shadow-xl">
                         <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-colors"></div>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider border border-red-500/30">
