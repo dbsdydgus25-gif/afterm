@@ -40,9 +40,9 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   verification: {
+    google: 'TtkbuVcLlB_DHhSjRq7wTNAB1CtakIM0uekUaYNzEP0',
     other: {
       'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
-      'google-site-verification': 'TtkbuVcLlB_DHhSjRq7wTNAB1CtakIM0uekUaYNzEP0',
     },
   },
 };
