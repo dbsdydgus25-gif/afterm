@@ -84,36 +84,42 @@ export function RiskAwarenessSection() {
                 {/* Right: Data Visualization */}
                 <div className="space-y-6">
                     {/* Card 1: Abandoned Accounts */}
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl relative overflow-hidden group hover:border-blue-500/50 transition-colors">
-                        <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
-                            <AlertTriangle className="w-16 h-16 text-yellow-500" />
+                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500 shadow-2xl">
+                        <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-30 transition-opacity">
+                            <AlertTriangle className="w-24 h-24 text-yellow-500" />
                         </div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider border border-red-500/30">
                                 <AlertTriangle className="w-3 h-3" /> Risk
-                            </span>
-                            <span className="text-slate-400 text-sm">연간 방치되는 디지털 계정</span>
+                            </div>
+                            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Digital Waste</span>
                         </div>
-                        <div className="text-4xl md:text-5xl font-mono text-white font-bold tracking-tight">
-                            {formatNumber(counts.accounts)}
-                            <span className="text-lg text-slate-500 ml-2 font-sans font-normal">건 +</span>
+                        <div className="space-y-1">
+                            <div className="text-4xl md:text-6xl font-mono text-white font-black tracking-tighter">
+                                {formatNumber(counts.accounts)}
+                            </div>
+                            <div className="text-slate-500 text-sm font-medium">연간 방치되는 디지털 계정 수</div>
                         </div>
                     </div>
 
                     {/* Card 2: Wasted Fees */}
-                    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl relative overflow-hidden group hover:border-red-500/50 transition-colors">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">
+                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-red-500/50 transition-all duration-500 shadow-2xl">
+                        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-colors"></div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider border border-red-500/30">
                                 <AlertTriangle className="w-3 h-3" /> Risk
-                            </span>
-                            <span className="text-slate-400 text-sm">주인 없이 결제되는 구독료</span>
+                            </div>
+                            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Financial Loss</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-mono text-white font-bold tracking-tight">
-                            ₩ {formatNumber(counts.fees)}
-                            <span className="text-lg text-slate-500 ml-2 font-sans font-normal">원 +</span>
+                        <div className="space-y-1">
+                            <div className="text-3xl md:text-5xl font-mono text-white font-black tracking-tighter flex items-baseline gap-2">
+                                <span className="text-xl md:text-2xl text-slate-500 font-normal underline decoration-red-500/50 decoration-2">₩</span>
+                                {formatNumber(counts.fees)}
+                            </div>
+                            <div className="text-slate-500 text-sm font-medium">주인 없이 결제되는 연간 구독료</div>
                         </div>
-                        <p className="text-xs text-slate-500 mt-3 text-right">
-                            * 2024년 국내 디지털 유산 관련 추산치
+                        <p className="text-[10px] text-slate-600 mt-4 italic">
+                            * 2024년 국내 디지털 유산 및 휴면 계정 관련 추산치
                         </p>
                     </div>
                 </div>
