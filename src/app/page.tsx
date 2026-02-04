@@ -105,7 +105,7 @@ export default function AppEntryPage() {
 
                 {/* Hero Content (Centered) - Restored */}
                 {/* Hero Content (Centered) - Optimized */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-32 md:pt-40 pb-20 md:pb-20 text-center space-y-6 md:space-y-10">
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-40 md:pt-40 pb-32 md:pb-20 text-center space-y-6 md:space-y-10">
                     {/* Background removed from here */}
 
                     {/* Typography */}

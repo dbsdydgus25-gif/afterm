@@ -14,8 +14,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AFTERM - 당신의 기억을 남기세요",
-  description: "떠난 후에도 당신이 기억되도록. 생애 데이터 플랫폼 AFTERM.",
+  title: "에프텀 (Afterm) | 개인 웰다잉 관리 플랫폼",
+  description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
+  keywords: ["웰다잉", "디지털유산", "유언", "엔딩노트", "사전장례", "에프텀"],
+  authors: [{ name: "Afterm" }],
+  creator: "Afterm",
+  publisher: "Afterm",
+  metadataBase: new URL('https://afterm.co.kr'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "에프텀 (Afterm) | 개인 웰다잉 관리 플랫폼",
+    description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
+    url: 'https://afterm.co.kr',
+    siteName: '에프텀',
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  verification: {
+    // google: 'your-google-verification-code',
+    // other: {
+    //   'naver-site-verification': 'your-naver-verification-code',
+    // },
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
