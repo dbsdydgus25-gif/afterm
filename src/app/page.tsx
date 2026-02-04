@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
+import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 
 export default function AppEntryPage() {
     const router = useRouter();
@@ -177,6 +178,9 @@ export default function AppEntryPage() {
                     </div>
                 </div>
             </motion.div>
+            {/* Risk Awareness Section (NEW) */}
+            <RiskAwarenessSection />
+
             {/* Service Process Explanation Section (How It Works) */}
             <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
