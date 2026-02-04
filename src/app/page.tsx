@@ -182,7 +182,7 @@ export default function AppEntryPage() {
 
 
                 {/* 2. Feature Section (Gift) - Optimized Spacing */}
-                <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
+                <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative -mt-1">
                     <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
                     <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
