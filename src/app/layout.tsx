@@ -40,9 +40,9 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   verification: {
-    google: 'google-site-verification-code', // 구글 서치콘솔에서 발급받은 코드를 여기에 입력해주세요
     other: {
       'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
+      'google-site-verification': 'google-site-verification-code', // 여기에 구글 코드를 입력하세요
     },
   },
 };
