@@ -90,19 +90,20 @@ export default function AppEntryPage() {
 
             {/* Main Content */}
             <motion.div
-                className="flex-1 flex flex-col w-full relative"
+                className="flex-1 flex flex-col items-center w-full relative"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: showSplash ? 0 : 1 }}
                 transition={{ duration: 0.5 }}
             >
+                {/* Background (Static Blue) - Full Screen */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
+                    <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
+                </div>
 
                 {/* Hero Content (Centered) - Restored */}
-                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-[65vh] md:min-h-screen px-6 pt-24 md:pt-32 pb-8 md:pb-10 text-center space-y-6 md:space-y-8">
-                    {/* Background (Static Blue) */}
-                    <div className="absolute inset-0 z-[-1]">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
-                        <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
-                    </div>
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-start md:justify-center min-h-[65vh] md:min-h-screen px-6 pt-24 md:pt-32 pb-8 md:pb-10 text-center space-y-6 md:space-y-8">
+                    {/* Background removed from here */}
 
                     {/* Typography */}
                     <div className="relative z-10 flex flex-col items-center gap-4">
@@ -178,10 +179,6 @@ export default function AppEntryPage() {
                     </div>
                 </div>
 
-                {/* 1. Risk Awareness Section (Moved below Hero) */}
-                <div className="bg-slate-900">
-                    <RiskAwarenessSection />
-                </div>
 
                 {/* 2. Feature Section (Gift) - Moved from bottom */}
                 <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative border-t border-slate-800">
@@ -273,6 +270,11 @@ export default function AppEntryPage() {
                         </div>
                     </div>
                 </section>
+
+                {/* Risk Awareness Section (After Feature) */}
+                <div className="bg-slate-900">
+                    <RiskAwarenessSection />
+                </div>
 
                 {/* 3. Service Process Explanation Section (How It Works) */}
                 <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100">
