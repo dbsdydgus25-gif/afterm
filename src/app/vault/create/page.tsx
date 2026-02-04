@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VaultLegalConsent } from "@/components/vault/VaultLegalConsent";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Phone, Heart } from "lucide-react";
 
 export default function VaultCreatePage() {
     const router = useRouter();
@@ -36,6 +36,7 @@ export default function VaultCreatePage() {
     const [recipientName, setRecipientName] = useState('');
     const [recipientPhone, setRecipientPhone] = useState('');
     const [recipientRelationship, setRecipientRelationship] = useState('');
+    const [recipientConsent, setRecipientConsent] = useState(false);
 
     // Step 2: Account Info
     const [category, setCategory] = useState<VaultCategory>('subscription');
@@ -94,6 +95,10 @@ export default function VaultCreatePage() {
         if (currentStep === 1) {
             if (!recipientName || !recipientPhone || !recipientRelationship) {
                 alert("수신인 정보를 모두 입력해주세요.");
+                return;
+            }
+            if (!recipientConsent) {
+                alert("알림 수신 및 개인정보 처리에 동의해주세요.");
                 return;
             }
         } else if (currentStep === 2) {
@@ -283,35 +288,95 @@ export default function VaultCreatePage() {
                             </p>
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">이름</label>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                            {/* Name Input */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold leading-none flex items-center gap-1.5 text-slate-700">
+                                    <User className="w-3.5 h-3.5 text-slate-500" /> 이름
+                                </label>
                                 <Input
                                     value={recipientName}
                                     onChange={(e) => setRecipientName(e.target.value)}
-                                    placeholder="홍길동"
-                                    className="h-12"
+                                    placeholder="받으실 분의 성함"
+                                    className="h-10 text-sm placeholder:text-slate-300"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호</label>
+
+                            {/* Phone Input */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold leading-none flex items-center gap-1.5 text-slate-700">
+                                    <Phone className="w-3.5 h-3.5 text-slate-500" /> 연락처
+                                </label>
                                 <Input
                                     value={recipientPhone}
                                     onChange={(e) => setRecipientPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
-                                    placeholder="010-1234-5678"
-                                    className="h-12"
+                                    placeholder="010-0000-0000"
+                                    className="h-10 text-sm placeholder:text-slate-300"
                                     maxLength={13}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">관계</label>
-                                <Input
-                                    value={recipientRelationship}
-                                    onChange={(e) => setRecipientRelationship(e.target.value)}
-                                    placeholder="가족, 친구 등"
-                                    className="h-12"
-                                />
+
+                            {/* Relationship Select */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold leading-none flex items-center gap-1.5 text-slate-700">
+                                    <Heart className="w-3.5 h-3.5 text-slate-500" /> 관계
+                                </label>
+                                <div className="space-y-2">
+                                    <select
+                                        value={['가족', '친구', '연인', '동료'].includes(recipientRelationship) ? recipientRelationship : (recipientRelationship ? '기타' : '')}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '기타') {
+                                                setRecipientRelationship('');
+                                            } else {
+                                                setRecipientRelationship(val);
+                                            }
+                                        }}
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <option value="" disabled>관계를 선택해주세요</option>
+                                        <option value="가족">가족</option>
+                                        <option value="친구">친구</option>
+                                        <option value="연인">연인</option>
+                                        <option value="동료">동료</option>
+                                        <option value="기타">기타 (직접 입력)</option>
+                                    </select>
+
+                                    {(!['가족', '친구', '연인', '동료'].includes(recipientRelationship) && recipientRelationship !== '') || recipientRelationship === '' ? (
+                                        // Logic check: if it's NOT in the list, show input. Wait, initial state is empty.
+                                        // If user selects '기타', we clear implementation.
+                                        // Let's rely on the Select to drive the main state, but we need a comprehensive way to handle 'Other'.
+                                        // Simplified: If not one of the standard options (and not empty initially unless user wants custom), show input? 
+                                        // Actually let's just show input if '기타' was selected logic? NO, standard UI pattern:
+                                        (!['가족', '친구', '연인', '동료'].includes(recipientRelationship) && recipientRelationship !== '') && (
+                                            <Input
+                                                value={recipientRelationship}
+                                                onChange={(e) => setRecipientRelationship(e.target.value)}
+                                                placeholder="직접 입력 (예: 이웃, 선생님)"
+                                                className="h-10 text-sm animate-in fade-in slide-in-from-top-1"
+                                                autoFocus
+                                            />
+                                        )
+                                    ) : null}
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Consent Checkbox */}
+                        <div className="flex items-center space-x-2 px-1">
+                            <input
+                                type="checkbox"
+                                id="recipientConsent"
+                                checked={recipientConsent}
+                                onChange={(e) => setRecipientConsent(e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                                htmlFor="recipientConsent"
+                                className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-600 cursor-pointer"
+                            >
+                                알림 수신 및 개인정보 처리에 동의합니다. (필수)
+                            </label>
                         </div>
                     </div>
                 )}
