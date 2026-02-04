@@ -14,21 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "에프텀 (Afterm) | 개인 웰다잉 관리 플랫폼",
+  title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
   description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
-  keywords: ["웰다잉", "디지털유산", "유언", "엔딩노트", "사전장례", "에프텀"],
-  authors: [{ name: "Afterm" }],
-  creator: "Afterm",
-  publisher: "Afterm",
+  keywords: ["웰다잉", "디지털유산", "유언", "엔딩노트", "사전장례", "에프텀 AFTERM"],
+  authors: [{ name: "에프텀 AFTERM" }],
+  creator: "에프텀 AFTERM",
+  publisher: "에프텀 AFTERM",
   metadataBase: new URL('https://afterm.co.kr'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "에프텀 (Afterm) | 개인 웰다잉 관리 플랫폼",
+    title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
     description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
     url: 'https://afterm.co.kr',
-    siteName: '에프텀',
+    siteName: '에프텀 AFTERM',
     locale: 'ko_KR',
     type: 'website',
   },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   verification: {
     other: {
       'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
-      'google-site-verification': 'google-site-verification-code', // 여기에 구글 코드를 입력하세요
+      'google-site-verification': 'google-site-verification-code', // 구글 코드를 여기에 입력하세요
     },
   },
 };
