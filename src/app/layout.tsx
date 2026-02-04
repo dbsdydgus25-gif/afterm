@@ -39,6 +39,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  verification: {
+    other: {
+      'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
+      'google-site-verification': 'TtkbuVcLlB_DHhSjRq7wTNAB1CtakIM0uekUaYNzEP0',
+    },
+  },
 };
 
 export default function RootLayout({
@@ -48,10 +54,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <head>
-        <meta name="naver-site-verification" content="4984ce60706352e372bae9036e5e672c8ba0482b" />
-        <meta name="google-site-verification" content="google-site-verification-code" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
