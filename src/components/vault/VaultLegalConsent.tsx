@@ -13,15 +13,16 @@ interface LegalConsentProps {
 
 export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
     const [financialConsent, setFinancialConsent] = useState(false);
+    const [platformConsent, setPlatformConsent] = useState(false);
     const [delegationConsent, setDelegationConsent] = useState(false);
 
-    const allChecked = financialConsent && delegationConsent;
+    const allChecked = financialConsent && platformConsent && delegationConsent;
 
     const handleContinue = () => {
         if (allChecked) {
             onComplete({
                 financialConsent,
-                platformConsent: true, // Always true since we removed it
+                platformConsent,
                 delegationConsent
             });
         }
@@ -68,7 +69,30 @@ export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
                     </label>
                 </div>
 
-                {/* 2. Delegation Consent */}
+                {/* 2. Platform Policy Consent (NEW) */}
+                <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={platformConsent}
+                            onChange={(e) => setPlatformConsent(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 rounded mt-0.5 flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Shield className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-bold text-slate-900">
+                                    (필수) 플랫폼별 이용 정책 확인
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                                일부 서비스는 계정 공유를 제한할 수 있습니다. 하지만 <strong>'사후 정리(해지/탈퇴)'</strong>라는 특수 목적을 위해, 본인의 의지로 정보를 남김을 확인합니다.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+
+                {/* 3. Delegation Consent */}
                 <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
                     <label className="flex items-start gap-3 cursor-pointer">
                         <input

@@ -104,6 +104,17 @@ export default function VaultCreatePage() {
             }
         } else if (currentStep === 2) {
             const finalPlatform = category === 'other' ? customPlatform : platformName;
+
+            // Banned words check for custom platform
+            if (category === 'other') {
+                const bannedWords = ['은행', '뱅크', 'Bank', '증권', '투자', '카드', 'Card', '코인', 'Coin', '업비트', '빗썸', '지갑', 'Wallet', '인증서', 'OTP', '보안카드', '정부24', '홈택스'];
+                const hasBannedWord = bannedWords.some(word => customPlatform.toLowerCase().includes(word.toLowerCase()));
+                if (hasBannedWord) {
+                    alert("금융 및 인증 정보는 법적으로 저장이 불가능합니다");
+                    return;
+                }
+            }
+
             if (!finalPlatform || !accountId || !password) {
                 alert("계정 정보를 모두 입력해주세요.");
                 return;
