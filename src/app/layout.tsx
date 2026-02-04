@@ -40,7 +40,6 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   verification: {
-    google: 'google-site-verification-code', // 구글 서치콘솔 코드를 여기에 입력하세요.
     other: {
       'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
     },
@@ -54,9 +53,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <head>
-        <meta name="naver-site-verification" content="4984ce60706352e372bae9036e5e672c8ba0482b" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
