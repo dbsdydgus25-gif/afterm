@@ -98,7 +98,8 @@ export default function AppEntryPage() {
                 {/* Background (Static Blue) - Full Screen */}
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
-                    <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
+                    {/* Optimized: removed backdrop-blur for mobile performance */}
+                    <div className="absolute inset-0 bg-white/40 z-10"></div>
                 </div>
 
                 {/* Hero Content (Centered) - Restored */}
@@ -182,8 +183,8 @@ export default function AppEntryPage() {
 
 
                 {/* 2. Feature Section (Gift) - Optimized Spacing */}
-                <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative -mt-1">
-                    <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
+                    <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
                     <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
                         <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-center">
@@ -213,15 +214,14 @@ export default function AppEntryPage() {
                                     className="text-[13px] md:text-lg text-slate-400 leading-snug md:leading-relaxed break-keep"
                                 >
                                     AFTERM(에프텀)은 당신의 생애 데이터를 안전하게 보관하고,<br className="block md:hidden" />
-                                    지정된 시점에 소중한 사람들에게 전달합니다.<br className="block md:hidden" />
-                                    단순한 메시지를 넘어, 당신의 목소리와 온기를 전하세요.
+                                    지정된 시점에 소중한 사람들에게 전달합니다.
                                 </motion.p>
                             </div>
 
                             {/* Visual Mockups */}
                             <div className="md:col-span-7 relative flex justify-center md:justify-end perspective-1000">
                                 <div className="relative w-full max-w-md">
-                                    <div className="absolute -inset-10 bg-blue-500/20 blur-3xl rounded-full opacity-30 animate-pulse"></div>
+                                    <div className="hidden md:block absolute -inset-10 bg-blue-500/20 blur-3xl rounded-full opacity-30 animate-pulse"></div>
 
                                     <div className="grid gap-6">
                                         {/* Card 1 */}
@@ -230,7 +230,7 @@ export default function AppEntryPage() {
                                             whileInView={{ opacity: 1, y: 0 }}
                                             viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                                            className="bg-slate-800/80 border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition hover:-translate-y-2 duration-500 shadow-xl"
+                                            className="bg-slate-800/80 border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition shadow-xl"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function AppEntryPage() {
                                             whileInView={{ opacity: 1, y: 0 }}
                                             viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                                            className="bg-slate-800/95 border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition hover:scale-[1.02] duration-500 z-10 shadow-xl"
+                                            className="bg-slate-800/95 border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition z-10 shadow-xl"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">

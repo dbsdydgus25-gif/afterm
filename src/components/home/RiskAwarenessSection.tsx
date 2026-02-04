@@ -74,7 +74,7 @@ export function RiskAwarenessSection() {
 
                     {/* Card 2: Wasted Fees */}
                     <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-2xl relative overflow-hidden group hover:border-red-500/50 transition-all duration-500 shadow-xl">
-                        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-colors"></div>
+                        <div className="hidden md:block absolute -bottom-4 -right-4 w-32 h-32 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-colors"></div>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider border border-red-500/30">
                                 <AlertTriangle className="w-3 h-3" /> Risk
