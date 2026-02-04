@@ -133,6 +133,9 @@ export default function VaultListPage() {
                             </div>
                         )}
                         <span className="hidden md:block text-sm font-medium text-slate-700">{user?.name || '사용자'}</span>
+                        {plan === 'pro' && (
+                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">PRO</span>
+                        )}
                         <ChevronDown className="w-4 h-4 text-slate-400" />
                     </button>
 

@@ -105,7 +105,7 @@ export default function AppEntryPage() {
 
                 {/* Hero Content (Centered) - Restored */}
                 {/* Hero Content (Centered) - Optimized */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-24 md:pt-40 pb-12 md:pb-20 text-center space-y-6 md:space-y-10">
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-32 md:pt-40 pb-20 md:pb-20 text-center space-y-6 md:space-y-10">
                     {/* Background removed from here */}
 
                     {/* Typography */}
@@ -503,6 +503,10 @@ export default function AppEntryPage() {
                                         <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs text-center flex-shrink-0">✓</div>
                                         저장공간: 10mb (텍스트 위주)
                                     </li>
+                                    <li className="flex items-center gap-3 text-slate-600 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs text-center flex-shrink-0">✓</div>
+                                        디지털 유산: 1개 보관
+                                    </li>
                                 </ul>
 
                                 <div className="w-full mt-auto">
@@ -538,6 +542,10 @@ export default function AppEntryPage() {
                                     <li className="flex items-center gap-3 text-slate-700 font-medium">
                                         <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
                                         저장공간: 1GB (사진, 영상, 음성)
+                                    </li>
+                                    <li className="flex items-center gap-3 text-slate-700 font-medium">
+                                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
+                                        디지털 유산: 10개 보관
                                     </li>
                                     <li className="flex items-center gap-3 text-slate-700 font-medium">
                                         <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs text-center flex-shrink-0">✓</div>
