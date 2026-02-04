@@ -273,7 +273,7 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* Risk Awareness Section (After Feature) */}
-                <div className="bg-slate-900">
+                <div className="bg-slate-900 w-full">
                     <RiskAwarenessSection />
                 </div>
 
@@ -568,20 +568,12 @@ export default function AppEntryPage() {
                 {/* 6. New Bottom Section */}
                 <section className="w-full bg-white py-16 md:py-24 px-6 text-center border-t border-slate-100">
                     <div className="max-w-3xl mx-auto space-y-10">
-                        <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
+                        <h2
                             className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight"
                         >
                             당신의 이후를 위해<br />준비합니다.
-                        </motion.h2>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
+                        </h2>
+                        <div
                             className="flex flex-col sm:flex-row gap-4 justify-center"
                         >
                             <Button
@@ -599,7 +591,7 @@ export default function AppEntryPage() {
                             >
                                 디지털 유산 보관
                             </Button>
-                        </motion.div>
+                        </div>
                     </div>
                 </section>
 
