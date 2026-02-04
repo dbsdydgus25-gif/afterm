@@ -10,6 +10,7 @@ import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
+import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 
 export default function AppEntryPage() {
     const router = useRouter();
@@ -57,7 +58,7 @@ export default function AppEntryPage() {
 
 
     return (
-        <div className="flex flex-col min-h-screen font-sans overflow-hidden relative">
+        <div className="flex flex-col min-h-screen font-sans relative">
 
             {/* Splash Screen (White + Logo as requested) */}
             <AnimatePresence>
@@ -278,8 +279,7 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* 3. Service Process Explanation Section (How It Works) */}
-                {/* 3. Service Process Explanation Section (How It Works) */}
-                <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100">
+                <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100 relative z-10">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8">
                         <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
                             <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-wide">HOW IT WORKS</span>
@@ -368,8 +368,7 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 4. Online Memorial Section */}
-                {/* 4. Online Memorial Section */}
-                <section className="w-full bg-slate-100/50 py-16 md:py-24 relative overflow-hidden">
+                <section className="w-full bg-slate-100/50 py-16 md:py-24 relative overflow-hidden z-10">
                     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -444,8 +443,7 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 5. Pricing Section (Restored & Promoted) */}
-                {/* 5. Pricing Section (Restored & Promoted) */}
-                <section className="w-full bg-slate-50 py-16 md:py-24 relative">
+                <section className="w-full bg-slate-50 py-16 md:py-24 relative z-10">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
@@ -565,8 +563,7 @@ export default function AppEntryPage() {
                 </section>
 
                 {/* 6. New Bottom Section */}
-                {/* 6. New Bottom Section */}
-                <section className="w-full bg-white py-16 md:py-24 px-6 text-center border-t border-slate-100">
+                <section className="w-full bg-white py-16 md:py-24 px-6 text-center border-t border-slate-100 relative z-10">
                     <div className="max-w-3xl mx-auto space-y-10">
                         <h2
                             className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight"
@@ -599,6 +596,7 @@ export default function AppEntryPage() {
 
             <Footer />
             <BottomNav />
+            <FloatingKakaoButton />
         </div >
     );
 }

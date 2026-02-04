@@ -56,8 +56,11 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
     const usedMB = (storageUsed / (1024 * 1024));
     const usedText = usedMB > 100 ? usedMB.toFixed(0) : usedMB.toFixed(1);
 
-    // Max Storage
-    const MAX_STORAGE_MB = (limit / (1024 * 1024)).toFixed(0);
+    // Max Storage Display Logic
+    const maxStorageVal = limit / (1024 * 1024);
+    const MAX_STORAGE_TEXT = maxStorageVal >= 1024
+        ? `${(maxStorageVal / 1024).toFixed(0)}GB`
+        : `${maxStorageVal.toFixed(0)}MB`;
 
     if (loading) return <div className="animate-pulse bg-slate-100 h-16 w-full rounded-xl"></div>;
 
@@ -71,8 +74,8 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
                         {usedText}
                         <span className="text-xs font-bold ml-0.5">MB</span>
                     </span>
-                    <span className="text-xs text-slate-400 font-medium mb-1">
-                        / {MAX_STORAGE_MB}MB
+                    <span className="text-xs text-slate-400 font-medium mb-0.5">
+                        / {MAX_STORAGE_TEXT}
                     </span>
                 </div>
 
@@ -94,7 +97,7 @@ export function StorageWidget({ plan, userId, compact = false }: StorageWidgetPr
                     {usedText}MB
                 </span>
                 <span className="text-sm text-slate-400 mb-1">
-                    / {MAX_STORAGE_MB}MB
+                    / {MAX_STORAGE_TEXT}
                 </span>
             </div>
 

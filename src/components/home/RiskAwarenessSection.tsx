@@ -65,8 +65,9 @@ export function RiskAwarenessSection() {
                             <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Digital Waste</span>
                         </div>
                         <div className="space-y-1">
-                            <div className="text-4xl md:text-6xl font-mono text-white font-black tracking-tighter">
-                                {formatNumber(counts.accounts)}
+                            {/* Adjusted font size for larger number */}
+                            <div className="text-3xl md:text-5xl font-mono text-white font-black tracking-tighter">
+                                {formatNumber(22660000)}
                             </div>
                             <div className="text-slate-500 text-sm font-medium">연간 방치되는 디지털 계정 수</div>
                         </div>
@@ -82,14 +83,14 @@ export function RiskAwarenessSection() {
                             <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Financial Loss</span>
                         </div>
                         <div className="space-y-1">
-                            <div className="text-3xl md:text-5xl font-mono text-white font-black tracking-tighter flex items-baseline gap-2">
-                                <span className="text-xl md:text-2xl text-slate-500 font-normal underline decoration-red-500/50 decoration-2">₩</span>
-                                {formatNumber(counts.fees)}
+                            <div className="text-2xl md:text-3xl font-mono text-white font-black tracking-tighter flex items-baseline gap-2">
+                                <span className="text-lg md:text-xl text-slate-500 font-normal underline decoration-red-500/50 decoration-2">₩</span>
+                                {formatNumber(170600000000)}
                             </div>
-                            <div className="text-slate-500 text-sm font-medium">주인 없이 결제되는 연간 구독료</div>
+                            <div className="text-slate-500 text-sm font-medium">주인 없이 결제되는 연간 구독료 외 자산</div>
                         </div>
                         <p className="text-[10px] text-slate-600 mt-4 italic">
-                            * 2024년 국내 디지털 유산 및 휴면 계정 관련 추산치
+                            * 2025년 금융권 휴면 예금 및 2024년 구독 경제 리포트 기준
                         </p>
                     </div>
                 </div>
