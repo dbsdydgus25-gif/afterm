@@ -102,7 +102,8 @@ export default function AppEntryPage() {
                 </div>
 
                 {/* Hero Content (Centered) - Restored */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-start md:justify-center min-h-[65vh] md:min-h-screen px-6 pt-24 md:pt-32 pb-8 md:pb-10 text-center space-y-6 md:space-y-8">
+                {/* Hero Content (Centered) - Restored */}
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[85vh] md:min-h-screen px-6 pt-32 md:pt-40 pb-16 md:pb-20 text-center space-y-8 md:space-y-10">
                     {/* Background removed from here */}
 
                     {/* Typography */}
@@ -181,7 +182,7 @@ export default function AppEntryPage() {
 
 
                 {/* 2. Feature Section (Gift) - Moved from bottom */}
-                <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative border-t border-slate-800">
+                <section className="w-full bg-slate-900 text-white py-20 md:py-32 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
                     <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
@@ -192,7 +193,7 @@ export default function AppEntryPage() {
                                 <motion.div
                                     initial={{ opacity: 0, y: 50 }}
                                     whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: false, margin: "-100px" }}
+                                    viewport={{ once: true, margin: "-100px" }}
                                     transition={{ duration: 0.8, ease: "easeOut" }}
                                     className="space-y-4 md:space-y-6"
                                 >
@@ -207,7 +208,7 @@ export default function AppEntryPage() {
                                 <motion.p
                                     initial={{ opacity: 0, y: 30 }}
                                     whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: false, margin: "-100px" }}
+                                    viewport={{ once: true, margin: "-100px" }}
                                     transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
                                     className="text-[13px] md:text-lg text-slate-400 leading-snug md:leading-relaxed break-keep"
                                 >
@@ -227,7 +228,7 @@ export default function AppEntryPage() {
                                         <motion.div
                                             initial={{ opacity: 0, y: 50 }}
                                             whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: false, amount: 0.2 }}
+                                            viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
                                             className="bg-slate-800/80 backdrop-blur border border-slate-700/50 p-6 rounded-2xl md:w-[90%] md:translate-x-0 transform transition hover:-translate-y-2 duration-500 shadow-2xl hover:shadow-blue-500/10"
                                         >
@@ -248,7 +249,7 @@ export default function AppEntryPage() {
                                         <motion.div
                                             initial={{ opacity: 0, y: 50 }}
                                             whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: false, amount: 0.2 }}
+                                            viewport={{ once: true, amount: 0.2 }}
                                             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
                                             className="bg-slate-800/95 backdrop-blur border border-blue-500/30 p-8 rounded-2xl md:w-[105%] md:-translate-x-8 transform transition hover:scale-[1.02] duration-500 z-10 shadow-2xl hover:shadow-blue-500/20"
                                         >
@@ -373,7 +374,7 @@ export default function AppEntryPage() {
                             <motion.div
                                 initial={{ opacity: 0, x: -50 }}
                                 whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: false, amount: 0.3 }}
+                                viewport={{ once: true, amount: 0.3 }}
                                 transition={{ duration: 0.8 }}
                                 className="order-2 md:order-1 relative"
                             >
@@ -410,7 +411,7 @@ export default function AppEntryPage() {
                             <motion.div
                                 initial={{ opacity: 0, x: 50 }}
                                 whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: false, amount: 0.3 }}
+                                viewport={{ once: true, amount: 0.3 }}
                                 transition={{ duration: 0.8, delay: 0.2 }}
                                 className="order-1 md:order-2 space-y-8"
                             >
@@ -446,7 +447,7 @@ export default function AppEntryPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: false, amount: 0.3 }}
+                            viewport={{ once: true, amount: 0.3 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
                             className="mb-10 md:mb-16 space-y-4"
                         >
@@ -566,7 +567,7 @@ export default function AppEntryPage() {
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: false }}
+                            viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                             className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight"
                         >
@@ -575,7 +576,7 @@ export default function AppEntryPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: false }}
+                            viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="flex flex-col sm:flex-row gap-4 justify-center"
                         >
