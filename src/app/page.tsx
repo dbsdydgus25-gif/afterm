@@ -15,7 +15,7 @@ export default function AppEntryPage() {
     const [showSplash, setShowSplash] = useState(true);
     // Use the same states as the original page to ensure compatibility
     const { user, plan, setMessageCount } = useMemoryStore();
-    const [currentBgIndex, setCurrentBgIndex] = useState(0);
+    // const [currentBgIndex, setCurrentBgIndex] = useState(0); // Removed for static BG
 
     // States for service sections
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -52,12 +52,7 @@ export default function AppEntryPage() {
         }
     }, []);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentBgIndex((prev) => (prev + 1) % backgrounds.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, []);
+    // Background slideshow logic removed for static blue theme
 
 
     return (
@@ -99,23 +94,14 @@ export default function AppEntryPage() {
                 animate={{ opacity: showSplash ? 0 : 1 }}
                 transition={{ duration: 0.5 }}
             >
-                {/* Background (From Original) */}
+                {/* Background (Static Blue) */}
                 <div className="absolute inset-0 z-0">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentBgIndex}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1.5 }}
-                            className={`absolute inset-0 ${backgrounds[currentBgIndex]}`}
-                        />
-                    </AnimatePresence>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
                     <div className="absolute inset-0 bg-white/40 z-10 backdrop-blur-[1px]"></div>
                 </div>
 
                 {/* Hero Content (Centered) */}
-                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-[85vh] md:min-h-screen px-6 pt-28 md:pt-32 pb-12 md:pb-10 text-center space-y-6 md:space-y-8">
+                <div className="relative z-10 w-full max-w-lg flex flex-col items-center justify-start md:justify-center min-h-[65vh] md:min-h-screen px-6 pt-24 md:pt-32 pb-8 md:pb-10 text-center space-y-6 md:space-y-8">
 
                     {/* Typography (Scaled down for mobile as requested) */}
                     <div className="flex flex-col items-center gap-4">

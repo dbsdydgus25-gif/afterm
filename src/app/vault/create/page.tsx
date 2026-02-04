@@ -36,6 +36,7 @@ export default function VaultCreatePage() {
     const [recipientName, setRecipientName] = useState('');
     const [recipientPhone, setRecipientPhone] = useState('');
     const [recipientRelationship, setRecipientRelationship] = useState('');
+    const [isCustomRel, setIsCustomRel] = useState(false);
     const [recipientConsent, setRecipientConsent] = useState(false);
 
     // Step 2: Account Info
@@ -323,12 +324,14 @@ export default function VaultCreatePage() {
                                 </label>
                                 <div className="space-y-2">
                                     <select
-                                        value={['가족', '친구', '연인', '동료'].includes(recipientRelationship) ? recipientRelationship : (recipientRelationship ? '기타' : '')}
+                                        value={isCustomRel ? '기타' : recipientRelationship}
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             if (val === '기타') {
+                                                setIsCustomRel(true);
                                                 setRecipientRelationship('');
                                             } else {
+                                                setIsCustomRel(false);
                                                 setRecipientRelationship(val);
                                             }
                                         }}
@@ -342,22 +345,15 @@ export default function VaultCreatePage() {
                                         <option value="기타">기타 (직접 입력)</option>
                                     </select>
 
-                                    {(!['가족', '친구', '연인', '동료'].includes(recipientRelationship) && recipientRelationship !== '') || recipientRelationship === '' ? (
-                                        // Logic check: if it's NOT in the list, show input. Wait, initial state is empty.
-                                        // If user selects '기타', we clear implementation.
-                                        // Let's rely on the Select to drive the main state, but we need a comprehensive way to handle 'Other'.
-                                        // Simplified: If not one of the standard options (and not empty initially unless user wants custom), show input? 
-                                        // Actually let's just show input if '기타' was selected logic? NO, standard UI pattern:
-                                        (!['가족', '친구', '연인', '동료'].includes(recipientRelationship) && recipientRelationship !== '') && (
-                                            <Input
-                                                value={recipientRelationship}
-                                                onChange={(e) => setRecipientRelationship(e.target.value)}
-                                                placeholder="직접 입력 (예: 이웃, 선생님)"
-                                                className="h-10 text-sm animate-in fade-in slide-in-from-top-1"
-                                                autoFocus
-                                            />
-                                        )
-                                    ) : null}
+                                    {isCustomRel && (
+                                        <Input
+                                            value={recipientRelationship}
+                                            onChange={(e) => setRecipientRelationship(e.target.value)}
+                                            placeholder="직접 입력 (예: 이웃, 선생님)"
+                                            className="h-10 text-sm animate-in fade-in slide-in-from-top-1"
+                                            autoFocus
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </div>
