@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   verification: {
     google: 'google-site-verification-code', // 구글 서치콘솔 코드를 여기에 입력하세요.
     other: {
-      'naver-site-verification': 'naver-site-verification-code', // 네이버 서치어드바이저 코드를 여기에 입력하세요.
+      'naver-site-verification': '4984ce60706352e372bae9036e5e672c8ba0482b',
     },
   },
 };
