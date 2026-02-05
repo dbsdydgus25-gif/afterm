@@ -52,7 +52,13 @@ export const NewsSection = () => {
     return (
         <section className="w-full bg-slate-50 py-24 md:py-32">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="text-center mb-16 space-y-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center mb-16 space-y-4"
+                >
                     <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">
                         TREND
                     </span>
@@ -63,7 +69,7 @@ export const NewsSection = () => {
                         웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
                         많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {articles.map((article, index) => (
@@ -74,8 +80,8 @@ export const NewsSection = () => {
                             rel="noopener noreferrer"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.1 }}
+                            viewport={{ once: true, margin: "0px" }}
+                            transition={{ delay: index * 0.1, duration: 0.5 }}
                             className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full flex flex-col"
                         >
                             <div

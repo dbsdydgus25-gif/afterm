@@ -31,6 +31,14 @@ export const metadata: Metadata = {
     siteName: '에프텀 AFTERM',
     locale: 'ko_KR',
     type: 'website',
+    images: [
+      {
+        url: '/logo.jpg',
+        width: 1200,
+        height: 630,
+        alt: '에프텀 AFTERM Logo',
+      },
+    ],
   },
   robots: {
     index: true,
