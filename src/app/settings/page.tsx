@@ -722,13 +722,11 @@ function SettingsContent() {
                                         </div>
                                     </div>
 
-                                    {/* Password Change Section (Local Users Only) */}
-                                    {user.app_metadata?.provider === 'email' && (
-                                        <div className="py-2 border-b border-slate-50">
-                                            <h3 className="font-bold text-slate-900 text-xs mb-3">비밀번호 변경</h3>
-                                            <PasswordChangeForm userPhone={phone} />
-                                        </div>
-                                    )}
+                                    {/* Password Change Section (Available for All Users) */}
+                                    <div className="py-2 border-b border-slate-50">
+                                        <h3 className="font-bold text-slate-900 text-xs mb-3">비밀번호 변경</h3>
+                                        <PasswordChangeForm userPhone={phone} />
+                                    </div>
 
                                     <div>
                                         <h3 className="font-bold text-slate-900 text-xs mb-2 text-red-600">위험 구역</h3>

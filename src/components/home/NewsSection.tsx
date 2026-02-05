@@ -57,13 +57,7 @@ export const NewsSection = () => {
     return (
         <section className="w-full bg-slate-50 py-16 md:py-24 overflow-hidden">
             <div className="w-full px-0">
-                <motion.div
-                    className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4 px-6"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                >
+                <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4 px-6 relative z-10 opacity-100">
                     <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">
                         TREND
                     </span>
@@ -74,7 +68,7 @@ export const NewsSection = () => {
                         웰다잉(Well-dying)은 이제 더 이상 낯선 단어가 아닙니다.<br className="hidden md:block" />
                         많은 사람들이 자신의 삶을 능동적으로 마무리하고 준비하고 있습니다.
                     </p>
-                </motion.div>
+                </div>
 
                 {/* Ticker Container - Masked edges for better look */}
                 <div className="relative w-full flex overflow-hidden">

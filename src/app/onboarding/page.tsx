@@ -280,9 +280,21 @@ export default function OnboardingPage() {
             return;
         }
 
-        // Validate Password (reuse logic if imported or check length)
+        // Validate Password
         if (accountPassword.length < 8) {
             alert("비밀번호를 8자 이상 입력해주세요.");
+            return;
+        }
+
+        // Strict Policy check (Letters + Numbers + Special Characters)
+        // We reuse the validatePassword utils or implement strict check here if import is complicated.
+        // Let's implement strict check consistent with compliance.ts
+        const hasLetter = /[a-zA-Z]/.test(accountPassword);
+        const hasNumber = /[0-9]/.test(accountPassword);
+        const hasSpecial = /[!@#$%^&*]/.test(accountPassword);
+
+        if (!hasLetter || !hasNumber || !hasSpecial) {
+            alert("비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다.");
             return;
         }
 
