@@ -22,7 +22,6 @@ import { ArrowLeft, User, Phone, Heart } from "lucide-react";
 export default function VaultCreatePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [hasPin, setHasPin] = useState<boolean | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
 
     // Step 0: Legal Consent
@@ -54,37 +53,7 @@ export default function VaultCreatePage() {
 
     const TOTAL_STEPS = 5;
 
-    useEffect(() => {
-        checkPinStatus();
-    }, []);
 
-    const checkPinStatus = async () => {
-        try {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                router.push("/login");
-                return;
-            }
-
-            const { data } = await supabase
-                .from("vault_pins")
-                .select("user_id")
-                .eq("user_id", user.id)
-                .maybeSingle();
-
-            if (!data) {
-                router.push("/vault/setup-pin");
-                return;
-            }
-
-            setHasPin(true);
-        } catch (error) {
-            console.error(error);
-            alert("오류가 발생했습니다.");
-        }
-    };
 
     const handleLegalConsentComplete = (consents: any) => {
         setLegalConsents(consents);
@@ -253,13 +222,7 @@ export default function VaultCreatePage() {
         return [];
     };
 
-    if (hasPin === null) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-slate-500">로딩 중...</div>
-            </div>
-        );
-    }
+
 
     const getStepTitle = () => {
         switch (currentStep) {
