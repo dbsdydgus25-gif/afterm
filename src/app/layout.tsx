@@ -31,14 +31,11 @@ export const metadata: Metadata = {
     siteName: '에프텀 AFTERM',
     locale: 'ko_KR',
     type: 'website',
-    images: [
-      {
-        url: '/logo.jpg',
-        width: 1200,
-        height: 630,
-        alt: '에프텀 AFTERM Logo',
-      },
-    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
+    description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
   },
   robots: {
     index: true,
