@@ -53,10 +53,6 @@ export const NewsSection = () => {
         <section className="w-full bg-slate-50 py-24 md:py-32">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6 }}
                     className="text-center mb-16 space-y-4"
                 >
                     <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">
@@ -78,10 +74,6 @@ export const NewsSection = () => {
                             href={article.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "0px" }}
-                            transition={{ delay: index * 0.1, duration: 0.5 }}
                             className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full flex flex-col"
                         >
                             <div
