@@ -32,14 +32,14 @@ export function RiskAwarenessSection() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4">
+                        <h2 className="text-2xl md:text-5xl font-bold text-white leading-tight mb-4">
                             예고 없는 부재,<br />
-                            <span className="text-slate-400 text-2xl md:text-4xl">남겨진 것들은 어떻게 될까요?</span>
+                            <span className="text-slate-400 text-xl md:text-3xl">남겨진 것들은 어떻게 될까요?</span>
                         </h2>
                     </motion.div>
 
                     <div className="flex items-center justify-center md:justify-start">
-                        <div className="text-blue-400 text-2xl md:text-3xl font-bold leading-relaxed">
+                        <div className="text-blue-400 text-xl md:text-2xl font-bold leading-relaxed">
                             복잡한 디지털 자산의<br />
                             법적 절차와 정리
                         </div>

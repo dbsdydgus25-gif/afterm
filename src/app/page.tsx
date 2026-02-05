@@ -10,14 +10,13 @@ import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
+import { NewsSection } from "@/components/home/NewsSection";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 
 export default function AppEntryPage() {
     const router = useRouter();
     const [showSplash, setShowSplash] = useState(true);
-    // Use the same states as the original page to ensure compatibility
-    const { user, plan, setMessageCount } = useMemoryStore();
-    // const [currentBgIndex, setCurrentBgIndex] = useState(0); // Removed for static BG
+    const { user, plan } = useMemoryStore();
 
     // States for service sections
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -33,13 +32,6 @@ export default function AppEntryPage() {
         router.push('/plans');
     };
 
-    // Background slideshow logic (Same as original)
-    const backgrounds = [
-        "bg-gradient-to-br from-orange-50 to-amber-50",
-        "bg-gradient-to-br from-blue-50 to-indigo-50",
-        "bg-gradient-to-br from-rose-50 to-pink-50",
-    ];
-
     useEffect(() => {
         const hasShownSplash = sessionStorage.getItem('splash_shown');
 
@@ -53,9 +45,6 @@ export default function AppEntryPage() {
             return () => clearTimeout(timer);
         }
     }, []);
-
-    // Background slideshow logic removed for static blue theme
-
 
     return (
         <div className="flex flex-col min-h-screen font-sans relative">
@@ -103,11 +92,8 @@ export default function AppEntryPage() {
                     <div className="absolute inset-0 bg-white/40 z-10"></div>
                 </div>
 
-                {/* Hero Content (Centered) - Restored */}
-                {/* Hero Content (Centered) - Optimized */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center min-h-[70vh] md:min-h-screen px-6 pt-40 md:pt-40 pb-32 md:pb-20 text-center space-y-6 md:space-y-10">
-                    {/* Background removed from here */}
-
+                {/* 1. Hero Content (Centered) - Optimized Spacing */}
+                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center px-6 pt-52 md:pt-40 pb-52 md:pb-20 text-center space-y-6 md:space-y-10 min-h-[85vh] md:min-h-screen">
                     {/* Typography */}
                     <div className="relative z-10 flex flex-col items-center gap-4">
                         {/* Promo Banner */}
@@ -182,8 +168,7 @@ export default function AppEntryPage() {
                     </div>
                 </div>
 
-
-                {/* 2. Feature Section (Gift) - Optimized Spacing */}
+                {/* 2. Left Behind Section (Gift) */}
                 <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
                     <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full bg-blue-900/10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
@@ -199,7 +184,7 @@ export default function AppEntryPage() {
                                     transition={{ duration: 0.8, ease: "easeOut" }}
                                     className="space-y-4 md:space-y-6"
                                 >
-                                    <h2 className="text-2xl md:text-5xl font-bold leading-tight tracking-tight">
+                                    <h2 className="text-2xl md:text-4xl font-bold leading-tight tracking-tight">
                                         남겨진 사람들에게<br />
                                         <span className="text-blue-400">가장 소중한 선물</span>이<br />
                                         됩니다.
@@ -242,7 +227,7 @@ export default function AppEntryPage() {
                                                 </div>
                                             </div>
                                             <p className="text-slate-300 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
-                                                "내 장례식은 파티였음 좋겠음, 클럽 노래 틀고 즐기다가 가~"
+                                                &quot;내 장례식은 파티였음 좋겠음, 클럽 노래 틀고 즐기다가 가~&quot;
                                             </p>
                                         </motion.div>
 
@@ -263,7 +248,7 @@ export default function AppEntryPage() {
                                                 </div>
                                             </div>
                                             <p className="text-blue-50 text-base leading-relaxed pl-3 border-l-2 border-slate-700">
-                                                "이번 생 재밌었다 넷플, 티빙 계정 남긴다. 나머지는 너가 내 ^^"
+                                                &quot;이번 생 재밌었다 넷플, 티빙 계정 남긴다. 나머지는 너가 내 ^^&quot;
                                             </p>
                                         </motion.div>
                                     </div>
@@ -273,12 +258,7 @@ export default function AppEntryPage() {
                     </div>
                 </section>
 
-                {/* Risk Awareness Section (After Feature) */}
-                <div className="bg-slate-900 w-full">
-                    <RiskAwarenessSection />
-                </div>
-
-                {/* 3. Service Process Explanation Section (How It Works) */}
+                {/* 3. How It Works Section */}
                 <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100 relative z-10">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8">
                         <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
@@ -367,7 +347,15 @@ export default function AppEntryPage() {
                     </div>
                 </section>
 
-                {/* 4. Online Memorial Section */}
+                {/* 4. Unexpected Absence (Risk Awareness) */}
+                <div className="bg-slate-900 w-full">
+                    <RiskAwarenessSection />
+                </div>
+
+                {/* 5. 5. Well-dying Trends (News Section) */}
+                <NewsSection />
+
+                {/* 6. Online Memorial Section */}
                 <section className="w-full bg-slate-100/50 py-16 md:py-24 relative overflow-hidden z-10">
                     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent opacity-60"></div>
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
@@ -393,7 +381,7 @@ export default function AppEntryPage() {
                                     <div className="space-y-4">
                                         <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none">
                                             <p className="text-slate-600 text-sm leading-relaxed">
-                                                "할머니, 오늘 첫눈이 왔어요. 할머니가 좋아하시던 군고구마 냄새가 나니까 더 보고싶네요.. 사랑해요."
+                                                &quot;할머니, 오늘 첫눈이 왔어요. 할머니가 좋아하시던 군고구마 냄새가 나니까 더 보고싶네요.. 사랑해요.&quot;
                                             </p>
                                             <div className="mt-2 text-xs text-slate-400 font-medium">손녀 지민이가</div>
                                         </div>
@@ -419,7 +407,7 @@ export default function AppEntryPage() {
                                 <div className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-sm font-bold tracking-wide">
                                     NEW SERVICE
                                 </div>
-                                <h2 className="text-xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                                <h2 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
                                     그리운 마음을<br />
                                     <span className="text-blue-600">온라인 추모관</span>에 남겨보세요.
                                 </h2>
@@ -442,7 +430,7 @@ export default function AppEntryPage() {
                     </div>
                 </section>
 
-                {/* 5. Pricing Section (Restored & Promoted) */}
+                {/* 7. Plans Section */}
                 <section className="w-full bg-slate-50 py-16 md:py-24 relative z-10">
                     <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
                         <motion.div
@@ -453,7 +441,7 @@ export default function AppEntryPage() {
                             className="mb-10 md:mb-16 space-y-4"
                         >
                             <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">PRICING</span>
-                            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
+                            <h2 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
                                 당신을 위한 최적의 플랜을 선택하세요.
                             </h2>
                             <p className="text-slate-500 text-sm md:text-xl max-w-2xl mx-auto leading-relaxed break-keep">
@@ -570,11 +558,11 @@ export default function AppEntryPage() {
                     </div>
                 </section>
 
-                {/* 6. New Bottom Section */}
+                {/* 8. Final CTA Section */}
                 <section className="w-full bg-white py-16 md:py-24 px-6 text-center border-t border-slate-100 relative z-10">
                     <div className="max-w-3xl mx-auto space-y-10">
                         <h2
-                            className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight"
+                            className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight"
                         >
                             당신의 이후를 위해<br />준비합니다.
                         </h2>
