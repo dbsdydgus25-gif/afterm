@@ -238,9 +238,9 @@ export default function VaultCreatePage() {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             {/* Header */}
-            <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center px-6 justify-between sticky top-0 z-50">
-                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
-                <div className="text-sm font-medium text-slate-500">
+            <header className="w-full bg-white border-b border-slate-200 h-14 flex items-center px-5 justify-between sticky top-0 z-50">
+                <span className="text-lg font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
+                <div className="text-xs font-medium text-slate-500">
                     {getStepTitle()} ({currentStep + 1}/{TOTAL_STEPS})
                 </div>
             </header>
@@ -255,10 +255,10 @@ export default function VaultCreatePage() {
                 {currentStep === 1 && (
                     <div className="space-y-6">
                         <div className="text-center space-y-2 mb-4">
-                            <h1 className="text-xl font-bold text-slate-900">
+                            <h1 className="text-lg font-bold text-slate-900">
                                 누구에게 남기시겠습니까?
                             </h1>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-xs text-slate-500">
                                 사후에 이 정보를 전달받을 분을 지정해주세요.
                             </p>
                         </div>
@@ -355,7 +355,7 @@ export default function VaultCreatePage() {
                 {currentStep === 2 && (
                     <div className="space-y-6">
                         <div className="text-center space-y-2 mb-4">
-                            <h1 className="text-xl font-bold text-slate-900">
+                            <h1 className="text-lg font-bold text-slate-900">
                                 어떤 계정을 정리할까요?
                             </h1>
                             <p className="text-sm text-slate-500">
@@ -462,7 +462,7 @@ export default function VaultCreatePage() {
                 {currentStep === 3 && (
                     <div className="space-y-6">
                         <div className="text-center space-y-2 mb-4">
-                            <h1 className="text-xl font-bold text-slate-900">
+                            <h1 className="text-lg font-bold text-slate-900">
                                 안전하게 잠그기
                             </h1>
                             <p className="text-sm text-slate-500">
@@ -514,7 +514,7 @@ export default function VaultCreatePage() {
                 {currentStep === 4 && (
                     <div className="space-y-6">
                         <div className="text-center space-y-2 mb-4">
-                            <h1 className="text-xl font-bold text-slate-900">
+                            <h1 className="text-lg font-bold text-slate-900">
                                 마지막으로 확인해주세요
                             </h1>
                             <p className="text-sm text-slate-500">
@@ -558,19 +558,19 @@ export default function VaultCreatePage() {
 
             {/* Bottom Sticky Action Bar */}
             {currentStep > 0 && (
-                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 pb-8 z-40">
+                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 z-40 safe-area-bottom">
                     <div className="max-w-md mx-auto flex gap-3">
                         <Button
                             onClick={handlePrevStep}
                             variant="outline"
-                            className="flex-1 h-14 rounded-xl text-base font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                            className="flex-1 h-12 rounded-xl text-base font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                         >
                             이전
                         </Button>
                         {currentStep < TOTAL_STEPS - 1 ? (
                             <Button
                                 onClick={handleNextStep}
-                                className="flex-[2] h-14 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
+                                className="flex-[2] h-12 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
                             >
                                 다음 단계로
                             </Button>
@@ -578,7 +578,7 @@ export default function VaultCreatePage() {
                             <Button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="flex-[2] h-14 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
+                                className="flex-[2] h-12 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200"
                             >
                                 {loading ? "저장 중..." : "최종 저장하기"}
                             </Button>
