@@ -1,0 +1,70 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "Next.js 16",
+        "React 19",
+        "Tailwind CSS 4",
+        "Supabase",
+        "Zustand"
+    ],
+    "features": [
+        {
+            "name": "Landing Page",
+            "description": "Main entry page with hero section, feature introduction, and pricing overview.",
+            "files": [
+                "src/app/page.tsx",
+                "src/components/layout/Header.tsx",
+                "src/components/layout/Footer.tsx"
+            ]
+        },
+        {
+            "name": "Authentication",
+            "description": "User login and signup functionality using Supabase Auth.",
+            "files": [
+                "src/app/auth",
+                "src/app/login",
+                "src/app/signup",
+                "src/middleware.ts"
+            ]
+        },
+        {
+            "name": "Memory Creation",
+            "description": "Feature to create and schedule messages/memories to be sent later.",
+            "files": [
+                "src/app/create",
+                "src/store/useMemoryStore.ts"
+            ]
+        },
+        {
+            "name": "Digital Vault",
+            "description": "Secure storage for digital assets and legacy information.",
+            "files": [
+                "src/app/vault",
+                "src/app/vault/create"
+            ]
+        },
+        {
+            "name": "Plans & Payment",
+            "description": "Subscription plan management and payment processing via Toss Payments.",
+            "files": [
+                "src/app/plans",
+                "src/app/payment"
+            ]
+        },
+        {
+            "name": "Online Memorial (Space)",
+            "description": "Public or private memorial spaces for remembering loved ones.",
+            "files": [
+                "src/app/space"
+            ]
+        },
+        {
+            "name": "Recipient Verification",
+            "description": "Process for recipients to verify identity and access messages.",
+            "files": [
+                "src/app/recipient",
+                "src/app/confirmed"
+            ]
+        }
+    ]
+}

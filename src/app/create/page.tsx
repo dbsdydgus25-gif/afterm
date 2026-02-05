@@ -15,6 +15,33 @@ export default function CreatePage() {
     const [step, setStep] = useState(0); // 0: Disclaimer, 1: Create
     const [agreed, setAgreed] = useState(false);
 
+    // Check if there are unsaved changes
+    const hasChanges = message.trim().length > 0 || files.length > 0;
+
+    // 1. Browser Level Warning (Refresh/Close)
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasChanges && step === 1) { // Only warn in writing step
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasChanges, step]);
+
+    // 2. In-App Navigation Warning (Header Logo)
+    const handleExit = () => {
+        if (hasChanges && step === 1) {
+            if (confirm("작성 중인 내용은 저장되지 않습니다. 정말 나가시겠습니까?")) {
+                router.push('/');
+            }
+        } else {
+            router.push('/');
+        }
+    };
+
     useEffect(() => {
         const fetchCount = async () => {
             if (user?.id) {
@@ -86,7 +113,7 @@ export default function CreatePage() {
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             {/* Header */}
             <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center px-6 justify-between sticky top-0 z-50">
-                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={() => router.push('/')}>AFTERM</span>
+                <span className="text-xl font-black text-blue-600 tracking-tighter cursor-pointer" onClick={handleExit}>AFTERM</span>
                 <div className="text-sm font-medium text-slate-500">
                     {step === 0 ? "서비스 이용 안내 (1/3)" : "기억 남기기 (2/3)"}
                 </div>

@@ -49,11 +49,20 @@ const articles = [
 ];
 
 export const NewsSection = () => {
+    // Duplicate articles for seamless infinite scroll (4 sets ensures smooth -50% loop)
+    // 0% -> Shows Set 1 & 2
+    // -50% -> Shows Set 3 & 4 (which looks exactly like Set 1 & 2)
+    const rollingArticles = [...articles, ...articles, ...articles, ...articles];
+
     return (
-        <section className="w-full bg-slate-50 py-24 md:py-32">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <section className="w-full bg-slate-50 py-16 md:py-24 overflow-hidden">
+            <div className="w-full px-0">
                 <motion.div
-                    className="text-center mb-16 space-y-4"
+                    className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4 px-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
                 >
                     <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-[10px] md:text-sm font-bold tracking-wide mb-2">
                         TREND
@@ -67,31 +76,71 @@ export const NewsSection = () => {
                     </p>
                 </motion.div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                    {articles.map((article, index) => (
-                        <motion.a
-                            key={index}
-                            href={article.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer block h-full flex flex-col"
-                        >
-                            <div
-                                className={`w-14 h-14 ${article.bg} rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform`}
+                {/* Ticker Container - Masked edges for better look */}
+                <div className="relative w-full flex overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-12 md:w-32 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-12 md:w-32 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
+
+                    <motion.div
+                        className="flex gap-4 md:gap-8 px-4 md:px-0 will-change-transform"
+                        animate={{
+                            x: ["0%", "-50%"],
+                        }}
+                        transition={{
+                            x: {
+                                repeat: Infinity,
+                                repeatType: "loop",
+                                duration: 40,
+                                ease: "linear",
+                            },
+                        }}
+                        style={{
+                            width: "max-content",
+                            backfaceVisibility: "hidden",
+                            WebkitBackfaceVisibility: "hidden",
+                            perspective: 1000,
+                            WebkitPerspective: 1000
+                        }}
+                    >
+                        {rollingArticles.map((article, index) => (
+                            <a
+                                key={index}
+                                href={article.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl md:rounded-[2rem] overflow-hidden
+                                            w-[160px] h-[160px] md:w-[400px] md:h-auto md:p-8 p-4 flex flex-col md:block flex-shrink-0 cursor-pointer"
                             >
-                                {article.icon}
-                            </div>
-                            <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors line-clamp-2">
-                                {article.title}
-                            </h3>
-                            <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3 flex-1">
-                                {article.desc}
-                            </p>
-                            <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1 mt-auto">
-                                자세히 보기 <span className="text-lg">→</span>
-                            </span>
-                        </motion.a>
-                    ))}
+                                {/* Mobile: Icon + Title Only (Square) */}
+                                <div className="flex md:hidden flex-col h-full items-center justify-center text-center gap-3">
+                                    <div className={`w-10 h-10 ${article.bg} rounded-full flex items-center justify-center text-xl`}>
+                                        {article.icon}
+                                    </div>
+                                    <h3 className="text-xs font-bold text-slate-900 line-clamp-2 leading-snug break-keep">
+                                        {article.title}
+                                    </h3>
+                                </div>
+
+                                {/* Desktop: Full Content */}
+                                <div className="hidden md:block">
+                                    <div
+                                        className={`w-14 h-14 ${article.bg} rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform`}
+                                    >
+                                        {article.icon}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                        {article.title}
+                                    </h3>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-2">
+                                        {article.desc}
+                                    </p>
+                                    <span className="text-sm font-semibold text-slate-400 group-hover:text-blue-500 flex items-center gap-1 mt-auto">
+                                        자세히 보기 <span className="text-lg">→</span>
+                                    </span>
+                                </div>
+                            </a>
+                        ))}
+                    </motion.div>
                 </div>
             </div>
         </section>

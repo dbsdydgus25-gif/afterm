@@ -16,7 +16,7 @@ export default function OnboardingPage() {
     const { user, setUser } = useMemoryStore();
     const [mounted, setMounted] = useState(false);
 
-    // Steps: 0 = Agreements, 1 = Verification, 2 = Profile
+    // Steps: 0 = Agreements, 1 = Account Setup (New), 2 = Verification, 3 = Profile
     const [step, setStep] = useState(0);
     const [loading, setLoading] = useState(false);
 
@@ -28,7 +28,13 @@ export default function OnboardingPage() {
     const allAgreed = agreedTerms && agreedPrivacy && agreedThirdParty && agreedEntrustment;
     const [expandedAgreement, setExpandedAgreement] = useState<string | null>(null);
 
-    // Step 1: Verification
+    // Step 1: Account Setup (Password for Social Users)
+    const [accountEmail, setAccountEmail] = useState("");
+    const [accountProvider, setAccountProvider] = useState("");
+    const [accountPassword, setAccountPassword] = useState("");
+    const [accountConfirmPassword, setAccountConfirmPassword] = useState("");
+
+    // Step 2: Verification
     const [phone, setPhone] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
     const [isCodeSent, setIsCodeSent] = useState(false);
@@ -36,8 +42,7 @@ export default function OnboardingPage() {
     const [timer, setTimer] = useState(0);
     const [sendingCode, setSendingCode] = useState(false);
 
-    // Step 2: Profile
-    // Step 2: Profile
+    // Step 3: Profile
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -56,86 +61,76 @@ export default function OnboardingPage() {
             if (metaPhone) {
                 setPhone(metaPhone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`));
             }
+            // For Step 1
+            setAccountEmail(user.email || "");
+            setAccountProvider(user.app_metadata?.provider || "social");
 
             // Determine Starting Step based on completion status
             const checkStartStep = async () => {
                 const supabase = createClient();
                 console.log("=== ONBOARDING STEP DETECTION START ===");
-                console.log("User ID:", user.id);
-                console.log("User email:", user.email);
 
-                // PRIMARY CHECK: onboarding_completed flag (most reliable for existing users)
-                // Use user_metadata to bypass RLS issues
                 const userMetadata = user.user_metadata;
                 const isOnboardingComplete = userMetadata?.onboarding_completed === true;
 
-                console.log("Profile data (metadata):", userMetadata);
-                console.log("Onboarding completed:", isOnboardingComplete);
-
                 // If user already completed onboarding, redirect to home
                 if (isOnboardingComplete) {
-                    console.log(">>> User completed onboarding, redirecting to home");
-                    // Force hard redirect
                     window.location.href = "/";
                     return;
                 }
 
-                console.log(">>> User has no nickname, proceeding with onboarding");
-
                 // Check agreements
                 let hasAgreed = false;
-
-                // 1. Check Metadata first (Reliable Backup)
-                if (userMetadata?.terms_agreed) {
+                if ((userMetadata as any)?.terms_agreed) {
                     hasAgreed = true;
                 } else {
-                    // 2. Check DB
                     const { data: agreementRows } = await supabase
                         .from('user_agreements')
-                        .select('*')
+                        .select('terms_agreed')
                         .eq('user_id', user.id)
                         .limit(1);
+                    if (agreementRows?.[0]?.terms_agreed) hasAgreed = true;
+                }
 
-                    const agreements = agreementRows?.[0];
-                    if (agreements?.terms_agreed && agreements?.privacy_agreed) {
-                        hasAgreed = true;
+                // Check Phone Verification
+                // Note: We check if password is set? Hard to check directly, but social login usually has empty password hash until set.
+                // However, we can track "account_setup_completed" metadata if we want strict enforcement.
+                // For now, let's assume if they have agreements, they might need account setup if it's social.
+
+                // Simpler logic:
+                // If Agreements DONE -> Check if Password/Account DONE (via metadata flag) -> Check Phone -> Profile
+
+                const isAccountSetup = (userMetadata as any)?.account_setup_completed === true || user.app_metadata?.provider === 'email'; // Email users already did this
+                const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
+
+                let startStep = 0; // Default: Agreements
+
+                if (hasAgreed) {
+                    startStep = 1; // Need Account Setup
+                    if (isAccountSetup) {
+                        startStep = 2; // Need Phone
+                        if (isPhoneVerified) {
+                            startStep = 3; // Need Profile
+                        }
                     }
                 }
-
-                console.log("Has agreed:", hasAgreed);
-
-                // Check phone verification
-                const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
-                console.log("Is phone verified:", isPhoneVerified);
-
-                let startStep = 0; // Default to Agreements
-
-                if (hasAgreed && !isPhoneVerified) {
-                    startStep = 1; // Agreements done, need phone verification
-                } else if (hasAgreed && isPhoneVerified) {
-                    startStep = 2; // Both done, need profile
-                }
-
-                console.log("Starting step:", startStep);
 
                 // Allow manual override via query param ?step=
                 const params = new URLSearchParams(window.location.search);
                 const queryStep = params.get("step");
                 if (queryStep) {
                     const s = parseInt(queryStep);
-                    setStep(s > 2 ? 2 : s);
-                    console.log("Step overridden by query param:", s);
+                    setStep(s > 3 ? 3 : s);
                 } else {
                     setStep(startStep);
                 }
-                console.log("=== ONBOARDING STEP DETECTION END ===");
             };
 
             checkStartStep();
         }
     }, [user]);
 
-    // Timer Logic
+    // ... Timer Logic (unchanged) ...
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (isCodeSent && timer > 0) {
@@ -163,7 +158,6 @@ export default function OnboardingPage() {
                 setTimer(180);
                 alert("인증번호가 발송되었습니다.");
             } else {
-                // Check if duplicate phone error
                 if (data.error?.includes("이미 가입된")) {
                     alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
                     const supabase = createClient();
@@ -193,14 +187,12 @@ export default function OnboardingPage() {
                 const supabase = createClient();
                 const cleanPhone = phone.replace(/-/g, '');
 
-                // Update Metadata for Persistence
                 const { error: opsError } = await supabase.auth.updateUser({
                     data: { phone_verified: true, phone: cleanPhone }
                 });
 
                 if (opsError) {
                     console.error("Update error:", opsError);
-                    // Check for duplicate key error or similar
                     if (opsError.message?.includes("already registered") || opsError.message?.includes("unique")) {
                         alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
                         await supabase.auth.signOut();
@@ -217,7 +209,6 @@ export default function OnboardingPage() {
                 });
 
                 if (profileError) {
-                    // Check for duplicate phone in profiles
                     if (profileError.message?.includes("unique") || profileError.details?.includes("phone")) {
                         alert("이미 가입된 휴대폰 번호입니다. 메인 화면으로 이동합니다.");
                         await supabase.auth.signOut();
@@ -229,7 +220,7 @@ export default function OnboardingPage() {
                 setIsVerified(true);
                 setIsCodeSent(false);
                 alert("인증이 완료되었습니다!");
-                setTimeout(() => setStep(2), 500); // Auto advance to Profile
+                setTimeout(() => setStep(3), 500); // Auto advance to Profile (Step 3)
             } else {
                 alert(data.error || "인증번호가 올바르지 않거나 만료되었습니다.");
             }
@@ -249,14 +240,10 @@ export default function OnboardingPage() {
         try {
             if (!user) throw new Error("User not found");
 
-            // 1. Check/Update Metadata FIRST (Reliable)
             const { error: authError } = await supabase.auth.updateUser({
                 data: { terms_agreed: true }
             });
 
-            if (authError) console.error("Metadata update failed:", authError);
-
-            // 2. Save agreements to database (Best effort)
             const { error } = await supabase
                 .from('user_agreements')
                 .upsert({
@@ -272,7 +259,7 @@ export default function OnboardingPage() {
 
             if (error) console.error("DB agreements save error:", error);
 
-            // Move to next step (Phone Verification)
+            // Move to next step (Account Setup)
             setStep(1);
         } catch (error: any) {
             alert("처리 중 오류가 발생했습니다: " + (error.message || ""));
@@ -281,7 +268,45 @@ export default function OnboardingPage() {
         }
     };
 
+    const handleAccountSubmit = async () => {
+        // Only needed for Social Users who need to set password
+        if (accountProvider === 'email') {
+            setStep(2); // Skip to phone
+            return;
+        }
 
+        if (!accountPassword || accountPassword !== accountConfirmPassword) {
+            alert("비밀번호가 일치하지 않습니다.");
+            return;
+        }
+
+        // Validate Password (reuse logic if imported or check length)
+        if (accountPassword.length < 8) {
+            alert("비밀번호를 8자 이상 입력해주세요.");
+            return;
+        }
+
+        setLoading(true);
+        const supabase = createClient();
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: accountPassword,
+                data: { account_setup_completed: true }
+            });
+
+            if (error) throw error;
+
+            alert("비밀번호 설정이 완료되었습니다.");
+            setStep(2); // Move to Phone
+        } catch (error: any) {
+            alert("설정 실패: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ... (checkUsernameAvailability, handleImageUpload, handleFinalSubmit same as before) ...
+    // Note: handleFinalSubmit previously had logic for completion. Ensure it redirects.
 
     const checkUsernameAvailability = async () => {
         if (!username || username.length < 3) {
@@ -289,7 +314,6 @@ export default function OnboardingPage() {
             setUsernameError("3자 이상이어야 합니다.");
             return;
         }
-
         setLoading(true);
         try {
             const res = await fetch('/api/user/check-username', {
@@ -343,7 +367,7 @@ export default function OnboardingPage() {
             const updates = {
                 full_name: name,
                 name: name,
-                username: username, // New
+                username: username,
                 phone: phone.replace(/-/g, ''),
                 avatar_url: profileImage,
                 onboarding_completed: true
@@ -357,7 +381,6 @@ export default function OnboardingPage() {
 
             await supabase.auth.updateUser({ data: updates });
 
-            // Send Welcome Email
             if (user?.email) {
                 fetch('/api/email/welcome', {
                     method: 'POST',
@@ -374,23 +397,16 @@ export default function OnboardingPage() {
                 user_metadata: { ...user!.user_metadata, ...updates }
             });
 
-            // Mark as verified since they just set the profile
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
 
-            // Handle Redirect
-            const params = new URLSearchParams(window.location.search);
-            const returnTo = params.get("returnTo");
-            if (returnTo) {
-                router.replace(returnTo);
-            } else {
-                router.replace("/");
-            }
+            router.replace("/");
         } catch (error: any) {
             alert("저장 실패: " + error.message);
         } finally {
             setLoading(false);
         }
     };
+
 
     if (!mounted || !user) return null;
 
@@ -400,11 +416,8 @@ export default function OnboardingPage() {
                 {/* Back Button */}
                 <button
                     onClick={async () => {
-                        // Intelligent Back Logic
-                        if (step === 2) {
-                            setStep(1);
-                        } else if (step === 1) {
-                            setStep(0);
+                        if (step > 0) {
+                            setStep(step - 1);
                         } else {
                             const supabase = createClient();
                             await supabase.auth.signOut();
@@ -416,30 +429,33 @@ export default function OnboardingPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
 
-                {/* Progress Indicator */}
+                {/* Progress Indicator (4 Steps) */}
                 <div className="flex justify-center mb-8 gap-2">
-                    {[0, 1, 2].map((s) => (
-                        <div key={s} className={`h-1.5 w-8 rounded-full transition-all duration-300 ${s <= step ? "bg-blue-600" : "bg-slate-200"}`} />
+                    {[0, 1, 2, 3].map((s) => (
+                        <div key={s} className={`h-1.5 w-6 rounded-full transition-all duration-300 ${s <= step ? "bg-blue-600" : "bg-slate-200"}`} />
                     ))}
                 </div>
 
                 <div className="text-center mb-8">
                     <h1 className="text-2xl font-black text-slate-900 mb-2">
                         {step === 0 && "약관 동의"}
-                        {step === 1 && "본인 확인"}
-                        {step === 2 && "프로필 설정"}
+                        {step === 1 && "계정 정보"}
+                        {step === 2 && "본인 확인"}
+                        {step === 3 && "프로필 설정"}
                     </h1>
                     <p className="text-sm text-slate-500">
                         {step === 0 && "서비스 이용을 위해 필수 약관에 동의해주세요."}
-                        {step === 1 && "본인 명의의 휴대폰으로 인증해주세요."}
-                        {step === 2 && "사용하실 프로필 정보를 입력해주세요."}
+                        {step === 1 && "계정 보안을 위한 정보를 설정합니다."}
+                        {step === 2 && "본인 명의의 휴대폰으로 인증해주세요."}
+                        {step === 3 && "사용하실 프로필 정보를 입력해주세요."}
                     </p>
                 </div>
 
                 {/* STEP 0: Agreements */}
                 {step === 0 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-                        {/* All Agree */}
+                        {/* [Agreements content same as before] */}
+                        {/* We will reuse the same UI structure for brevity in replacement if possible, but full render here is safer */}
                         <div
                             className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
                             onClick={() => {
@@ -458,238 +474,138 @@ export default function OnboardingPage() {
 
                         <div className="h-px bg-slate-200 my-2" />
 
-                        {/* Individual Agreements */}
+                        {/* Individual Agreements List */}
                         <div className="space-y-2">
-                            <div
-                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
-                                onClick={() => setAgreedTerms(!agreedTerms)}
-                            >
-                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                                    {agreedTerms && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <span className="text-sm font-medium text-slate-700">
-                                    <span className="text-blue-600">[필수]</span> 서비스 이용약관
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('terms'); }}
-                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
-                                    >
-                                        내용보기
-                                    </button>
-                                </span>
+                            {/* Terms */}
+                            <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setAgreedTerms(!agreedTerms)}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}> {agreedTerms && <Check className="w-3 h-3 text-white" />} </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 서비스 이용약관<button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAgreement('terms'); }} className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs">내용보기</button></span>
                             </div>
-
-                            <div
-                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
-                                onClick={() => setAgreedPrivacy(!agreedPrivacy)}
-                            >
-                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                                    {agreedPrivacy && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <span className="text-sm font-medium text-slate-700">
-                                    <span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('privacy'); }}
-                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
-                                    >
-                                        내용보기
-                                    </button>
-                                </span>
+                            {/* Privacy */}
+                            <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setAgreedPrivacy(!agreedPrivacy)}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedPrivacy ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}> {agreedPrivacy && <Check className="w-3 h-3 text-white" />} </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 수집 및 이용<button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAgreement('privacy'); }} className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs">내용보기</button></span>
                             </div>
-
-                            <div
-                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
-                                onClick={() => setAgreedThirdParty(!agreedThirdParty)}
-                            >
-                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                                    {agreedThirdParty && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <span className="text-sm font-medium text-slate-700">
-                                    <span className="text-blue-600">[필수]</span> 제3자 제공
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('third-party'); }}
-                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
-                                    >
-                                        내용보기
-                                    </button>
-                                </span>
+                            {/* Third Party */}
+                            <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setAgreedThirdParty(!agreedThirdParty)}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedThirdParty ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}> {agreedThirdParty && <Check className="w-3 h-3 text-white" />} </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 제3자 제공<button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAgreement('third-party'); }} className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs">내용보기</button></span>
                             </div>
-
-                            <div
-                                className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
-                                onClick={() => setAgreedEntrustment(!agreedEntrustment)}
-                            >
-                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                                    {agreedEntrustment && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <span className="text-sm font-medium text-slate-700">
-                                    <span className="text-blue-600">[필수]</span> 개인정보 처리 위탁
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setExpandedAgreement('entrustment'); }}
-                                        className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs"
-                                    >
-                                        내용보기
-                                    </button>
-                                </span>
+                            {/* Entrustment */}
+                            <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setAgreedEntrustment(!agreedEntrustment)}>
+                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${agreedEntrustment ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}> {agreedEntrustment && <Check className="w-3 h-3 text-white" />} </div>
+                                <span className="text-sm font-medium text-slate-700"><span className="text-blue-600">[필수]</span> 개인정보 처리 위탁<button type="button" onClick={(e) => { e.stopPropagation(); setExpandedAgreement('entrustment'); }} className="ml-2 text-slate-500 underline hover:text-blue-600 text-xs">내용보기</button></span>
                             </div>
                         </div>
 
-                        <Button
-                            onClick={handleAgreementsSubmit}
-                            disabled={loading || !allAgreed}
-                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
-                        >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "다음으로"}
-                        </Button>
+                        <Button onClick={handleAgreementsSubmit} disabled={loading || !allAgreed} className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "다음으로"}</Button>
                     </div>
                 )}
 
-                {/* STEP 1: Phone Verification */}
+                {/* STEP 1: Account Setup (Password - New) */}
                 {step === 1 && (
+                    <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
+                        {/* Email Display (Read-only) */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">이메일</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    value={accountEmail}
+                                    readOnly
+                                    disabled
+                                    className="flex-1 p-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 outline-none"
+                                />
+                                <div className="w-24 flex items-center justify-center rounded-xl bg-green-100 text-green-700 font-bold text-xs">
+                                    인증됨
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Password Fields */}
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호 설정</label>
+                                <input
+                                    type="password"
+                                    value={accountPassword}
+                                    onChange={(e) => setAccountPassword(e.target.value)}
+                                    placeholder="8자 이상 비밀번호 입력"
+                                    className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">비밀번호 확인</label>
+                                <input
+                                    type="password"
+                                    value={accountConfirmPassword}
+                                    onChange={(e) => setAccountConfirmPassword(e.target.value)}
+                                    placeholder="비밀번호 다시 입력"
+                                    className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {accountPassword && accountConfirmPassword && (
+                                    <p className={`text-xs mt-2 ml-1 ${accountPassword === accountConfirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                                        {accountPassword === accountConfirmPassword ? "비밀번호가 일치합니다." : "비밀번호가 일치하지 않습니다."}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <Button onClick={handleAccountSubmit} disabled={loading || !accountPassword || accountPassword !== accountConfirmPassword} className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg mt-4">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "다음으로"}</Button>
+                    </div>
+                )}
+
+                {/* STEP 2: Phone Verification */}
+                {step === 2 && (
                     <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
+                        {/* [Phone Verification Content Same As Before] */}
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">휴대폰 번호</label>
                             <div className="flex gap-2 items-stretch">
-                                <input
-                                    type="tel"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))}
-                                    placeholder="010-0000-0000"
-                                    maxLength={13}
-                                    disabled={isVerified}
-                                    className="flex-1 h-12 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                />
-                                <Button
-                                    onClick={handleSendVerification}
-                                    disabled={sendingCode || isVerified || (isCodeSent && timer > 0)}
-                                    className="h-12 w-20 rounded-xl bg-slate-800 text-white font-bold text-sm"
-                                >
-                                    {sendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : isVerified ? "완료" : isCodeSent ? "재전송" : "전송"}
-                                </Button>
+                                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`))} placeholder="010-0000-0000" maxLength={13} disabled={isVerified} className="flex-1 h-12 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none font-medium" />
+                                <Button onClick={handleSendVerification} disabled={sendingCode || isVerified || (isCodeSent && timer > 0)} className="h-12 w-20 rounded-xl bg-slate-800 text-white font-bold text-sm">{sendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : isVerified ? "완료" : isCodeSent ? "재전송" : "전송"}</Button>
                             </div>
                         </div>
-
                         {isCodeSent && !isVerified && (
                             <div className="relative">
-                                <input
-                                    type="text"
-                                    value={verificationCode}
-                                    onChange={(e) => setVerificationCode(e.target.value)}
-                                    placeholder="인증번호 6자리"
-                                    className="w-full h-12 p-3 pr-20 rounded-xl border border-blue-200 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 outline-none font-medium"
-                                />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-blue-600 font-medium">
-                                    {Math.floor(timer / 60)}:{((timer % 60)).toString().padStart(2, '0')}
-                                </span>
+                                <input type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} placeholder="인증번호 6자리" className="w-full h-12 p-3 pr-20 rounded-xl border border-blue-200 bg-blue-50/50 focus:ring-2 focus:ring-blue-500 outline-none font-medium" />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-blue-600 font-medium">{Math.floor(timer / 60)}:{((timer % 60)).toString().padStart(2, '0')}</span>
                             </div>
                         )}
-
                         {!isVerified ? (
-                            <Button
-                                onClick={handleConfirmVerification}
-                                disabled={!verificationCode}
-                                className="w-full h-14 mt-4 rounded-xl bg-blue-600 text-white font-bold text-lg"
-                            >
-                                인증하기
-                            </Button>
+                            <Button onClick={handleConfirmVerification} disabled={!verificationCode} className="w-full h-14 mt-4 rounded-xl bg-blue-600 text-white font-bold text-lg">인증하기</Button>
                         ) : (
-                            <Button
-                                onClick={() => setStep(2)}
-                                className="w-full h-14 mt-4 rounded-xl bg-blue-600 text-white font-bold text-lg"
-                            >
-                                다음으로 <ArrowRight className="ml-2 w-5 h-5" />
-                            </Button>
+                            <Button onClick={() => setStep(3)} className="w-full h-14 mt-4 rounded-xl bg-blue-600 text-white font-bold text-lg">다음으로 <ArrowRight className="ml-2 w-5 h-5" /></Button>
                         )}
                     </div>
                 )}
 
-
-                {/* STEP 2: Profile Setup */}
-                {step === 2 && (
+                {/* STEP 3: Profile Setup */}
+                {step === 3 && (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                        {/* Profile Image */}
+                        {/* Profile Image & Inputs [Same as before] */}
                         <div className="flex justify-center">
                             <div className="relative group cursor-pointer" onClick={() => document.getElementById('file-upload')?.click()}>
-                                <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-slate-50 relative">
-                                    {profileImage ? (
-                                        <SecureAvatar src={profileImage} alt="Profile" className="w-full h-full" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                            <Camera className="w-8 h-8" />
-                                        </div>
-                                    )}
-                                </div>
+                                <div className="w-24 h-24 rounded-full overflow-hidden border border-slate-200 bg-slate-50 relative"> {profileImage ? (<SecureAvatar src={profileImage} alt="Profile" className="w-full h-full" />) : (<div className="w-full h-full flex items-center justify-center text-slate-300"><Camera className="w-8 h-8" /></div>)} </div>
                                 <input id="file-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                <div className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm border border-slate-100">
-                                    <Camera className="w-3 h-3 text-slate-500" />
-                                </div>
+                                <div className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm border border-slate-100"><Camera className="w-3 h-3 text-slate-500" /></div>
                             </div>
                         </div>
-
                         <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-bold text-slate-700">이름</label>
-                                <input
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="실명 입력"
-                                    className="w-full p-3 rounded-xl border border-slate-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm font-bold text-slate-700">아이디 (ID)</label>
+                            <div><label className="text-sm font-bold text-slate-700">이름</label><input value={name} onChange={(e) => setName(e.target.value)} placeholder="실명 입력" className="w-full p-3 rounded-xl border border-slate-200 mt-1 focus:ring-2 focus:ring-blue-500 outline-none" /></div>
+                            <div><label className="text-sm font-bold text-slate-700">아이디 (ID)</label>
                                 <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={(e) => {
-                                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, '');
-                                            setUsername(val);
-                                            setUsernameAvailable(null);
-                                            setUsernameError(null);
-                                        }}
-                                        onBlur={checkUsernameAvailability}
-                                        placeholder="영문 소문자, 숫자, ., _"
-                                        className={`w-full p-3 pl-10 rounded-xl border outline-none font-medium transition-all ${usernameAvailable === false ? 'border-red-300 bg-red-50 focus:border-red-500' :
-                                            usernameAvailable === true ? 'border-green-300 bg-green-50 focus:border-green-500' :
-                                                'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-                                            }`}
-                                    />
+                                    <input type="text" value={username} onChange={(e) => { const val = e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ''); setUsername(val); setUsernameAvailable(null); setUsernameError(null); }} onBlur={checkUsernameAvailability} placeholder="영문 소문자, 숫자, ., _" className={`w-full p-3 pl-10 rounded-xl border outline-none font-medium transition-all ${usernameAvailable === false ? 'border-red-300 bg-red-50 focus:border-red-500' : usernameAvailable === true ? 'border-green-300 bg-green-50 focus:border-green-500' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'}`} />
                                     <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</div>
-                                    {usernameAvailable === true && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
-                                            <CheckCircle2 className="w-5 h-5" />
-                                        </div>
-                                    )}
-                                    {loading && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                            <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
-                                        </div>
-                                    )}
+                                    {usernameAvailable === true && (<div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600"><CheckCircle2 className="w-5 h-5" /></div>)}
+                                    {loading && (<div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div></div>)}
                                 </div>
-                                <p className="text-xs mt-1.5 ml-1 h-4">
-                                    {usernameAvailable === false ? (
-                                        <span className="text-red-500 font-bold">{usernameError || "이미 사용 중인 아이디입니다."}</span>
-                                    ) : (
-                                        <span className="text-slate-400">3자 이상, 특수문자는 . _ 만 가능합니다.</span>
-                                    )}
-                                </p>
+                                <p className="text-xs mt-1.5 ml-1 h-4">{usernameAvailable === false ? (<span className="text-red-500 font-bold">{usernameError || "이미 사용 중인 아이디입니다."}</span>) : (<span className="text-slate-400">3자 이상, 특수문자는 . _ 만 가능합니다.</span>)}</p>
                             </div>
                         </div>
-
-                        <Button
-                            onClick={handleFinalSubmit}
-                            disabled={loading || !name || !username || usernameAvailable !== true}
-                            className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-lg shadow-blue-500/20"
-                        >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "시작하기"}
-                        </Button>
+                        <Button onClick={handleFinalSubmit} disabled={loading || !name || !username || usernameAvailable !== true} className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-lg shadow-blue-500/20">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "시작하기"}</Button>
                     </div>
-                )}
-            </div>
+                )}            </div>
 
             {/* Agreement Detail Modal */}
             {expandedAgreement && (

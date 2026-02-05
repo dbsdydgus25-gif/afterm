@@ -1,0 +1,495 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Signup with valid email and password",
+    "description": "Verify that a new user can successfully sign up with a valid email and password.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the signup page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid email address"
+      },
+      {
+        "type": "action",
+        "description": "Enter a strong password"
+      },
+      {
+        "type": "action",
+        "description": "Click the signup button"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that signup is successful and user is redirected to a protected area"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Login with correct email and password",
+    "description": "Verify that existing users can log in successfully with correct credentials.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a registered email address"
+      },
+      {
+        "type": "action",
+        "description": "Enter the correct password"
+      },
+      {
+        "type": "action",
+        "description": "Click the login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful login and redirection to the user dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Login attempt with incorrect password",
+    "description": "Verify the system shows an error message and prevents login when an incorrect password is entered.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter a registered email address"
+      },
+      {
+        "type": "action",
+        "description": "Enter an incorrect password"
+      },
+      {
+        "type": "action",
+        "description": "Click the login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm display of an invalid credentials error message and no login occurs"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Session Persistence after page refresh",
+    "description": "Verify that user session persists after refreshing or reopening the browser tab without requiring login again.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in with valid credentials"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the browser page"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the user remains logged in and no redirect to login page occurs"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Create and Save a New Memory Draft",
+    "description": "Verify users can create a new memory, save it as draft, and that drafts persist across sessions.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the memory creation page"
+      },
+      {
+        "type": "action",
+        "description": "Enter memory content into the message editor"
+      },
+      {
+        "type": "action",
+        "description": "Save the memory as a draft"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that draft is saved successfully without errors"
+      },
+      {
+        "type": "action",
+        "description": "Log out and log in again"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to drafts section"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the previously saved draft is present and content matches input"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Schedule a Memory for Future Delivery",
+    "description": "Verify that users can schedule a memory or message to be delivered at a specified future date and time.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to memory creation page after login"
+      },
+      {
+        "type": "action",
+        "description": "Enter content for the memory"
+      },
+      {
+        "type": "action",
+        "description": "Select a future date and time for delivery"
+      },
+      {
+        "type": "action",
+        "description": "Submit and schedule the memory"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm memory is saved with the correct scheduled delivery time"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Warning Display when navigating away with unsaved changes in Memory Creation",
+    "description": "Verify that the system warns the user about unsaved changes when attempting to leave the memory creation page.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start creating a new memory and make changes without saving"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to navigate away from the memory creation page"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm display of a warning dialog about unsaved changes"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Accessing Digital Vault content",
+    "description": "Verify authenticated users can view and manage items stored in their secure digital vault.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the digital vault page"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that vault contents are displayed securely and correctly"
+      },
+      {
+        "type": "action",
+        "description": "Add a new asset or legacy information to the vault"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm new asset is saved and visible in the vault"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Subscription Plan Upgrade",
+    "description": "Verify users can upgrade their subscription from Basic to Pro and that payment is processed successfully.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the plans page"
+      },
+      {
+        "type": "action",
+        "description": "Select the Pro subscription plan"
+      },
+      {
+        "type": "action",
+        "description": "Complete payment using Toss Payments"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful payment processing and immediate update of user plan status"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Subscription Plan Downgrade",
+    "description": "Verify users can downgrade their subscription from Pro to Basic and that system records are updated immediately.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the plans page"
+      },
+      {
+        "type": "action",
+        "description": "Select the Basic subscription plan"
+      },
+      {
+        "type": "action",
+        "description": "Confirm and submit downgrade request"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the user plan status updates immediately in the database"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Create a Public Memorial Space",
+    "description": "Verify that authenticated users can create a public memorial space and configure its settings correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the memorial space creation page"
+      },
+      {
+        "type": "action",
+        "description": "Enter memorial space details and select 'public' option"
+      },
+      {
+        "type": "action",
+        "description": "Submit and create the memorial space"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm memorial space is created and accessible publicly"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Create a Private Memorial Space",
+    "description": "Verify that authenticated users can create a private memorial space and set proper access controls.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in and navigate to the memorial space creation page"
+      },
+      {
+        "type": "action",
+        "description": "Enter memorial space details and select 'private' option"
+      },
+      {
+        "type": "action",
+        "description": "Configure access controls"
+      },
+      {
+        "type": "action",
+        "description": "Submit and create the memorial space"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm memorial space is created as private and access is restricted as configured"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Recipient Verification Success Flow",
+    "description": "Verify that message recipients can successfully complete the verification workflow to access messages.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to recipient verification page using a valid verification link"
+      },
+      {
+        "type": "action",
+        "description": "Complete identity confirmation steps as required"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful verification and message access granted"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Recipient Verification Failure with invalid identity",
+    "description": "Verify system handles recipient verification failure when the identity confirmation does not match expected criteria.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to recipient verification page with a valid link"
+      },
+      {
+        "type": "action",
+        "description": "Enter incorrect or mismatched identity information"
+      },
+      {
+        "type": "action",
+        "description": "Submit verification details"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access is denied and appropriate error message is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Landing Page responsiveness on mobile devices",
+    "description": "Verify that the landing page layout adjusts correctly for mobile viewport sizes without overlapping or clipped content.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the landing page on a mobile device or simulate mobile viewport"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all sections including hero, feature introductions, and pricing overview are well formatted and fully visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Landing Page responsiveness on tablet devices",
+    "description": "Verify that the landing page layout adjusts correctly for tablet viewport sizes without UI issues.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the landing page on a tablet device or simulate tablet viewport"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all UI components are properly arranged and no clipping or overlap is present"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Smooth animations without visual glitches",
+    "description": "Verify that page animations including splash screen and scroll-triggered animations run smoothly without jank or glitches.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through different pages observing splash screen and animated elements"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm animations render smoothly on supported browsers and no visual glitches occur"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "No Console Errors or Warnings during Runtime",
+    "description": "Verify that the application runs without console errors related to hydration, invalid DOM nesting, or other warnings.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load various pages and interact with features in the app"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that no console errors or warnings appear related to hydration or DOM issues"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "API Call Permission Error Handling",
+    "description": "Verify that the frontend gracefully handles 401/403 errors returned from API calls without hidden failures.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Trigger API calls that require authentication with expired or missing tokens"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that appropriate error messages are shown and user is prompted to re-authenticate"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "All meta page titles and descriptions are unique",
+    "description": "Verify that each page has a unique meta title and description tags for SEO and sharing purposes.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to all main pages including landing, authentication, memory creation, vault, plans, memorial space, and recipient pages"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that meta title and description tags differ meaningfully between pages"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Open Graph images update without caching issues",
+    "description": "Verify that Open Graph images for social sharing update correctly without getting stuck in caching.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Update Open Graph images for a page"
+      },
+      {
+        "type": "action",
+        "description": "Check social share previews after updates"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the latest images appear promptly with no caching artifacts"
+      }
+    ]
+  }
+]

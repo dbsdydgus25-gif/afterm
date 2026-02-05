@@ -37,12 +37,23 @@ export async function GET(request: Request) {
             console.log(">>> Profile Status (from metadata):", isOnboardingComplete ? "Complete" : "Incomplete");
             console.log("Metadata:", userMetadata);
 
-            // If completed, verify if we should go to onboarding (which would be wrong) or next
-            let targetUrl = isOnboardingComplete ? next : "/onboarding";
+            let targetUrl = "/";
 
-            // If completed but target is onboarding, force home to prevent loops
-            if (isOnboardingComplete && targetUrl.includes("/onboarding")) {
-                targetUrl = "/";
+            if (!isOnboardingComplete) {
+                // If new user (incomplete), redirect to SIGNUP page to set password & complete profile
+                // Pass email and verification flag
+                const email = session.user.email || "";
+                const provider = session.user.app_metadata.provider || "social";
+
+                targetUrl = `/onboarding`;
+            } else {
+                // Existing user
+                targetUrl = next;
+
+                // Safety: Avoid onboarding loop for complete users
+                if (targetUrl.includes("/onboarding")) {
+                    targetUrl = "/";
+                }
             }
 
             console.log(">>> Redirecting to:", targetUrl);

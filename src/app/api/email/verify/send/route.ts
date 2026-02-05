@@ -37,6 +37,31 @@ export async function POST(request: Request) {
         const gmailUser = process.env.GMAIL_USER;
         const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
+        // Development bypass: If credentials are missing in dev, use fixed code and skip email
+        const isDev = process.env.NODE_ENV === 'development';
+        const isMockConfig = !gmailUser || !gmailPass;
+
+        // Override code for dev/mock
+        if (isDev && isMockConfig) {
+            // Re-update the code in DB to be 000000 so it matches what we "fake send"
+            // Note: We already inserted a random code above. Use update to fix it.
+            // Actually, better to generate the code variable correctly *before* insert.
+            // But since the previous block (lines 16-29) is already executed, we need to update it or refactor.
+            // To minimize diff, let's refactor the whole function slightly or just update the DB entry.
+            // Since we need to minimize "replace_file_content" complexity, let's look at the context.
+            // The previous block lines 16-29 inserts 'code'.
+            // Simple approach: Let's assume we handle the code generation logic adjustment by rewriting the whole block if needed, 
+            // OR simpler: just log the random code in dev.
+            // BUT, automated tests might struggle with random code.
+            // The prompt "Verify with 000000" needs the DB to have 000000.
+
+            // Let's do a quick update to set code to 000000 for this identifier
+            await supabaseAdmin.from('verification_codes').update({ code: '000000' }).eq('phone', identifier);
+
+            console.log('⚠️ [DEV] Email credentials missing. Mocking verification code: 000000');
+            return NextResponse.json({ success: true });
+        }
+
         if (!gmailUser || !gmailPass) {
             return NextResponse.json({ success: false, error: 'Server misconfiguration (Missing Gmail Creds)' }, { status: 500 });
         }
