@@ -145,7 +145,7 @@ export const NewsSection = () => {
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
 
                         <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
-                            매월 1일, 웰다잉 트렌드를 받아보세요
+                            매주 한 번, 웰다잉 트렌드를 받아보세요
                         </h3>
                         <p className="text-slate-500 text-sm mb-6">
                             가장 최신의 웰다잉 뉴스, 디지털 유산 관리 팁을<br className="md:hidden" /> 이메일로 정리해드립니다.
@@ -186,7 +186,7 @@ export function SubscriptionForm() {
 
             setStatus("success");
             setEmail("");
-            setMsg("구독이 완료되었습니다! 매월 1일에 만나요 👋");
+            setMsg("구독이 완료되었습니다! 매주 만나요 👋");
         } catch (error) {
             console.error(error);
             setStatus("error");
