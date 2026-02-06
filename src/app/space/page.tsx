@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { Plus, LayoutGrid, Users } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -57,24 +55,23 @@ export default function SpaceDashboard() {
         }
     };
 
+
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-            <Header />
-
-            <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">추모 공간 (Memorial Canvas)</h1>
-                        <p className="text-slate-500 mt-1">소중한 추억을 함께 기록하는 공간입니다.</p>
-                    </div>
-                    <Link href="/space/create">
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 shadow-sm">
-                            <Plus className="w-5 h-5 mr-1.5" />
-                            공간 만들기
-                        </Button>
-                    </Link>
+        <div className="font-sans">
+            <div className="flex items-center justify-between mb-8 px-6 py-10">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">추모 공간 (Memorial Canvas)</h1>
+                    <p className="text-slate-500 mt-1">소중한 추억을 함께 기록하는 공간입니다.</p>
                 </div>
+                <Link href="/space/create">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 shadow-sm">
+                        <Plus className="w-5 h-5 mr-1.5" />
+                        공간 만들기
+                    </Button>
+                </Link>
+            </div>
 
+            <div className="px-6 pb-10">
                 {loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[1, 2, 3].map((i) => (
@@ -127,9 +124,7 @@ export default function SpaceDashboard() {
                         ))}
                     </div>
                 )}
-            </main>
-
-            <Footer />
+            </div>
         </div>
     );
 }
