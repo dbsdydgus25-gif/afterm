@@ -159,7 +159,7 @@ export const NewsSection = () => {
     );
 };
 
-function SubscriptionForm() {
+export function SubscriptionForm() {
     const [email, setEmail] = useState("");
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [msg, setMsg] = useState("");
