@@ -15,12 +15,15 @@
     "cron:dev": "node scripts/run-cron.js"
   },
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.11",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "@tosspayments/payment-widget-sdk": "^0.12.1",
     "@tosspayments/tosspayments-sdk": "^2.5.0",
     "@types/nodemailer": "^7.0.5",
     "bcryptjs": "^3.0.3",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
