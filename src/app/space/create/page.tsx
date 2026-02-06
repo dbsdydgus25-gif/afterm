@@ -81,7 +81,7 @@ function CreateForm() {
                         새로운 추모 공간
                     </h1>
                     <p className="text-slate-500 text-sm">
-                        소중한 사람을 위한 추억의 공간을 만들어보세요.
+                        지금 바로 소중한 사람을 위한 추억의 공간을 만들어보세요.
                     </p>
                 </div>
 
