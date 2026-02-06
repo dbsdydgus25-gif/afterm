@@ -8,8 +8,8 @@ export function BottomNav() {
     const pathname = usePathname();
 
     const navItems = [
-        { href: "/space", icon: Users, label: "검색" }, // Changed label to Search per request, keeping link to Space
-        { href: "/create", icon: PenLine, label: "만들기" },
+        { href: "/space/search", icon: Users, label: "검색" }, // Changed link to /space/search explicitly
+        { href: "/space/create", icon: PenLine, label: "만들기" }, // Changed link to /space/create as requested
     ];
 
     return (

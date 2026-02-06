@@ -12,6 +12,8 @@ function CreateForm() {
     const supabase = createClient();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [profileImage, setProfileImage] = useState("");
+    const [backgroundImage, setBackgroundImage] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +32,11 @@ function CreateForm() {
                     title,
                     description,
                     is_public: false, // Default to private
-                    theme: { color: 'blue' } // Default theme
+                    theme: {
+                        color: 'blue',
+                        profileImage: profileImage.trim(),
+                        backgroundImage: backgroundImage.trim()
+                    }
                 })
                 .select()
                 .single();
@@ -104,8 +110,32 @@ function CreateForm() {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="이 공간에 대한 짧은 소개를 남겨주세요."
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[120px] resize-none placeholder:text-slate-300"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[100px] resize-none placeholder:text-slate-300"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">대표 사진 (URL)</label>
+                        <input
+                            type="text"
+                            value={profileImage}
+                            onChange={(e) => setProfileImage(e.target.value)}
+                            placeholder="예: https://example.com/profile.jpg"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-300"
+                        />
+                        <p className="text-xs text-slate-400">고인을 기억할 수 있는 대표 사진의 링크를 입력해주세요.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700">배경 이미지 (URL)</label>
+                        <input
+                            type="text"
+                            value={backgroundImage}
+                            onChange={(e) => setBackgroundImage(e.target.value)}
+                            placeholder="예: https://example.com/background.jpg"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-300"
+                        />
+                        <p className="text-xs text-slate-400">공간의 분위기를 더해줄 배경 이미지 링크를 입력해주세요.</p>
                     </div>
 
                     <Button

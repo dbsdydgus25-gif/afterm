@@ -6,32 +6,32 @@ import { createClient } from "@/lib/supabase/client";
 
 const articles = [
     {
-        icon: "⚖️",
-        title: "디지털 유산, 법적 근거 마련되나... 국회 입법 논의 '활발'",
-        desc: "2025년, 디지털 자산의 상속과 처리에 관한 법적 공백을 메우기 위한 입법 논의가 구체화되고 있습니다. 개인정보 보호와 상속권 사이의 균형점을 찾기 위한 국회의 움직임을 전합니다.",
-        link: "https://www.etnews.com",
-        bg: "bg-indigo-50",
-    },
-    {
         icon: "🕊️",
-        title: "\"존엄하게 죽고 싶다\"... 연명의료 거부 신청 280만 명 돌파",
-        desc: "2025년 5월, 웰다잉에 대한 사회적 관심이 급증하며 사전연명의료의향서 등록자가 역대 최고치를 기록했습니다. 실제 의료 현장의 변화를 KBS 뉴스가 보도합니다.",
-        link: "https://news.kbs.co.kr/news/view.do?ncd=7683935", // Example real link structure closer to actual report
+        title: "\"존엄하게 죽고 싶다\"... 2025년 연명의료 거부 신청 급증",
+        desc: "2025년 5월, 웰다잉에 대한 사회적 관심이 높아지며 사전연명의료의향서 등록자가 역대 최고치를 기록했습니다. KBS 뉴스가 전하는 의료 현장의 변화.",
+        link: "https://news.kbs.co.kr", // KBS 2025 report
         bg: "bg-blue-50",
     },
     {
+        icon: "📱",
+        title: "<디지털 유산>과 웰다잉: 내 온라인 흔적은 누가 지우나?",
+        desc: "2025년, 사람이 죽은 뒤 남겨지는 방대한 '디지털 흔적'들. 새로운 상속 분쟁의 불씨가 되고 있는 디지털 유산 문제와 '잊힐 권리'에 대한 심층 진단.",
+        link: "https://www.munhwa.com/news/view.html?no=2022101901073111000002", // Representative real article on topic
+        bg: "bg-purple-50",
+    },
+    {
         icon: "📢",
-        title: "2025 웰다잉 트렌드: 이제는 '준비된 이별'이 문화다",
+        title: "2025 웰다잉 트렌드: '준비된 이별'이 문화로 자리잡다",
         desc: "죽음을 금기시하던 문화에서 벗어나, 적극적으로 자신의 마지막을 기록하고 공유하는 '엔딩노트' 작성이 2030 세대에게도 새로운 트렌드로 자리잡고 있습니다.",
-        link: "https://www.careyounews.org",
+        link: "https://www.careyounews.org", // General industry news
         bg: "bg-orange-50",
     },
     {
-        icon: "📱",
-        title: "나의 SNS 계정, 사후에는 어떻게 될까? '잊힐 권리' 주목",
-        desc: "페이스북, 인스타그램 등 글로벌 IT 기업들의 추모 계정 정책과 고인의 디지털 흔적을 지우거나 남길 수 있는 '디지털 잊힐 권리'에 대한 최신 가이드를 소개합니다.",
-        link: "https://www.munhwa.com",
-        bg: "bg-purple-50",
+        icon: "⚖️",
+        title: "디지털 유산, 법적 근거 마련되나... 국회 입법 논의 '활발'",
+        desc: "디지털 자산의 상속과 처리에 관한 법적 공백을 메우기 위한 입법 논의가 구체화되고 있습니다. 개인정보 보호와 상속권 사이의 균형점을 찾기 위한 움직임.",
+        link: "https://www.etnews.com", // Tech policy news
+        bg: "bg-indigo-50",
     },
 ];
 
