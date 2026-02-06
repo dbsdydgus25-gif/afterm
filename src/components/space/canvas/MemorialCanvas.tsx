@@ -32,11 +32,15 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     const router = useRouter();
     const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // Theme State
+    const [theme, setTheme] = useState(space.theme || {});
+    const [bgImageInput, setBgImageInput] = useState(space.theme?.backgroundImage || "");
 
     // Form States
     const [noteContent, setNoteContent] = useState("");
     const [noteColor, setNoteColor] = useState("bg-yellow-100");
-    const [photoUrl, setPhotoUrl] = useState("");
     const [uploading, setUploading] = useState(false);
 
     // Subscribe to Realtime
@@ -52,7 +56,6 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                     } else if (payload.eventType === 'DELETE') {
                         setBlocks((prev) => prev.filter(b => b.id !== payload.old.id));
                     }
-                    // Handle UPDATE if needed
                 }
             )
             .subscribe();
@@ -61,6 +64,23 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             supabase.removeChannel(channel);
         };
     }, [supabase, space.id]);
+
+    const handleUpdateTheme = async () => {
+        const newTheme = { ...theme, backgroundImage: bgImageInput };
+        setTheme(newTheme);
+
+        const { error } = await supabase
+            .from('memorial_spaces')
+            .update({ theme: newTheme })
+            .eq('id', space.id);
+
+        if (error) {
+            console.error("Theme Update Error:", error);
+            alert("배경 설정 저장에 실패했습니다.");
+        } else {
+            setIsSettingsOpen(false);
+        }
+    };
 
     const handleAddNote = async () => {
         if (!noteContent.trim()) return;
@@ -91,7 +111,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 
         try {
             const { error: uploadError } = await supabase.storage
-                .from('user_uploads') // Make sure this bucket exists!
+                .from('user_uploads')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
@@ -100,7 +120,6 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                 .from('user_uploads')
                 .getPublicUrl(filePath);
 
-            // Add Block
             const { error: dbError } = await supabase.from('memorial_blocks').insert({
                 space_id: space.id,
                 type: 'photo',
@@ -114,6 +133,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
         } catch (error) {
             console.error(error);
             alert("업로드 실패 (Storage 버킷을 확인해주세요)");
+            // Fallback for demo if storage fails?
         } finally {
             setUploading(false);
         }
@@ -125,7 +145,13 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     };
 
     return (
-        <div className="min-h-screen bg-slate-100 pb-20">
+        <div
+            className="min-h-screen pb-20 transition-all duration-500 bg-cover bg-center bg-fixed"
+            style={{
+                backgroundImage: theme.backgroundImage ? `url(${theme.backgroundImage})` : undefined,
+                backgroundColor: theme.backgroundImage ? 'transparent' : '#f1f5f9' // slate-100
+            }}
+        >
             {/* Header */}
             <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -164,10 +190,40 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                             </div>
                         </DialogContent>
                     </Dialog>
+
+                    {/* Settings Dialog */}
                     {(role === 'host') && (
-                        <Button variant="ghost" size="icon" className="text-slate-500">
-                            <Settings size={20} />
-                        </Button>
+                        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-slate-500">
+                                    <Settings size={20} />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>공간 설정</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-4">
+                                    {/* Background Image Setting */}
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700">배경 이미지 URL</label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="https://..."
+                                                value={bgImageInput}
+                                                onChange={(e) => setBgImageInput(e.target.value)}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-500">
+                                            원하는 이미지 주소를 입력하여 배경을 꾸며보세요.
+                                        </p>
+                                    </div>
+                                    <Button onClick={handleUpdateTheme} className="w-full bg-slate-900 text-white">
+                                        저장하기
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     )}
                 </div>
             </header>
@@ -175,7 +231,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             {/* Canvas Area (Masonry/Grid) */}
             <main className="p-4 md:p-8 max-w-5xl mx-auto">
                 {blocks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white/50 rounded-xl backdrop-blur-sm">
                         <p>아직 추억이 없습니다.</p>
                         <p className="text-sm">첫 번째 블록을 추가해보세요.</p>
                     </div>
@@ -217,7 +273,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                 <div className="fixed bottom-6 right-6 z-40">
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
-                            <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center">
+                            <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
                                 <Plus size={28} />
                             </Button>
                         </DialogTrigger>
@@ -227,7 +283,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                             </DialogHeader>
                             <div className="grid grid-cols-2 gap-4 py-4">
                                 {/* Photo Upload */}
-                                <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square">
+                                <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
                                     <ImageIcon className="w-8 h-8 text-blue-500" />
                                     <span className="text-sm font-medium">사진</span>
                                     <input
@@ -237,12 +293,13 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                         disabled={uploading}
                                     />
+                                    {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
                                 </div>
 
                                 {/* Note Input */}
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square">
+                                        <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
                                             <StickyNote className="w-8 h-8 text-yellow-500" />
                                             <span className="text-sm font-medium">쪽지</span>
                                         </div>
@@ -254,14 +311,14 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                                 value={noteContent}
                                                 onChange={(e) => setNoteContent(e.target.value)}
                                                 placeholder="친구에게 남기고 싶은 말을 적어주세요."
-                                                className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1`}
+                                                className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
                                             />
                                             <div className="flex gap-2">
                                                 {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
                                                     <button
                                                         key={color}
                                                         onClick={() => setNoteColor(color)}
-                                                        className={`w-8 h-8 rounded-full border ${color} ${noteColor === color ? 'ring-2 ring-slate-400' : ''}`}
+                                                        className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
                                                     />
                                                 ))}
                                             </div>
