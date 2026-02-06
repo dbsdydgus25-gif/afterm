@@ -37,6 +37,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     // Theme State
     const [theme, setTheme] = useState(space.theme || {});
     const [bgImageInput, setBgImageInput] = useState(space.theme?.backgroundImage || "");
+    const [profileImageInput, setProfileImageInput] = useState(space.theme?.profileImage || "");
 
     // Form States
     const [noteContent, setNoteContent] = useState("");
@@ -66,7 +67,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     }, [supabase, space.id]);
 
     const handleUpdateTheme = async () => {
-        const newTheme = { ...theme, backgroundImage: bgImageInput };
+        const newTheme = { ...theme, backgroundImage: bgImageInput, profileImage: profileImageInput };
         setTheme(newTheme);
 
         const { error } = await supabase
@@ -76,7 +77,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 
         if (error) {
             console.error("Theme Update Error:", error);
-            alert("배경 설정 저장에 실패했습니다.");
+            alert("설정 저장에 실패했습니다.");
         } else {
             setIsSettingsOpen(false);
         }
@@ -153,37 +154,64 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             }}
         >
             {/* Header */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 h-14 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-3">
                     <Link href="/space" className="p-2 -ml-2 text-slate-500 hover:text-slate-900">
                         <ChevronLeft size={24} />
                     </Link>
-                    <h1 className="font-bold text-slate-800">{space.title}</h1>
+
+                    {/* Space Profile Image */}
+                    {theme.profileImage ? (
+                        <Avatar className="w-10 h-10 border border-slate-200 shadow-sm">
+                            <AvatarImage src={theme.profileImage} className="object-cover" />
+                            <AvatarFallback>{space.title[0]}</AvatarFallback>
+                        </Avatar>
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">
+                            {space.title[0]}
+                        </div>
+                    )}
+
+                    <div>
+                        <h1 className="font-bold text-slate-900 leading-tight">{space.title}</h1>
+                        <p className="text-xs text-slate-500">기억 보관함</p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
 
                     {/* Share Dialog */}
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-slate-500">
+                            <Button variant="ghost" size="icon" className="text-slate-500 hover:bg-slate-100 rounded-full">
                                 <Share size={20} />
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>초대하기</DialogTitle>
+                                <DialogTitle>이 공간 공유하기</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4 pt-4">
-                                <p className="text-sm text-slate-600">
-                                    이 공간의 링크를 공유하여 친구들을 초대하세요.<br />
-                                    초대받은 사람은 누구나 추억을 남길 수 있습니다.
-                                </p>
-                                <div className="flex gap-2">
-                                    <Input value={typeof window !== 'undefined' ? window.location.href : ''} readOnly />
+                            <div className="space-y-6 pt-4 text-center">
+                                <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
+                                    <Share className="w-8 h-8 text-blue-500" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="font-bold text-lg">소중한 분들과 함께하세요</h3>
+                                    <p className="text-sm text-slate-500 leading-relaxed">
+                                        링크를 공유하여 가족, 친구들을 초대하세요.<br />
+                                        함께 추억을 나누고 기억할 수 있습니다.
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                                    <Input
+                                        value={typeof window !== 'undefined' ? window.location.href : ''}
+                                        readOnly
+                                        className="bg-transparent border-none focus-visible:ring-0 text-slate-600 text-sm"
+                                    />
                                     <Button onClick={() => {
                                         navigator.clipboard.writeText(window.location.href);
                                         alert("링크가 복사되었습니다!");
-                                    }}>
+                                    }} size="sm" className="shrink-0 bg-white text-blue-600 hover:bg-blue-50 border border-blue-100 shadow-sm">
                                         복사
                                     </Button>
                                 </div>
@@ -195,31 +223,58 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                     {(role === 'host') && (
                         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                             <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-slate-500">
+                                <Button variant="ghost" size="icon" className="text-slate-500 hover:bg-slate-100 rounded-full">
                                     <Settings size={20} />
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="sm:max-w-lg">
                                 <DialogHeader>
-                                    <DialogTitle>공간 설정</DialogTitle>
+                                    <DialogTitle>공간 꾸미기</DialogTitle>
                                 </DialogHeader>
-                                <div className="space-y-4 pt-4">
+                                <div className="space-y-6 pt-4">
+                                    {/* Profile Image Setting */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold text-slate-800">대표 사진 (프로필)</label>
+                                        <div className="flex items-center gap-4">
+                                            {profileImageInput ? (
+                                                <img src={profileImageInput} alt="Preview" className="w-16 h-16 rounded-full object-cover border border-slate-200" />
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                    <ImageIcon size={24} />
+                                                </div>
+                                            )}
+                                            <div className="flex-1 space-y-2">
+                                                <Input
+                                                    placeholder="이미지 URL 입력 (예: https://...)"
+                                                    value={profileImageInput}
+                                                    onChange={(e) => setProfileImageInput(e.target.value)}
+                                                    className="text-sm"
+                                                />
+                                                <p className="text-xs text-slate-400">고인을 기억할 수 있는 대표 사진을 등록해주세요.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-px bg-slate-100" />
+
                                     {/* Background Image Setting */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-700">배경 이미지 URL</label>
-                                        <div className="flex gap-2">
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold text-slate-800">배경 이미지</label>
+                                        <div className="space-y-2">
                                             <Input
-                                                placeholder="https://..."
+                                                placeholder="이미지 URL 입력 (예: https://...)"
                                                 value={bgImageInput}
                                                 onChange={(e) => setBgImageInput(e.target.value)}
+                                                className="text-sm"
                                             />
+                                            <p className="text-xs text-slate-400">
+                                                공간의 분위기에 맞는 배경을 설정해보세요.
+                                            </p>
                                         </div>
-                                        <p className="text-xs text-slate-500">
-                                            원하는 이미지 주소를 입력하여 배경을 꾸며보세요.
-                                        </p>
                                     </div>
-                                    <Button onClick={handleUpdateTheme} className="w-full bg-slate-900 text-white">
-                                        저장하기
+
+                                    <Button onClick={handleUpdateTheme} className="w-full bg-slate-900 hover:bg-slate-800 text-white py-6 rounded-xl font-bold text-base shadow-lg shadow-slate-200">
+                                        변경사항 저장하기
                                     </Button>
                                 </div>
                             </DialogContent>

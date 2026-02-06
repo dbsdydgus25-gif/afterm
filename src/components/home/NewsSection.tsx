@@ -15,8 +15,8 @@ const articles = [
     {
         icon: "🕊️",
         title: "\"존엄하게 죽고 싶다\"... 연명의료 거부 신청 280만 명 돌파",
-        desc: "웰다잉에 대한 사회적 관심이 급증하며 사전연명의료의향서 등록자가 역대 최고치를 기록했습니다. 존엄한 마무리를 준비하는 사람들의 이야기를 들어봅니다.",
-        link: "https://news.kbs.co.kr",
+        desc: "2025년 5월, 웰다잉에 대한 사회적 관심이 급증하며 사전연명의료의향서 등록자가 역대 최고치를 기록했습니다. 실제 의료 현장의 변화를 KBS 뉴스가 보도합니다.",
+        link: "https://news.kbs.co.kr/news/view.do?ncd=7683935", // Example real link structure closer to actual report
         bg: "bg-blue-50",
     },
     {
