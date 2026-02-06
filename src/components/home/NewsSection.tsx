@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const articles = [
     {
@@ -135,31 +137,13 @@ export const NewsSection = () => {
                             </a>
                         ))}
                     </motion.div>
-                    </motion.div>
                 </div>
 
                 {/* Subscription Form */}
                 <div className="max-w-xl mx-auto px-6 mt-16 md:mt-24 text-center">
                     <div className="bg-white p-8 rounded-3xl border border-blue-100 shadow-xl shadow-blue-50 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
-                        
-                        <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
-                            매월 1일, 웰다잉 트렌드를 받아보세요
-                        </h3>
-                        <p className="text-slate-500 text-sm mb-6">
-                            가장 최신의 웰다잉 뉴스, 디지털 유산 관리 팁을<br className="md:hidden" /> 이메일로 정리해드립니다.
-                        </p>
 
-                        <SubscriptionForm />
-                    </div>
-                    </motion.div>
-                </div>
-
-                {/* Subscription Form */}
-                <div className="max-w-xl mx-auto px-6 mt-16 md:mt-24 text-center">
-                    <div className="bg-white p-8 rounded-3xl border border-blue-100 shadow-xl shadow-blue-50 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
-                        
                         <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
                             매월 1일, 웰다잉 트렌드를 받아보세요
                         </h3>
@@ -185,93 +169,17 @@ function SubscriptionForm() {
         if (!email) return;
 
         setStatus("loading");
-        
-        // Dynamic import to avoid top-level optional dependency issues if any
-        const { createClient } = require("@/lib/supabase/client");
-        const supabase = createClient();
 
         try {
-            const { error } = await supabase
-                .from("newsletter_subscribers")
-                .upsert({ 
-                    email, 
-                    status: 'active',
-                    unsubscribed_at: null 
-                }, { onConflict: 'email' });
+            const supabase = createClient();
 
-            if (error) throw error;
-
-            setStatus("success");
-            setEmail("");
-            setMsg("구독이 완료되었습니다! 매월 1일에 만나요 👋");
-        } catch (error) {
-            console.error(error);
-            setStatus("error");
-            setMsg("오류가 발생했습니다. 다시 시도해주세요.");
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubscribe} className="relative max-w-sm mx-auto">
-            <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                    type="email"
-                    placeholder="이메일 주소를 입력하세요"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={status === "success" || status === "loading"}
-                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    required
-                />
-                <button
-                    type="submit"
-                    disabled={status === "success" || status === "loading"}
-                    className="bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-slate-800 disabled:opacity-50 transition-colors whitespace-nowrap"
-                >
-                    {status === "loading" ? "..." : "구독하기"}
-                </button>
-            </div>
-            {msg && (
-                <p className={`text-xs mt-3 font-medium ${status === "success" ? "text-blue-600" : "text-red-500"}`}>
-                    {msg}
-                </p>
-            )}
-        </form>
-    );
-}
-
-// Add imports to top
-import { useState } from "react";
-
-
-function SubscriptionForm() {
-    // We import hooks here to keep the main component cleaner if desired, 
-    // or we can move this to a separate file. For now, inline is fine.
-    const [email, setEmail] = useState("");
-    const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-    const [msg, setMsg] = useState("");
-
-    // Need supabase client
-    const handleSubscribe = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email) return;
-
-        setStatus("loading");
-        
-        // Dynamic import or passed as prop would be better, but for simplicity:
-        // We need to import createClient at top level if not present.
-        // Assuming createClient is imported at top.
-        const { createClient } = require("@/lib/supabase/client");
-        const supabase = createClient();
-
-        try {
             // Check if exists first (optional, or rely on unique constraint)
             const { error } = await supabase
                 .from("newsletter_subscribers")
-                .upsert({ 
-                    email, 
+                .upsert({
+                    email,
                     status: 'active',
-                    unsubscribed_at: null 
+                    unsubscribed_at: null
                 }, { onConflict: 'email' });
 
             if (error) throw error;
@@ -314,7 +222,3 @@ function SubscriptionForm() {
         </form>
     );
 }
-
-// Add imports to top
-import { useState } from "react";
-
