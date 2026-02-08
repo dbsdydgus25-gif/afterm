@@ -67,7 +67,7 @@ function InviteContent() {
 
             // (Validation logic moved above)
 
-            setInviteData(invite);
+
 
             // 2. Check Auth
             const { data: { user } } = await supabase.auth.getUser();
