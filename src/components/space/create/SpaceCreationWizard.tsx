@@ -86,7 +86,10 @@ export function SpaceCreationWizard() {
                 .select()
                 .single();
 
-            if (spaceError) throw spaceError;
+            if (spaceError) {
+                alert(`공간 생성 실패: ${spaceError.message}`);
+                throw spaceError;
+            }
             if (!space) throw new Error("공간 생성 실패");
 
             // 2. Add Host Member (with nickname)
@@ -100,7 +103,10 @@ export function SpaceCreationWizard() {
                     status: 'active'
                 });
 
-            if (memberError) throw memberError;
+            if (memberError) {
+                alert(`멤버 추가 실패: ${memberError.message}`);
+                throw memberError;
+            }
 
             // 3. Handle Invitations (Create tokens and save to DB + Send Emails)
             if (formData.invites.length > 0) {
@@ -118,6 +124,9 @@ export function SpaceCreationWizard() {
 
                 if (inviteError) {
                     console.error("Invitations error:", inviteError);
+                    alert(`초대장 저장 실패: ${inviteError.message}`);
+                    // We continue even if DB save fails? No, if DB save fails, we shouldn't send emails ideally.
+                    // But for now, let's just alert.
                 } else {
                     // Send Emails async (Wait for them to prevent cancellation)
                     await Promise.all(invitations.map(invite =>

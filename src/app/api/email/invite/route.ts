@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/nodemailer';
 
 export async function POST(req: Request) {
-    try {
-        const { email, spaceTitle, token, inviterName } = await req.json();
+  try {
+    const { email, spaceTitle, token, inviterName } = await req.json();
 
-        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://afterm.co.kr'}/invite/${token}`;
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://afterm.co.kr'}/invite/${token}`;
 
-        const html = `
+    const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
         <h1 style="color: #1e293b; font-size: 24px; font-weight: bold; margin-bottom: 16px;">
           ${inviterName}님께서 추모 공간에 초대하셨습니다.
@@ -27,11 +27,15 @@ export async function POST(req: Request) {
       </div>
     `;
 
-        await sendEmail(email, `[AFTERM] '${spaceTitle}' 공간에 초대받으셨습니다.`, html);
+    await sendEmail(email, `[AFTERM] '${spaceTitle}' 공간에 초대받으셨습니다.`, html);
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Invite email error:", error);
-        return NextResponse.json({ success: false, error: 'Failed to send email' }, { status: 500 });
-    }
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Invite email error:", error);
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Failed to send email',
+      details: JSON.stringify(error)
+    }, { status: 500 });
+  }
 }
