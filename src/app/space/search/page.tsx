@@ -133,7 +133,7 @@ function SearchForm() {
                             <div className="flex items-center gap-4">
                                 {space.theme?.profileImage ? (
                                     <Avatar className="w-12 h-12">
-                                        <AvatarImage src={space.theme.profileImage} objectFit="cover" />
+                                        <AvatarImage src={space.theme.profileImage} className="object-cover" />
                                         <AvatarFallback>{space.title[0]}</AvatarFallback>
                                     </Avatar>
                                 ) : (

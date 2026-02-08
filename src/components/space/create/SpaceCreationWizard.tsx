@@ -107,7 +107,7 @@ export function SpaceCreationWizard() {
 
             if (memberError) throw memberError;
 
-            // 3. Handle Invitations (Create tokens and save to DB)
+            // 3. Handle Invitations (Create tokens and save to DB + Send Emails)
             if (formData.invites.length > 0) {
                 const invitations = formData.invites.map(email => ({
                     space_id: space.id,
@@ -121,8 +121,23 @@ export function SpaceCreationWizard() {
                     .from("invitations")
                     .insert(invitations);
 
-                if (inviteError) console.error("Invitations error:", inviteError);
-                // We don't block success on invite error, just log it.
+                if (inviteError) {
+                    console.error("Invitations error:", inviteError);
+                } else {
+                    // Send Emails async
+                    invitations.forEach(invite => {
+                        fetch('/api/email/invite', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: invite.email,
+                                spaceTitle: formData.title,
+                                token: invite.token,
+                                inviterName: formData.nickname || "누군가"
+                            })
+                        }).catch(err => console.error("Email send fail:", err));
+                    });
+                }
             }
 
             // Redirect
@@ -131,7 +146,7 @@ export function SpaceCreationWizard() {
 
         } catch (error) {
             console.error("Error creating space:", error);
-            alert("공간 생성 중 오류가 발생했습니다.");
+            alert("공간 생성 중 오류가 발생했습니다. (콘솔 확인)");
         } finally {
             setLoading(false);
         }
