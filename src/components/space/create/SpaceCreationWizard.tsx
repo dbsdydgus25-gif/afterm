@@ -45,13 +45,13 @@ export function SpaceCreationWizard() {
         const filePath = `${path}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-            .from('user_uploads')
+            .from('memorial-public')
             .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-            .from('user_uploads')
+            .from('memorial-public')
             .getPublicUrl(filePath);
 
         return publicUrl;

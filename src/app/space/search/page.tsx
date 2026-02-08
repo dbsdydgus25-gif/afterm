@@ -35,6 +35,52 @@ function SearchForm() {
         setSearching(false);
     };
 
+
+    const handleJoin = async (e: React.MouseEvent, spaceId: string) => {
+        e.preventDefault(); // Prevent link navigation
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        try {
+            // Check if already a member
+            const { data: member } = await supabase
+                .from('space_members')
+                .select('id')
+                .eq('space_id', spaceId)
+                .eq('user_id', user.id)
+                .single();
+
+            if (member) {
+                // Already member, just navigate (handled by link wrapper usually, but here we alert just in case)
+                return;
+            }
+
+            // Join as viewer
+            const { error } = await supabase
+                .from('space_members')
+                .insert({
+                    space_id: spaceId,
+                    user_id: user.id,
+                    role: 'viewer',
+                    nickname: user.user_metadata.full_name || '방문자',
+                    status: 'active'
+                });
+
+            if (error) throw error;
+
+            alert("공간을 팔로우했습니다. '참여 중인 공간'에서 확인할 수 있습니다.");
+            // Ideally update local state to show 'Participating'
+        } catch (error) {
+            console.error(error);
+            alert("오류가 발생했습니다.");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Header */}
@@ -83,7 +129,7 @@ function SearchForm() {
 
                 <div className="space-y-3">
                     {results.map((space) => (
-                        <Link key={space.id} href={`/space/${space.id}`} className="block bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 transition-colors shadow-sm">
+                        <Link key={space.id} href={`/space/${space.id}`} className="block bg-white p-4 rounded-xl border border-slate-200 hover:border-blue-300 transition-colors shadow-sm relative group">
                             <div className="flex items-center gap-4">
                                 {space.theme?.profileImage ? (
                                     <Avatar className="w-12 h-12">
@@ -99,6 +145,12 @@ function SearchForm() {
                                     <h3 className="font-bold text-slate-900">{space.title}</h3>
                                     <p className="text-xs text-slate-500 line-clamp-1">{space.description || "소개가 없습니다."}</p>
                                 </div>
+                                <button
+                                    onClick={(e) => handleJoin(e, space.id)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors"
+                                >
+                                    팔로우
+                                </button>
                             </div>
                         </Link>
                     ))}
