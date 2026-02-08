@@ -361,98 +361,96 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                     </Dialog>
                 </div>
             </div>
-        </div>
-            </div >
 
-        {/* Canvas Area (Masonry/Grid) */ }
-        < main className = "p-4 md:p-8 max-w-2xl mx-auto" >
-            {/* ... keep existing block rendering ... */ }
-    {
-        blocks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
-                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-3xl">
-                    ✍️
-                </div>
-                <p className="font-bold text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
-                <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
-            </div>
-        ) : (
-        <div className="flex flex-col gap-6">
-            {blocks.map((block) => (
-                <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
-            ))}
-        </div>
-    )
-    }
-            </main >
-
-        {/* Floating Action Button */ }
-    {
-        (role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
-            /* Allow viewers to add notes? Assuming yes for memorial */
-            <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
-                            <Plus size={28} />
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>추억 추가하기</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid grid-cols-2 gap-4 py-4">
-                            {/* Photo Upload */}
-                            <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                <ImageIcon className="w-8 h-8 text-blue-500" />
-                                <span className="text-sm font-medium">사진</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileUpload}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    disabled={uploading}
-                                />
-                                {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
+            {/* Canvas Area (Masonry/Grid) */}
+            <main className="p-4 md:p-8 max-w-2xl mx-auto">
+                {/* ... keep existing block rendering ... */}
+                {
+                    blocks.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                                ✍️
                             </div>
-
-                            {/* Note Input */}
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                        <StickyNote className="w-8 h-8 text-yellow-500" />
-                                        <span className="text-sm font-medium">쪽지</span>
-                                    </div>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle>쪽지 남기기</DialogTitle></DialogHeader>
-                                    <div className="space-y-4 pt-4">
-                                        <Textarea
-                                            value={noteContent}
-                                            onChange={(e) => setNoteContent(e.target.value)}
-                                            placeholder="친구에게 남기고 싶은 말을 적어주세요."
-                                            className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
-                                        />
-                                        <div className="flex gap-2">
-                                            {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => setNoteColor(color)}
-                                                    className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <Button onClick={handleAddNote} className="w-full">남기기</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-
+                            <p className="font-bold text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
+                            <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
                         </div>
-                    </DialogContent>
-                </Dialog>
-            </div>
-        )
-    }
+                    ) : (
+                        <div className="flex flex-col gap-6">
+                            {blocks.map((block) => (
+                                <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
+                            ))}
+                        </div>
+                    )
+                }
+            </main>
+
+            {/* Floating Action Button */}
+            {
+                (role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
+                    /* Allow viewers to add notes? Assuming yes for memorial */
+                    <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
+                        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
+                                    <Plus size={28} />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>추억 추가하기</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid grid-cols-2 gap-4 py-4">
+                                    {/* Photo Upload */}
+                                    <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
+                                        <ImageIcon className="w-8 h-8 text-blue-500" />
+                                        <span className="text-sm font-medium">사진</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            disabled={uploading}
+                                        />
+                                        {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
+                                    </div>
+
+                                    {/* Note Input */}
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
+                                                <StickyNote className="w-8 h-8 text-yellow-500" />
+                                                <span className="text-sm font-medium">쪽지</span>
+                                            </div>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader><DialogTitle>쪽지 남기기</DialogTitle></DialogHeader>
+                                            <div className="space-y-4 pt-4">
+                                                <Textarea
+                                                    value={noteContent}
+                                                    onChange={(e) => setNoteContent(e.target.value)}
+                                                    placeholder="친구에게 남기고 싶은 말을 적어주세요."
+                                                    className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
+                                                />
+                                                <div className="flex gap-2">
+                                                    {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
+                                                        <button
+                                                            key={color}
+                                                            onClick={() => setNoteColor(color)}
+                                                            className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <Button onClick={handleAddNote} className="w-full">남기기</Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )
+            }
         </div >
     );
 }
