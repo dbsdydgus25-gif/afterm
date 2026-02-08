@@ -34,6 +34,19 @@ export function SpaceCreationWizard() {
         setFormData(prev => ({ ...prev, ...updates }));
     };
 
+    // Pre-fill nickname
+    import { useEffect } from "react";
+    useEffect(() => {
+        const initUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && !formData.nickname) {
+                const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0];
+                if (name) setFormData(prev => ({ ...prev, nickname: name }));
+            }
+        };
+        initUser();
+    }, []);
+
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
@@ -110,13 +123,17 @@ export function SpaceCreationWizard() {
 
             // 3. Handle Invitations (Create tokens and save to DB + Send Emails)
             if (formData.invites.length > 0) {
-                const invitations = formData.invites.map(email => ({
-                    space_id: space.id,
-                    inviter_id: user.id,
-                    email: email,
-                    token: crypto.randomUUID(), // Simple UUID token
-                    role: 'viewer',
-                }));
+                const invitations = formData.invites.map(email => {
+                    const token = crypto.randomUUID();
+                    return {
+                        space_id: space.id,
+                        inviter_id: user.id,
+                        email: email,
+                        token: token,
+                        code: token, // Satisfy DB constraint
+                        role: 'viewer',
+                    };
+                });
 
                 const { error: inviteError } = await supabase
                     .from("invitations")
