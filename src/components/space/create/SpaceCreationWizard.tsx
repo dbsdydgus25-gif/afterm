@@ -129,6 +129,9 @@ export function SpaceCreationWizard() {
                     // But for now, let's just alert.
                 } else {
                     // Send Emails async (Wait for them to prevent cancellation)
+                    let successCount = 0;
+                    let failCount = 0;
+
                     await Promise.all(invitations.map(invite =>
                         fetch('/api/email/invite', {
                             method: 'POST',
@@ -139,16 +142,26 @@ export function SpaceCreationWizard() {
                                 token: invite.token,
                                 inviterName: formData.nickname || "누군가"
                             })
-                        }).then(res => {
-                            if (!res.ok) throw new Error("Email failed");
+                        }).then(async res => {
+                            if (!res.ok) {
+                                const errData = await res.json().catch(() => ({}));
+                                throw new Error(errData.error || `Status ${res.status}`);
+                            }
+                            successCount++;
                         }).catch(err => {
                             console.error("Email send fail:", err);
-                            // We don't block flow for email error, but we log it.
-                            alert(`초대장 이메일 발송 중 오류가 발생했습니다: ${err.message}`);
+                            failCount++;
                         })
                     ));
+
+                    if (failCount > 0) {
+                        alert(`${successCount}건 발송 성공, ${failCount}건 발송 실패.\n(실패 원인: 서버 로그 확인 필요)`);
+                    } else {
+                        // Optional: alert("모든 초대장이 발송되었습니다.");
+                    }
                 }
             }
+
 
             // Redirect
             router.push(`/space/${space.id}`);
