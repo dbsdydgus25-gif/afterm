@@ -21,30 +21,51 @@ function InviteContent() {
 
     useEffect(() => {
         const checkInvite = async () => {
-            // 1. Fetch Invitation & Space Info via RPC (Bypasses RLS)
-            const { data: invite, error } = await supabase
+            // 1. Try fetching as Invitation Token
+            const { data: inviteDataRaw } = await supabase
                 .rpc('get_invitation_by_token', { lookup_token: token })
-                .single();
+                .maybeSingle();
 
-            if (error || !invite) {
-                console.error("Invite error:", error);
-                setStatus("error");
-                setErrorMsg("유효하지 않거나 만료된 초대장입니다.");
-                return;
+            const invite = inviteDataRaw as any;
+
+            if (invite) {
+                // Scenario A: Valid Invitation Token
+                if (invite.status !== 'pending') {
+                    setStatus("error");
+                    setErrorMsg("이미 사용되었거나 만료된 초대장입니다.");
+                    return;
+                }
+                if (new Date(invite.expires_at) < new Date()) {
+                    setStatus("error");
+                    setErrorMsg("초대장 유효기간이 만료되었습니다.");
+                    return;
+                }
+                setInviteData(invite);
+            } else {
+                // Scenario B: Try as Space ID (Generic Link)
+                const { data: spaceDataRaw } = await supabase
+                    .rpc('get_space_for_invite', { lookup_id: token })
+                    .maybeSingle();
+
+                const space = spaceDataRaw as any;
+
+                if (space) {
+                    setInviteData({
+                        space_id: space.id,
+                        space_title: space.title,
+                        status: 'active', // Generic links don't expire in this simplified flow
+                        role: 'viewer', // Default role
+                        inviter_email: null // No specific inviter
+                    });
+                } else {
+                    console.error("Invite/Space lookup failed");
+                    setStatus("error");
+                    setErrorMsg("유효하지 않거나 만료된 초대 링크입니다.");
+                    return;
+                }
             }
 
-            if (invite.status !== 'pending') {
-                setStatus("error");
-                setErrorMsg("이미 사용되었거나 만료된 초대장입니다.");
-                return;
-            }
-
-            // Check expiration
-            if (new Date(invite.expires_at) < new Date()) {
-                setStatus("error");
-                setErrorMsg("초대장 유효기간이 만료되었습니다.");
-                return;
-            }
+            // (Validation logic moved above)
 
             setInviteData(invite);
 
@@ -64,13 +85,13 @@ function InviteContent() {
             const { data: existingMember } = await supabase
                 .from('space_members')
                 .select('id')
-                .eq('space_id', invite.space_id)
+                .eq('space_id', invite ? invite.space_id : token) // token acts as space_id in generic case
                 .eq('user_id', user.id)
                 .single();
 
             if (existingMember) {
                 // Already member -> Redirect
-                router.push(`/space/${invite.space_id}`);
+                router.push(`/space/${invite ? invite.space_id : token}`);
                 return;
             }
 
