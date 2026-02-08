@@ -71,13 +71,13 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
         const filePath = `${path}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-            .from('user_uploads')
+            .from('memorial-public')
             .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-            .from('user_uploads')
+            .from('memorial-public')
             .getPublicUrl(filePath);
 
         return publicUrl;
@@ -145,13 +145,13 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 
         try {
             const { error: uploadError } = await supabase.storage
-                .from('user_uploads')
+                .from('memorial-public')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl } } = supabase.storage
-                .from('user_uploads')
+                .from('memorial-public')
                 .getPublicUrl(filePath);
 
             // Add Block
@@ -376,7 +376,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             {/* Floating Action Button */}
             {(role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
                 /* Allow viewers to add notes? Assuming yes for memorial */
-                <div className="fixed bottom-6 right-6 z-40">
+                <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
