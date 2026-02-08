@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Step1Identity } from "./Step1Identity";
@@ -35,7 +35,7 @@ export function SpaceCreationWizard() {
     };
 
     // Pre-fill nickname
-    import { useEffect } from "react";
+
     useEffect(() => {
         const initUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
