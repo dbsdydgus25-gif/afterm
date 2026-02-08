@@ -195,7 +195,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     return (
         <div className="min-h-screen pb-20 bg-slate-50">
             {/* Facebook-style Header */}
-            <div className="relative bg-white shadow-sm mb-6">
+            <div className="relative bg-white shadow-sm mb-6 max-w-2xl mx-auto rounded-b-xl overflow-hidden">
                 {/* Cover Image */}
                 <div
                     className="h-48 md:h-64 bg-slate-200 w-full bg-cover bg-center relative"

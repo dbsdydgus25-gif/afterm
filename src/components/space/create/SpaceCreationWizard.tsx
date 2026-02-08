@@ -130,7 +130,12 @@ export function SpaceCreationWizard() {
                                 token: invite.token,
                                 inviterName: formData.nickname || "누군가"
                             })
-                        }).catch(err => console.error("Email send fail:", err));
+                        }).then(res => {
+                            if (!res.ok) throw new Error("Email failed");
+                        }).catch(err => {
+                            console.error("Email send fail:", err);
+                            alert(`초대장 생성은 완료되었으나 이메일 발송에 실패했습니다.\n(초대 링크를 복사해서 전달해주세요)\n\n원인: ${err.message}`);
+                        });
                     });
                 }
             }

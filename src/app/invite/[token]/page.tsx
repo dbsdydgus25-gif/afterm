@@ -21,21 +21,9 @@ function InviteContent() {
 
     useEffect(() => {
         const checkInvite = async () => {
-            // 1. Fetch Invitation & Space Info
+            // 1. Fetch Invitation & Space Info via RPC (Bypasses RLS)
             const { data: invite, error } = await supabase
-                .from("invitations")
-                .select(`
-                    *,
-                    memorial_spaces (
-                        id,
-                        title,
-                        theme
-                    ),
-                    users:inviter_id (
-                        email
-                    )
-                `)
-                .eq("token", token)
+                .rpc('get_invitation_by_token', { lookup_token: token })
                 .single();
 
             if (error || !invite) {
@@ -155,9 +143,6 @@ function InviteContent() {
     }
 
     // Ready State
-    const space = inviteData?.memorial_spaces;
-    const inviter = inviteData?.users;
-
     return (
         <div className="max-w-md mx-auto px-6 py-20">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
@@ -166,12 +151,12 @@ function InviteContent() {
                         <Sparkles size={32} />
                     </div>
                     <h1 className="text-xl font-bold text-slate-900 mb-2">
-                        '{space?.title}'<br />공간에 초대되셨습니다.
+                        '{inviteData?.space_title}'<br />공간에 초대되셨습니다.
                     </h1>
                     <p className="text-slate-500 text-sm">
-                        {inviter?.email ? `${inviter.email}님이 보낸 초대장입니다.` : "소중한 추억을 함께 나누세요."}
+                        {inviteData?.inviter_email ? `${inviteData.inviter_email}님이 보낸 초대장입니다.` : "소중한 추억을 함께 나누세요."}
                     </p>
-                </div>
+                </div >
 
                 <div className="space-y-3">
                     <label className="text-sm font-bold text-slate-700">이 공간에서 사용할 별명</label>
@@ -192,8 +177,8 @@ function InviteContent() {
                 >
                     {status === "joining" ? <Loader2 className="animate-spin" /> : "초대 수락하고 입장하기"}
                 </Button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 
