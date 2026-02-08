@@ -11,18 +11,21 @@ export async function POST(req: Request) {
 
         log(`Target Email: ${email}`);
         log(`Checking Env Vars:`);
-        log(`EMAIL_USER: ${process.env.EMAIL_USER ? 'Set (Length: ' + process.env.EMAIL_USER.length + ')' : 'MISSING'}`);
-        log(`EMAIL_PASS: ${process.env.EMAIL_PASS ? 'Set (Length: ' + process.env.EMAIL_PASS.length + ')' : 'MISSING'}`);
+        const user = process.env.GMAIL_USER || process.env.EMAIL_USER;
+        const pass = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
 
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            throw new Error("Missing EMAIL_USER or EMAIL_PASS env vars");
+        log(`User: ${user ? 'Set (Length: ' + user.length + ')' : 'MISSING (Checked GMAIL_USER & EMAIL_USER)'}`);
+        log(`Pass: ${pass ? 'Set (Length: ' + pass.length + ')' : 'MISSING (Checked GMAIL_APP_PASSWORD & EMAIL_PASS)'}`);
+
+        if (!user || !pass) {
+            throw new Error("Missing email credentials env vars");
         }
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
+                user: user,
+                pass: pass,
             },
         });
 
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
 
         log("Sending mail...");
         const info = await transporter.sendMail({
-            from: `"AFTERM Test" <${process.env.EMAIL_USER}>`,
+            from: `"AFTERM Test" <${user}>`,
             to: email,
             subject: "AFTERM Email Test",
             text: "If you are reading this, the email configuration is working correctly.",
