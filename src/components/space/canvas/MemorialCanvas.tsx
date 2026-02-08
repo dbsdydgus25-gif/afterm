@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Image as ImageIcon, StickyNote, Settings, Share, ChevronLeft, Trash2, LogOut, Users } from "lucide-react";
+import { Plus, Image as ImageIcon, StickyNote, Settings, Share, ChevronLeft, Trash2, LogOut, Users, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,20 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             supabase.removeChannel(channel);
         };
     }, [supabase, space.id]);
+
+    const [memberCount, setMemberCount] = useState(0);
+
+    // Fetch Member Count
+    useEffect(() => {
+        const fetchMembers = async () => {
+            const { count } = await supabase
+                .from('space_members')
+                .select('*', { count: 'exact', head: true })
+                .eq('space_id', space.id);
+            setMemberCount(count || 0);
+        };
+        fetchMembers();
+    }, [space.id, supabase]);
 
     const uploadFile = async (file: File, path: string) => {
         const fileExt = file.name.split('.').pop();
@@ -280,7 +294,14 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                         {/* Title & Desc */}
                         <div className="flex-1 pt-2 md:pt-0 md:pb-2 text-center md:text-left">
                             <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-1">{space.title}</h1>
-                            <p className="text-slate-500 text-sm md:text-base">{space.description || "소개가 없습니다."}</p>
+                            <div className="flex flex-col md:flex-row md:items-center gap-2 text-slate-500 text-sm md:text-base">
+                                <p>{space.description || "소개가 없습니다."}</p>
+                                <span className="hidden md:inline">·</span>
+                                <div className="flex items-center justify-center gap-1 text-slate-600">
+                                    <Users size={14} />
+                                    <span>멤버 {memberCount}명</span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Action Buttons */}
@@ -331,7 +352,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             </div>
 
             {/* Canvas Area (Masonry/Grid) */}
-            <main className="p-4 md:p-8 max-w-5xl mx-auto">
+            <main className="p-4 md:p-8 max-w-2xl mx-auto">
                 {/* ... keep existing block rendering ... */}
                 {blocks.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
@@ -342,32 +363,9 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                         <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
                     </div>
                 ) : (
-                    <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+                    <div className="flex flex-col gap-6">
                         {blocks.map((block) => (
-                            <div key={block.id} className="break-inside-avoid relative group mb-4">
-                                {block.type === 'note' && (
-                                    <div className={`p-4 rounded-xl shadow-sm ${block.content.color || 'bg-white'} min-h-[100px] flex items-center justify-center text-center font-handwriting transition-transform hover:-translate-y-1 duration-300`}>
-                                        <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">{block.content.text}</p>
-                                    </div>
-                                )}
-                                {block.type === 'photo' && (
-                                    <div className="rounded-xl overflow-hidden shadow-sm bg-white hover:-translate-y-1 transition-transform duration-300">
-                                        <img src={block.content.url} alt="memory" className="w-full h-auto" />
-                                        {block.content.caption && (
-                                            <p className="p-3 text-xs text-slate-600 font-medium">{block.content.caption}</p>
-                                        )}
-                                    </div>
-                                )}
-                                {/* Delete Overlay for Host */}
-                                {(role === 'host' || block.created_by === currentUser?.id) && (
-                                    <button
-                                        onClick={() => handleDeleteBlock(block.id)}
-                                        className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <Trash2 size={12} className="rotate-0" /> {/* Using Trash2 */}
-                                    </button>
-                                )}
-                            </div>
+                            <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
                         ))}
                     </div>
                 )}
@@ -436,6 +434,125 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                             </div>
                         </DialogContent>
                     </Dialog>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Subcomponent for Block Item (Facebook Style)
+function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Block; spaceId: string; currentUser: any; role: string; onDelete: () => void }) {
+    const supabase = createClient();
+    const [comments, setComments] = useState<any[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [showComments, setShowComments] = useState(false);
+
+    useEffect(() => {
+        if (showComments) {
+            fetchComments();
+        }
+    }, [showComments]);
+
+    const fetchComments = async () => {
+        const { data } = await supabase
+            .from('memorial_comments')
+            .select('*, auth.users(email)') // Simplified join, usually profiles
+            .eq('block_id', block.id)
+            .order('created_at', { ascending: true });
+        if (data) setComments(data);
+    };
+
+    const handleAddComment = async () => {
+        if (!newComment.trim()) return;
+        const { error } = await supabase.from('memorial_comments').insert({
+            block_id: block.id,
+            user_id: currentUser?.id,
+            content: newComment
+        });
+        if (!error) {
+            setNewComment("");
+            fetchComments();
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            {/* Header (Author info - Placeholder for now as we store created_by ID) */}
+            <div className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Avatar className="w-10 h-10">
+                        <AvatarFallback>M</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="text-sm font-bold text-slate-900">추모객</p>
+                        <p className="text-xs text-slate-500">{new Date(block.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                {(role === 'host' || block.created_by === currentUser?.id) && (
+                    <button onClick={onDelete} className="text-slate-400 hover:text-red-500 p-2">
+                        <Trash2 size={16} />
+                    </button>
+                )}
+            </div>
+
+            {/* Content */}
+            <div className="px-4 pb-4">
+                {block.type === 'note' && (
+                    <div className={`p-6 rounded-xl ${block.content.color || 'bg-slate-50'} font-handwriting text-lg leading-relaxed text-slate-800 whitespace-pre-wrap`}>
+                        {block.content.text}
+                    </div>
+                )}
+                {block.type === 'photo' && (
+                    <div className="rounded-xl overflow-hidden">
+                        <img src={block.content.url} alt="Memory" className="w-full h-auto" />
+                    </div>
+                )}
+            </div>
+
+            {/* Actions (Like/Comment) */}
+            <div className="px-4 py-3 border-t border-slate-50 flex items-center gap-4">
+                <button className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-colors">
+                    <Heart size={20} />
+                    <span className="text-sm font-medium">공감</span>
+                </button>
+                <button
+                    onClick={() => setShowComments(!showComments)}
+                    className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-colors"
+                >
+                    <Users size={20} /> {/* Using Users icon as generic bubble variant unavailable in lucide imports above */}
+                    <span className="text-sm font-medium">댓글</span>
+                </button>
+            </div>
+
+            {/* Comments Section */}
+            {showComments && (
+                <div className="p-4 bg-slate-50 border-t border-slate-100 space-y-4">
+                    {/* List */}
+                    <div className="space-y-3">
+                        {comments.map(comment => (
+                            <div key={comment.id} className="flex gap-3">
+                                <Avatar className="w-8 h-8">
+                                    <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                                <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex-1">
+                                    <p className="text-xs font-bold text-slate-900 mb-0.5">방문자</p>
+                                    <p className="text-sm text-slate-700">{comment.content}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Input */}
+                    <div className="flex gap-2">
+                        <Input
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="따뜻한 댓글을 남겨주세요..."
+                            className="bg-white rounded-full"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                        />
+                        <Button onClick={handleAddComment} size="sm" className="rounded-full px-4">등록</Button>
+                    </div>
                 </div>
             )}
         </div>
