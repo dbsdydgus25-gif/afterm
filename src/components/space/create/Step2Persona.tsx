@@ -12,7 +12,7 @@ interface Step2Props {
 }
 
 export function Step2Persona({ data, updateData, onNext, onBack }: Step2Props) {
-    const isValid = data.nickname.trim().length > 0;
+    const isValid = true;
 
     return (
         <div className="space-y-6">
@@ -46,20 +46,6 @@ export function Step2Persona({ data, updateData, onNext, onBack }: Step2Props) {
                     </label>
                     <p className="text-center text-sm font-bold text-slate-700 mt-3">대표 사진 (고인)</p>
                 </div>
-            </div>
-
-            <div className="space-y-2 pt-2">
-                <label className="text-sm font-bold text-slate-700">
-                    나의 별명 <span className="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    value={data.nickname}
-                    onChange={(e) => updateData({ nickname: e.target.value })}
-                    placeholder="예: 사랑하는 손자, 20년지기 친구"
-                    className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-                />
-                <p className="text-xs text-slate-400 pl-1">이 공간에서 활동할 때 사용할 이름입니다.</p>
             </div>
 
             <div className="flex gap-3 mt-4">

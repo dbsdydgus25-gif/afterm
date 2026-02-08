@@ -105,6 +105,9 @@ export function SpaceCreationWizard() {
             }
             if (!space) throw new Error("공간 생성 실패");
 
+            // Determine nickname (from formData or user metadata)
+            const userNickname = formData.nickname || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Host';
+
             // 2. Add Host Member (with nickname)
             const { error: memberError } = await supabase
                 .from("space_members")
@@ -112,7 +115,7 @@ export function SpaceCreationWizard() {
                     space_id: space.id,
                     user_id: user.id,
                     role: 'host',
-                    nickname: formData.nickname || 'Host', // Default if empty, but step 2 requires it
+                    nickname: userNickname,
                     status: 'active'
                 });
 
@@ -157,7 +160,7 @@ export function SpaceCreationWizard() {
                                 email: invite.email,
                                 spaceTitle: formData.title,
                                 token: invite.token,
-                                inviterName: formData.nickname || "누군가"
+                                inviterName: userNickname
                             })
                         }).then(async res => {
                             if (!res.ok) {
