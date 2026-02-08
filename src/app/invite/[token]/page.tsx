@@ -40,7 +40,7 @@ function InviteContent() {
                     setErrorMsg("초대장 유효기간이 만료되었습니다.");
                     return;
                 }
-                setInviteData(invite);
+
             } else {
                 // Scenario B: Try as Space ID (Generic Link)
                 const { data: spaceDataRaw } = await supabase
