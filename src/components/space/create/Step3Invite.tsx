@@ -52,26 +52,12 @@ export function Step3Invite({ data, updateData, onSubmit, onBack, loading }: Ste
                 <p className="text-slate-500 text-sm mt-2">가족, 친지, 친구들과 함께 추억을 나눠보세요.</p>
             </div>
 
-            {/* Invite Link Section */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">초대 링크</span>
-                    <span className="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">공간 생성 후 활성화</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-400 text-sm truncate flex items-center">
-                        <LinkIcon size={14} className="mr-2 opacity-50" />
-                        {inviteLink}
-                    </div>
-                    <Button
-                        size="icon"
-                        variant="outline"
-                        className="rounded-xl shrink-0"
-                        onClick={copyLink}
-                    >
-                        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                    </Button>
-                </div>
+            {/* Invite Message */}
+            <div className="bg-blue-50 p-4 rounded-2xl mb-6">
+                <p className="text-sm text-blue-700 font-medium text-center">
+                    초대 링크는 공간 생성 후 생성됩니다.<br />
+                    이메일로 미리 초대장을 보내둘 수 있습니다.
+                </p>
             </div>
 
             {/* Email Invite Section */}

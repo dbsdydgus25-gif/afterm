@@ -177,6 +177,10 @@ function InviteContent() {
                     <p className="text-slate-500 text-sm">
                         {inviteData?.inviter_email ? `${inviteData.inviter_email}님이 보낸 초대장입니다.` : "소중한 추억을 함께 나누세요."}
                     </p>
+                    <div className="mt-4 p-3 bg-slate-50 rounded-xl text-sm">
+                        <p className="text-slate-500 mb-1">현재 로그인 계정</p>
+                        <p className="font-bold text-slate-800">{user?.email}</p>
+                    </div>
                 </div >
 
                 <div className="space-y-3">
