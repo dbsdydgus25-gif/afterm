@@ -13,7 +13,6 @@ export type SpaceFormData = {
     description: string;
     nickname: string;
     profileFile: File | null;
-    bgFile: File | null;
     invites: string[]; // Email list
 };
 
@@ -28,7 +27,6 @@ export function SpaceCreationWizard() {
         description: "",
         nickname: "",
         profileFile: null,
-        bgFile: null,
         invites: []
     });
 
@@ -70,9 +68,6 @@ export function SpaceCreationWizard() {
             if (formData.profileFile) {
                 profileUrl = await uploadFile(formData.profileFile, `profiles/${user.id}`);
             }
-            if (formData.bgFile) {
-                bgUrl = await uploadFile(formData.bgFile, `backgrounds/${user.id}`);
-            }
 
             // 1. Create Memorial Space
             const { data: space, error: spaceError } = await supabase
@@ -85,7 +80,7 @@ export function SpaceCreationWizard() {
                     theme: {
                         color: 'blue',
                         profileImage: profileUrl,
-                        backgroundImage: bgUrl
+                        backgroundImage: "" // Default empty, set later
                     }
                 })
                 .select()

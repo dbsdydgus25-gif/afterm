@@ -291,151 +291,198 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                             </div>
                         </div>
 
-                        {/* Title & Desc */}
-                        <div className="flex-1 pt-2 md:pt-0 md:pb-2 text-center md:text-left">
-                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-1">{space.title}</h1>
-                            <div className="flex flex-col md:flex-row md:items-center gap-2 text-slate-500 text-sm md:text-base">
-                                <p>{space.description || "소개가 없습니다."}</p>
-                                <span className="hidden md:inline">·</span>
-                                <div className="flex items-center justify-center gap-1 text-slate-600">
-                                    <Users size={14} />
-                                    <span>멤버 {memberCount}명</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 justify-center md:justify-end pb-2">
-                            {/* Invite / Share */}
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6 shadow-sm">
-                                        <Users size={18} className="mr-2" />
-                                        초대하기
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>멤버 초대하기</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-6 pt-4">
-                                        <div className="p-4 bg-slate-50 rounded-xl space-y-3">
-                                            <h3 className="font-bold text-slate-900 text-sm">초대 링크 공유</h3>
-                                            <p className="text-xs text-slate-500">
-                                                아래 링크를 통해 들어온 사람은<br />
-                                                <strong>뷰어 (글 작성/보기 가능)</strong> 권한을 갖게 됩니다.
-                                            </p>
-                                            <div className="flex gap-2">
-                                                <Input value={`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${space.id}`} readOnly className="bg-white" />
-                                                <Button onClick={() => {
-                                                    navigator.clipboard.writeText(`${window.location.origin}/invite/${space.id}`);
-                                                    alert("초대 링크가 복사되었습니다!");
-                                                }} variant="outline">
-                                                    복사
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                                            <h3 className="font-bold text-yellow-800 text-sm mb-1">관리자 권한 필요?</h3>
-                                            <p className="text-xs text-yellow-700">
-                                                편집자(관리자) 권한은 이메일 초대를 통해 부여할 수 있습니다.<br />
-                                                (추후 업데이트 예정)
-                                            </p>
-                                        </div>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Canvas Area (Masonry/Grid) */}
-            <main className="p-4 md:p-8 max-w-2xl mx-auto">
-                {/* ... keep existing block rendering ... */}
-                {blocks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-3xl">
-                            ✍️
-                        </div>
-                        <p className="font-bold text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
-                        <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
+                {/* Title & Desc */}
+                <div className="flex-1 pt-2 md:pt-0 md:pb-2 text-center md:text-left">
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-1">{space.title}</h1>
+                    <div className="flex flex-col md:flex-row md:items-center gap-2 text-slate-500 text-sm md:text-base">
+                        <p>{space.description || "소개가 없습니다."}</p>
+                        <span className="hidden md:inline">·</span>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <button className="flex items-center justify-center gap-1 text-slate-600 hover:text-blue-600 hover:underline">
+                                    <Users size={14} />
+                                    <span>멤버 {memberCount}명</span>
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>멤버 목록</DialogTitle>
+                                </DialogHeader>
+                                <MemberList spaceId={space.id} />
+                            </DialogContent>
+                        </Dialog>
                     </div>
-                ) : (
-                    <div className="flex flex-col gap-6">
-                        {blocks.map((block) => (
-                            <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
-                        ))}
-                    </div>
-                )}
-            </main>
+                </div>
 
-            {/* Floating Action Button */}
-            {(role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
-                /* Allow viewers to add notes? Assuming yes for memorial */
-                <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
-                    <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                {/* Action Buttons */}
+                <div className="flex gap-2 justify-center md:justify-end pb-2">
+                    {/* Invite / Share */}
+                    <Dialog>
                         <DialogTrigger asChild>
-                            <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
-                                <Plus size={28} />
+                            <Button className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6 shadow-sm">
+                                <Users size={18} className="mr-2" />
+                                초대하기
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+                        <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>추억 추가하기</DialogTitle>
+                                <DialogTitle>멤버 초대하기</DialogTitle>
                             </DialogHeader>
-                            <div className="grid grid-cols-2 gap-4 py-4">
-                                {/* Photo Upload */}
-                                <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                    <ImageIcon className="w-8 h-8 text-blue-500" />
-                                    <span className="text-sm font-medium">사진</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleFileUpload}
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        disabled={uploading}
-                                    />
-                                    {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
+                            <div className="space-y-6 pt-4">
+                                <div className="p-4 bg-slate-50 rounded-xl space-y-3">
+                                    <h3 className="font-bold text-slate-900 text-sm">초대 링크 공유</h3>
+                                    <p className="text-xs text-slate-500">
+                                        아래 링크를 통해 들어온 사람은<br />
+                                        <strong>뷰어 (글 작성/보기 가능)</strong> 권한을 갖게 됩니다.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <Input value={`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${space.id}`} readOnly className="bg-white" />
+                                        <Button onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}/invite/${space.id}`);
+                                            alert("초대 링크가 복사되었습니다!");
+                                        }} variant="outline">
+                                            복사
+                                        </Button>
+                                    </div>
                                 </div>
 
-                                {/* Note Input */}
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                            <StickyNote className="w-8 h-8 text-yellow-500" />
-                                            <span className="text-sm font-medium">쪽지</span>
-                                        </div>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader><DialogTitle>쪽지 남기기</DialogTitle></DialogHeader>
-                                        <div className="space-y-4 pt-4">
-                                            <Textarea
-                                                value={noteContent}
-                                                onChange={(e) => setNoteContent(e.target.value)}
-                                                placeholder="친구에게 남기고 싶은 말을 적어주세요."
-                                                className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
-                                            />
-                                            <div className="flex gap-2">
-                                                {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
-                                                    <button
-                                                        key={color}
-                                                        onClick={() => setNoteColor(color)}
-                                                        className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <Button onClick={handleAddNote} className="w-full">남기기</Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-
+                                <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                                    <h3 className="font-bold text-yellow-800 text-sm mb-1">관리자 권한 필요?</h3>
+                                    <p className="text-xs text-yellow-700">
+                                        편집자(관리자) 권한은 이메일 초대를 통해 부여할 수 있습니다.<br />
+                                        (추후 업데이트 예정)
+                                    </p>
+                                </div>
                             </div>
                         </DialogContent>
                     </Dialog>
                 </div>
-            )}
+            </div>
+        </div>
+            </div >
+
+        {/* Canvas Area (Masonry/Grid) */ }
+        < main className = "p-4 md:p-8 max-w-2xl mx-auto" >
+            {/* ... keep existing block rendering ... */ }
+    {
+        blocks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                    ✍️
+                </div>
+                <p className="font-bold text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
+                <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
+            </div>
+        ) : (
+        <div className="flex flex-col gap-6">
+            {blocks.map((block) => (
+                <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
+            ))}
+        </div>
+    )
+    }
+            </main >
+
+        {/* Floating Action Button */ }
+    {
+        (role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
+            /* Allow viewers to add notes? Assuming yes for memorial */
+            <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
+                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
+                            <Plus size={28} />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>추억 추가하기</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid grid-cols-2 gap-4 py-4">
+                            {/* Photo Upload */}
+                            <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
+                                <ImageIcon className="w-8 h-8 text-blue-500" />
+                                <span className="text-sm font-medium">사진</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileUpload}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    disabled={uploading}
+                                />
+                                {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
+                            </div>
+
+                            {/* Note Input */}
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
+                                        <StickyNote className="w-8 h-8 text-yellow-500" />
+                                        <span className="text-sm font-medium">쪽지</span>
+                                    </div>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader><DialogTitle>쪽지 남기기</DialogTitle></DialogHeader>
+                                    <div className="space-y-4 pt-4">
+                                        <Textarea
+                                            value={noteContent}
+                                            onChange={(e) => setNoteContent(e.target.value)}
+                                            placeholder="친구에게 남기고 싶은 말을 적어주세요."
+                                            className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
+                                        />
+                                        <div className="flex gap-2">
+                                            {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
+                                                <button
+                                                    key={color}
+                                                    onClick={() => setNoteColor(color)}
+                                                    className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <Button onClick={handleAddNote} className="w-full">남기기</Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        )
+    }
+        </div >
+    );
+}
+
+// Member List Component
+function MemberList({ spaceId }: { spaceId: string }) {
+    const supabase = createClient();
+    const [members, setMembers] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetch = async () => {
+            const { data } = await supabase.from('space_members').select('*').eq('space_id', spaceId);
+            if (data) setMembers(data);
+        };
+        fetch();
+    }, [spaceId]);
+
+    return (
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {members.map(member => (
+                <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg">
+                    <Avatar>
+                        <AvatarFallback>{member.nickname?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-bold text-sm">{member.nickname || '이름 없음'}</p>
+                        <p className="text-xs text-slate-500 capitalize">{member.role}</p>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }
@@ -446,19 +493,82 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
     const [showComments, setShowComments] = useState(false);
+    const [authorName, setAuthorName] = useState("로딩 중...");
+    const [likeCount, setLikeCount] = useState(0);
+    const [hasLiked, setHasLiked] = useState(false);
 
     useEffect(() => {
+        fetchAuthor();
+        fetchLikes();
         if (showComments) {
             fetchComments();
         }
-    }, [showComments]);
+    }, [showComments, block.id]);
+
+    const fetchAuthor = async () => {
+        // Try to find nickname in space_members first
+        const { data: memberData } = await supabase
+            .from('space_members')
+            .select('nickname')
+            .eq('space_id', spaceId)
+            .eq('user_id', block.created_by)
+            .single();
+
+        if (memberData && memberData.nickname) {
+            setAuthorName(memberData.nickname);
+        } else {
+            // Fallback: Check if it's the current user, or just generic
+            setAuthorName("추모객");
+        }
+    };
+
+    const fetchLikes = async () => {
+        const { count, error } = await supabase
+            .from('memorial_likes')
+            .select('*', { count: 'exact', head: true })
+            .eq('block_id', block.id);
+
+        setLikeCount(count || 0);
+
+        if (currentUser) {
+            const { data } = await supabase
+                .from('memorial_likes')
+                .select('id')
+                .eq('block_id', block.id)
+                .eq('user_id', currentUser.id)
+                .single();
+            setHasLiked(!!data);
+        }
+    };
+
+    const handleLike = async () => {
+        if (!currentUser) return alert("로그인이 필요합니다.");
+
+        if (hasLiked) {
+            const { error } = await supabase.from('memorial_likes').delete().eq('block_id', block.id).eq('user_id', currentUser.id);
+            if (!error) {
+                setHasLiked(false);
+                setLikeCount(prev => prev - 1);
+            }
+        } else {
+            const { error } = await supabase.from('memorial_likes').insert({ block_id: block.id, user_id: currentUser.id });
+            if (!error) {
+                setHasLiked(true);
+                setLikeCount(prev => prev + 1);
+            } else {
+                console.error(error);
+            }
+        }
+    };
 
     const fetchComments = async () => {
         const { data } = await supabase
             .from('memorial_comments')
-            .select('*, auth.users(email)') // Simplified join, usually profiles
+            .select('*, auth.users(email)') // We might not have nickname join easily, need secondary fetch or View
             .eq('block_id', block.id)
             .order('created_at', { ascending: true });
+
+        // For now, simple display
         if (data) setComments(data);
     };
 
@@ -472,19 +582,22 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
         if (!error) {
             setNewComment("");
             fetchComments();
+        } else {
+            console.error("Comment error", error);
+            alert("댓글 작성 실패");
         }
     };
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            {/* Header (Author info - Placeholder for now as we store created_by ID) */}
+            {/* Header (Author info) */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
-                        <AvatarFallback>M</AvatarFallback>
+                        <AvatarFallback>{authorName[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="text-sm font-bold text-slate-900">추모객</p>
+                        <p className="text-sm font-bold text-slate-900">{authorName}</p>
                         <p className="text-xs text-slate-500">{new Date(block.created_at).toLocaleDateString()}</p>
                     </div>
                 </div>
@@ -511,15 +624,18 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
 
             {/* Actions (Like/Comment) */}
             <div className="px-4 py-3 border-t border-slate-50 flex items-center gap-4">
-                <button className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-colors">
-                    <Heart size={20} />
-                    <span className="text-sm font-medium">공감</span>
+                <button
+                    onClick={handleLike}
+                    className={`flex items-center gap-1.5 transition-colors ${hasLiked ? 'text-red-500' : 'text-slate-500 hover:text-red-500'}`}
+                >
+                    <Heart size={20} className={hasLiked ? 'fill-current' : ''} />
+                    <span className="text-sm font-medium">공감 {likeCount > 0 && likeCount}</span>
                 </button>
                 <button
                     onClick={() => setShowComments(!showComments)}
                     className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-colors"
                 >
-                    <Users size={20} /> {/* Using Users icon as generic bubble variant unavailable in lucide imports above */}
+                    <Users size={20} />
                     <span className="text-sm font-medium">댓글</span>
                 </button>
             </div>
@@ -535,7 +651,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                                     <AvatarFallback>U</AvatarFallback>
                                 </Avatar>
                                 <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex-1">
-                                    <p className="text-xs font-bold text-slate-900 mb-0.5">방문자</p>
+                                    <p className="text-xs font-bold text-slate-900 mb-0.5">방문자</p> {/* TODO: Fetch Commenter Name */}
                                     <p className="text-sm text-slate-700">{comment.content}</p>
                                 </div>
                             </div>

@@ -21,10 +21,9 @@ export function Step2Persona({ data, updateData, onNext, onBack }: Step2Props) {
                 <p className="text-slate-500 text-sm mt-2">대표 사진과 작성자의 별명을 설정해주세요.</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 block">대표 사진 (고인)</label>
-                    <label className="block w-full aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer relative overflow-hidden group">
+            <div className="flex flex-col items-center justify-center space-y-6">
+                <div className="relative group">
+                    <label className="block w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer relative overflow-hidden shadow-sm">
                         <input
                             type="file"
                             accept="image/*"
@@ -34,36 +33,18 @@ export function Step2Persona({ data, updateData, onNext, onBack }: Step2Props) {
                         {data.profileFile ? (
                             <img src={URL.createObjectURL(data.profileFile)} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                    <Sparkles size={18} />
-                                </div>
-                                <span className="text-xs font-medium">사진 선택</span>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                                <Sparkles size={24} className="mb-2 text-slate-300" />
+                                <span className="text-xs font-medium text-slate-400">사진 등록</span>
                             </div>
                         )}
-                    </label>
-                </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 block">배경 사진 (커버)</label>
-                    <label className="block w-full aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer relative overflow-hidden group">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => updateData({ bgFile: e.target.files?.[0] || null })}
-                        />
-                        {data.bgFile ? (
-                            <img src={URL.createObjectURL(data.bgFile)} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-                                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                    <Sparkles size={18} />
-                                </div>
-                                <span className="text-xs font-medium">배경 선택</span>
-                            </div>
-                        )}
+                        {/* Overlay for hover effect or when image exists */}
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Sparkles className="text-white" size={20} />
+                        </div>
                     </label>
+                    <p className="text-center text-sm font-bold text-slate-700 mt-3">대표 사진 (고인)</p>
                 </div>
             </div>
 
