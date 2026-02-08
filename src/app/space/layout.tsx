@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Home, Search, Heart, User, PlusSquare, LogOut } from "lucide-react";
+import { Home, Search, Heart, User, PlusSquare, LogOut, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function SpaceLayout({
@@ -23,7 +23,8 @@ export default function SpaceLayout({
 
                 <nav className="flex-1 space-y-1">
                     <NavItem href="/space/search" icon={<Search size={24} />} label="검색" />
-                    <NavItem href="/create" icon={<PlusSquare size={24} />} label="만들기" />
+                    <NavItem href="/space/activity" icon={<Bell size={24} />} label="활동" />
+                    <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="만들기" />
                 </nav>
 
                 <div className="mt-auto pt-6 border-t border-slate-100">
@@ -42,7 +43,8 @@ export default function SpaceLayout({
             {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-50 safe-area-bottom">
                 <MobileNavItem href="/space/search" icon={<Search size={24} />} />
-                <MobileNavItem href="/create" icon={<PlusSquare size={24} />} />
+                <MobileNavItem href="/space/activity" icon={<Bell size={24} />} />
+                <MobileNavItem href="/space/create" icon={<PlusSquare size={24} />} />
             </nav>
         </div>
     );
