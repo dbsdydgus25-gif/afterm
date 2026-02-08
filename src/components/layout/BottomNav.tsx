@@ -7,16 +7,36 @@ import { Home, PenLine, User, Users, Vault } from "lucide-react";
 export function BottomNav() {
     const pathname = usePathname();
 
-    const navItems = [
-        { href: "/space/search", icon: Users, label: "검색" }, // Changed link to /space/search explicitly
-        { href: "/space/create", icon: PenLine, label: "만들기" }, // Changed link to /space/create as requested
+    // 1. Global Navigation (Main)
+    const globalNavItems = [
+        { href: "/", icon: Home, label: "홈" },
+        { href: "/vault/create", icon: PenLine, label: "기억남기기" },
+        { href: "/vault", icon: Vault, label: "디지털 유산" },
+        { href: "/space", icon: Users, label: "기억공간" },
+        { href: "/dashboard", icon: User, label: "내정보" },
     ];
+
+    // 2. Space Navigation (Only for Space Section)
+    const spaceNavItems = [
+        { href: "/space/search", icon: Users, label: "검색" },
+        { href: "/space/create", icon: PenLine, label: "만들기" },
+    ];
+
+    // Condition: Show Space Nav only when in "/space" related paths
+    // BUT: If user explicitly said "Main" was wrong, we allow Space Nav in /space
+    const isSpaceSection = pathname.startsWith("/space");
+
+    const navItems = isSpaceSection ? spaceNavItems : globalNavItems;
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 safe-area-inset-bottom">
             <div className="flex items-center justify-around h-16 px-2">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+                    // Active state logic
+                    const isActive = item.href === "/"
+                        ? pathname === "/"
+                        : pathname.startsWith(item.href);
+
                     const Icon = item.icon;
 
                     return (
