@@ -9,42 +9,42 @@ const articles = [
         icon: "🕊️",
         title: "2024년 사전연명의료의향서 등록자 200만 돌파",
         desc: "보건복지부에 따르면 사전연명의료의향서 등록자가 200만 명을 넘어섰습니다. 존엄한 마무리에 대한 관심이 급증하며 웰다잉 문화가 확산되고 있습니다.",
-        link: "https://search.naver.com/search.naver?where=news&query=%EC%82%AC%EC%A0%84%EC%97%B0%EB%AA%85%EC%9D%98%EB%A3%8C%EC%9D%98%ED%96%A5%EC%84%9C+200%EB%A7%8C",
+        link: "https://www.yna.co.kr/view/AKR20240913076100530", // Yonhap News 2024
         bg: "bg-blue-50",
     },
     {
         icon: "📱",
         title: "\"내 디지털 흔적은 누가?\"... 디지털 유산 상속 법제화 논의",
         desc: "사망 후 남겨진 SNS 계정과 데이터를 어떻게 처리할 것인가? '잊힐 권리'와 '상속 권리' 사이의 논쟁과 국회의 입법 움직임을 확인해보세요.",
-        link: "https://search.naver.com/search.naver?where=news&query=%EB%94%94%EC%A7%80%ED%84%B8+%EC%9C%A0%EC%82%B0+%EB%B2%95%EC%A0%9C%ED%99%94",
+        link: "https://www.hani.co.kr/arti/society/society_general/1183354.html", // Hankyoreh
         bg: "bg-purple-50",
     },
     {
         icon: "🏛️",
         title: "우리 동네 '웰다잉' 프로그램: 지자체 조례 제정 잇따라",
         desc: "서울, 경기, 부산 등 전국 지자체에서 웰다잉 교육 및 엔딩노트 작성 지원 프로그램을 확대하고 있습니다. 거주지 주변의 프로그램을 찾아보세요.",
-        link: "https://search.naver.com/search.naver?where=news&query=%EC%A7%80%EC%9E%90%EC%B2%B4+%EC%9B%B0%EB%8B%A4%EC%9E%89+%EC%A1%B0%EB%A1%80",
+        link: "https://www.dailymedi.com/news/news_view.php?ca_id=22&wr_id=920638", // Daily Medi (Gyeonggi Ordinance)
         bg: "bg-green-50",
     },
     {
         icon: "💐",
         title: "장례식 대신 '생전 장례식'... 2030 세대의 새로운 인식",
         desc: "형식적인 장례식보다 의미 있는 마무리를 선호하는 젊은 층을 중심으로, 살아생전 지인들과 인사를 나누는 '생전 장례식'이 주목받고 있습니다.",
-        link: "https://search.naver.com/search.naver?where=news&query=%EC%83%9D%EC%A0%84+%EC%9E%A5%EB%A1%80%EC%8B%9D+%ED%8A%B8%EB%A0%8C%EB%93%9C",
+        link: "https://www.hankyung.com/article/202305312351i", // Hankyung Living Funeral
         bg: "bg-pink-50",
     },
     {
         icon: "🤖",
         title: "1인 가구 1,000만 시대, AI 안부 확인과 고독사 예방",
         desc: "1인 가구 증가에 발맞춰, AI를 활용한 안부 확인 서비스와 고독사 예방 시스템이 진화하고 있습니다. 기술이 돌보는 마지막 삶의 모습을 취재했습니다.",
-        link: "https://search.naver.com/search.naver?where=news&query=1%EC%9D%B8%EA%B0%80%EA%B5%AC+%EA%B3%A0%EB%8F%85%EC%82%AC+AI",
+        link: "https://www.jeonmae.co.kr/news/articleView.html?idxno=1092769", // Jeonmae News (Asan AI Care)
         bg: "bg-indigo-50",
     },
     {
         icon: "✍️",
         title: "유언장 쓰기, 이제는 필수... 모바일 유언장 작성 인기",
         desc: "복잡한 공증 절차 대신, 블록체인 등을 활용해 간편하게 법적 효력을 갖는 유언장을 작성하는 모바일 서비스들이 인기를 끌고 있습니다.",
-        link: "https://search.naver.com/search.naver?where=news&query=%EB%AA%A8%EB%B0%94%EC%9D%BC+%EC%9C%A0%EC%96%B8%EC%9E%A5+%EC%84%9C%EB%B9%84%EC%8A%A4",
+        link: "http://www.ikunkang.com/news/articleView.html?idxno=33682", // iKunkang (Mobile Will Service)
         bg: "bg-orange-50",
     },
 ];

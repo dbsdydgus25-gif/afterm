@@ -83,7 +83,7 @@ export default function LoginPageClient() {
             <div className="flex flex-col items-center justify-center min-h-screen px-4 pt-28 pb-12">
                 <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-md">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-2">로그인</h1>
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2">AFTERM 로그인</h1>
                         <p className="text-slate-500">
                             계정 정보를 입력하거나 SNS로 시작하세요.
                         </p>
