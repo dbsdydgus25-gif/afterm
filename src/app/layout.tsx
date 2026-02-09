@@ -89,3 +89,5 @@ export default function RootLayout({
 // Emergency Fix: Manual Profile Fetch Mon Feb  9 15:40:04 KST 2026
 
 // Final God Mode: Server Profile Fetch Mon Feb  9 15:45:02 KST 2026
+
+// Final UI Repair: Fallbacks Mon Feb  9 15:56:33 KST 2026

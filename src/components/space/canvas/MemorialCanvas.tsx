@@ -637,12 +637,31 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
             profilesData = data || [];
         }
 
+        // 3.1 Fallback: Fetch Space Members (If profiles missing)
+        // This ensures we at least get the nickname for the space
+        let membersData: any[] = [];
+        const missingIds = userIds.filter(id => !profilesData.find(p => p.id === id));
+        if (missingIds.length > 0) {
+            const { data: members } = await supabase
+                .from('space_members')
+                .select('user_id, nickname')
+                .eq('space_id', spaceId)
+                .in('user_id', missingIds);
+            membersData = members || [];
+        }
+
         // 4. Merge Data
         const commentsWithProfiles = commentsData.map(comment => {
             const profile = profilesData?.find(p => p.id === comment.user_id);
+            const member = membersData?.find(m => m.user_id === comment.user_id);
+
             return {
                 ...comment,
-                profiles: profile || null
+                profiles: profile || {
+                    full_name: member?.nickname || "알 수 없음",
+                    nickname: member?.nickname,
+                    avatar_url: null
+                }
             };
         });
 
