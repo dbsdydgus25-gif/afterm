@@ -28,75 +28,87 @@ function InviteContent() {
 
             const invite = inviteDataRaw as any;
 
-            if (invite) {
-                // Scenario A: Valid Invitation Token
-                if (invite.status !== 'pending') {
-                    setStatus("error");
-                    setErrorMsg("이미 사용되었거나 만료된 초대장입니다.");
-                    return;
-                }
-                if (new Date(invite.expires_at) < new Date()) {
-                    setStatus("error");
-                    setErrorMsg("초대장 유효기간이 만료되었습니다.");
-                    return;
-                }
+            if (!token) return;
 
-            } else {
-                // Scenario B: Try as Space ID (Generic Link)
-                const { data: spaceDataRaw } = await supabase
-                    .rpc('get_space_for_invite', { lookup_id: token })
-                    .maybeSingle();
+            try {
+                const res = await fetch('/api/invite/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
 
-                const space = spaceDataRaw as any;
-
-                if (space) {
-                    setInviteData({
-                        space_id: space.id,
-                        space_title: space.title,
-                        status: 'active', // Generic links don't expire in this simplified flow
-                        role: 'viewer', // Default role
-                        inviter_email: null // No specific inviter
-                    });
-                } else {
-                    console.error("Invite/Space lookup failed");
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    console.error("Invite lookup failed:", errorData);
                     setStatus("error");
                     setErrorMsg("유효하지 않거나 만료된 초대 링크입니다.");
                     return;
                 }
+
+                const result = await res.json();
+                const data = result.data; // This is the invite data
+
+                // Handle Generic Space Link or Invitation
+                if (data.type === 'generic') {
+                    setInviteData({
+                        id: 'generic',
+                        space_id: data.space_id,
+                        inviter_id: null,
+                        email: null,
+                        status: 'active',
+                        role: 'viewer',
+                        expires_at: null,
+                        space_title: data.space_title,
+                        inviter_email: null
+                    } as any);
+                } else {
+                    // Specific Invitation
+                    if (data.status === 'accepted') {
+                        setStatus("error");
+                        setErrorMsg("이미 사용된 초대장입니다.");
+                        return;
+                    }
+                    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+                        setStatus("error");
+                        setErrorMsg("초대장 유효기간이 만료되었습니다.");
+                        return;
+                    }
+                    setInviteData(data);
+                }
+
+                // 2. Check Auth
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    // Not logged in -> Redirect to Login
+                    const returnTo = `/invite/${token}`;
+                    router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+                    return;
+                }
+
+                setUser(user);
+
+                // 3. Check if already member
+                const { data: existingMember } = await supabase
+                    .from("space_members")
+                    .select("id")
+                    .eq("space_id", data.space_id || data.id) // data.id is space_id for generic type? No, based on API: generic->space_id, invitation->space_id
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+
+                if (existingMember) {
+                    // Already member -> Redirect
+                    router.push(`/space/${data.space_id || data.id}`);
+                    return;
+                }
+
+                setStatus("ready");
+
+            } catch (error) {
+                console.error("Error checking invite:", error);
+                setStatus("error");
+                setErrorMsg("초대장을 불러오는 중 오류가 발생했습니다.");
             }
-
-            // (Validation logic moved above)
-
-
-
-            // 2. Check Auth
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                // Not logged in -> Redirect to Login
-                const returnTo = `/invite/${token}`;
-                router.push(`/login?returnTo=${encodeURIComponent(returnTo)}`);
-                return;
-            }
-
-            setUser(user);
-
-            // 3. Check if already member
-            const { data: existingMember } = await supabase
-                .from('space_members')
-                .select('id')
-                .eq('space_id', invite ? invite.space_id : token) // token acts as space_id in generic case
-                .eq('user_id', user.id)
-                .single();
-
-            if (existingMember) {
-                // Already member -> Redirect
-                router.push(`/space/${invite ? invite.space_id : token}`);
-                return;
-            }
-
-            // Ready to accept
-            setStatus("ready");
         };
 
         if (token) {
