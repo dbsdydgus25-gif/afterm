@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { Plus, LayoutGrid, Users, Heart } from "lucide-react";
+import { Plus, LayoutGrid, Users, Heart, ArrowRight, Grid, List } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Database } from "@/types/supabase";
@@ -19,6 +19,9 @@ export default function SpaceDashboard() {
     const [mySpaces, setMySpaces] = useState<Space[]>([]);
     const [joinedSpaces, setJoinedSpaces] = useState<JoinedSpace[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [showAllMySpaces, setShowAllMySpaces] = useState(false);
+    const [showAllJoined, setShowAllJoined] = useState(false);
 
     useEffect(() => {
         fetchSpaces();
@@ -45,7 +48,6 @@ export default function SpaceDashboard() {
             setMySpaces(ownedData || []);
 
             // 2. Joined Spaces (Guest)
-            // We fetch memberships where role is NOT host
             const { data: memberData, error: memberError } = await supabase
                 .from("space_members")
                 .select(`
@@ -62,7 +64,7 @@ export default function SpaceDashboard() {
             const joinedList = memberData?.map((item: any) => ({
                 ...item.memorial_spaces,
                 role: item.role
-            })).filter(space => space !== null) || []; // Filter out nulls if space was deleted
+            })).filter(space => space !== null) || [];
 
             setJoinedSpaces(joinedList);
 
@@ -74,104 +76,115 @@ export default function SpaceDashboard() {
     };
 
     const SpaceCard = ({ space, isHost }: { space: Space | JoinedSpace, isHost: boolean }) => (
-        <Link href={`/space/${space.id}`} className="group relative block h-full">
-            <div className="absolute inset-0 bg-blue-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity" />
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 h-full transition-transform group-hover:-translate-y-1 duration-200 shadow-sm group-hover:shadow-md flex flex-col">
-                <div className="flex items-start justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-slate-100`}>
-                        {/* Use theme image if available, else emoji placeholder */}
+        <Link href={`/space/${space.id}`} className="group relative block w-[280px] shrink-0 snap-start">
+            {/* Wallet Card Style */}
+            <div className="relative h-[360px] bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+                {/* Cover Image Half */}
+                <div className="h-[200px] w-full bg-slate-100 relative overflow-hidden">
+                    {(space.theme as any)?.backgroundImage ? (
+                        <img src={(space.theme as any).backgroundImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
+                    )}
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                </div>
+
+                {/* Content Half */}
+                <div className="p-6 relative">
+                    {/* Floating Profile Image */}
+                    <div className="absolute -top-10 left-6 w-16 h-16 rounded-2xl border-4 border-white shadow-md bg-white overflow-hidden flex items-center justify-center">
                         {(space.theme as any)?.profileImage ? (
                             <img src={(space.theme as any).profileImage} alt={space.title} className="w-full h-full object-cover" />
                         ) : (
                             <span className="text-2xl">🕊️</span>
                         )}
                     </div>
-                    {isHost ? (
-                        <span className="bg-slate-100 text-slate-500 text-[10px] uppercase font-bold px-2 py-1 rounded-full">
-                            Owner
-                        </span>
-                    ) : (
-                        <span className="bg-blue-50 text-blue-600 text-[10px] uppercase font-bold px-2 py-1 rounded-full">
-                            Guest
-                        </span>
-                    )}
-                </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
-                    {space.title}
-                </h3>
-                <p className="text-sm text-slate-500 line-clamp-2 min-h-[40px] flex-1">
-                    {space.description || "설명이 없습니다."}
-                </p>
+                    <div className="mt-8">
+                        <h3 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                            {space.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                            {space.description || "소중한 추억을 함께 기록하는 공간"}
+                        </p>
+                    </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center text-xs text-slate-400">
-                    {isHost ? (
-                        <>
-                            <Users className="w-3.5 h-3.5 mr-1" />
-                            <span>공간 관리</span>
-                        </>
-                    ) : (
-                        <>
-                            <Heart className="w-3.5 h-3.5 mr-1" />
-                            <span>추모 참여 중</span>
-                        </>
-                    )}
+                    <div className="absolute bottom-6 right-6">
+                        {isHost ? (
+                            <span className="bg-slate-900 text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-md">
+                                Owner
+                            </span>
+                        ) : (
+                            <span className="bg-blue-50 text-blue-600 text-[10px] uppercase font-bold px-3 py-1.5 rounded-full">
+                                Guest
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </Link>
     );
 
     return (
-        <div className="font-sans min-h-screen bg-slate-50">
-            <div className="max-w-7xl mx-auto">
+        <div className="font-sans min-h-screen bg-slate-50 pb-20">
+            <div className="max-w-[1600px] mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-10">
+                <div className="flex items-center justify-between px-6 py-10 lg:px-12">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">추모 공간</h1>
-                        <p className="text-slate-500 mt-1 text-sm">소중한 추억을 함께 기록하는 공간입니다.</p>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">추모 공간</h1>
+                        <p className="text-slate-500 mt-2 font-medium">기억을 잇고 마음을 나누는 곳</p>
                     </div>
                     <Link href="/space/create">
-                        <Button className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-5 shadow-lg shadow-slate-200">
-                            <Plus className="w-5 h-5 mr-1.5" />
-                            공간 만들기
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12 px-6 shadow-lg shadow-blue-200 transition-transform hover:scale-105 active:scale-95 font-bold">
+                            <Plus className="w-5 h-5 mr-2" />
+                            새 공간 만들기
                         </Button>
                     </Link>
                 </div>
 
-                <div className="px-6 pb-20 space-y-12">
+                <div className="space-y-16">
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="h-56 bg-white rounded-2xl animate-pulse" />
+                        <div className="px-6 lg:px-12 flex gap-6 overflow-hidden">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-[280px] h-[360px] bg-white rounded-[24px] animate-pulse shrink-0" />
                             ))}
                         </div>
                     ) : (
                         <>
                             {/* Section 1: My Spaces */}
                             <section>
-                                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                    <Users className="w-5 h-5 mr-2 text-slate-400" />
-                                    내가 만든 공간
-                                    <span className="ml-2 bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full">{mySpaces.length}</span>
-                                </h2>
+                                <div className="px-6 lg:px-12 flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        <div className="w-2 h-8 bg-slate-900 rounded-full" />
+                                        내가 만든 공간
+                                        <span className="bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full">{mySpaces.length}</span>
+                                    </h2>
+                                    {mySpaces.length > 0 && (
+                                        <button
+                                            onClick={() => setShowAllMySpaces(!showAllMySpaces)}
+                                            className="text-sm font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                                        >
+                                            {showAllMySpaces ? <><Grid size={16} /> 카드 보기</> : <><LayoutGrid size={16} /> 모두 보기</>}
+                                        </button>
+                                    )}
+                                </div>
 
                                 {mySpaces.length === 0 ? (
-                                    <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-12 text-center h-64 flex flex-col items-center justify-center">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                            <LayoutGrid className="w-6 h-6 text-slate-300" />
+                                    <div className="mx-6 lg:mx-12 bg-white rounded-3xl border border-dashed border-slate-200 p-12 text-center h-64 flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                            <Plus className="w-8 h-8 text-slate-300" />
                                         </div>
-                                        <p className="text-slate-500 text-sm mb-4">
-                                            아직 생성한 공간이 없습니다.<br />
-                                            직접 공간을 만들고 소중한 사람들을 초대해보세요.
+                                        <p className="text-slate-500 font-medium mb-6">
+                                            첫 번째 추모 공간을 만들어보세요.
                                         </p>
                                         <Link href="/space/create">
-                                            <Button variant="outline" className="rounded-xl h-10 px-6 border-slate-200">
-                                                지금 만들기
+                                            <Button variant="outline" className="rounded-xl h-11 px-8 border-slate-200 hover:bg-slate-50 font-bold">
+                                                시작하기
                                             </Button>
                                         </Link>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    <div className={`px-6 lg:px-12 ${showAllMySpaces ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8' : 'flex gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide'}`}>
                                         {mySpaces.map((space) => (
                                             <SpaceCard key={space.id} space={space} isHost={true} />
                                         ))}
@@ -181,20 +194,31 @@ export default function SpaceDashboard() {
 
                             {/* Section 2: Joined Spaces */}
                             <section>
-                                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
-                                    <Heart className="w-5 h-5 mr-2 text-slate-400" />
-                                    참여 중인 공간
-                                    <span className="ml-2 bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full">{joinedSpaces.length}</span>
-                                </h2>
+                                <div className="px-6 lg:px-12 flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        <div className="w-2 h-8 bg-blue-100 rounded-full" />
+                                        참여 중인 공간
+                                        <span className="bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full">{joinedSpaces.length}</span>
+                                    </h2>
+                                    {joinedSpaces.length > 0 && (
+                                        <button
+                                            onClick={() => setShowAllJoined(!showAllJoined)}
+                                            className="text-sm font-bold text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                                        >
+                                            {showAllJoined ? <><Grid size={16} /> 카드 보기</> : <><LayoutGrid size={16} /> 모두 보기</>}
+                                        </button>
+                                    )}
+                                </div>
 
                                 {joinedSpaces.length === 0 ? (
-                                    <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-8 text-center h-40 flex flex-col items-center justify-center">
+                                    <div className="mx-6 lg:mx-12 bg-slate-100 rounded-3xl border border-transparent p-12 text-center h-48 flex flex-col items-center justify-center">
+                                        <Heart className="w-8 h-8 text-slate-300 mb-2" />
                                         <p className="text-slate-400 text-sm">
                                             아직 초대받은 공간이 없습니다.
                                         </p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    <div className={`px-6 lg:px-12 ${showAllJoined ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8' : 'flex gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide'}`}>
                                         {joinedSpaces.map((space) => (
                                             <SpaceCard key={space.id} space={space} isHost={false} />
                                         ))}
@@ -205,6 +229,17 @@ export default function SpaceDashboard() {
                     )}
                 </div>
             </div>
+
+            {/* Horizontal Scroll Styles */}
+            <style jsx global>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </div>
     );
 }
