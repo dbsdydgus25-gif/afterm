@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { sendMessage } from '@/lib/solapi/client';
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -72,45 +73,34 @@ export async function POST(request: Request) {
             }, { status: 500 });
         }
 
-        // 4. Send SMS notification if recipient phone exists
+        // 4. Send SMS notification using Solapi SDK
         let smsSent = false;
+        let smsError = null;
+
         if (message.recipient_phone) {
             try {
                 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.afterm.co.kr';
                 const unlockUrl = `${siteUrl}/vault`;
 
-                const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Basic ${Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: {
-                            to: message.recipient_phone.replace(/-/g, ''),
-                            from: process.env.SOLAPI_SENDER_NUMBER,
-                            text: `[AFTERM] 메시지 열람이 허용되었습니다.\n\n48시간 동안 작성자의 응답이 없어 요청하신 메시지를 이제 열람하실 수 있습니다.\n\n▶ 메시지 보러가기: ${unlockUrl}`
-                        }
-                    })
+                const result = await sendMessage({
+                    to: message.recipient_phone,
+                    text: `[AFTERM] 메시지 열람이 허용되었습니다.\n\n48시간 동안 작성자의 응답이 없어 요청하신 메시지를 이제 열람하실 수 있습니다.\n\n▶ 메시지 보러가기: ${unlockUrl}`,
+                    type: 'SMS'
                 });
 
-                if (solapiResponse.ok) {
-                    const responseData = await solapiResponse.json();
-                    console.log(`[Test] SMS sent successfully:`, responseData);
+                if (result.success) {
+                    console.log(`[Test] SMS sent successfully to ${message.recipient_phone}`, result.data);
                     smsSent = true;
                 } else {
-                    const errorData = await solapiResponse.json();
-                    console.error("[Test] Solapi API error:", {
-                        status: solapiResponse.status,
-                        statusText: solapiResponse.statusText,
-                        error: errorData
-                    });
+                    console.error("[Test] SMS error:", result.error);
+                    smsError = result.error;
                 }
-            } catch (smsError: any) {
+            } catch (error: any) {
                 console.error("[Test] SMS exception:", {
-                    message: smsError.message,
-                    stack: smsError.stack
+                    message: error.message,
+                    stack: error.stack
                 });
+                smsError = error.message;
             }
         }
 
@@ -120,7 +110,8 @@ export async function POST(request: Request) {
             result: {
                 unlocked: true,
                 sms_sent: smsSent,
-                recipient_phone: message.recipient_phone || null
+                recipient_phone: message.recipient_phone || null,
+                sms_error: smsError
             },
             debug: {
                 env_check: {
