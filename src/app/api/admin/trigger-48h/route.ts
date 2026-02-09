@@ -85,7 +85,7 @@ export async function POST(request: Request) {
                 const result = await sendMessage({
                     to: message.recipient_phone,
                     text: `[AFTERM] 메시지 열람이 허용되었습니다.\n\n48시간 동안 작성자의 응답이 없어 요청하신 메시지를 이제 열람하실 수 있습니다.\n\n▶ 메시지 보러가기: ${unlockUrl}`,
-                    type: 'SMS'
+                    type: 'LMS'  // Changed from SMS to LMS for longer messages
                 });
 
                 if (result.success) {

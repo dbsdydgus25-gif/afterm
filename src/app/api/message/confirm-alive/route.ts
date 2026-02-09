@@ -101,7 +101,7 @@ export async function GET(request: Request) {
                 await sendMessage({
                     to: message.recipient_phone,
                     text: `[AFTERM] 작성자의 생존이 확인되어 메시지 열람이 제한됩니다. (본인 확인 완료)`,
-                    type: 'SMS'
+                    type: 'LMS'  // Changed from SMS to LMS for longer messages
                 });
                 console.log(`SMS sent to ${message.recipient_phone}`);
             } catch (smsError) {
