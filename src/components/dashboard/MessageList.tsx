@@ -15,7 +15,7 @@ interface Message {
     file_path?: string;
     type?: "text" | "image" | "voice" | "video";
     status?: string;
-    unlocked?: boolean;
+    is_unlocked?: boolean;
     message_attachments?: { file_type: string }[];
 }
 
