@@ -63,7 +63,7 @@ export function MessageList({
     return (
         <div className="space-y-4">
             {messages.map((mem) => {
-                const isOpened = mem.status === 'UNLOCKED' || mem.unlocked === true;
+                const isOpened = mem.is_unlocked === true;
 
                 return (
                     <div
