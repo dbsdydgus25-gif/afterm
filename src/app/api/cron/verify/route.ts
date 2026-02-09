@@ -22,73 +22,54 @@ export const dynamic = 'force-dynamic'; // Ensure no caching
 export async function GET() {
     try {
         const now = new Date();
-        const results = { phase1: 0, phase2: 0, final: 0, errors: [] as string[] };
+        const results = { stage3_unlocked: 0, errors: [] as string[] };
 
-        // --- Phase 1: Report Received -> Verifying 1 (Send 1st Email) ---
-        const { data: step1Targets, error: err1 } = await supabaseAdmin
+        // --- Stage 2 -> Stage 3 (48 Hours Passed, Unlock Message) ---
+        const { data: stage2Messages, error: err2 } = await supabaseAdmin
             .from('messages')
-            .select('id, report_received_at, user_id')
-            .eq('verification_status', 'report_received');
+            .select('id, stage2_sent_at, user_id, recipient_email')
+            .eq('absence_check_stage', 2)
+            .is('stage3_sent_at', null); // Not yet processed
 
-        if (err1) throw err1;
-
-        for (const msg of step1Targets || []) {
-            const reportTime = new Date(msg.report_received_at);
-            const targetTime = getTargetTime(reportTime, VerificationConfig.DELAY_PHASE_1_HOURS);
-
-            if (now >= targetTime) {
-                // Time passed! Move to next step
-                await updateStatus(msg.id, 'verifying_1', msg.user_id, 1);
-                results.phase1++;
-            }
+        if (err2) {
+            console.error("Failed to fetch stage 2 messages:", err2);
+            throw err2;
         }
 
-        // --- Phase 2: Verifying 1 -> Verifying 2 (Send 2nd Email) ---
-        const { data: step2Targets, error: err2 } = await supabaseAdmin
-            .from('messages')
-            .select('id, last_verification_sent_at, user_id')
-            .eq('verification_status', 'verifying_1');
+        console.log(`[Cron] Found ${stage2Messages?.length || 0} messages in stage 2`);
 
-        if (err2) throw err2;
+        for (const msg of stage2Messages || []) {
+            const stage2Time = new Date(msg.stage2_sent_at);
+            const hoursPassed = (now.getTime() - stage2Time.getTime()) / (1000 * 60 * 60);
 
-        for (const msg of step2Targets || []) {
-            const lastSentTime = new Date(msg.last_verification_sent_at);
-            const targetTime = getTargetTime(lastSentTime, VerificationConfig.DELAY_PHASE_2_HOURS);
+            // 48 hours = 48 hours
+            if (hoursPassed >= 48) {
+                console.log(`[Cron] Processing message ${msg.id}: ${hoursPassed.toFixed(1)} hours passed`);
 
-            if (now >= targetTime) {
-                await updateStatus(msg.id, 'verifying_2', msg.user_id, 2);
-                results.phase2++;
-            }
-        }
-
-        // --- Phase 3: Verifying 2 -> Unlocked (Allow Access) ---
-        const { data: step3Targets, error: err3 } = await supabaseAdmin
-            .from('messages')
-            .select('id, last_verification_sent_at, user_id')
-            .eq('verification_status', 'verifying_2');
-
-        if (err3) throw err3;
-
-        for (const msg of step3Targets || []) {
-            const lastSentTime = new Date(msg.last_verification_sent_at);
-            const targetTime = getTargetTime(lastSentTime, VerificationConfig.DELAY_FINAL_HOURS);
-
-            if (now >= targetTime) {
-                // Final Step: Unlock!
-                await supabaseAdmin
+                // Update to Stage 3 (Unlocked)
+                const { error: updateError } = await supabaseAdmin
                     .from('messages')
                     .update({
-                        verification_status: 'unlocked',
-                        updated_at: new Date().toISOString()
+                        absence_check_stage: 3,
+                        stage3_sent_at: now.toISOString(),
+                        is_unlocked: true,
+                        updated_at: now.toISOString()
                     })
                     .eq('id', msg.id);
 
-                // Notify sender (final notice)
-                await sendVerificationEmail(msg.user_id, 3);
-                results.final++;
+                if (updateError) {
+                    console.error(`Failed to unlock message ${msg.id}:`, updateError);
+                    results.errors.push(`Message ${msg.id}: ${updateError.message}`);
+                    continue;
+                }
+
+                // Send notification to recipient
+                await sendUnlockNotification(msg.recipient_email, msg.id);
+                results.stage3_unlocked++;
             }
         }
 
+        console.log(`[Cron] Completed. Unlocked ${results.stage3_unlocked} messages`);
         return NextResponse.json({ success: true, processed: results });
 
     } catch (error: any) {
@@ -97,49 +78,42 @@ export async function GET() {
     }
 }
 
-async function updateStatus(messageId: string, newStatus: string, userId: string, step: number) {
-    // 1. Send Email
-    await sendVerificationEmail(userId, step);
+async function sendUnlockNotification(recipientEmail: string, messageId: string) {
+    if (!recipientEmail || !gmailPass) {
+        console.log("[Cron] Skipping email: missing recipient or gmail config");
+        return;
+    }
 
-    // 2. Update DB
-    await supabaseAdmin
-        .from('messages')
-        .update({
-            verification_status: newStatus,
-            last_verification_sent_at: new Date().toISOString(),
-            verify_attempt_count: step
-        })
-        .eq('id', messageId);
-}
-
-async function sendVerificationEmail(userId: string, step: number) {
     try {
-        const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(userId);
-        if (!user || !user.email) return;
-
-        let subject = "";
-        let content = "";
-
-        if (step === 1) {
-            subject = "[AFTERM] 생존 확인 (1차 요청)";
-            content = "누군가 당신의 메시지를 열람하려 합니다. 아직 생존해 계시다면 '생존 확인' 버튼을 눌러주세요. 응답이 없으면 1주일 후 메시지가 공개될 수 있습니다.";
-        } else if (step === 2) {
-            subject = "[AFTERM] 생존 확인 (최종 요청)";
-            content = "마지막 확인입니다. 즉시 응답하지 않으면 곧 메시지 열람이 허용됩니다.";
-        } else if (step === 3) {
-            subject = "[AFTERM] 메시지 열람 허용 알림";
-            content = "지정된 기간 동안 응답이 없어 메시지 열람이 허용되었습니다.";
-        }
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
+        const messageUrl = `${siteUrl}/vault`;
 
         await transporter.sendMail({
-            from: `"AFTERM Security" <${gmailUser}>`,
-            to: user.email,
-            subject: subject,
-            text: content, // Simple text for now
+            from: `"AFTERM" <${gmailUser}>`,
+            to: recipientEmail,
+            subject: "🔓 AFTERM 메시지 열람 가능",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #22c55e;">🔓 메시지 열람이 허용되었습니다</h2>
+                    <p>안녕하세요,</p>
+                    <p>48시간 동안 작성자의 응답이 없어, 요청하신 메시지를 이제 열람하실 수 있습니다.</p>
+                    
+                    <div style="margin: 30px 0; text-align: center;">
+                        <a href="${messageUrl}" 
+                           style="background: #22c55e; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                            메시지 보러가기
+                        </a>
+                    </div>
+                    
+                    <p style="color: #666; font-size: 14px;">
+                        이 메시지는 자동으로 발송되었습니다.
+                    </p>
+                </div>
+            `
         });
-        console.log(`Email sent to ${user.email} (Step ${step})`);
+        console.log(`[Cron] Unlock notification sent to ${recipientEmail}`);
 
     } catch (e) {
-        console.error(`Failed to send email to user ${userId}:`, e);
+        console.error(`[Cron] Failed to send unlock email to ${recipientEmail}:`, e);
     }
 }
