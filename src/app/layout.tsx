@@ -77,3 +77,5 @@ export default function RootLayout({
 // UI Update: Host/Guest Terminology Mon Feb  9 14:56:37 KST 2026
 
 // Final Deployment: V2 Emergency Fix Mon Feb  9 15:03:19 KST 2026
+
+// Fix: Comment Authors Sync Mon Feb  9 15:07:55 KST 2026

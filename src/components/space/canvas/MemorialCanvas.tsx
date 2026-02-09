@@ -597,7 +597,14 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     const fetchComments = async () => {
         const { data } = await supabase
             .from('memorial_comments')
-            .select('*')
+            .select(`
+                *,
+                profiles:user_id (
+                    full_name,
+                    nickname,
+                    avatar_url
+                )
+            `)
             .eq('block_id', block.id)
             .order('created_at', { ascending: true });
 
@@ -694,12 +701,17 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                             <div key={comment.id} className="space-y-2">
                                 {/* Parent Comment */}
                                 <div className="flex gap-3">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarFallback>U</AvatarFallback>
-                                    </Avatar>
+                                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                                        <SecureAvatar
+                                            src={comment.profiles?.avatar_url}
+                                            alt={comment.profiles?.full_name || "User"}
+                                            className="w-full h-full"
+                                            fallback={<div className="w-full h-full bg-slate-200 flex items-center justify-center text-[10px] font-bold">{comment.profiles?.full_name?.[0] || 'U'}</div>}
+                                        />
+                                    </div>
                                     <div className="flex-1">
                                         <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
-                                            <p className="text-xs font-bold text-slate-900 mb-0.5">방문자</p>
+                                            <p className="text-xs font-bold text-slate-900 mb-0.5">{comment.profiles?.full_name || comment.profiles?.nickname || "익명"}</p>
                                             <p className="text-sm text-slate-700">{comment.content}</p>
                                         </div>
                                         <button
@@ -715,11 +727,16 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                                 <div className="pl-11 space-y-2">
                                     {getReplies(comment.id).map(reply => (
                                         <div key={reply.id} className="flex gap-3">
-                                            <Avatar className="w-6 h-6">
-                                                <AvatarFallback>R</AvatarFallback>
-                                            </Avatar>
+                                            <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
+                                                <SecureAvatar
+                                                    src={reply.profiles?.avatar_url}
+                                                    alt={reply.profiles?.full_name || "User"}
+                                                    className="w-full h-full"
+                                                    fallback={<div className="w-full h-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">{reply.profiles?.full_name?.[0] || 'U'}</div>}
+                                                />
+                                            </div>
                                             <div className="bg-slate-100 p-2 rounded-xl rounded-tl-none flex-1">
-                                                <p className="text-xs font-bold text-slate-800 mb-0.5">방문자</p>
+                                                <p className="text-xs font-bold text-slate-800 mb-0.5">{reply.profiles?.full_name || reply.profiles?.nickname || "익명"}</p>
                                                 <p className="text-xs text-slate-600">{reply.content}</p>
                                             </div>
                                         </div>
