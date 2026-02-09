@@ -27,7 +27,7 @@ export async function GET() {
         // --- Stage 2 -> Stage 3 (48 Hours Passed, Unlock Message) ---
         const { data: stage2Messages, error: err2 } = await supabaseAdmin
             .from('messages')
-            .select('id, stage2_sent_at, user_id, recipient_email')
+            .select('id, stage2_sent_at, user_id, recipient_phone')
             .eq('absence_check_stage', 2)
             .is('stage3_sent_at', null); // Not yet processed
 
@@ -63,8 +63,8 @@ export async function GET() {
                     continue;
                 }
 
-                // Send notification to recipient
-                await sendUnlockNotification(msg.recipient_email, msg.id);
+                // Send SMS notification to recipient
+                await sendUnlockNotification(msg.recipient_phone, msg.id);
                 results.stage3_unlocked++;
             }
         }
@@ -78,42 +78,41 @@ export async function GET() {
     }
 }
 
-async function sendUnlockNotification(recipientEmail: string, messageId: string) {
-    if (!recipientEmail || !gmailPass) {
-        console.log("[Cron] Skipping email: missing recipient or gmail config");
+async function sendUnlockNotification(recipientPhone: string, messageId: string) {
+    if (!recipientPhone) {
+        console.log("[Cron] No recipient phone provided, skipping SMS");
         return;
     }
 
     try {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
-        const messageUrl = `${siteUrl}/vault`;
+        const unlockUrl = `${siteUrl}/vault`;
 
-        await transporter.sendMail({
-            from: `"AFTERM" <${gmailUser}>`,
-            to: recipientEmail,
-            subject: "🔓 AFTERM 메시지 열람 가능",
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #22c55e;">🔓 메시지 열람이 허용되었습니다</h2>
-                    <p>안녕하세요,</p>
-                    <p>48시간 동안 작성자의 응답이 없어, 요청하신 메시지를 이제 열람하실 수 있습니다.</p>
-                    
-                    <div style="margin: 30px 0; text-align: center;">
-                        <a href="${messageUrl}" 
-                           style="background: #22c55e; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                            메시지 보러가기
-                        </a>
-                    </div>
-                    
-                    <p style="color: #666; font-size: 14px;">
-                        이 메시지는 자동으로 발송되었습니다.
-                    </p>
-                </div>
-            `
+        // Send SMS using Solapi
+        const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.SOLAPI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: {
+                    to: recipientPhone.replace(/-/g, ''),
+                    from: process.env.SOLAPI_SENDER_NUMBER,
+                    text: `[AFTERM] 메시지 열람이 허용되었습니다.\n\n48시간 동안 작성자의 응답이 없어 요청하신 메시지를 이제 열람하실 수 있습니다.\n\n▶ 메시지 보러가기: ${unlockUrl}`
+                }
+            })
         });
-        console.log(`[Cron] Unlock notification sent to ${recipientEmail}`);
+
+        if (!solapiResponse.ok) {
+            const errorData = await solapiResponse.json();
+            console.error("[Cron] Solapi SMS error:", errorData);
+            return;
+        }
+
+        console.log(`[Cron] Unlock SMS sent to ${recipientPhone}`);
 
     } catch (e) {
-        console.error(`[Cron] Failed to send unlock email to ${recipientEmail}:`, e);
+        console.error(`[Cron] Failed to send unlock SMS to ${recipientPhone}:`, e);
     }
 }
