@@ -95,14 +95,22 @@ export async function POST(request: Request) {
                 });
 
                 if (solapiResponse.ok) {
-                    console.log(`[Test] SMS sent to ${message.recipient_phone}`);
+                    const responseData = await solapiResponse.json();
+                    console.log(`[Test] SMS sent successfully:`, responseData);
                     smsSent = true;
                 } else {
                     const errorData = await solapiResponse.json();
-                    console.error("[Test] SMS error:", errorData);
+                    console.error("[Test] Solapi API error:", {
+                        status: solapiResponse.status,
+                        statusText: solapiResponse.statusText,
+                        error: errorData
+                    });
                 }
-            } catch (smsError) {
-                console.error("[Test] SMS failed:", smsError);
+            } catch (smsError: any) {
+                console.error("[Test] SMS exception:", {
+                    message: smsError.message,
+                    stack: smsError.stack
+                });
             }
         }
 
@@ -113,6 +121,13 @@ export async function POST(request: Request) {
                 unlocked: true,
                 sms_sent: smsSent,
                 recipient_phone: message.recipient_phone || null
+            },
+            debug: {
+                env_check: {
+                    has_api_key: !!process.env.SOLAPI_API_KEY,
+                    has_api_secret: !!process.env.SOLAPI_API_SECRET,
+                    has_sender_number: !!process.env.SOLAPI_SENDER_NUMBER
+                }
             }
         });
 
