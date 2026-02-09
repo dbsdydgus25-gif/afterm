@@ -86,7 +86,7 @@ async function sendUnlockNotification(recipientPhone: string, messageId: string)
 
     try {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr';
-        const unlockUrl = `${siteUrl}/vault`;
+        const unlockUrl = `${siteUrl}/view/${messageId}/auth`;
 
         // Send SMS using Solapi
         const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send', {
