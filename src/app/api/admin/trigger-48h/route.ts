@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
 
 /**
  * TEST ONLY: Manually trigger 48-hour check
- * This simulates 48 hours passing by setting stage2_sent_at to 49 hours ago
+ * This simulates 48 hours passing and directly unlocks the message
  */
 export async function POST(request: Request) {
     try {
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         // 1. Get current message
         const { data: message, error: fetchError } = await supabaseAdmin
             .from('messages')
-            .select('id, absence_check_stage, stage2_sent_at')
+            .select('id, absence_check_stage, stage2_sent_at, recipient_phone')
             .eq('id', messageId)
             .single();
 
@@ -55,23 +55,65 @@ export async function POST(request: Request) {
             }, { status: 500 });
         }
 
-        // 3. Manually call cron endpoint
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-        // Use www to avoid redirect on production
-        const cronUrl = siteUrl.includes('afterm.co.kr') && !siteUrl.includes('www')
-            ? siteUrl.replace('afterm.co.kr', 'www.afterm.co.kr')
-            : siteUrl;
+        // 3. Directly unlock the message (instead of calling cron)
+        const { error: unlockError } = await supabaseAdmin
+            .from('messages')
+            .update({
+                absence_check_stage: 3,
+                stage3_sent_at: new Date().toISOString(),
+                is_unlocked: true
+            })
+            .eq('id', messageId);
 
-        const cronResponse = await fetch(`${cronUrl}/api/cron/verify`, {
-            method: 'GET'
-        });
+        if (unlockError) {
+            return NextResponse.json({
+                error: "Unlock failed",
+                details: unlockError.message
+            }, { status: 500 });
+        }
 
-        const cronResult = await cronResponse.json();
+        // 4. Send SMS notification if recipient phone exists
+        let smsSent = false;
+        if (message.recipient_phone) {
+            try {
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.afterm.co.kr';
+                const unlockUrl = `${siteUrl}/vault`;
+
+                const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${process.env.SOLAPI_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: {
+                            to: message.recipient_phone.replace(/-/g, ''),
+                            from: process.env.SOLAPI_SENDER_NUMBER,
+                            text: `[AFTERM] 메시지 열람이 허용되었습니다.\n\n48시간 동안 작성자의 응답이 없어 요청하신 메시지를 이제 열람하실 수 있습니다.\n\n▶ 메시지 보러가기: ${unlockUrl}`
+                        }
+                    })
+                });
+
+                if (solapiResponse.ok) {
+                    console.log(`[Test] SMS sent to ${message.recipient_phone}`);
+                    smsSent = true;
+                } else {
+                    const errorData = await solapiResponse.json();
+                    console.error("[Test] SMS error:", errorData);
+                }
+            } catch (smsError) {
+                console.error("[Test] SMS failed:", smsError);
+            }
+        }
 
         return NextResponse.json({
             success: true,
-            message: "Time fast-forwarded to 49 hours ago, cron triggered",
-            cronResult
+            message: "Message unlocked successfully",
+            result: {
+                unlocked: true,
+                sms_sent: smsSent,
+                recipient_phone: message.recipient_phone || null
+            }
         });
 
     } catch (error: any) {
