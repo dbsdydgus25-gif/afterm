@@ -78,7 +78,7 @@ export async function getUnlockedMessageContent(messageId: string) {
         // 1. Fetch Message status & content (Admin bypass)
         const { data: message, error } = await supabaseAdmin
             .from('messages')
-            .select('id, user_id, status, content, recipient_name, recipient_relationship, created_at')
+            .select('id, user_id, is_unlocked, content, recipient_name, recipient_relationship, created_at')
             .eq('id', messageId)
             .single();
 
@@ -86,8 +86,8 @@ export async function getUnlockedMessageContent(messageId: string) {
             return { error: "Message not found" };
         }
 
-        // 2. Security Check: status MUST be UNLOCKED
-        if (message.status !== 'UNLOCKED') {
+        // 2. Security Check: is_unlocked MUST be true
+        if (!message.is_unlocked) {
             return {
                 isLocked: true,
                 senderId: message.user_id // Return ID so client can fetch sender name via other action
