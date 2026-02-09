@@ -10,7 +10,7 @@ import { ko } from "date-fns/locale";
 import Link from "next/link";
 
 interface ActivityItem {
-    type: 'invite' | 'join';
+    type: 'invite' | 'join' | 'comment' | 'like';
     id: string;
     created_at: string;
     data: any;
@@ -54,8 +54,8 @@ export default function ActivityPage() {
                 .eq("status", "pending")
                 .order("created_at", { ascending: false });
 
-            // 2. Fetch Member Joins (in spaces I am part of)
-            // First, get my spaces
+            // 2. Fetch Member Joins (Legacy method - keep for now or replace?)
+            // Let's keep it to show past joins not in activity_logs
             const { data: myMemberships } = await supabase
                 .from("space_members")
                 .select("space_id")
@@ -65,7 +65,6 @@ export default function ActivityPage() {
 
             let joinEvents: any[] = [];
             if (mySpaceIds.length > 0) {
-                // Get other members joining these spaces recently
                 const { data: joins } = await supabase
                     .from("space_members")
                     .select(`
@@ -79,17 +78,41 @@ export default function ActivityPage() {
                         )
                     `)
                     .in("space_id", mySpaceIds)
-                    .neq("user_id", user.id) // Exclude myself
+                    .neq("user_id", user.id)
                     .order("joined_at", { ascending: false })
-                    .limit(20); // Limit to recent 20
+                    .limit(20);
 
                 joinEvents = joins || [];
+            }
+
+            // 3. Fetch New Activity Logs (Comments, Likes)
+            let logEvents: any[] = [];
+            if (mySpaceIds.length > 0) {
+                const { data: logs } = await supabase
+                    .from("activity_logs")
+                    .select(`
+                        *,
+                        users:actor_id (
+                            email,
+                            user_metadata
+                        ),
+                        memorial_spaces (
+                            title
+                        )
+                    `)
+                    .in("space_id", mySpaceIds)
+                    .neq("actor_id", user.id) // Don't notify my own actions
+                    .order("created_at", { ascending: false })
+                    .limit(30);
+
+                logEvents = logs || [];
             }
 
             // Combine & Sort
             const combined: ActivityItem[] = [
                 ...(invites || []).map(i => ({ type: 'invite' as const, id: i.id, created_at: i.created_at, data: i })),
-                ...joinEvents.map(j => ({ type: 'join' as const, id: j.id, created_at: j.joined_at, data: j }))
+                ...joinEvents.map(j => ({ type: 'join' as const, id: j.id, created_at: j.joined_at, data: j })),
+                ...logEvents.map(l => ({ type: l.type as any, id: l.id, created_at: l.created_at, data: l }))
             ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
             setActivities(combined);
@@ -230,10 +253,14 @@ export default function ActivityPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    // Join Event
                                     <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center shrink-0">
-                                            <UserPlus size={18} />
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.type === 'join' ? 'bg-green-50 text-green-600' :
+                                            item.type === 'comment' ? 'bg-blue-50 text-blue-600' :
+                                                'bg-red-50 text-red-600'
+                                            }`}>
+                                            {item.type === 'join' && <UserPlus size={18} />}
+                                            {item.type === 'comment' && <div className="text-lg">💬</div>}
+                                            {item.type === 'like' && <div className="text-lg">❤️</div>}
                                         </div>
                                         <div>
                                             <p className="text-slate-800 text-sm">
@@ -242,8 +269,16 @@ export default function ActivityPage() {
                                                 <Link href={`/space/${item.data.space_id}`} className="font-bold text-blue-600 hover:underline mx-1">
                                                     '{item.data.memorial_spaces?.title}'
                                                 </Link>
-                                                공간에 참여했습니다.
+                                                공간에
+                                                {item.type === 'join' && " 참여했습니다."}
+                                                {item.type === 'comment' && " 댓글을 남겼습니다."}
+                                                {item.type === 'like' && " 공감을 표시했습니다."}
                                             </p>
+                                            {item.type === 'comment' && item.data.content && (
+                                                <p className="text-sm text-slate-600 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100 italic">
+                                                    "{item.data.content}..."
+                                                </p>
+                                            )}
                                             <p className="text-xs text-slate-400 mt-1">
                                                 {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ko })}
                                             </p>
