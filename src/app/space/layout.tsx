@@ -11,8 +11,6 @@ export default function SpaceLayout({
 }) {
     const router = useRouter();
 
-
-
     return (
         <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900 font-sans">
             {/* Desktop Sidebar */}
@@ -22,7 +20,7 @@ export default function SpaceLayout({
                 </Link>
 
                 <nav className="flex-1 space-y-1">
-                    <NavItem href="/space/search" icon={<Search size={24} />} label="검색" />
+                    <NavItem href="/space" icon={<Home size={24} />} label="공간 홈" />
                     <NavItem href="/space/activity" icon={<Bell size={24} />} label="활동" />
                     <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="만들기" />
                 </nav>
@@ -36,13 +34,13 @@ export default function SpaceLayout({
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 w-full max-w-2xl mx-auto md:px-0 pb-20 md:pb-0">
+            <main className="flex-1 w-full max-w-[1600px] mx-auto md:px-0 pb-20 md:pb-0">
                 {children}
             </main>
 
             {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-50 safe-area-bottom">
-                <MobileNavItem href="/space/search" icon={<Search size={24} />} />
+                <MobileNavItem href="/space" icon={<Home size={24} />} />
                 <MobileNavItem href="/space/activity" icon={<Bell size={24} />} />
                 <MobileNavItem href="/space/create" icon={<PlusSquare size={24} />} />
             </nav>
