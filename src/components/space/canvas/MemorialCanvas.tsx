@@ -505,7 +505,7 @@ function MemberList({ spaceId }: { spaceId: string }) {
                     </div>
                     <div>
                         <p className="font-bold text-sm">{member.profile?.full_name || member.nickname || '이름 없음'}</p>
-                        <p className="text-xs text-slate-500 capitalize">{member.role === 'host' ? '상주 (Host)' : '조문객'}</p>
+                        <p className="text-xs text-slate-500 capitalize">{member.role === 'host' ? '호스트 (Host)' : '게스트 (Guest)'}</p>
                     </div>
                 </div>
             ))}
@@ -553,7 +553,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                 .eq('user_id', block.created_by)
                 .single();
 
-            if (memberData) setAuthorName(memberData.nickname || "추모객");
+            if (memberData) setAuthorName(memberData.nickname || "게스트");
         }
     };
 

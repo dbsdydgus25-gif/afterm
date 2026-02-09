@@ -73,3 +73,5 @@ export default function RootLayout({
 // Trigger deployment Mon Feb  9 14:32:48 KST 2026
 
 // Forced deployment at Mon Feb  9 14:50:54 KST 2026: Emergency Fix Attempt
+
+// UI Update: Host/Guest Terminology Mon Feb  9 14:56:37 KST 2026
