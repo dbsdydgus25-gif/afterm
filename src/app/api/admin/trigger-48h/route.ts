@@ -57,7 +57,12 @@ export async function POST(request: Request) {
 
         // 3. Manually call cron endpoint
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-        const cronResponse = await fetch(`${siteUrl}/api/cron/verify`, {
+        // Use www to avoid redirect on production
+        const cronUrl = siteUrl.includes('afterm.co.kr') && !siteUrl.includes('www')
+            ? siteUrl.replace('afterm.co.kr', 'www.afterm.co.kr')
+            : siteUrl;
+
+        const cronResponse = await fetch(`${cronUrl}/api/cron/verify`, {
             method: 'GET'
         });
 
