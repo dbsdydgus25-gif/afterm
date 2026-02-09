@@ -69,3 +69,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Trigger deployment Mon Feb  9 14:32:48 KST 2026
