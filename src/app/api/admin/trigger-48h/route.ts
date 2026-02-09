@@ -82,7 +82,7 @@ export async function POST(request: Request) {
                 const solapiResponse = await fetch('https://api.solapi.com/messages/v4/send', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${process.env.SOLAPI_API_KEY}`,
+                        'Authorization': `Basic ${Buffer.from(`${process.env.SOLAPI_API_KEY}:${process.env.SOLAPI_API_SECRET}`).toString('base64')}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
