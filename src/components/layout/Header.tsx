@@ -70,6 +70,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
         { name: "회사소개", href: "/about" },
         { name: "공지사항", href: "/notice" },
         { name: "월간 트렌드", href: "/newsletter" },
+        { name: "디지털추모관", href: "/space" },
     ];
 
     return (
