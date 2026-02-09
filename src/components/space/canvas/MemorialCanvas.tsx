@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SecureAvatar } from "@/components/ui/SecureAvatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -463,8 +464,29 @@ function MemberList({ spaceId }: { spaceId: string }) {
 
     useEffect(() => {
         const fetch = async () => {
-            const { data } = await supabase.from('space_members').select('*').eq('space_id', spaceId);
-            if (data) setMembers(data);
+            // 1. Get Members
+            const { data: memberData } = await supabase.from('space_members').select('*').eq('space_id', spaceId);
+
+            if (memberData && memberData.length > 0) {
+                // 2. Get Profiles
+                const userIds = memberData.map(m => m.user_id);
+                const { data: profiles } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, avatar_url, nickname')
+                    .in('id', userIds);
+
+                // 3. Merge
+                const merged = memberData.map(member => {
+                    const profile = profiles?.find(p => p.id === member.user_id);
+                    return {
+                        ...member,
+                        profile
+                    };
+                });
+                setMembers(merged);
+            } else {
+                setMembers([]);
+            }
         };
         fetch();
     }, [spaceId]);
@@ -473,12 +495,17 @@ function MemberList({ spaceId }: { spaceId: string }) {
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             {members.map(member => (
                 <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg">
-                    <Avatar>
-                        <AvatarFallback>{member.nickname?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
+                        <SecureAvatar
+                            src={member.profile?.avatar_url}
+                            alt={member.profile?.full_name || "Member"}
+                            className="w-full h-full"
+                            fallback={<div className="w-full h-full bg-slate-200 flex items-center justify-center text-xs font-bold">{member.profile?.full_name?.[0] || member.nickname?.[0] || 'U'}</div>}
+                        />
+                    </div>
                     <div>
-                        <p className="font-bold text-sm">{member.nickname || '이름 없음'}</p>
-                        <p className="text-xs text-slate-500 capitalize">{member.role}</p>
+                        <p className="font-bold text-sm">{member.profile?.full_name || member.nickname || '이름 없음'}</p>
+                        <p className="text-xs text-slate-500 capitalize">{member.role === 'host' ? '상주 (Host)' : '조문객'}</p>
                     </div>
                 </div>
             ))}
@@ -494,6 +521,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     const [replyToId, setReplyToId] = useState<string | null>(null); // For nested replies
     const [showComments, setShowComments] = useState(false);
     const [authorName, setAuthorName] = useState("로딩 중...");
+    const [authorAvatar, setAuthorAvatar] = useState<string | null>(null);
     const [likeCount, setLikeCount] = useState(0);
     const [hasLiked, setHasLiked] = useState(false);
 
@@ -506,17 +534,26 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     }, [showComments, block.id]);
 
     const fetchAuthor = async () => {
-        const { data: memberData } = await supabase
-            .from('space_members')
-            .select('nickname')
-            .eq('space_id', spaceId)
-            .eq('user_id', block.created_by)
+        // Fetch Profile directly
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, nickname, avatar_url')
+            .eq('id', block.created_by)
             .single();
 
-        if (memberData && memberData.nickname) {
-            setAuthorName(memberData.nickname);
+        if (profile) {
+            setAuthorName(profile.full_name || profile.nickname || "익명");
+            setAuthorAvatar(profile.avatar_url);
         } else {
-            setAuthorName("추모객");
+            // Fallback to space_members if profile missing
+            const { data: memberData } = await supabase
+                .from('space_members')
+                .select('nickname')
+                .eq('space_id', spaceId)
+                .eq('user_id', block.created_by)
+                .single();
+
+            if (memberData) setAuthorName(memberData.nickname || "추모객");
         }
     };
 
@@ -596,9 +633,14 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                        <AvatarFallback>{authorName[0]}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
+                        <SecureAvatar
+                            src={authorAvatar}
+                            alt={authorName}
+                            className="w-full h-full"
+                            fallback={<div className="w-full h-full bg-slate-200 flex items-center justify-center text-xs font-bold">{authorName[0]}</div>}
+                        />
+                    </div>
                     <div>
                         <p className="text-sm font-bold text-slate-900">{authorName}</p>
                         <p className="text-xs text-slate-500">{new Date(block.created_at).toLocaleDateString()}</p>
