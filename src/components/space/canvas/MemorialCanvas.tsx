@@ -611,6 +611,19 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
         if (data) setComments(data);
     };
 
+    const handleDeleteComment = async (commentId: string) => {
+        if (!confirm("댓글을 삭제하시겠습니까?")) return;
+
+        const { error } = await supabase.from('memorial_comments').delete().eq('id', commentId);
+
+        if (!error) {
+            fetchComments();
+        } else {
+            console.error("Delete comment error", error);
+            alert("삭제 실패");
+        }
+    };
+
     const handleAddComment = async (parentId: string | null = null) => {
         if (!newComment.trim()) return;
 
@@ -700,7 +713,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                         {rootComments.map(comment => (
                             <div key={comment.id} className="space-y-2">
                                 {/* Parent Comment */}
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 group">
                                     <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
                                         <SecureAvatar
                                             src={comment.profiles?.avatar_url}
@@ -710,9 +723,20 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm">
-                                            <p className="text-xs font-bold text-slate-900 mb-0.5">{comment.profiles?.full_name || comment.profiles?.nickname || "익명"}</p>
-                                            <p className="text-sm text-slate-700">{comment.content}</p>
+                                        <div className="flex items-start gap-2">
+                                            <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm relative group/bubble">
+                                                <p className="text-xs font-bold text-slate-900 mb-0.5">{comment.profiles?.full_name || comment.profiles?.nickname || "익명"}</p>
+                                                <p className="text-sm text-slate-700">{comment.content}</p>
+                                            </div>
+                                            {(currentUser?.id === comment.user_id || role === 'host') && (
+                                                <button
+                                                    onClick={() => handleDeleteComment(comment.id)}
+                                                    className="opacity-0 group-hover/bubble:opacity-100 group-hover:opacity-100 transition-opacity p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                                                    title="삭제"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            )}
                                         </div>
                                         <button
                                             onClick={() => setReplyToId(replyToId === comment.id ? null : comment.id)}
@@ -726,7 +750,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                                 {/* Replies */}
                                 <div className="pl-11 space-y-2">
                                     {getReplies(comment.id).map(reply => (
-                                        <div key={reply.id} className="flex gap-3">
+                                        <div key={reply.id} className="flex gap-3 group">
                                             <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
                                                 <SecureAvatar
                                                     src={reply.profiles?.avatar_url}
@@ -735,9 +759,20 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
                                                     fallback={<div className="w-full h-full bg-slate-200 flex items-center justify-center text-[8px] font-bold">{reply.profiles?.full_name?.[0] || 'U'}</div>}
                                                 />
                                             </div>
-                                            <div className="bg-slate-100 p-2 rounded-xl rounded-tl-none flex-1">
-                                                <p className="text-xs font-bold text-slate-800 mb-0.5">{reply.profiles?.full_name || reply.profiles?.nickname || "익명"}</p>
-                                                <p className="text-xs text-slate-600">{reply.content}</p>
+                                            <div className="flex-1 flex items-start gap-2">
+                                                <div className="bg-slate-100 p-2 rounded-xl rounded-tl-none flex-1 group/bubble">
+                                                    <p className="text-xs font-bold text-slate-800 mb-0.5">{reply.profiles?.full_name || reply.profiles?.nickname || "익명"}</p>
+                                                    <p className="text-xs text-slate-600">{reply.content}</p>
+                                                </div>
+                                                {(currentUser?.id === reply.user_id || role === 'host') && (
+                                                    <button
+                                                        onClick={() => handleDeleteComment(reply.id)}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                                                        title="삭제"
+                                                    >
+                                                        <Trash2 size={11} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

@@ -79,3 +79,5 @@ export default function RootLayout({
 // Final Deployment: V2 Emergency Fix Mon Feb  9 15:03:19 KST 2026
 
 // Fix: Comment Authors Sync Mon Feb  9 15:07:55 KST 2026
+
+// Feature: Comment Deletion & Profile Fix Mon Feb  9 15:17:18 KST 2026
