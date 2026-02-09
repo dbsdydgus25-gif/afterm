@@ -62,12 +62,24 @@ export async function sendMessage({ to, from, text, subject, type = 'SMS', kakao
             };
         }
 
+        console.log("[Solapi] Sending message:", {
+            to: cleanTo,
+            from: cleanFrom,
+            type,
+            textLength: text.length
+        });
+
         const result = await messageService.send(messageObj);
-        console.log("Solapi Send Result:", result);
+        console.log("[Solapi] Send Result (full):", JSON.stringify(result, null, 2));
+
         return { success: true, data: result };
 
     } catch (error: any) {
-        console.error("Solapi Send Error:", error);
-        return { success: false, error: error.message };
+        console.error("[Solapi] Send Error (full):", {
+            message: error.message,
+            stack: error.stack,
+            fullError: JSON.stringify(error, null, 2)
+        });
+        return { success: false, error: error.message || "Unknown error", details: error };
     }
 }
