@@ -612,14 +612,30 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
             return;
         }
 
-        // 2. Extract User IDs to fetch profiles manually (Bypassing potential FK issues)
+        // 2. Extract User IDs
         const userIds = Array.from(new Set(commentsData.map(c => c.user_id).filter(Boolean)));
 
-        // 3. Fetch Profiles
-        const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, full_name, nickname, avatar_url')
-            .in('id', userIds);
+        // 3. Fetch Profiles (Server-Side Bypass)
+        let profilesData: any[] = [];
+        try {
+            const res = await fetch('/api/space/get-profiles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds })
+            });
+            const json = await res.json();
+            if (json.data) {
+                profilesData = json.data;
+            }
+        } catch (e) {
+            console.error("Server fetch failed, falling back to client fetch", e);
+            // Fallback: Client Fetch (Subject to RLS)
+            const { data } = await supabase
+                .from('profiles')
+                .select('id, full_name, nickname, avatar_url')
+                .in('id', userIds);
+            profilesData = data || [];
+        }
 
         // 4. Merge Data
         const commentsWithProfiles = commentsData.map(comment => {
