@@ -595,20 +595,42 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     };
 
     const fetchComments = async () => {
-        const { data } = await supabase
+        // 1. Fetch Comments
+        const { data: commentsData, error: commentError } = await supabase
             .from('memorial_comments')
-            .select(`
-                *,
-                profiles:user_id (
-                    full_name,
-                    nickname,
-                    avatar_url
-                )
-            `)
+            .select('*')
             .eq('block_id', block.id)
             .order('created_at', { ascending: true });
 
-        if (data) setComments(data);
+        if (commentError) {
+            console.error("Error fetching comments:", commentError);
+            return;
+        }
+
+        if (!commentsData || commentsData.length === 0) {
+            setComments([]);
+            return;
+        }
+
+        // 2. Extract User IDs to fetch profiles manually (Bypassing potential FK issues)
+        const userIds = Array.from(new Set(commentsData.map(c => c.user_id).filter(Boolean)));
+
+        // 3. Fetch Profiles
+        const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, nickname, avatar_url')
+            .in('id', userIds);
+
+        // 4. Merge Data
+        const commentsWithProfiles = commentsData.map(comment => {
+            const profile = profilesData?.find(p => p.id === comment.user_id);
+            return {
+                ...comment,
+                profiles: profile || null
+            };
+        });
+
+        setComments(commentsWithProfiles);
     };
 
     const handleDeleteComment = async (commentId: string) => {

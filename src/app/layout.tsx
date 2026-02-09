@@ -85,3 +85,5 @@ export default function RootLayout({
 // Final V3: Notifications & Reply Fix Mon Feb  9 15:24:06 KST 2026
 
 // Forced Redeploy: Sync Features Mon Feb  9 15:31:43 KST 2026
+
+// Emergency Fix: Manual Profile Fetch Mon Feb  9 15:40:04 KST 2026
