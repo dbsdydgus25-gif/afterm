@@ -80,7 +80,7 @@ export async function POST(request: Request) {
         if (message.recipient_phone) {
             try {
                 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.afterm.co.kr';
-                const unlockUrl = `${siteUrl}/vault`;
+                const unlockUrl = `${siteUrl}/view/${messageId}/auth`;
 
                 const result = await sendMessage({
                     to: message.recipient_phone,
