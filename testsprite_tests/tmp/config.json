@@ -1,17 +1,18 @@
 {
   "status": "commited",
-  "type": "frontend",
+  "type": "backend",
   "scope": "codebase",
   "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "public",
   "executionArgs": {
     "projectName": "afterm",
     "projectPath": "/Users/daniel/Desktop/afterm",
     "testIds": [],
-    "additionalInstruction": "Regenerate tests to reflect recent UI refactoring (Server Components). Ensure handling of 'Service Guide' modal on /create page and 'Splash Screen' delays. Verify SEO meta tags and Unsaved Changes Warning.",
+    "additionalInstruction": "",
     "envs": {
       "API_KEY": "sk-user-8GB53d-pKdstEFvfgb5KL1fd3cj7tZu-tpEgRqbFtT4ruzsCcWelko4KpvMJr30YaDJIP02BwqtmhTtNAp25XcYrx2kqkKWK_IpfYT4qrjmDmwqKgHTa4HX3pQh11C2J0OQ"
     }
   },
-  "serverPort": 53803,
-  "proxy": "http://ec5d2b6e-2dbd-4906-9545-78595e8682f4:ueoXWneDpBqjLWKmOHyjReH7rGtglW8B@tun.testsprite.com:8080"
+  "serverPort": 53419,
+  "proxy": "http://f491bc26-e84f-4327-b0dd-de8233e2ab71:vRhPjFrzKLKJx621LeBfRpMwJ893UvN7@tun.testsprite.com:8080"
 }

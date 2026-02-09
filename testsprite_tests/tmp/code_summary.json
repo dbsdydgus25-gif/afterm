@@ -1,69 +1,37 @@
 {
     "tech_stack": [
         "TypeScript",
-        "Next.js 16",
-        "React 19",
-        "Tailwind CSS 4",
+        "Next.js",
         "Supabase",
-        "Zustand"
+        "TailwindCSS"
     ],
     "features": [
         {
-            "name": "Landing Page",
-            "description": "Main entry page with hero section, feature introduction, and pricing overview.",
-            "files": [
-                "src/app/page.tsx",
-                "src/components/layout/Header.tsx",
-                "src/components/layout/Footer.tsx"
-            ]
-        },
-        {
             "name": "Authentication",
-            "description": "User login and signup functionality using Supabase Auth.",
+            "description": "User signup, login, and session management via Supabase Auth.",
             "files": [
-                "src/app/auth",
-                "src/app/login",
-                "src/app/signup",
-                "src/middleware.ts"
+                "src/app/auth/callback/route.ts",
+                "src/middleware.ts",
+                "src/lib/supabase/server.ts"
             ]
         },
         {
-            "name": "Memory Creation",
-            "description": "Feature to create and schedule messages/memories to be sent later.",
+            "name": "Memorial Space",
+            "description": "Creation and management of memorial spaces, including comments, likes, and activity logs.",
             "files": [
-                "src/app/create",
-                "src/store/useMemoryStore.ts"
+                "src/app/space/page.tsx",
+                "src/app/space/[id]/page.tsx",
+                "src/app/api/space/get-profiles/route.ts",
+                "src/app/space/activity/page.tsx"
             ]
         },
         {
-            "name": "Digital Vault",
-            "description": "Secure storage for digital assets and legacy information.",
+            "name": "Dead Man's Switch (Vault)",
+            "description": "Secure message storage and automated delivery verification via Cron.",
             "files": [
-                "src/app/vault",
-                "src/app/vault/create"
-            ]
-        },
-        {
-            "name": "Plans & Payment",
-            "description": "Subscription plan management and payment processing via Toss Payments.",
-            "files": [
-                "src/app/plans",
-                "src/app/payment"
-            ]
-        },
-        {
-            "name": "Online Memorial (Space)",
-            "description": "Public or private memorial spaces for remembering loved ones.",
-            "files": [
-                "src/app/space"
-            ]
-        },
-        {
-            "name": "Recipient Verification",
-            "description": "Process for recipients to verify identity and access messages.",
-            "files": [
-                "src/app/recipient",
-                "src/app/confirmed"
+                "src/app/vault/page.tsx",
+                "src/app/api/cron/verify/route.ts",
+                "src/lib/verificationConfig.ts"
             ]
         }
     ]
