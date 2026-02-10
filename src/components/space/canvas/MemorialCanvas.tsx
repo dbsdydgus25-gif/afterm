@@ -219,16 +219,16 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
     return (
         <div className="min-h-screen pb-20 bg-slate-50">
             {/* Facebook-style Header */}
-            <div className="relative bg-white shadow-sm mb-6 max-w-2xl mx-auto rounded-b-xl overflow-hidden">
+            <div className="relative bg-white shadow-sm mb-4 md:mb-6 max-w-2xl mx-auto rounded-b-xl overflow-hidden">
                 {/* Cover Image */}
                 <div
-                    className="h-48 md:h-64 bg-slate-200 w-full bg-cover bg-center relative"
+                    className="h-40 md:h-64 bg-slate-200 w-full bg-cover bg-center relative"
                     style={{
                         backgroundImage: theme.backgroundImage ? `url(${theme.backgroundImage})` : undefined,
                     }}
                 >
-                    <Link href="/space" className="absolute top-4 left-4 p-2 bg-black/30 text-white rounded-full hover:bg-black/50 transition-colors backdrop-blur-sm z-10">
-                        <ChevronLeft size={24} />
+                    <Link href="/space" className="absolute top-4 left-4 p-1.5 md:p-2 bg-black/30 text-white rounded-full hover:bg-black/50 transition-colors backdrop-blur-sm z-10">
+                        <ChevronLeft size={20} className="md:w-6 md:h-6" />
                     </Link>
 
                     {/* Settings Trigger (Icon only) */}
@@ -236,57 +236,57 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                         <div className="absolute top-4 right-4 z-10">
                             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="secondary" size="sm" className="bg-white/90 text-slate-700 hover:bg-white backdrop-blur-sm shadow-sm gap-2">
-                                        <Settings size={16} />
+                                    <Button variant="secondary" size="sm" className="bg-white/90 text-slate-700 hover:bg-white backdrop-blur-sm shadow-sm gap-1.5 h-8 px-2.5 md:h-9 md:px-3 text-xs md:text-sm">
+                                        <Settings size={14} className="md:w-4 md:h-4" />
                                         <span className="hidden md:inline">공간 설정</span>
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                                <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto p-4 md:p-6 w-[95%] rounded-2xl">
                                     <DialogHeader>
-                                        <DialogTitle>공간 관리</DialogTitle>
+                                        <DialogTitle className="text-lg md:text-xl">공간 관리</DialogTitle>
                                     </DialogHeader>
-                                    <div className="space-y-6 pt-4">
+                                    <div className="space-y-5 pt-4">
                                         {/* Space Title Setting */}
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-bold text-slate-800">공간 이름</label>
+                                        <div className="space-y-2">
+                                            <label className="text-xs md:text-sm font-bold text-slate-800">공간 이름</label>
                                             <Input
                                                 value={spaceTitle}
                                                 onChange={(e) => setSpaceTitle(e.target.value)}
                                                 placeholder="예: 사랑하는 할머니"
-                                                className="w-full"
+                                                className="w-full text-sm h-10"
                                             />
                                         </div>
 
                                         <div className="h-px bg-slate-100" />
 
                                         {/* Space Description Setting */}
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-bold text-slate-800">공간 설명</label>
+                                        <div className="space-y-2">
+                                            <label className="text-xs md:text-sm font-bold text-slate-800">공간 설명</label>
                                             <Textarea
                                                 value={spaceDescription}
                                                 onChange={(e) => setSpaceDescription(e.target.value)}
                                                 placeholder="예: 따뜻한 미소로 우리를 항상 응원해주시던 할머니"
-                                                className="w-full min-h-[80px] resize-none"
+                                                className="w-full min-h-[80px] resize-none text-sm"
                                             />
                                         </div>
 
                                         <div className="h-px bg-slate-100" />
 
                                         {/* Profile Image Setting */}
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-bold text-slate-800">대표 사진 (프로필)</label>
-                                            <div className="flex gap-4 items-center">
+                                        <div className="space-y-2">
+                                            <label className="text-xs md:text-sm font-bold text-slate-800">대표 사진 (프로필)</label>
+                                            <div className="flex gap-3 items-center">
                                                 {theme.profileImage ? (
-                                                    <Avatar className="w-16 h-16 border border-slate-200">
+                                                    <Avatar className="w-14 h-14 md:w-16 md:h-16 border border-slate-200">
                                                         <AvatarImage src={theme.profileImage} className="object-cover" />
                                                         <AvatarFallback>{space.title[0]}</AvatarFallback>
                                                     </Avatar>
-                                                ) : <div className="w-16 h-16 bg-slate-100 rounded-full" />}
+                                                ) : <div className="w-14 h-14 md:w-16 md:h-16 bg-slate-100 rounded-full" />}
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={(e) => e.target.files?.[0] && handleUpdateTheme('profileImage', e.target.files[0])}
-                                                    className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                    className="text-xs md:text-sm text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                                 />
                                             </div>
                                         </div>
@@ -294,17 +294,17 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                         <div className="h-px bg-slate-100" />
 
                                         {/* Background Image Setting */}
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-bold text-slate-800">배경 이미지 (커버)</label>
-                                            <div className="flex gap-4 items-center">
-                                                <div className="w-24 h-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative">
+                                        <div className="space-y-2">
+                                            <label className="text-xs md:text-sm font-bold text-slate-800">배경 이미지 (커버)</label>
+                                            <div className="flex gap-3 items-center">
+                                                <div className="w-20 h-14 md:w-24 md:h-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative">
                                                     {theme.backgroundImage && <img src={theme.backgroundImage} className="w-full h-full object-cover" />}
                                                 </div>
                                                 <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={(e) => e.target.files?.[0] && handleUpdateTheme('backgroundImage', e.target.files[0])}
-                                                    className="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                    className="text-xs md:text-sm text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                                 />
                                             </div>
                                         </div>
@@ -314,16 +314,16 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                         {/* Save Button */}
                                         <Button
                                             onClick={handleUpdateSpaceInfo}
-                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 md:h-11 text-sm font-bold"
                                         >
                                             변경사항 저장
                                         </Button>
 
                                         <div className="h-px bg-slate-100" />
 
-                                        <div className="pt-2">
-                                            <h4 className="text-sm font-bold text-red-600 mb-2">위험 구역</h4>
-                                            <Button onClick={handleDeleteSpace} variant="destructive" className="w-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 justify-start px-4">
+                                        <div className="pt-1">
+                                            <h4 className="text-xs font-bold text-red-600 mb-2">위험 구역</h4>
+                                            <Button onClick={handleDeleteSpace} variant="destructive" className="w-full bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 justify-start px-4 h-10 text-sm">
                                                 <LogOut size={16} className="mr-2" />
                                                 공간 삭제하기
                                             </Button>
@@ -337,14 +337,14 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 
                 {/* Profile Info Area */}
                 <div className="px-5 md:px-8 pb-4">
-                    <div className="relative flex flex-col md:flex-row md:items-end gap-4 -mt-10 md:-mt-16 mb-4">
+                    <div className="relative flex flex-col md:flex-row md:items-end gap-3 md:gap-4 -mt-8 md:-mt-16 mb-3 md:mb-4">
                         {/* Profile Picture */}
                         <div className="relative self-center md:self-auto">
-                            <div className="w-20 h-20 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
+                            <div className="w-16 h-16 md:w-32 md:h-32 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
                                 {theme.profileImage ? (
                                     <img src={theme.profileImage} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-3xl font-bold text-slate-400">
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-2xl md:text-3xl font-bold text-slate-400">
                                         {space.title[0]}
                                     </div>
                                 )}
@@ -355,20 +355,20 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                 </div>
 
                 {/* Title & Desc */}
-                <div className="flex-1 px-5 pb-5 text-center md:text-left space-y-3">
+                <div className="flex-1 px-5 pb-5 text-center md:text-left space-y-2 md:space-y-3">
                     <div>
-                        <h1 className="text-xl md:text-3xl font-black text-slate-900 leading-tight mb-2 tracking-tight">{space.title}</h1>
-                        <div className="flex flex-col md:flex-row md:items-center gap-2 text-slate-500 text-sm md:text-base">
+                        <h1 className="text-lg md:text-3xl font-black text-slate-900 leading-tight mb-1.5 md:mb-2 tracking-tight">{space.title}</h1>
+                        <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-2 text-slate-500 text-xs md:text-base">
                             <p className="line-clamp-2 md:line-clamp-none">{space.description || "소개가 없습니다."}</p>
                             <span className="hidden md:inline">·</span>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <button className="inline-flex items-center justify-center gap-1 text-slate-500 hover:text-blue-600 hover:underline mx-auto md:mx-0">
-                                        <Users size={14} />
+                                    <button className="inline-flex items-center justify-center gap-1 text-slate-500 hover:text-blue-600 hover:underline mx-auto md:mx-0 font-medium">
+                                        <Users size={12} className="md:w-3.5 md:h-3.5" />
                                         <span>멤버 {memberCount}명</span>
                                     </button>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="w-[90%] rounded-2xl">
                                     <DialogHeader>
                                         <DialogTitle>멤버 목록</DialogTitle>
                                     </DialogHeader>
@@ -379,40 +379,40 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                     </div>
 
                     {/* Action Buttons - Moved here for better mobile layout */}
-                    <div className="flex gap-2 justify-center md:justify-start pt-2">
+                    <div className="flex gap-2 justify-center md:justify-start pt-1 md:pt-2">
                         {/* Invite / Share */}
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-6 shadow-sm">
-                                    <Users size={18} className="mr-2" />
+                                <Button className="bg-blue-600 text-white hover:bg-blue-700 rounded-full px-4 md:px-6 shadow-sm h-8 md:h-10 text-xs md:text-sm font-bold">
+                                    <Users size={14} className="md:w-[18px] md:h-[18px] mr-1.5 md:mr-2" />
                                     초대하기
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="w-[90%] rounded-2xl">
                                 <DialogHeader>
                                     <DialogTitle>멤버 초대하기</DialogTitle>
                                 </DialogHeader>
-                                <div className="space-y-6 pt-4">
-                                    <div className="p-4 bg-slate-50 rounded-xl space-y-3">
+                                <div className="space-y-5 pt-4">
+                                    <div className="p-4 bg-slate-50 rounded-xl space-y-2">
                                         <h3 className="font-bold text-slate-900 text-sm">초대 링크 공유</h3>
                                         <p className="text-xs text-slate-500">
                                             아래 링크를 통해 들어온 사람은<br />
                                             <strong>뷰어 (글 작성/보기 가능)</strong> 권한을 갖게 됩니다.
                                         </p>
                                         <div className="flex gap-2">
-                                            <Input value={`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${space.id}`} readOnly className="bg-white" />
+                                            <Input value={`${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${space.id}`} readOnly className="bg-white text-xs h-9" />
                                             <Button onClick={() => {
                                                 navigator.clipboard.writeText(`${window.location.origin}/invite/${space.id}`);
                                                 alert("초대 링크가 복사되었습니다!");
-                                            }} variant="outline">
+                                            }} variant="outline" className="h-9 text-xs px-3">
                                                 복사
                                             </Button>
                                         </div>
                                     </div>
 
                                     <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                                        <h3 className="font-bold text-yellow-800 text-sm mb-1">관리자 권한 필요?</h3>
-                                        <p className="text-xs text-yellow-700">
+                                        <h3 className="font-bold text-yellow-800 text-xs mb-1">관리자 권한 필요?</h3>
+                                        <p className="text-[11px] text-yellow-700">
                                             편집자(관리자) 권한은 이메일 초대를 통해 부여할 수 있습니다.<br />
                                             (추후 업데이트 예정)
                                         </p>
@@ -424,19 +424,19 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                 </div>
             </div>
             {/* Canvas Area (Masonry/Grid) */}
-            <main className="p-4 md:p-8 max-w-2xl mx-auto">
+            <main className="p-3 md:p-8 max-w-2xl mx-auto">
                 {/* ... keep existing block rendering ... */}
                 {
                     blocks.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                        <div className="flex flex-col items-center justify-center py-16 md:py-20 text-slate-400 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3 md:mb-4 text-2xl md:text-3xl">
                                 ✍️
                             </div>
-                            <p className="font-bold text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
-                            <p className="text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
+                            <p className="font-bold text-base md:text-lg text-slate-600 mb-1">첫 번째 추억을 남겨주세요</p>
+                            <p className="text-xs md:text-sm text-slate-500">우측 하단 + 버튼을 눌러 사진이나 글을 작성해보세요.</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-4 md:gap-6">
                             {blocks.map((block) => (
                                 <BlockItem key={block.id} block={block} spaceId={space.id} currentUser={currentUser} role={role} onDelete={() => handleDeleteBlock(block.id)} />
                             ))}
@@ -449,22 +449,22 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             {
                 (role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
                     /* Allow viewers to add notes? Assuming yes for memorial */
-                    <div className="fixed bottom-24 md:bottom-6 right-6 z-40 transition-all duration-300">
+                    <div className="fixed bottom-20 md:bottom-6 right-5 md:right-6 z-40 transition-all duration-300">
                         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                             <DialogTrigger asChild>
-                                <Button className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
-                                    <Plus size={28} />
+                                <Button className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
+                                    <Plus size={24} className="md:w-7 md:h-7" />
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
+                            <DialogContent className="sm:max-w-md w-[90%] rounded-2xl p-4 md:p-6">
                                 <DialogHeader>
-                                    <DialogTitle>추억 추가하기</DialogTitle>
+                                    <DialogTitle className="text-lg md:text-xl">추억 추가하기</DialogTitle>
                                 </DialogHeader>
-                                <div className="grid grid-cols-2 gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-3 md:gap-4 py-2 md:py-4">
                                     {/* Photo Upload */}
-                                    <div className="relative group cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                        <ImageIcon className="w-8 h-8 text-blue-500" />
-                                        <span className="text-sm font-medium">사진</span>
+                                    <div className="relative group cursor-pointer border rounded-xl p-3 md:p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-1.5 md:gap-2 aspect-square transition-colors">
+                                        <ImageIcon className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
+                                        <span className="text-xs md:text-sm font-medium">사진</span>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -472,36 +472,36 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                             className="absolute inset-0 opacity-0 cursor-pointer"
                                             disabled={uploading}
                                         />
-                                        {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
+                                        {uploading && <div className="absolute inset-0 bg-white/80 flex items-center justify-center text-[10px] md:text-xs font-bold text-blue-600 animate-pulse">업로드 중...</div>}
                                     </div>
 
                                     {/* Note Input */}
                                     <Dialog>
                                         <DialogTrigger asChild>
-                                            <div className="cursor-pointer border rounded-xl p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-2 aspect-square transition-colors">
-                                                <StickyNote className="w-8 h-8 text-yellow-500" />
-                                                <span className="text-sm font-medium">쪽지</span>
+                                            <div className="cursor-pointer border rounded-xl p-3 md:p-4 hover:bg-slate-50 flex flex-col items-center justify-center gap-1.5 md:gap-2 aspect-square transition-colors">
+                                                <StickyNote className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
+                                                <span className="text-xs md:text-sm font-medium">쪽지</span>
                                             </div>
                                         </DialogTrigger>
-                                        <DialogContent>
+                                        <DialogContent className="w-[90%] rounded-2xl">
                                             <DialogHeader><DialogTitle>쪽지 남기기</DialogTitle></DialogHeader>
-                                            <div className="space-y-4 pt-4">
+                                            <div className="space-y-3 pt-3 md:pt-4">
                                                 <Textarea
                                                     value={noteContent}
                                                     onChange={(e) => setNoteContent(e.target.value)}
                                                     placeholder="친구에게 남기고 싶은 말을 적어주세요."
-                                                    className={`min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none`}
+                                                    className={`min-h-[120px] md:min-h-[150px] ${noteColor} border-none focus-visible:ring-1 resize-none text-sm md:text-base`}
                                                 />
                                                 <div className="flex gap-2">
                                                     {['bg-white', 'bg-yellow-100', 'bg-blue-100', 'bg-green-100', 'bg-pink-100'].map(color => (
                                                         <button
                                                             key={color}
                                                             onClick={() => setNoteColor(color)}
-                                                            className={`w-8 h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
+                                                            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border ${color} shadow-sm transition-transform hover:scale-110 ${noteColor === color ? 'ring-2 ring-slate-400 scale-110' : ''}`}
                                                         />
                                                     ))}
                                                 </div>
-                                                <Button onClick={handleAddNote} className="w-full">남기기</Button>
+                                                <Button onClick={handleAddNote} className="w-full h-10 text-sm">남기기</Button>
                                             </div>
                                         </DialogContent>
                                     </Dialog>
