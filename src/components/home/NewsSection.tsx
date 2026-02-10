@@ -6,46 +6,46 @@ import { createClient } from "@/lib/supabase/client";
 
 const articles = [
     {
-        icon: "🕊️",
-        title: "2024년 사전연명의료의향서 등록자 200만 돌파",
-        desc: "보건복지부에 따르면 사전연명의료의향서 등록자가 200만 명을 넘어섰습니다. 존엄한 마무리에 대한 관심이 급증하며 웰다잉 문화가 확산되고 있습니다.",
-        link: "https://www.yna.co.kr/view/AKR20240913076100530", // Yonhap News 2024
-        bg: "bg-blue-50",
+        icon: "🌟",
+        title: "CES 2026 주목! '존엄한 마무리' 돕는 에이지테크",
+        desc: "돌봄을 넘어선 글로벌 트렌드, 기술이 그리는 존엄한 노후와 마무리",
+        link: "https://www.silvertoday.co.kr/news/articleView.html?idxno=13759",
+        bg: "bg-blue-50", // Added default background color
+    },
+    {
+        icon: "🌿",
+        title: "2026 웰니스 트렌드, 오래 사는 것보다 '잘' 사는 법",
+        desc: "단순한 수명 연장을 넘어 삶의 질과 정신적 회복, 아름다운 마무리까지",
+        link: "https://www.idalhealth.com/news/articleView.html?idxno=407",
+        bg: "bg-purple-50", // Added default background color
     },
     {
         icon: "📱",
-        title: "\"내 디지털 흔적은 누가?\"... 디지털 유산 상속 법제화 논의",
-        desc: "사망 후 남겨진 SNS 계정과 데이터를 어떻게 처리할 것인가? '잊힐 권리'와 '상속 권리' 사이의 논쟁과 국회의 입법 움직임을 확인해보세요.",
-        link: "https://www.hani.co.kr/arti/society/society_general/1183354.html", // Hankyoreh
-        bg: "bg-purple-50",
+        title: "\"웰다잉도 힙하게\" 생과 사의 시각을 바꾸는 MZ세대",
+        desc: "2030 세대가 주도하는 새로운 문화, 모바일로 남기는 나만의 유언",
+        link: "http://www.newscan.co.kr/news/articleView.html?idxno=303755",
+        bg: "bg-green-50", // Added default background color
     },
     {
-        icon: "🏛️",
-        title: "우리 동네 '웰다잉' 프로그램: 지자체 조례 제정 잇따라",
-        desc: "서울, 경기, 부산 등 전국 지자체에서 웰다잉 교육 및 엔딩노트 작성 지원 프로그램을 확대하고 있습니다. 거주지 주변의 프로그램을 찾아보세요.",
-        link: "https://www.dailymedi.com/news/news_view.php?ca_id=22&wr_id=920638", // Daily Medi (Gyeonggi Ordinance)
-        bg: "bg-green-50",
+        icon: "🪙",
+        title: "비트코인·SNS 계정, 내 '디지털 유산'은 누가 챙기나?",
+        desc: "급증하는 디지털 자산, 사후 처리를 위한 플랫폼과 법적 논의의 필요성",
+        link: "http://www.wealthm.co.kr/news/articleView.html?idxno=12205",
+        bg: "bg-pink-50", // Added default background color
     },
     {
-        icon: "💐",
-        title: "장례식 대신 '생전 장례식'... 2030 세대의 새로운 인식",
-        desc: "형식적인 장례식보다 의미 있는 마무리를 선호하는 젊은 층을 중심으로, 살아생전 지인들과 인사를 나누는 '생전 장례식'이 주목받고 있습니다.",
-        link: "https://www.hankyung.com/article/202305312351i", // Hankyung Living Funeral
-        bg: "bg-pink-50",
+        icon: "⚖️",
+        title: "“죽어서도 남는 계정” 고인의 프라이버시 vs 남겨진 권리",
+        desc: "잊혀질 권리와 알 권리의 충돌, '디지털 유언장'의 법적·윤리적 중요성",
+        link: "http://www.fintechtoday.co.kr/news/articleView.html?idxno=1961",
+        bg: "bg-indigo-50", // Added default background color
     },
     {
-        icon: "🤖",
-        title: "1인 가구 1,000만 시대, AI 안부 확인과 고독사 예방",
-        desc: "1인 가구 증가에 발맞춰, AI를 활용한 안부 확인 서비스와 고독사 예방 시스템이 진화하고 있습니다. 기술이 돌보는 마지막 삶의 모습을 취재했습니다.",
-        link: "https://www.jeonmae.co.kr/news/articleView.html?idxno=1092769", // Jeonmae News (Asan AI Care)
-        bg: "bg-indigo-50",
-    },
-    {
-        icon: "✍️",
-        title: "유언장 쓰기, 이제는 필수... 모바일 유언장 작성 인기",
-        desc: "복잡한 공증 절차 대신, 블록체인 등을 활용해 간편하게 법적 효력을 갖는 유언장을 작성하는 모바일 서비스들이 인기를 끌고 있습니다.",
-        link: "http://www.ikunkang.com/news/articleView.html?idxno=33682", // iKunkang (Mobile Will Service)
-        bg: "bg-orange-50",
+        icon: "🧘",
+        title: "나 혼자 간다, 스스로 죽음을 준비하는 '종활' 시대",
+        desc: "1인 가구 증가가 불러온 새로운 풍경, 내 마지막을 스스로 정리하는 사람들",
+        link: "https://www.kunews.ac.kr/news/articleView.html?idxno=42630",
+        bg: "bg-orange-50", // Added default background color
     },
 ];
 
