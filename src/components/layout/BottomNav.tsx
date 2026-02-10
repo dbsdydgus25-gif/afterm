@@ -12,7 +12,7 @@ export function BottomNav() {
         { href: "/", icon: Home, label: "홈" },
         { href: "/vault/create", icon: PenLine, label: "기억남기기" },
         { href: "/vault", icon: Vault, label: "디지털 유산" },
-        { href: "/space", icon: Users, label: "기억공간" },
+        { href: "/space", icon: Users, label: "디지털 추모관" },
         { href: "/dashboard", icon: User, label: "내정보" },
     ];
 

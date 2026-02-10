@@ -14,7 +14,7 @@ export default function CreateSpacePage() {
                     <Link href="/space" className="p-2 -ml-2 text-slate-500 hover:text-slate-900">
                         <ChevronLeft size={24} />
                     </Link>
-                    <h1 className="font-bold text-slate-900 text-sm">기억 공간 만들기</h1>
+                    <h1 className="font-bold text-slate-900 text-sm">디지털 추모관 만들기</h1>
                     <div className="w-10"></div>
                 </div>
             </header>

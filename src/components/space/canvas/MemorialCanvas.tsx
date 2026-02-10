@@ -37,7 +37,10 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 
     // Theme State
     const [theme, setTheme] = useState(space.theme || {});
-    // Removed old url state inputs
+
+    // Space Info State
+    const [spaceTitle, setSpaceTitle] = useState(space.title || "");
+    const [spaceDescription, setSpaceDescription] = useState(space.description || "");
 
     // Form States
     const [noteContent, setNoteContent] = useState("");
@@ -117,6 +120,26 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             alert("업로드 실패");
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleUpdateSpaceInfo = async () => {
+        try {
+            const { error } = await supabase
+                .from('memorial_spaces')
+                .update({
+                    title: spaceTitle,
+                    description: spaceDescription
+                })
+                .eq('id', space.id);
+
+            if (error) throw error;
+            alert("공간 정보가 업데이트되었습니다.");
+            // Reload to reflect changes
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert("업데이트 실패");
         }
     };
 
@@ -218,11 +241,37 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                         <span className="hidden md:inline">공간 설정</span>
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-lg">
+                                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                         <DialogTitle>공간 관리</DialogTitle>
                                     </DialogHeader>
                                     <div className="space-y-6 pt-4">
+                                        {/* Space Title Setting */}
+                                        <div className="space-y-3">
+                                            <label className="text-sm font-bold text-slate-800">공간 이름</label>
+                                            <Input
+                                                value={spaceTitle}
+                                                onChange={(e) => setSpaceTitle(e.target.value)}
+                                                placeholder="예: 사랑하는 할머니"
+                                                className="w-full"
+                                            />
+                                        </div>
+
+                                        <div className="h-px bg-slate-100" />
+
+                                        {/* Space Description Setting */}
+                                        <div className="space-y-3">
+                                            <label className="text-sm font-bold text-slate-800">공간 설명</label>
+                                            <Textarea
+                                                value={spaceDescription}
+                                                onChange={(e) => setSpaceDescription(e.target.value)}
+                                                placeholder="예: 따뜻한 미소로 우리를 항상 응원해주시던 할머니"
+                                                className="w-full min-h-[80px] resize-none"
+                                            />
+                                        </div>
+
+                                        <div className="h-px bg-slate-100" />
+
                                         {/* Profile Image Setting */}
                                         <div className="space-y-3">
                                             <label className="text-sm font-bold text-slate-800">대표 사진 (프로필)</label>
@@ -259,6 +308,16 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                                 />
                                             </div>
                                         </div>
+
+                                        <div className="h-px bg-slate-100" />
+
+                                        {/* Save Button */}
+                                        <Button
+                                            onClick={handleUpdateSpaceInfo}
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                        >
+                                            변경사항 저장
+                                        </Button>
 
                                         <div className="h-px bg-slate-100" />
 
