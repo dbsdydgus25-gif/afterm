@@ -72,8 +72,8 @@ export default function ContactPage() {
                         <Mail className="w-5 h-5" />
                     </div>
                     <p className="text-slate-500 text-xs mb-1">이메일 문의</p>
-                    <a href="mailto:afterm01@gmail.com" className="text-base font-bold text-slate-900 hover:text-blue-600 transition-colors">
-                        afterm01@gmail.com
+                    <a href="mailto:afterm001@gmail.com" className="text-base font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                        afterm001@gmail.com
                     </a>
                 </div>
             </main>
