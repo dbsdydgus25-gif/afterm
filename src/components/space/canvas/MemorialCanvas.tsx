@@ -733,10 +733,8 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     useEffect(() => {
         fetchAuthor();
         fetchLikes();
-        if (showComments) {
-            fetchComments();
-        }
-    }, [showComments, block.id]);
+        fetchComments();
+    }, [block.id]);
 
     const handleDeleteComment = async (commentId: string) => {
         if (!confirm("댓글을 삭제하시겠습니까?")) return;

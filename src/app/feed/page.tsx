@@ -1,5 +1,4 @@
 
-import { AppSidebar } from "@/components/space/AppSidebar";
 // Wait, I should not use sidebar here if I am using layout.
 // Actually feed should also be under /space/feed to inherit the layout? 
 // The user linked to /feed in the code. I should probably move it to /space/feed.
@@ -11,5 +10,5 @@ import { AppSidebar } from "@/components/space/AppSidebar";
 import { redirect } from "next/navigation";
 
 export default function FeedPage() {
-    redirect("/space/activity"); // Redirect to activity or just space for now
+    redirect("/space"); // Redirect to space home
 }

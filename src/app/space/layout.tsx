@@ -21,7 +21,6 @@ export default function SpaceLayout({
 
                 <nav className="flex-1 space-y-1">
                     <NavItem href="/space" icon={<Home size={24} />} label="공간 홈" />
-                    <NavItem href="/space/activity" icon={<Bell size={24} />} label="활동" />
                     <NavItem href="/space/create" icon={<PlusSquare size={24} />} label="만들기" />
                 </nav>
 
@@ -41,7 +40,6 @@ export default function SpaceLayout({
             {/* Mobile Bottom Navigation */}
             <nav className="md:hidden fixed bottom-0 left-0 w-full h-16 bg-white border-t border-slate-200 flex justify-around items-center px-2 z-50 safe-area-bottom">
                 <MobileNavItem href="/space" icon={<Home size={24} />} />
-                <MobileNavItem href="/space/activity" icon={<Bell size={24} />} />
                 <MobileNavItem href="/space/create" icon={<PlusSquare size={24} />} />
             </nav>
         </div>
