@@ -139,14 +139,14 @@ export const NewsSection = () => {
                 </div>
 
                 {/* Subscription Form */}
-                <div className="max-w-xl mx-auto px-6 mt-16 md:mt-24 text-center">
-                    <div className="bg-white p-8 rounded-3xl border border-blue-100 shadow-xl shadow-blue-50 relative overflow-hidden">
+                <div className="max-w-xl mx-auto px-6 mt-20 md:mt-24 text-center">
+                    <div className="bg-white p-8 md:p-10 rounded-3xl border border-blue-100 shadow-xl shadow-blue-50 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
 
-                        <h3 className="text-lg md:text-xl font-bold text-slate-900 mb-2">
+                        <h3 className="text-base md:text-xl font-bold text-slate-900 mb-3">
                             매주 한 번, 웰다잉 트렌드를 받아보세요
                         </h3>
-                        <p className="text-slate-500 text-sm mb-6">
+                        <p className="text-slate-500 text-xs md:text-sm mb-8 leading-relaxed">
                             가장 최신의 웰다잉 뉴스, 디지털 유산 관리 팁을<br className="md:hidden" /> 이메일로 정리해드립니다.
                         </p>
 

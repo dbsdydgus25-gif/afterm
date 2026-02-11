@@ -4,9 +4,9 @@ import Link from "next/link";
 
 export function Footer() {
     return (
-        <footer className="border-t border-slate-200 bg-white py-8 pb-20 md:pb-8 mt-auto">
+        <footer className="border-t border-slate-200 bg-white py-12 pb-24 md:pb-12 mt-auto">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4">
                     {/* Company Name */}
                     <div className="text-sm text-slate-600">
                         <span className="font-bold">AFTERM</span>
