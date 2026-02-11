@@ -90,11 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 // Check if user has completed onboarding
-                // CRITICAL FIX: For existing users, having EITHER full_name OR nickname means they're complete
-                // Only NEW users (from signup) will have neither
-                const hasNickname = profile?.nickname || session.user.user_metadata?.nickname;
-                const hasFullName = profile?.full_name || session.user.user_metadata?.full_name;
-                const hasCompletedOnboarding = hasNickname || hasFullName;
+                // CRITICAL FIX: Strictly enforce 'onboarding_completed' flag.
+                // Social login users have full_name but are NOT complete.
+                const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed === true;
 
                 // Whitelist: Auth pages and onboarding itself
                 const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
