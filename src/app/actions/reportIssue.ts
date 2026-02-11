@@ -85,6 +85,7 @@ export async function reportIssue(messageId: string) {
 
         return { success: true, status: 'report_received' };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("Report issue error:", err);
         return { success: false, error: err.message };

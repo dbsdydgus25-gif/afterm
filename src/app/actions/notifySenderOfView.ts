@@ -106,6 +106,7 @@ export async function notifySenderOfView(messageId: string) {
 
         return { success: true };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[NotifyView] Unexpected error:", err);
         return { success: false, error: err.message };

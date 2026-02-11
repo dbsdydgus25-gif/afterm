@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { VerificationConfig, getTargetTime } from '@/lib/verificationConfig';
 import nodemailer from 'nodemailer';
+import { getErrorMessage } from "@/lib/error";
 
 // Supabase Admin Client
 const supabaseAdmin = createClient(
@@ -72,9 +73,9 @@ export async function GET() {
         console.log(`[Cron] Completed. Unlocked ${results.stage3_unlocked} messages`);
         return NextResponse.json({ success: true, processed: results });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Cron Error:", error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 });
     }
 }
 

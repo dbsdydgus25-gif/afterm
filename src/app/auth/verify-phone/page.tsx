@@ -51,8 +51,10 @@ export default function VerifyPhonePage() {
             if (!response.ok) throw new Error(data.error || "인증번호 발송 실패");
 
             setStep("verify");
-        } catch (err: any) {
-            setError(err.message || "인증번호 발송에 실패했습니다.");
+        } catch (err: unknown) {
+            // 에러 메시지를 안전하게 추출
+            const message = err instanceof Error ? err.message : "인증번호 발송에 실패했습니다.";
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -76,8 +78,10 @@ export default function VerifyPhonePage() {
             // Success -> Redirect to Profile Setup (Onboarding Step 2)
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
             router.push("/onboarding?step=2");
-        } catch (err: any) {
-            setError(err.message || "인증번호가 올바르지 않습니다.");
+        } catch (err: unknown) {
+            // 에러 메시지를 안전하게 추출
+            const message = err instanceof Error ? err.message : "인증번호가 올바르지 않습니다.";
+            setError(message);
         } finally {
             setLoading(false);
         }

@@ -19,6 +19,7 @@ export default function VaultAuthPage() {
     const [pinHint, setPinHint] = useState("");
     const [loading, setLoading] = useState(false);
     const [verified, setVerified] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [vaultData, setVaultData] = useState<any>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);

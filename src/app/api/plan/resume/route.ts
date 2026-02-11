@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
  * Resume a cancelled Pro subscription
  * Sets auto_renew back to true
  */
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
     try {
         const supabase = await createClient();
 
@@ -44,11 +44,13 @@ export async function POST(request: Request) {
             message: '구독이 재개되었습니다!'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Resume subscription error:", error);
+        // 에러 메시지를 안전하게 추출
+        const message = error instanceof Error ? error.message : "Unknown error";
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message
+            details: message
         }, { status: 500 });
     }
 }

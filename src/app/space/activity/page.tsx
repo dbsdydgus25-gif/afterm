@@ -13,6 +13,7 @@ interface ActivityItem {
     type: 'invite' | 'join' | 'comment' | 'like';
     id: string;
     created_at: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
 }
 
@@ -63,6 +64,7 @@ export default function ActivityPage() {
 
             const mySpaceIds = myMemberships?.map(m => m.space_id) || [];
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let joinEvents: any[] = [];
             if (mySpaceIds.length > 0) {
                 const { data: joins } = await supabase
@@ -86,6 +88,7 @@ export default function ActivityPage() {
             }
 
             // 3. Fetch New Activity Logs (Comments, Likes)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let logEvents: any[] = [];
             if (mySpaceIds.length > 0) {
                 const { data: logs } = await supabase
@@ -112,6 +115,7 @@ export default function ActivityPage() {
             const combined: ActivityItem[] = [
                 ...(invites || []).map(i => ({ type: 'invite' as const, id: i.id, created_at: i.created_at, data: i })),
                 ...joinEvents.map(j => ({ type: 'join' as const, id: j.id, created_at: j.joined_at, data: j })),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ...logEvents.map(l => ({ type: l.type as any, id: l.id, created_at: l.created_at, data: l }))
             ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -124,6 +128,7 @@ export default function ActivityPage() {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleAccept = async (invite: any) => {
         setProcessingId(invite.id);
         const supabase = createClient();
@@ -166,6 +171,7 @@ export default function ActivityPage() {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleDecline = async (invite: any) => {
         if (!confirm("초대를 거절하시겠습니까?")) return;
         setProcessingId(invite.id);
@@ -221,7 +227,7 @@ export default function ActivityPage() {
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-slate-900">
-                                                    '{item.data.memorial_spaces?.title}' 공간 초대
+                                                    &apos;{item.data.memorial_spaces?.title}&apos; 공간 초대
                                                 </h3>
                                                 <p className="text-slate-600 text-sm mt-0.5">
                                                     <span className="font-bold text-slate-800">{item.data.users?.user_metadata?.full_name || item.data.users?.email}</span>
@@ -267,7 +273,7 @@ export default function ActivityPage() {
                                                 <span className="font-bold">{item.data.users?.user_metadata?.full_name || item.data.users?.email || item.data.nickname}</span>
                                                 님이
                                                 <Link href={`/space/${item.data.space_id}`} className="font-bold text-blue-600 hover:underline mx-1">
-                                                    '{item.data.memorial_spaces?.title}'
+                                                    &apos;{item.data.memorial_spaces?.title}&apos;
                                                 </Link>
                                                 공간에
                                                 {item.type === 'join' && " 참여했습니다."}
@@ -276,7 +282,7 @@ export default function ActivityPage() {
                                             </p>
                                             {item.type === 'comment' && item.data.content && (
                                                 <p className="text-sm text-slate-600 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100 italic">
-                                                    "{item.data.content}..."
+                                                    &quot;{item.data.content}...&quot;
                                                 </p>
                                             )}
                                             <p className="text-xs text-slate-400 mt-1">

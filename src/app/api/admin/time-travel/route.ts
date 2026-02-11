@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/error";
 
 // This is a TESTING tool. It should be protected or disabled in production if not for this specific testing phase.
 const supabaseAdmin = createClient(
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

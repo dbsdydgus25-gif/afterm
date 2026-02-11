@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from 'nodemailer';
 import { sendMessage } from "@/lib/solapi/client";
+import { getErrorMessage } from "@/lib/error";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -115,11 +116,11 @@ export async function GET(request: Request) {
         // Redirect to confirmation page
         return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'}/confirmed`);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Confirm alive error:", error);
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message
+            details: getErrorMessage(error)
         }, { status: 500 });
     }
 }

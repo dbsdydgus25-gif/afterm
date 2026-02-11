@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => {
+                    cookiesToSet.forEach(({ name, value }) => {
                         request.cookies.set(name, value);
                     });
                     response = NextResponse.next({
@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
     );
 
     // Refreshing the auth token
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error: _authError } = await supabase.auth.getUser();
 
     // Protect /space routes if needed (Optional, but good practice)
     if (request.nextUrl.pathname.startsWith('/space') && !user) {

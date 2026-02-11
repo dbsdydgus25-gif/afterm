@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(req: Request) {
     const logs: string[] = [];
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
         try {
             await transporter.verify();
             log("✅ Transporter connection verified!");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (verifyError: any) {
             log(`❌ Verification Failed: ${verifyError.message}`);
             throw verifyError;
@@ -53,8 +55,8 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, logs });
 
-    } catch (error: any) {
-        log(`❌ CRITICAL ERROR: ${error.message}`);
-        return NextResponse.json({ success: false, error: error.message, logs }, { status: 500 });
+    } catch (error: unknown) {
+        log(`❌ CRITICAL ERROR: ${getErrorMessage(error)}`);
+        return NextResponse.json({ success: false, error: getErrorMessage(error), logs }, { status: 500 });
     }
 }

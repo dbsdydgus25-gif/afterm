@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST() {
     try {
@@ -30,8 +31,8 @@ export async function POST() {
 
         return NextResponse.json({ success: true, message: "Upgraded to Pro" });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Mock Payment Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

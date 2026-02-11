@@ -1,12 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+
 import { Mail } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 
 export default function ContactPage() {
-    const router = useRouter();
 
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(req: NextRequest) {
     try {
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Vault verify error:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },

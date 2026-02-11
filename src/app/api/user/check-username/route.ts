@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ available: true });
 
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ available: false, error: 'Server error' }, { status: 500 });
     }
 }

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { ArrowLeft, Upload, X, FileText, Loader2, Image as ImageIcon, Video } from "lucide-react";
+import { getErrorMessage } from "@/lib/error";
 
 interface Attachment {
     id: string;
@@ -278,14 +279,14 @@ export default function EditMessagePage() {
 
             if (error) {
                 console.error("Message update error:", error);
-                throw new Error(`메시지 업데이트 실패: ${error.message}`);
+                throw new Error(`메시지 업데이트 실패: ${getErrorMessage(error)}`);
             }
 
             alert("메시지가 수정되었습니다.");
             router.push('/dashboard');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Save error:", error);
-            alert(error.message || "저장 중 오류가 발생했습니다.");
+            alert(getErrorMessage(error) || "저장 중 오류가 발생했습니다.");
         } finally {
             setIsSaving(false);
         }

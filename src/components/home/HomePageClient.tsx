@@ -36,6 +36,7 @@ export default function HomePageClient() {
         const hasShownSplash = sessionStorage.getItem('splash_shown');
 
         if (hasShownSplash) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowSplash(false);
         } else {
             const timer = setTimeout(() => {

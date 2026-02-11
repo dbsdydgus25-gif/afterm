@@ -54,7 +54,7 @@ export default function RecipientPage() {
             const supabase = createClient();
 
 
-            let uploadedFiles: { path: string, size: number, type: string }[] = [];
+            const uploadedFiles: { path: string, size: number, type: string }[] = [];
             let legacyFilePath: string | null = null;
             let legacyFileSize = 0;
             let legacyFileType = null;
@@ -230,7 +230,7 @@ export default function RecipientPage() {
             setRecipient({ name: '', phone: '', relationship: '' });
 
             router.push('/dashboard');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             alert("저장에 실패했습니다.");
         } finally {

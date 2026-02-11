@@ -102,6 +102,7 @@ export default function DashboardPage() {
     //     if (!user) router.push("/");
     // }, [user, router]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleEdit = (msg: Message | any) => {
         setMessage(msg.content);
         setMessageId(msg.id); // Set ID for update

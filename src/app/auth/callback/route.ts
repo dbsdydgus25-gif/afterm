@@ -42,8 +42,7 @@ export async function GET(request: Request) {
             if (!isOnboardingComplete) {
                 // If new user (incomplete), redirect to SIGNUP page to set password & complete profile
                 // Pass email and verification flag
-                const email = session.user.email || "";
-                const provider = session.user.app_metadata.provider || "social";
+                // 소셜 로그인 정보는 onboarding 페이지에서 직접 조회하므로 여기서는 사용하지 않음
 
                 targetUrl = `/onboarding`;
             } else {
@@ -57,7 +56,7 @@ export async function GET(request: Request) {
             }
 
             console.log(">>> Redirecting to:", targetUrl);
-            let response = NextResponse.redirect(`${origin}${targetUrl}`);
+            const response = NextResponse.redirect(`${origin}${targetUrl}`);
 
             // Cleanup Cookie
             if (cookieReturnTo) {

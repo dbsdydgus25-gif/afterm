@@ -61,6 +61,7 @@ export async function getMessageSenderInfo(messageId: string) {
 
         senderName = senderName || "사용자";
         return { senderName };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("Server action error:", err);
         return { error: `서버 오류: ${err.message || JSON.stringify(err)}` };
@@ -134,6 +135,7 @@ export async function getUnlockedMessageContent(messageId: string) {
             date: message.created_at
         };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("getUnlockedMessageContent error:", err);
         return { error: err.message };

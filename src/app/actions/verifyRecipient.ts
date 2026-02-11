@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js';
 // import { generateRandomCode } from '@/lib/utils'; // Removed
 import { SolapiMessageService } from 'solapi'; // Corrected import
+import { getErrorMessage } from "@/lib/error";
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -64,9 +65,9 @@ export async function requestOTP(messageId: string, phone: string) {
 
         return { success: true };
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("OTP Request Error:", e);
-        return { success: false, error: e.message };
+        return { success: false, error: getErrorMessage(e) };
     }
 }
 
@@ -100,8 +101,8 @@ export async function verifyOTP(messageId: string, phone: string, code: string) 
         // Success! Return content
         return { success: true, content: message.content };
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("OTP Verify Error:", e);
-        return { success: false, error: e.message };
+        return { success: false, error: getErrorMessage(e) };
     }
 }

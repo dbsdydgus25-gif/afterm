@@ -28,7 +28,7 @@ export default function AboutPage() {
             </p>
             <div className="h-2 md:h-4"></div>
             <p className="text-sm md:text-lg text-slate-600 leading-relaxed max-w-2xl break-keep">
-              우리의 비전은 기술을 통해 '죽음' 이후에도 '연결'이 지속되도록 돕는 것입니다.<br className="hidden md:block" />
+              우리의 비전은 기술을 통해 &apos;죽음&apos; 이후에도 &apos;연결&apos;이 지속되도록 돕는 것입니다.<br className="hidden md:block" />
               남겨진 이들에게 위로가 되고, 떠나는 이에게는 평안이 되는 세상을 만들어갑니다.
             </p>
           </div>

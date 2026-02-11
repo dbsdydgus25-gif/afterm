@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getErrorMessage } from "@/lib/error";
 
 export async function GET() {
     try {
@@ -28,7 +29,7 @@ export async function GET() {
             envCheck,
             messages: data
         });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message, stack: e.stack }, { status: 500 });
+    } catch (e: unknown) {
+        return NextResponse.json({ error: getErrorMessage(e), stack: e.stack }, { status: 500 });
     }
 }

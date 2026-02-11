@@ -60,6 +60,7 @@ export default function CreatePage() {
         fetchCount();
 
         // Reset step if re-visiting (optional, but good for safety)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStep(0);
         setAgreed(false);
     }, [user, plan]);

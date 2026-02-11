@@ -25,8 +25,10 @@ export default function ForgotPasswordPage() {
             });
             if (error) throw error;
             setSuccess(true);
-        } catch (err: any) {
-            setError(err.message || "오류가 발생했습니다.");
+        } catch (err: unknown) {
+            // 에러 메시지를 안전하게 추출
+            const message = err instanceof Error ? err.message : "오류가 발생했습니다.";
+            setError(message);
         } finally {
             setLoading(false);
         }

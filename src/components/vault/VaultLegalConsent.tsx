@@ -86,7 +86,7 @@ export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
                                 </span>
                             </div>
                             <p className="text-xs text-slate-600 leading-relaxed">
-                                일부 서비스는 계정 공유를 제한할 수 있습니다. 하지만 <strong>'사후 정리(해지/탈퇴)'</strong>라는 특수 목적을 위해, 본인의 의지로 정보를 남김을 확인합니다.
+                                일부 서비스는 계정 공유를 제한할 수 있습니다. 하지만 <strong>&apos;사후 정리(해지/탈퇴)&apos;</strong>라는 특수 목적을 위해, 본인의 의지로 정보를 남김을 확인합니다.
                             </p>
                         </div>
                     </label>

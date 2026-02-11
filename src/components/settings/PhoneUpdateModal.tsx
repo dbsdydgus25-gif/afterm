@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, Mail, Smartphone, Check, ArrowRight, X } from "lucide-react";
+import { getErrorMessage } from "@/lib/error";
 
 interface PhoneUpdateModalProps {
     isOpen: boolean;
@@ -145,8 +146,8 @@ export function PhoneUpdateModal({ isOpen, onClose, currentEmail, onSuccess }: P
                 onClose();
             }, 2000);
 
-        } catch (error: any) {
-            alert(error.message || "오류가 발생했습니다.");
+        } catch (error: unknown) {
+            alert(getErrorMessage(error) || "오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }

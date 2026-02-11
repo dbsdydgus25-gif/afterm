@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from 'nodemailer';
 import { sendMessage } from "@/lib/solapi/client";
+import { getErrorMessage } from "@/lib/error";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -93,9 +94,9 @@ export async function processAbsenceChecks(targetMessageId?: string) {
                         `
                     });
                     result.emailSent = true;
-                } catch (e: any) {
+                } catch (e: unknown) {
                     console.error(`Email failed for ${message.id}:`, e);
-                    result.emailError = e.message;
+                    result.emailError = getErrorMessage(e);
                 }
             }
 
@@ -110,15 +111,15 @@ export async function processAbsenceChecks(targetMessageId?: string) {
                     });
                     console.log(`Unlock SMS sent to ${message.recipient_phone}`);
                     result.smsSent = true;
-                } catch (smsError: any) {
+                } catch (smsError: unknown) {
                     console.error("Failed to send Unlock SMS:", smsError);
-                    result.smsError = smsError.message || JSON.stringify(smsError);
+                    result.smsError = getErrorMessage(smsError);
                 }
             }
 
             console.log(`Unlocked message ${message.id} after stage 2 timeout`);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(`Failed to unlock message ${message.id}:`, error);
         }
         results.push(result);

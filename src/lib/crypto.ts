@@ -38,7 +38,7 @@ export function decryptPassword(ciphertext: string, pin: string): string {
         }
 
         return decrypted;
-    } catch (error) {
+    } catch (_error) {
         throw new Error('Decryption failed. Please check your PIN.');
     }
 }

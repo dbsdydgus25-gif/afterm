@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getErrorMessage } from "@/lib/error";
 
 export async function GET(
     req: NextRequest,
@@ -35,7 +36,7 @@ export async function GET(
             recipientName: data.recipient_name
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Vault check error:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },

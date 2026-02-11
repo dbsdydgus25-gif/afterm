@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { processAbsenceChecks } from "@/lib/absence";
+import { getErrorMessage } from "@/lib/error";
 
 /**
  * Cron job to process absence verification stages
@@ -22,11 +23,11 @@ export async function GET(request: Request) {
             cronResult: result
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Absence verification cron error:", error);
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message
+            details: getErrorMessage(error)
         }, { status: 500 });
     }
 }

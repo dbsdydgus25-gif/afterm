@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/lib/error";
 
 export default function EmailTestPage() {
     const [email, setEmail] = useState("");
@@ -36,8 +37,8 @@ export default function EmailTestPage() {
                 addLog("❌ FAILED: " + (data.error || "Unknown error"));
             }
 
-        } catch (error: any) {
-            addLog(`❌ NETWORK/CLIENT ERROR: ${error.message}`);
+        } catch (error: unknown) {
+            addLog(`❌ NETWORK/CLIENT ERROR: ${getErrorMessage(error)}`);
         } finally {
             setLoading(false);
         }

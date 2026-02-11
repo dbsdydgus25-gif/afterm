@@ -6,6 +6,7 @@ import { getMessageSenderInfo, getUnlockedMessageContent } from "@/app/actions/v
 import { Button } from "@/components/ui/button";
 import { Loader2, Lock, Unlock, AlertTriangle, Send, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/error";
 
 export default function AuthViewPage() {
     const params = useParams();
@@ -24,6 +25,7 @@ export default function AuthViewPage() {
     const [senderName, setSenderName] = useState("");
     const [recipientName, setRecipientName] = useState("");
     const [relationship, setRelationship] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [statusData, setStatusData] = useState<any>(null); // To store trigger status
 
     useEffect(() => {
@@ -160,8 +162,8 @@ export default function AuthViewPage() {
             } else {
                 alert(`❌ 요청 실패\n\n에러: ${data.error || '알 수 없는 오류'}${data.details ? '\n\n상세: ' + data.details : ''}`);
             }
-        } catch (e: any) {
-            alert(`❌ 오류 발생\n\n${e.message || e.toString()}`);
+        } catch (e: unknown) {
+            alert(`❌ 오류 발생\n\n${getErrorMessage(e) || e.toString()}`);
         }
         setLoading(false);
     };

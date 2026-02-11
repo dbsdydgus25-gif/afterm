@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { sendMessage } from '@/lib/solapi/client';
+import { getErrorMessage } from "@/lib/error";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -95,12 +96,12 @@ export async function POST(request: Request) {
                     console.error("[Test] SMS error:", result.error);
                     smsError = result.error;
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error("[Test] SMS exception:", {
-                    message: error.message,
+                    message: getErrorMessage(error),
                     stack: error.stack
                 });
-                smsError = error.message;
+                smsError = getErrorMessage(error);
             }
         }
 
@@ -122,11 +123,11 @@ export async function POST(request: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Test trigger error:", error);
         return NextResponse.json({
             error: "Internal error",
-            details: error.message
+            details: getErrorMessage(error)
         }, { status: 500 });
     }
 }

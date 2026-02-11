@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { processAbsenceChecks } from "@/lib/absence";
+import { getErrorMessage } from "@/lib/error";
 
 // This route serves as a public wrapper to trigger the Cron Job internally.
 // IN PRODUCTION, THIS SHOULD BE PROTECTED OR DISABLED.
@@ -20,8 +21,8 @@ export async function GET(request: Request) {
             result
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[Manual Cron] Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

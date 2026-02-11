@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMessage } from "@/lib/solapi/client";
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(request: Request) {
     try {
@@ -58,14 +59,14 @@ export async function POST(request: Request) {
         });
 
         // Return masked phone number to UI
-        const maskedPhone = senderPhone.replace(/(\d{3})-?(\d{2})\d{2}-?(\d{4})/, '$1-**$2-****');
+        const _maskedPhone = senderPhone.replace(/(\d{3})-?(\d{2})\d{2}-?(\d{4})/, '$1-**$2-****');
         // Simple mask logic: 010-1234-5678 -> 010-**34-**** ??
         // Let's just return success. The UI might not need the phone number if it's "Author's Phone".
 
         return NextResponse.json({ success: true, message: "Code sent to author's phone" });
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Verify Sender Error:", e);
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(e) }, { status: 500 });
     }
 }

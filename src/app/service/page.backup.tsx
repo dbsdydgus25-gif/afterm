@@ -150,7 +150,7 @@ export default function ServiceGuidePage() {
                                     <div className="space-y-4">
                                         <div className="bg-slate-50 p-4 rounded-xl rounded-tl-none">
                                             <p className="text-slate-600 text-sm leading-relaxed">
-                                                "할머니, 오늘 첫눈이 왔어요. 할머니가 좋아하시던 군고구마 냄새가 나니까 더 보고싶네요.. 사랑해요."
+                                                &quot;할머니, 오늘 첫눈이 왔어요. 할머니가 좋아하시던 군고구마 냄새가 나니까 더 보고싶네요.. 사랑해요.&quot;
                                             </p>
                                             <div className="mt-2 text-xs text-slate-400 font-medium">손녀 지민이가</div>
                                         </div>
@@ -260,7 +260,7 @@ export default function ServiceGuidePage() {
                                                 </div>
                                             </div>
                                             <p className="text-slate-300 text-sm leading-relaxed pl-3 border-l-2 border-slate-700">
-                                                "내 장례식은 파티였음 좋겠음, 클럽 노래 틀고 즐기다가 가~"
+                                                &quot;내 장례식은 파티였음 좋겠음, 클럽 노래 틀고 즐기다가 가~&quot;
                                             </p>
                                         </motion.div>
 
@@ -281,7 +281,7 @@ export default function ServiceGuidePage() {
                                                 </div>
                                             </div>
                                             <p className="text-blue-50 text-base leading-relaxed pl-3 border-l-2 border-slate-700">
-                                                "이번 생 재밌었다 넷플, 티빙 계정 남긴다. 나머지는 너가 내 ^^"
+                                                &quot;이번 생 재밌었다 넷플, 티빙 계정 남긴다. 나머지는 너가 내 ^^&quot;
                                             </p>
                                         </motion.div>
                                     </div>

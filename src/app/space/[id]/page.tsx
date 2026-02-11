@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { MemorialCanvas } from "@/components/space/canvas/MemorialCanvas";
+import Link from "next/link";
 
 interface PageProps {
     params: Promise<{
@@ -65,9 +66,9 @@ export default async function SpaceCanvasPage({ params }: PageProps) {
                             이 공간은 초대받은 멤버만 입장할 수 있습니다.<br />
                             호스트에게 초대를 요청해보세요.
                         </p>
-                        <a href="/space" className="text-blue-600 font-bold hover:underline">
+                        <Link href="/space" className="text-blue-600 font-bold hover:underline">
                             내 공간으로 돌아가기
-                        </a>
+                        </Link>
                     </div>
                 </div>
             );

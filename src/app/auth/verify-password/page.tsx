@@ -53,7 +53,7 @@ export default function VerifyPasswordPage() {
 
                 router.replace(returnTo);
             }
-        } catch (err) {
+        } catch (_err) {
             setError("인증 중 오류가 발생했습니다.");
         } finally {
             setLoading(false);

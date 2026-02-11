@@ -17,6 +17,7 @@ import { PhoneUpdateModal } from "@/components/settings/PhoneUpdateModal";
 
 
 import { useSearchParams } from "next/navigation";
+import { getErrorMessage } from "@/lib/error";
 
 function PasswordChangeForm({ userPhone }: { userPhone: string }) {
     const [step, setStep] = useState<"verify" | "active">("verify");
@@ -124,8 +125,8 @@ function PasswordChangeForm({ userPhone }: { userPhone: string }) {
             setIsCodeSent(false);
             setNewPassword("");
             setConfirmPassword("");
-        } catch (error: any) {
-            alert("비밀번호 변경 실패: " + error.message);
+        } catch (error: unknown) {
+            alert("비밀번호 변경 실패: " + getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -457,9 +458,9 @@ function SettingsContent() {
             });
 
             alert("프로필이 업데이트되었습니다.");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            alert(`저장에 실패했습니다: ${error.message}`);
+            alert(`저장에 실패했습니다: ${getErrorMessage(error)}`);
         } finally {
             setIsSaving(false);
         }
@@ -668,7 +669,7 @@ function SettingsContent() {
                                                     </Button>
                                                 </div>
                                                 <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                                                    * 생존 확인(Dead Man's Switch) 기능을 위해 본인 명의 휴대폰 번호가 필요합니다.<br />
+                                                    * 생존 확인(Dead Man&apos;s Switch) 기능을 위해 본인 명의 휴대폰 번호가 필요합니다.<br />
                                                     * 수신인 인증 시, 이 번호로 인증번호가 발송됩니다.
                                                 </p>
                                             </div>

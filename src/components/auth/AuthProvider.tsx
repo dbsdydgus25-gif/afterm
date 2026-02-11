@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => clearInterval(interval);
     }, []);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleUserSession = async (session: any) => {
         if (session?.user) {
             // Check for Soft Delete

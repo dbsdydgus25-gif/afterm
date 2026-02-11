@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SolapiMessageService } from 'solapi';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(request: Request) {
     try {
@@ -53,8 +54,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Send OTP Error:", error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) || 'Internal Server Error' }, { status: 500 });
     }
 }

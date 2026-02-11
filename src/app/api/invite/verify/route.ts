@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(req: Request) {
     try {
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
 
         // 1. Try to find invitation by token OR code
         // We use .or() syntax properly: "token.eq.VALUE,code.eq.VALUE"
-        const { data: invite, error: inviteError } = await supabaseAdmin
+        const { data: invite, error: _inviteError } = await supabaseAdmin
             .from('invitations')
             .select('*')
             .or(`token.eq.${token},code.eq.${token}`)
@@ -75,8 +76,8 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Invite verification error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

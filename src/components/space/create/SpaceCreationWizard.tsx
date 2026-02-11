@@ -75,7 +75,7 @@ export function SpaceCreationWizard() {
             if (!user) throw new Error("로그인이 필요합니다.");
 
             let profileUrl = "";
-            let bgUrl = "";
+            const bgUrl = "";
 
             // Upload files
             if (formData.profileFile) {

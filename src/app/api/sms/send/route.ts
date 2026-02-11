@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SolapiMessageService } from 'solapi';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
         const destination = body.recipientPhone || body.phone;
         const directMessage = body.message || body.text;
 
-        const { recipientName, senderName, messageId } = body;
+        const { senderName, messageId } = body;
 
         const apiKey = process.env.SOLAPI_API_KEY;
         const apiSecret = process.env.SOLAPI_API_SECRET;
@@ -59,15 +60,15 @@ export async function POST(req: NextRequest) {
             from: senderPhone,
             text: textToSend,
             subject: "[AFTERM] 소중한 메시지 도착", // LMS 제목
-            // @ts-ignore: Solapi type definition might be strict, but 'LMS' is supported
+            // Solapi LMS 타입 지정
             type: 'LMS'
         });
 
         return NextResponse.json({ success: true, result });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("SMS send error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to send SMS" },
+            { error: getErrorMessage(error) || "Failed to send SMS" },
             { status: 500 }
         );
     }

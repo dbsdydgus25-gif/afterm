@@ -80,6 +80,7 @@ export function MessageList({
                             <div className="flex items-center gap-3">
                                 {(() => {
                                     // Determine type from attachments or legacy field
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     let type = (mem as any).file_type || mem.type || 'text';
 
                                     // Check attachments if available

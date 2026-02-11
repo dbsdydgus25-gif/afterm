@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/error";
 
 interface WithdrawModalProps {
     isOpen: boolean;
@@ -77,8 +78,8 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
             setIsCodeSent(true);
             setTimer(180); // 3 minutes
             alert("인증번호가 전송되었습니다.");
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
         } finally {
             setIsSendingCode(false);
         }
@@ -105,8 +106,8 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
 
             setIsSmsVerified(true);
             setTimer(0);
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
         } finally {
             setIsVerifyingCode(false);
         }
@@ -155,8 +156,8 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
             router.push("/");
             router.refresh();
 
-        } catch (error: any) {
-            alert(error.message);
+        } catch (error: unknown) {
+            alert(getErrorMessage(error));
         } finally {
             setIsSubmitting(false);
         }

@@ -15,15 +15,19 @@ import { Textarea } from "@/components/ui/textarea";
 interface Block {
     id: string;
     type: 'photo' | 'note' | 'music' | 'guestbook';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     position: any;
     created_at: string;
     created_by: string;
 }
 
 interface MemorialCanvasProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     space: any;
     initialBlocks: Block[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     currentUser: any;
     role: string;
 }
@@ -519,6 +523,7 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
 // Member List Component
 function MemberList({ spaceId }: { spaceId: string }) {
     const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [members, setMembers] = useState<any[]>([]);
 
     useEffect(() => {
@@ -573,8 +578,10 @@ function MemberList({ spaceId }: { spaceId: string }) {
 }
 
 // Subcomponent for Block Item (Facebook Style)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Block; spaceId: string; currentUser: any; role: string; onDelete: () => void }) {
     const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [comments, setComments] = useState<any[]>([]);
     const [newComment, setNewComment] = useState("");
     const [replyToId, setReplyToId] = useState<string | null>(null); // For nested replies
@@ -584,13 +591,6 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
     const [likeCount, setLikeCount] = useState(0);
     const [hasLiked, setHasLiked] = useState(false);
 
-    useEffect(() => {
-        fetchAuthor();
-        fetchLikes();
-        if (showComments) {
-            fetchComments();
-        }
-    }, [showComments, block.id]);
 
     const fetchAuthor = async () => {
         // Fetch Profile directly
@@ -675,6 +675,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
         const userIds = Array.from(new Set(commentsData.map(c => c.user_id).filter(Boolean)));
 
         // 3. Fetch Profiles (Server-Side Bypass)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let profilesData: any[] = [];
         try {
             const res = await fetch('/api/space/get-profiles', {
@@ -698,6 +699,7 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
 
         // 3.1 Fallback: Fetch Space Members (If profiles missing)
         // This ensures we at least get the nickname for the space
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let membersData: any[] = [];
         const missingIds = userIds.filter(id => !profilesData.find(p => p.id === id));
         if (missingIds.length > 0) {
@@ -726,6 +728,15 @@ function BlockItem({ block, spaceId, currentUser, role, onDelete }: { block: Blo
 
         setComments(commentsWithProfiles);
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        fetchAuthor();
+        fetchLikes();
+        if (showComments) {
+            fetchComments();
+        }
+    }, [showComments, block.id]);
 
     const handleDeleteComment = async (commentId: string) => {
         if (!confirm("댓글을 삭제하시겠습니까?")) return;

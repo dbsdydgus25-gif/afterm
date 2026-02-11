@@ -110,7 +110,7 @@ export async function POST(request: Request) {
             newEndDate: newEndDate.toISOString()
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Internal Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }

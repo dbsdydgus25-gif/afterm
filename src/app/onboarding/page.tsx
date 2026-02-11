@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, ArrowLeft, ArrowRight, Loader2, Check, ChevronDown, CheckCircle2 } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 import { TERMS_OF_SERVICE, PRIVACY_POLICY, THIRD_PARTY_PROVISION, ENTRUSTMENT } from "@/lib/compliance";
+import { getErrorMessage } from "@/lib/error";
 
 
 
@@ -81,6 +82,7 @@ export default function OnboardingPage() {
 
                 // Check agreements
                 let hasAgreed = false;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if ((userMetadata as any)?.terms_agreed) {
                     hasAgreed = true;
                 } else {
@@ -100,7 +102,9 @@ export default function OnboardingPage() {
                 // Simpler logic:
                 // If Agreements DONE -> Check if Password/Account DONE (via metadata flag) -> Check Phone -> Profile
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isAccountSetup = (userMetadata as any)?.account_setup_completed === true || user.app_metadata?.provider === 'email'; // Email users already did this
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const isPhoneVerified = (user.user_metadata as any)?.phone_verified || (typeof window !== 'undefined' && sessionStorage.getItem('auth_verified') === 'true');
 
                 let startStep = 0; // Default: Agreements
@@ -261,8 +265,8 @@ export default function OnboardingPage() {
 
             // Move to next step (Account Setup)
             setStep(1);
-        } catch (error: any) {
-            alert("처리 중 오류가 발생했습니다: " + (error.message || ""));
+        } catch (error: unknown) {
+            alert("처리 중 오류가 발생했습니다: " + (getErrorMessage(error) || ""));
         } finally {
             setLoading(false);
         }
@@ -310,8 +314,8 @@ export default function OnboardingPage() {
 
             alert("비밀번호 설정이 완료되었습니다.");
             setStep(2); // Move to Phone
-        } catch (error: any) {
-            alert("설정 실패: " + error.message);
+        } catch (error: unknown) {
+            alert("설정 실패: " + getErrorMessage(error));
         } finally {
             setLoading(false);
         }
@@ -412,8 +416,8 @@ export default function OnboardingPage() {
             if (typeof window !== 'undefined') sessionStorage.setItem('auth_verified', 'true');
 
             router.replace("/");
-        } catch (error: any) {
-            alert("저장 실패: " + error.message);
+        } catch (error: unknown) {
+            alert("저장 실패: " + getErrorMessage(error));
         } finally {
             setLoading(false);
         }

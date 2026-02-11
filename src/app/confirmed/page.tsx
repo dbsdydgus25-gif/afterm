@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -30,7 +28,7 @@ export default function ConfirmedPage() {
 
                 <p className="text-zinc-500 dark:text-zinc-400 text-sm">
                     수신인에게는<br />
-                    "작성자가 직접 확인하여 메시지를 열람할 수 없음"<br />
+                    &quot;작성자가 직접 확인하여 메시지를 열람할 수 없음&quot;<br />
                     으로 안내됩니다.
                 </p>
 

@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
 export default function FindPasswordPage() {
-    const router = useRouter();
+    // useRouter는 현재 페이지에서 사용하지 않으므로 제거
     const [step, setStep] = useState<"verify" | "reset" | "success">("verify");
 
     // Step 1: Verification
@@ -16,7 +16,7 @@ export default function FindPasswordPage() {
     const [phone, setPhone] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
     const [isCodeSent, setIsCodeSent] = useState(false);
-    const [isCodeVerified, setIsCodeVerified] = useState(false);
+    const [, setIsCodeVerified] = useState(false);
     const [timer, setTimer] = useState(0);
     const [loading, setLoading] = useState(false);
 
@@ -58,7 +58,7 @@ export default function FindPasswordPage() {
             } else {
                 alert(data.error || "발송 실패");
             }
-        } catch (error) {
+        } catch (_error) {
             alert("오류가 발생했습니다.");
         } finally {
             setLoading(false);
@@ -81,7 +81,7 @@ export default function FindPasswordPage() {
             } else {
                 alert(data.error || "인증번호가 올바르지 않습니다.");
             }
-        } catch (error) {
+        } catch (_error) {
             alert("오류가 발생했습니다.");
         } finally {
             setLoading(false);
@@ -125,7 +125,7 @@ export default function FindPasswordPage() {
             } else {
                 alert(data.error || "비밀번호 재설정 실패");
             }
-        } catch (error) {
+        } catch (_error) {
             alert("오류가 발생했습니다.");
         } finally {
             setLoading(false);

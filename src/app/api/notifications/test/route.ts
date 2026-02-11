@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendMessage } from "@/lib/solapi/client";
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(request: Request) {
     try {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
         } else {
             return NextResponse.json({ error: result.error }, { status: 500 });
         }
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

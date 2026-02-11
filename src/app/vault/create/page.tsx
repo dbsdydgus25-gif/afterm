@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VaultLegalConsent } from "@/components/vault/VaultLegalConsent";
 import { ArrowLeft, User, Phone, Heart } from "lucide-react";
+import { getErrorMessage } from "@/lib/error";
 
 export default function VaultCreatePage() {
     const router = useRouter();
@@ -55,6 +56,7 @@ export default function VaultCreatePage() {
 
 
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleLegalConsentComplete = (consents: any) => {
         setLegalConsents(consents);
         setCurrentStep(1);
@@ -142,9 +144,9 @@ export default function VaultCreatePage() {
             // Encrypt password
             const encryptedPassword = encryptPassword(password, pin);
 
-            // Hash PIN for storage
-            const bcrypt = require('bcryptjs');
-            const pinHash = await bcrypt.hash(pin, 10);
+            // Hash PIN for storage (동적 import 사용)
+            const bcrypt = await import('bcryptjs');
+            const pinHash = await bcrypt.default.hash(pin, 10);
 
             // Save to database with recipient info
             const { data: vaultItem, error } = await supabase
@@ -170,7 +172,7 @@ export default function VaultCreatePage() {
 
             if (error) {
                 console.error("Vault creation error:", error);
-                alert(`저장 중 오류가 발생했습니다.\n${error.message || '알 수 없는 오류'}`);
+                alert(`저장 중 오류가 발생했습니다.\n${getErrorMessage(error) || '알 수 없는 오류'}`);
                 return;
             }
 
@@ -208,7 +210,7 @@ export default function VaultCreatePage() {
             alert("디지털 유산이 안전하게 저장되었습니다!");
             router.push("/vault");
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             alert("오류가 발생했습니다.");
         } finally {

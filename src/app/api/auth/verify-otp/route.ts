@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { getErrorMessage } from "@/lib/error";
 
 const supabaseAdmin = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,8 +97,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true, message: "Verified" });
         }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Verify OTP Error:", error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) || 'Internal Server Error' }, { status: 500 });
     }
 }

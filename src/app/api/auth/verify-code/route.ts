@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Verify Code Error:", error);
         return NextResponse.json({ error: "인증 확인 중 오류가 발생했습니다." }, { status: 500 });
     }

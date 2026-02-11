@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { useMemoryStore } from "@/store/useMemoryStore";
+import { getErrorMessage } from "@/lib/error";
 
 function PaymentSuccessContent() {
     const router = useRouter();
@@ -51,10 +52,10 @@ function PaymentSuccessContent() {
                 // Redirect after 3 seconds
                 setTimeout(() => router.replace("/plans"), 3000);
 
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error("Payment confirmation error:", error);
                 setStatus("error");
-                setMessage(`결제 승인 중 오류가 발생했습니다: ${error.message}`);
+                setMessage(`결제 승인 중 오류가 발생했습니다: ${getErrorMessage(error)}`);
             }
         };
 

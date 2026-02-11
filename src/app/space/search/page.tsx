@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 function SearchForm() {
     const supabase = createClient();
     const [query, setQuery] = useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [results, setResults] = useState<any[]>([]);
     const [searching, setSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);

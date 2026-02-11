@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from 'nodemailer';
+import { getErrorMessage } from "@/lib/error";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -149,11 +150,11 @@ export async function POST(request: Request) {
             message: "생존 확인 메일이 발송되었습니다. (48시간 대기 시작)"
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Absence check start error:", error);
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message
+            details: getErrorMessage(error)
         }, { status: 500 });
     }
 }

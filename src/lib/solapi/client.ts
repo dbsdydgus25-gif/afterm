@@ -1,4 +1,5 @@
 import { SolapiMessageService } from "solapi";
+import { getErrorMessage } from "@/lib/error";
 
 // Initialize Solapi Service
 // Note: Errors here might crash build time if envs are missing, so we use a safe getter.
@@ -44,6 +45,7 @@ export async function sendMessage({ to, from, text, subject, type = 'SMS', kakao
         const cleanFrom = sender.replace(/[^0-9]/g, '');
 
         // Construct Message Object
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const messageObj: any = {
             to: cleanTo,
             from: cleanFrom,
@@ -74,12 +76,12 @@ export async function sendMessage({ to, from, text, subject, type = 'SMS', kakao
 
         return { success: true, data: result };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[Solapi] Send Error (full):", {
-            message: error.message,
-            stack: error.stack,
+            message: getErrorMessage(error),
+            stack: (error as Error)?.stack,
             fullError: JSON.stringify(error, null, 2)
         });
-        return { success: false, error: error.message || "Unknown error", details: error };
+        return { success: false, error: getErrorMessage(error) || "Unknown error", details: error };
     }
 }

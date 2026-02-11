@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/error";
 
 /**
  * Cron job to expire subscriptions
@@ -109,11 +110,11 @@ export async function GET(request: Request) {
             errorCount
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Cron job error:", error);
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message
+            details: getErrorMessage(error)
         }, { status: 500 });
     }
 }

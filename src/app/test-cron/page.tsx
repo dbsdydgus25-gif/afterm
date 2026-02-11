@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/error";
 
 export default function TestCronPage() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [status, setStatus] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [messageId, setMessageId] = useState("");
@@ -19,8 +21,8 @@ export default function TestCronPage() {
             const res = await fetch(url);
             const data = await res.json();
             setStatus({ type: "CRON", data });
-        } catch (e: any) {
-            setStatus({ error: e.message });
+        } catch (e: unknown) {
+            setStatus({ error: getErrorMessage(e) });
         } finally {
             setLoading(false);
         }
@@ -41,8 +43,8 @@ export default function TestCronPage() {
             });
             const data = await res.json();
             setStatus({ type: "TIME_TRAVEL", data });
-        } catch (e: any) {
-            setStatus({ error: e.message });
+        } catch (e: unknown) {
+            setStatus({ error: getErrorMessage(e) });
         } finally {
             setLoading(false);
         }
@@ -70,7 +72,7 @@ export default function TestCronPage() {
 
             <div className="space-y-4">
                 <h3 className="font-medium text-red-600">Time Travel</h3>
-                <p className="text-sm text-gray-500">Simulate "48 Hours Passed" since the confirmation email was sent.</p>
+                <p className="text-sm text-gray-500">Simulate &quot;48 Hours Passed&quot; since the confirmation email was sent.</p>
                 <Button
                     onClick={() => timeTravel("fast-forward-48hours")}
                     disabled={loading}

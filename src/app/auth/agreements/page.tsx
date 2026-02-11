@@ -55,13 +55,14 @@ export default function AgreementsPage() {
 
             if (error) throw error;
 
-            if (error) throw error;
 
-            // Redirect to next step (Phone Verification)
+            // 다음 단계 이동 (본인인증)
             router.push("/auth/verify-phone");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            alert("처리 중 오류가 발생했습니다: " + (error.message || ""));
+            // 에러 메시지를 안전하게 추출
+            const message = error instanceof Error ? error.message : "";
+            alert("처리 중 오류가 발생했습니다: " + message);
         } finally {
             setLoading(false);
         }

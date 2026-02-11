@@ -109,6 +109,7 @@ export async function notifyVaultOwner(vaultId: string) {
 
         return { success: true };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error("[NotifyVaultView] Unexpected error:", err);
         return { success: false, error: err.message };

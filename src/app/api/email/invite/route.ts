@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/nodemailer';
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(req: Request) {
   try {
@@ -40,11 +41,11 @@ export async function POST(req: Request) {
     await sendEmail(email, `[AFTERM] ${inviterName}님이 디지털 추모 공간에 초대했습니다.`, html);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Invite email error:", error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Failed to send email',
+      error: getErrorMessage(error) || 'Failed to send email',
       details: JSON.stringify(error)
     }, { status: 500 });
   }

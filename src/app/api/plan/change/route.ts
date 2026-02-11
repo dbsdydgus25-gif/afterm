@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getErrorMessage } from "@/lib/error";
 
 export async function POST(request: Request) {
     try {
@@ -182,12 +183,12 @@ export async function POST(request: Request) {
         console.error("Invalid plan transition:", { currentPlan, targetPlan });
         return NextResponse.json({ error: "Invalid plan transition" }, { status: 400 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Plan change error:", error);
         console.error("Error stack:", error.stack);
         return NextResponse.json({
             error: "Internal server error",
-            details: error.message,
+            details: getErrorMessage(error),
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }

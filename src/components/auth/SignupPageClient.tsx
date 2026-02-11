@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { validatePassword } from "@/lib/compliance";
+import { getErrorMessage } from "@/lib/error";
 
 export default function SignupPageClient() {
     const supabase = createClient();
@@ -103,10 +104,10 @@ export default function SignupPageClient() {
             // C. Redirect to Onboarding
             router.replace("/onboarding");
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Clean up any session that might have been created
             await supabase.auth.signOut();
-            alert(error.message || "오류가 발생했습니다.");
+            alert(getErrorMessage(error) || "오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }

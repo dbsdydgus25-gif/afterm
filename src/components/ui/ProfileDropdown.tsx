@@ -11,6 +11,7 @@ interface ProfileDropdownProps {
         name: string;
         email: string;
         image?: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user_metadata?: any;
     };
     plan: string;

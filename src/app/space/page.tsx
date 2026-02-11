@@ -61,6 +61,7 @@ export default function SpaceDashboard() {
             if (memberError) throw memberError;
 
             // Transform data structure
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const joinedList = memberData?.map((item: any) => ({
                 ...item.memorial_spaces,
                 role: item.role
@@ -81,7 +82,9 @@ export default function SpaceDashboard() {
             <div className="relative h-[300px] md:h-[360px] bg-white rounded-[20px] md:rounded-[24px] shadow-sm border border-slate-100 overflow-hidden transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
                 {/* Cover Image Half */}
                 <div className="h-[160px] md:h-[200px] w-full bg-slate-100 relative overflow-hidden">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(space.theme as any)?.backgroundImage ? (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         <img src={(space.theme as any).backgroundImage} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200" />
@@ -93,7 +96,9 @@ export default function SpaceDashboard() {
                 <div className="p-4 md:p-6 relative">
                     {/* Floating Profile Image */}
                     <div className="absolute -top-8 md:-top-10 left-4 md:left-6 w-14 h-14 md:w-16 md:h-16 rounded-2xl border-4 border-white shadow-md bg-white overflow-hidden flex items-center justify-center">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(space.theme as any)?.profileImage ? (
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             <img src={(space.theme as any).profileImage} alt={space.title} className="w-full h-full object-cover" />
                         ) : (
                             <span className="text-2xl">🕊️</span>

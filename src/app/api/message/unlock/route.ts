@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+// createClient는 현재 사용하지 않으므로 제거
+// import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
     try {
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
             created_at: message.created_at
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Unlock Error:", error);
         return NextResponse.json({ error: "메시지 열람 중 오류가 발생했습니다." }, { status: 500 });
     }
