@@ -3,14 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import ChatInterface from '@/components/ai-chat/ChatInterface';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string; // memorialId
-    };
+    }>;
 }
 
 export default async function AiChatPage({ params }: PageProps) {
-    const supabase = createClient();
-    const { id: memorialId } = params;
+    const supabase = await createClient();
+    const { id: memorialId } = await params;
 
     // 1. 사용자 인증 확인
     const { data: { user } } = await supabase.auth.getUser();
@@ -19,7 +19,7 @@ export default async function AiChatPage({ params }: PageProps) {
     }
 
     // 2. Memorial Space에 연결된 AI Persona 찾기
-    const { data: persona, error: personaError } = await supabase
+    const { data: persona } = await supabase
         .from('ai_personas')
         .select('*')
         .eq('memorial_id', memorialId)
@@ -33,7 +33,7 @@ export default async function AiChatPage({ params }: PageProps) {
     }
 
     // 3. 기존 대화 내역 가져오기
-    const { data: messages, error: msgError } = await supabase
+    const { data: messages } = await supabase
         .from('chat_messages')
         .select('*')
         .eq('persona_id', persona.id)

@@ -1,12 +1,13 @@
 import PersonaSetupForm from '@/components/ai-chat/PersonaSetupForm';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string; // memorialId
-    };
+    }>;
 }
 
-export default function AiChatSetupPage({ params }: PageProps) {
+export default async function AiChatSetupPage({ params }: PageProps) {
+    const { id: memorialId } = await params;
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
@@ -20,7 +21,7 @@ export default function AiChatSetupPage({ params }: PageProps) {
                     </p>
                 </div>
 
-                <PersonaSetupForm memorialId={params.id} />
+                <PersonaSetupForm memorialId={memorialId} />
             </div>
         </div>
     );

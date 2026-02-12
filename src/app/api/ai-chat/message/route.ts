@@ -9,7 +9,7 @@ const openai = new OpenAI({
 export async function POST(req: NextRequest) {
     try {
         const { personaId, content } = await req.json();
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // 1. 사용자 인증 확인
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. 이전 대화 내역 가져오기 (Context) - 최근 10개만
-        const { data: history, error: historyError } = await supabase
+        // 3. 이전 대화 내역 가져오기 (Context) - 최근 10개만
+        const { data: history } = await supabase
             .from('chat_messages')
             .select('sender, content')
             .eq('persona_id', personaId)
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: messages as any,
+            messages: messages as unknown as [], // Type assertion
             max_tokens: 300,
         });
 
@@ -91,10 +92,10 @@ export async function POST(req: NextRequest) {
             aiMessageId: aiMsgData.id
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Chat API Error:', error);
         return NextResponse.json(
-            { error: error.message || 'Internal Server Error' },
+            { error: (error as Error).message || 'Internal Server Error' },
             { status: 500 }
         );
     }

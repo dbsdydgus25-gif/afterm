@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
                 },
                 {
                     role: 'user',
-                    content: userMessageContent as any,
+                    content: userMessageContent as unknown as string, // Temporary fix to satisfy type
                 },
             ],
             max_tokens: 1000,
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
         const analyzedPersonaPrompt = completion.choices[0].message.content;
 
         // 2. Supabase DB에 저장
-        const supabase = createClient();
+        const supabase = await createClient();
 
         const { data, error } = await supabase
             .from('ai_personas')
@@ -89,10 +89,10 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true, personaId: data.id });
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error in create-persona:', error);
         return NextResponse.json(
-            { error: error.message || 'Internal Server Error' },
+            { error: (error as Error).message || 'Internal Server Error' },
             { status: 500 }
         );
     }
