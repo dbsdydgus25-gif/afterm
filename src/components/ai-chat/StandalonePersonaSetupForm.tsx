@@ -24,14 +24,69 @@ export default function StandalonePersonaSetupForm() {
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
 
+    // 이미지 압축 함수
+    const compressImage = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // 최대 너비 설정 (예: 1024px)
+                    const MAX_WIDTH = 1024;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const newFile = new File([blob], file.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now(),
+                                });
+                                resolve(newFile);
+                            } else {
+                                reject(new Error('Canvas to Blob failed'));
+                            }
+                        },
+                        'image/jpeg',
+                        0.7 // 압축 품질 (0~1)
+                    );
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    };
+
     // 파일 선택 핸들러
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setFiles((prev) => [...prev, ...newFiles]);
+            const selectedFiles = Array.from(e.target.files);
+
+            // 압축 진행
+            const compressedFiles = await Promise.all(
+                selectedFiles.map((file) => compressImage(file))
+            );
+
+            setFiles((prev) => [...prev, ...compressedFiles]);
 
             // 미리보기 생성
-            const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+            const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
             setPreviews((prev) => [...prev, ...newPreviews]);
         }
     };
