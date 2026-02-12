@@ -24,7 +24,7 @@ export default async function AiChatLayout({ children }: { children: ReactNode }
             <ChatSidebar personas={personas || []} />
 
             {/* 메인 콘텐츠 (채팅창 또는 설정화면) */}
-            <main className="flex-1 overflow-hidden relative">
+            <main className="flex-1 relative h-full overflow-y-auto overflow-x-hidden">
                 {children}
             </main>
         </div>
