@@ -72,7 +72,7 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
         { name: "공지사항", href: "/notice" },
         { name: "주간 트렌드", href: "/newsletter" },
         { name: "디지털추모관", href: "/space" },
-        { name: "AI 메시지", href: "/ai-chat-entry" },
+        { name: "AI 메시지", href: "/ai-chat" },
     ];
 
     return (

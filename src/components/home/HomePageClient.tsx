@@ -167,7 +167,7 @@ export default function HomePageClient() {
 
                                 {/* Option 3: AI Chat (New) */}
                                 <button
-                                    onClick={() => router.push('/ai-chat-entry')}
+                                    onClick={() => router.push('/ai-chat')}
                                     className="group relative bg-white p-3 md:p-6 rounded-xl md:rounded-2xl border-2 border-slate-200 hover:border-indigo-400 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-100 active:scale-[0.98]"
                                 >
                                     <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3 bg-indigo-600 text-white text-[9px] md:text-xs font-bold px-2 py-0.5 md:px-2.5 md:py-1 rounded-full shadow-md animate-pulse">

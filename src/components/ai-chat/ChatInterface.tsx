@@ -16,7 +16,7 @@ interface Message {
 }
 
 interface ChatInterfaceProps {
-    memorialId: string;
+    memorialId?: string; // Optional for standalone mode
     personaId: string;
     initialMessages: Message[];
     personaName: string;
