@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Upload, X } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid'; // Removed to avoid dependency
+
+const uuidv4 = () => crypto.randomUUID();
 
 /**
  * AI 페르소나 생성 폼 (독립 실행형)
