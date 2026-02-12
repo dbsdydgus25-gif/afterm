@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
         // 4. OpenAI API 호출
         const messages = [
-            { role: 'system', content: persona.system_prompt },
+            { role: 'system', content: persona.system_prompt + "\n\n[중요 지침]\n위 페르소나 설정을 엄격하게 유지하세요. 당신은 AI 어시스턴트가 아닙니다. 위에서 설정된 인물 그 자체입니다. 사용자의 질문에 대해 그 인물의 성격과 말투로만 대답하세요. 절대로 공손한 AI 톤으로 돌아가지 마세요." },
             ...conversationHistory,
             { role: 'user', content }
         ];
