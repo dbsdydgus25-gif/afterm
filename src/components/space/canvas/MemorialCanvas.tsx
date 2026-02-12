@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Image as ImageIcon, StickyNote, Settings, Share, ChevronLeft, Trash2, LogOut, Users, Heart } from "lucide-react";
+import { Plus, Image as ImageIcon, StickyNote, Settings, Share, ChevronLeft, Trash2, LogOut, Users, Heart, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -424,6 +424,14 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
                                 </div>
                             </DialogContent>
                         </Dialog>
+
+                        {/* AI Chat Link */}
+                        <Link href={`/space/${space.id}/ai-chat`}>
+                            <Button className="bg-[#FAE100] hover:bg-[#F7D600] text-[#371D1E] rounded-full px-4 md:px-6 shadow-sm h-8 md:h-10 text-xs md:text-sm font-bold border border-yellow-400/20">
+                                <MessageCircle size={14} className="md:w-[18px] md:h-[18px] mr-1.5 md:mr-2" />
+                                고인과 대화하기
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
