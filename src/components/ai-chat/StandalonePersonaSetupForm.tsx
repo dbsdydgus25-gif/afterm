@@ -158,6 +158,16 @@ export default function StandalonePersonaSetupForm() {
             </div>
 
             <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">나와의 관계</label>
+                <Input
+                    value={relationship}
+                    onChange={(e) => setRelationship(e.target.value)}
+                    placeholder="예: 엄마, 아빠, 가장 친한 친구"
+                    required
+                />
+            </div>
+
+            <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">말투 설명</label>
                 <Textarea
                     value={tone}
