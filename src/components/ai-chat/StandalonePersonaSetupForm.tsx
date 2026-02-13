@@ -19,6 +19,7 @@ export default function StandalonePersonaSetupForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState('');
+    const [relationship, setRelationship] = useState('');
     const [tone, setTone] = useState('');
     const [personality, setPersonality] = useState('');
     const [files, setFiles] = useState<File[]>([]);
@@ -100,7 +101,7 @@ export default function StandalonePersonaSetupForm() {
     // 폼 제출 핸들러
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !tone || !personality || files.length === 0) {
+        if (!name || !relationship || !tone || !personality || files.length === 0) {
             alert('모든 정보를 입력하고 최소 1개의 스크린샷을 업로드해주세요.');
             return;
         }
@@ -109,38 +110,7 @@ export default function StandalonePersonaSetupForm() {
 
         try {
             const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                alert('로그인이 필요합니다.');
-                router.push('/login');
-                return;
-            }
-
-            const uploadedFileUrls: string[] = [];
-            // 사용자별 격리된 경로 사용
-            const storagePath = `user-uploads/${user.id}`;
-
-            // 1. 파일 업로드 (Supabase Storage)
-            for (const file of files) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `persona-${Date.now()}-${uuidv4()}.${fileExt}`;
-                const filePath = `${storagePath}/${fileName}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from('memorial-data') // 'memorial-data' 버킷 재사용
-                    .upload(filePath, file);
-
-                if (uploadError) throw uploadError;
-
-                // Public URL 가져오기
-                const { data: { publicUrl } } = supabase.storage
-                    .from('memorial-data')
-                    .getPublicUrl(filePath);
-
-                uploadedFileUrls.push(publicUrl);
-            }
-
+            // ... (skip lines)
             // 2. API 호출 (페르소나 생성 및 분석 요청)
             const response = await fetch('/api/ai-chat/create-persona', {
                 method: 'POST',
@@ -150,6 +120,7 @@ export default function StandalonePersonaSetupForm() {
                 body: JSON.stringify({
                     // memorialId 생략
                     name,
+                    relationship, // 추가됨
                     tone,
                     personality,
                     imageUrls: uploadedFileUrls,

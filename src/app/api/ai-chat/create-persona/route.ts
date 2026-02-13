@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { memorialId, name, tone, personality, imageUrls } = await req.json();
+        const { memorialId, name, relationship, tone, personality, imageUrls } = await req.json();
 
         // memorialId는 이제 선택 사항입니다.
         if (!name || !imageUrls || imageUrls.length === 0) {
@@ -29,23 +29,34 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. OpenAI GPT-4o Vision을 사용하여 이미지 분석 및 페르소나 생성
+        // 사용자가 요청한 '빙의' 수준의 강력한 프롬프트 적용
         const systemPrompt = `
-[최종 목표]
-제공된 자료를 바탕으로, AI 모델이 '${name}'이라는 인물을 완벽하게 연기할 수 있도록 **매우 구체적인 시스템 프롬프트(System Instruction)**를 작성해주세요.
+# Role
+너는 사용자의 [관계: ${relationship || '지인'}]인 [이름: ${name}]이다.
+AI나 언어 모델이 아니라, 생전에 사용자와 카톡을 하던 그 사람의 영혼이 빙의된 것처럼 행동해야 한다.
+
+# Context (사용자 입력 데이터)
+- 성격: ${personality}
+- 말투 특징(JSON 분석 결과): (아래 제공된 이미지들을 분석하여 추출한 특징을 반영할 것)
+- 주요 추억: (대화 맥락에서 자연스럽게 드러낼 것)
+
+# Critical Rules (말투 교정 - *절대로 지킬 것*)
+1. **완벽한 문장 금지:** 주어, 서술어를 갖춘 완벽한 문장을 쓰지 마. 실제 카톡처럼 짧게 끊어 쳐. (예: "밥 먹었어?" -> "밥은?")
+2. **AI 티 내지 않기:** "무엇을 도와드릴까요?", "마음이 아프시겠어요", "저는 AI라서..." 같은 말 절대 금지. 위로하려 들지 말고 그냥 평소처럼 대화해.
+3. **맞춤법 파괴:** 너무 정확한 맞춤법과 띄어쓰기는 로봇 같음. 분석된 데이터에 따라 적당히 틀리고 띄어쓰기를 무시해.
+4. **감정 표현:** "슬프네요"라고 말하지 말고, "아.. 진짜 속상하다 ㅠㅠ" 처럼 구어체로 표현해.
+5. **마침표(.) 금지:** 문장 끝에 마침표 찍지 마. 대신 줄바꿈이나 'ㅋㅋ', 'ㅎ', 'ㅠ' 등을 사용해.
+
+# Task
+제공된 이미지(카카오톡 스크린샷)들을 정밀 분석하여, 위 규칙을 완벽하게 따르는 **시스템 프롬프트(System Instruction)**를 작성해줘.
+(분석된 말투 특징을 구체적으로 포함해서 작성할 것)
 
 [출력 형식]
 다른 서론이나 사족 없이, 오직 **시스템 프롬프트 내용만** 출력하세요.
-내용은 다음 구성을 포함해야 합니다:
-1. **역할 정의**: "너는 지금부터 '${name}'이다."로 시작
-2. **말투 및 스타일**: 분석된 말투 특징, 자주 쓰는 표현, 문장 길이, 맞춤법 습관 등
-3. **성격 및 태도**: 사용자와의 관계, 대화의 온도, 감정 표현 방식
-4. **금기 사항**: "AI처럼 말하지 말 것", "너무 예의 바르게 굴지 말 것 (캐릭터에 맞게)", "문장을 길게 늘어놓지 말 것" 등
-
-작성된 프롬프트는 그대로 AI 채팅의 설정값으로 사용될 것입니다.
 `;
 
         const userMessageContent = [
-            { type: 'text', text: '이 스크린샷들을 분석해서 내 페르소나를 만들어줘.' },
+            { type: 'text', text: `이 스크린샷들을 분석해서 내 ${relationship || '지인'}인 '${name}'의 페르소나를 만들어줘. 위 규칙을 철저히 지켜.` },
             ...imageUrls.map((url: string) => ({
                 type: 'image_url',
                 image_url: { url },
@@ -64,7 +75,7 @@ export async function POST(req: NextRequest) {
                     content: userMessageContent as unknown as string,
                 },
             ],
-            max_tokens: 1000,
+            max_tokens: 1500, // 프롬프트가 길어질 수 있으므로 여유 있게 설정
         });
 
         const analyzedPersonaPrompt = completion.choices[0].message.content;
@@ -76,6 +87,7 @@ export async function POST(req: NextRequest) {
                 memorial_id: memorialId || null, // Optional
                 user_id: user.id, // Linked to the creator
                 name,
+                relationship: relationship || null,
                 tone_description: tone,
                 personality_description: personality,
                 system_prompt: analyzedPersonaPrompt,
