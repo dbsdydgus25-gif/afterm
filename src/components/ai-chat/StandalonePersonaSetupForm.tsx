@@ -110,7 +110,38 @@ export default function StandalonePersonaSetupForm() {
 
         try {
             const supabase = createClient();
-            // ... (skip lines)
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                alert('로그인이 필요합니다.');
+                router.push('/login');
+                return;
+            }
+
+            const uploadedFileUrls: string[] = [];
+            // 사용자별 격리된 경로 사용
+            const storagePath = `user-uploads/${user.id}`;
+
+            // 1. 파일 업로드 (Supabase Storage)
+            for (const file of files) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `persona-${Date.now()}-${uuidv4()}.${fileExt}`;
+                const filePath = `${storagePath}/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('memorial-data') // 'memorial-data' 버킷 재사용
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                // Public URL 가져오기
+                const { data: { publicUrl } } = supabase.storage
+                    .from('memorial-data')
+                    .getPublicUrl(filePath);
+
+                uploadedFileUrls.push(publicUrl);
+            }
+
             // 2. API 호출 (페르소나 생성 및 분석 요청)
             const response = await fetch('/api/ai-chat/create-persona', {
                 method: 'POST',
