@@ -104,7 +104,6 @@ export default function ChatSidebar({ personas }: ChatSidebarProps) {
                         personas.map((persona) => {
                             const isActive = pathname.startsWith(`/ai-chat/${persona.id}`);
                             return (
-                            return (
                                 <div key={persona.id} className="relative group">
                                     <Link
                                         href={`/ai-chat/${persona.id}`}
@@ -141,7 +140,6 @@ export default function ChatSidebar({ personas }: ChatSidebarProps) {
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
-                            );
                             );
                         })
                     )}
