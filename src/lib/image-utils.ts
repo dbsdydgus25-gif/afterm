@@ -4,7 +4,7 @@
  * - Resizes to max dimensions (default 1280px).
  * - Compresses to JPEG with quality (default 0.7).
  */
-export async function compressImage(file: File, maxWidth = 1280, quality = 0.7): Promise<File> {
+export async function compressImage(file: File, maxWidth = 1024, quality = 0.6): Promise<File> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
