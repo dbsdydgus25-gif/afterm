@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { PlusCircle, MessageSquare, Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { PlusCircle, MessageSquare, Menu, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -18,10 +18,39 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ personas }: ChatSidebarProps) {
+    const router = useRouter();
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
+
+    const handleDelete = async (e: React.MouseEvent, personaId: string, personaName: string) => {
+        e.preventDefault(); // Link 이동 방지
+        e.stopPropagation();
+
+        if (!confirm(`정말로 '${personaName}' 채팅방을 삭제하시겠습니까?\n삭제된 대화 내용은 복구할 수 없습니다.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/ai-chat/delete-persona?id=${personaId}`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) throw new Error('Failed to delete');
+
+            alert('채팅방이 삭제되었습니다.');
+            router.refresh(); // 목록 새로고침
+
+            // 만약 현재 보고 있는 채팅방을 삭제했다면 메인으로 이동
+            if (pathname.includes(personaId)) {
+                router.push('/ai-chat');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    };
 
     return (
         <>
@@ -75,32 +104,44 @@ export default function ChatSidebar({ personas }: ChatSidebarProps) {
                         personas.map((persona) => {
                             const isActive = pathname.startsWith(`/ai-chat/${persona.id}`);
                             return (
-                                <Link
-                                    key={persona.id}
-                                    href={`/ai-chat/${persona.id}`}
-                                    onClick={() => setIsOpen(false)}
-                                    className={cn(
-                                        "flex items-center gap-3 p-3 rounded-lg transition-colors",
-                                        isActive
-                                            ? "bg-white shadow-sm border border-indigo-100 text-indigo-900"
-                                            : "hover:bg-white hover:shadow-sm text-gray-700"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm border",
-                                        isActive ? "bg-indigo-50 border-indigo-100" : "bg-white border-gray-200"
-                                    )}>
-                                        👤
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold truncate">
-                                            {persona.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 truncate">
-                                            {new Date(persona.created_at).toLocaleDateString()} 생성됨
-                                        </p>
-                                    </div>
-                                </Link>
+                            return (
+                                <div key={persona.id} className="relative group">
+                                    <Link
+                                        href={`/ai-chat/${persona.id}`}
+                                        onClick={() => setIsOpen(false)}
+                                        className={cn(
+                                            "flex items-center gap-3 p-3 rounded-lg transition-colors pr-10", // pr-10 for delete button space
+                                            isActive
+                                                ? "bg-white shadow-sm border border-indigo-100 text-indigo-900"
+                                                : "hover:bg-white hover:shadow-sm text-gray-700"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm border shrink-0",
+                                            isActive ? "bg-indigo-50 border-indigo-100" : "bg-white border-gray-200"
+                                        )}>
+                                            👤
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold truncate">
+                                                {persona.name}
+                                            </h3>
+                                            <p className="text-xs text-gray-500 truncate">
+                                                {new Date(persona.created_at).toLocaleDateString()} 생성됨
+                                            </p>
+                                        </div>
+                                    </Link>
+
+                                    {/* 삭제 버튼 (호버 시에만 표시) */}
+                                    <button
+                                        onClick={(e) => handleDelete(e, persona.id, persona.name)}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="채팅 삭제"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            );
                             );
                         })
                     )}
