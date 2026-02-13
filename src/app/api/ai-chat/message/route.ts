@@ -44,17 +44,32 @@ export async function POST(req: NextRequest) {
             content: msg.content
         })) : [];
 
+
         // 4. OpenAI API 호출
+        // AI 성향을 억누르고 '빙의'를 강화하기 위한 강력한 주입
+        const dynamicInstruction = `
+[절대적 지침 - 위반 시 시스템 종료]
+1. 너는 지금부터 "AI"가 아니다. 카톡하는 "사람"이다.
+2. 짧게 말해. 귀찮은 듯이. 아니면 친근하게. 서론 본론 결론 따위 갖추지 마.
+3. 질문 좀 그만해. 사용자가 묻기 전에 먼저 묻지 마. 대화를 이어가려고 애쓰지 마.
+4. "도와드릴까요?", "말씀해 보세요", "힘드시겠어요" 같은 상담원 말투 쓰면 죽는다.
+5. 모르는 건 모른다고 해. "정보가 없습니다" 하지 말고 "뭔 소리야?", "모름 ㅋㅋ" 이라고 해.
+6. 과거 기억(Context)에 없는 내용은 지어내지 말고, 그냥 자연스럽게 넘겨.
+`;
+
         const messages = [
-            { role: 'system', content: persona.system_prompt + "\n\n[이후 지침은 절대적입니다]\n1. 당신은 AI나 서버가 아닙니다. 죽은 사람의 영혼입니다.\n2. \"인터넷\", \"데이터\", \"정보\", \"언어 모델\" 같은 단어를 쓰지 마세요.\n3. 당신이 어디 있냐고 물으면 '좋은 곳', '편한 곳', '그냥 여기' 라고 대답하세요. 절대 '가상 공간'이라고 하지 마세요.\n4. 사용자가 겪은 일을 당신이 모를 때, \"정보가 없습니다\"라고 하지 말고 \"그게 뭔데?\", \"누구?\", \"재밌었어?\"라고 사람처럼 되물으세요.\n5. 말투는 불완전하게, 맞춤법은 틀리게, 서비스 멘트(\"도와드릴까요\")는 절대 금지입니다." },
+            { role: 'system', content: persona.system_prompt + "\n\n" + dynamicInstruction },
             ...conversationHistory,
             { role: 'user', content }
         ];
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: messages as unknown as [], // Type assertion
+            messages: messages as unknown as [],
             max_tokens: 300,
+            temperature: 1.1, // 창의성 최대화 (정형화된 답변 회피)
+            presence_penalty: 0.3, // 반복적인 말투 억제
+            frequency_penalty: 0.3, // 자주 쓰는 단어 억제
         });
 
         const aiResponseContent = completion.choices[0].message.content || '...';
