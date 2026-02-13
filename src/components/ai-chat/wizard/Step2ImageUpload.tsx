@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowRight, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/image-utils';
 
 interface Step2Props {
     images: string[];
@@ -22,12 +23,15 @@ export default function Step2ImageUpload({ images, setImages, onNext }: Step2Pro
 
         try {
             for (const file of Array.from(e.target.files)) {
-                const fileExt = file.name.split('.').pop();
+                // Compress image before upload
+                const compressedFile = await compressImage(file);
+
+                const fileExt = 'jpg'; // We compress to jpeg
                 const fileName = `persona/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
 
                 const { error: uploadError } = await supabase.storage
                     .from('memorial-public')
-                    .upload(fileName, file);
+                    .upload(fileName, compressedFile);
 
                 if (uploadError) throw uploadError;
 
@@ -77,10 +81,14 @@ export default function Step2ImageUpload({ images, setImages, onNext }: Step2Pro
                     </div>
                 ))}
 
-                <label className="flex flex-col items-center justify-center aspect-[9/16] border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer transition-colors bg-gray-50">
-                    <ImageIcon className="w-6 h-6 text-gray-400 mb-2" />
+                <label className={`flex flex-col items-center justify-center aspect-[9/16] border-2 border-dashed border-gray-300 rounded-lg transition-colors bg-gray-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer'}`}>
+                    {isUploading ? (
+                        <Loader2 className="w-6 h-6 text-indigo-500 animate-spin mb-2" />
+                    ) : (
+                        <ImageIcon className="w-6 h-6 text-gray-400 mb-2" />
+                    )}
                     <span className="text-xs text-gray-500 font-medium text-center">
-                        {isUploading ? '업로드...' : '사진 추가'}
+                        {isUploading ? '압축 중...' : '사진 추가'}
                     </span>
                     <input
                         type="file"
