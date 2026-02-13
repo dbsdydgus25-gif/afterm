@@ -1,63 +1,138 @@
-
 'use client';
 
 import React, { useState } from 'react';
 import Step1BasicInfo from './Step1BasicInfo';
-import Step2Verification from './Step2Verification';
-import Step3Profile from './Step3Profile';
+import Step2ImageUpload from './Step2ImageUpload';
+import Step3SpeakerID from './Step3SpeakerID';
+import Step4Vibe from './Step4Vibe';
+import Step5Anchors from './Step5Anchors';
+import Step6Loading from './Step6Loading';
+import Step7Profile from './Step3Profile'; // Reusing previous Step3 as Step7
 import { useRouter } from 'next/navigation';
 
 export default function PersonaWizard() {
     const router = useRouter();
     const [step, setStep] = useState(1);
+
+    // Form State
     const [name, setName] = useState("");
     const [relationship, setRelationship] = useState("");
+    const [images, setImages] = useState<string[]>([]);
+    const [speakerSide, setSpeakerSide] = useState<'left' | 'right' | null>(null);
+    const [vibe, setVibe] = useState("");
+    const [anchors, setAnchors] = useState({ appellation: "", opener: "" });
+
     const [personaId, setPersonaId] = useState<string | null>(null);
 
-    const handleStep1Next = () => setStep(2);
+    const nextStep = () => setStep(prev => prev + 1);
 
-    const handleStep2Next = (createdPersonaId: string, summary: string) => {
-        setPersonaId(createdPersonaId);
-        setStep(3);
+    // API Call (Triggered in Step 6)
+    const handleCreatePersona = async () => {
+        try {
+            const res = await fetch('/api/ai-chat/create-persona', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    relationship,
+                    imageUrls: images,
+                    speakerSide,
+                    vibe,
+                    anchors
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "생성 실패");
+            }
+
+            const data = await res.json();
+            setPersonaId(data.personaId);
+            // Step 6 handles the transition to Step 7 on completion
+        } catch (error) {
+            console.error(error);
+            throw error; // Step 6 catches this
+        }
     };
 
-    const handleStep3Complete = () => {
+    const handleFinalComplete = () => {
         if (personaId) {
             router.push(`/ai-chat/${personaId}`);
         }
     };
 
     return (
-        <div className="max-w-md mx-auto w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="max-w-md mx-auto w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 min-h-[600px] flex flex-col">
             {/* Progress Bar */}
-            <div className="h-2 bg-gray-100 flex">
-                <div className={`h-full bg-indigo-500 transition-all duration-300 ${step === 1 ? 'w-1/3' : step === 2 ? 'w-2/3' : 'w-full'}`} />
+            <div className="h-1.5 bg-gray-100 flex w-full">
+                <div
+                    className="h-full bg-indigo-500 transition-all duration-500 ease-out"
+                    style={{ width: `${(step / 7) * 100}%` }}
+                />
             </div>
 
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
                 {step === 1 && (
                     <Step1BasicInfo
                         name={name}
                         setName={setName}
                         relationship={relationship}
                         setRelationship={setRelationship}
-                        onNext={handleStep1Next}
+                        onNext={nextStep}
                     />
                 )}
 
                 {step === 2 && (
-                    <Step2Verification
-                        name={name}
-                        relationship={relationship}
-                        onNext={handleStep2Next}
+                    <Step2ImageUpload
+                        images={images}
+                        setImages={setImages}
+                        onNext={nextStep}
                     />
                 )}
 
                 {step === 3 && (
-                    <Step3Profile
-                        personaId={personaId!}
+                    <Step3SpeakerID
                         name={name}
-                        onComplete={handleStep3Complete}
+                        speakerSide={speakerSide}
+                        setSpeakerSide={setSpeakerSide}
+                        previewImage={images.length > 0 ? images[0] : null}
+                        onNext={nextStep}
+                    />
+                )}
+
+                {step === 4 && (
+                    <Step4Vibe
+                        name={name}
+                        vibe={vibe}
+                        setVibe={setVibe}
+                        onNext={nextStep}
+                    />
+                )}
+
+                {step === 5 && (
+                    <Step5Anchors
+                        name={name}
+                        anchors={anchors}
+                        setAnchors={setAnchors}
+                        onNext={nextStep}
+                    />
+                )}
+
+                {step === 6 && (
+                    <Step6Loading
+                        name={name}
+                        createPersona={handleCreatePersona}
+                        onComplete={nextStep}
+                        onError={(msg) => alert(msg)}
+                    />
+                )}
+
+                {step === 7 && personaId && (
+                    <Step7Profile
+                        personaId={personaId}
+                        name={name}
+                        onComplete={handleFinalComplete}
                     />
                 )}
             </div>
