@@ -17,6 +17,8 @@ export default function PersonaWizard() {
     // Form State
     const [name, setName] = useState("");
     const [relationship, setRelationship] = useState("");
+    const [birthDate, setBirthDate] = useState("");
+    const [deathDate, setDeathDate] = useState("");
     const [images, setImages] = useState<string[]>([]);
     const [speakerSide, setSpeakerSide] = useState<'left' | 'right' | null>(null);
     const [vibe, setVibe] = useState("");
@@ -35,10 +37,10 @@ export default function PersonaWizard() {
                 body: JSON.stringify({
                     name,
                     relationship,
+                    birthDate,
+                    deathDate,
                     imageUrls: images,
                     speakerSide,
-                    vibe,
-                    anchors
                 })
             });
 
@@ -79,6 +81,10 @@ export default function PersonaWizard() {
                         setName={setName}
                         relationship={relationship}
                         setRelationship={setRelationship}
+                        birthDate={birthDate}
+                        setBirthDate={setBirthDate}
+                        deathDate={deathDate}
+                        setDeathDate={setDeathDate}
                         onNext={nextStep}
                     />
                 )}

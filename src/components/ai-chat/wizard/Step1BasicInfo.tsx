@@ -9,10 +9,20 @@ interface Step1Props {
     setName: (val: string) => void;
     relationship: string;
     setRelationship: (val: string) => void;
+    birthDate: string;
+    setBirthDate: (val: string) => void;
+    deathDate: string;
+    setDeathDate: (val: string) => void;
     onNext: () => void;
 }
 
-export default function Step1BasicInfo({ name, setName, relationship, setRelationship, onNext }: Step1Props) {
+export default function Step1BasicInfo({
+    name, setName,
+    relationship, setRelationship,
+    birthDate, setBirthDate,
+    deathDate, setDeathDate,
+    onNext
+}: Step1Props) {
     const isNextDisabled = !name.trim() || !relationship.trim();
 
     return (
@@ -22,7 +32,6 @@ export default function Step1BasicInfo({ name, setName, relationship, setRelatio
                 <p className="text-sm text-gray-500">고인의 성함과 관계를 알려주세요.</p>
             </div>
 
-            <div className="space-y-4">
                 <div className="space-y-2">
                     <label className="text-sm font-medium">이름 (호칭)</label>
                     <Input
@@ -42,6 +51,27 @@ export default function Step1BasicInfo({ name, setName, relationship, setRelatio
                         className="text-lg py-6"
                     />
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">생년월일 (선택)</label>
+                        <Input
+                            type="date"
+                            value={birthDate}
+                            onChange={(e) => setBirthDate(e.target.value)}
+                            className="text-lg py-6"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">기일 (선택)</label>
+                        <Input
+                            type="date"
+                            value={deathDate}
+                            onChange={(e) => setDeathDate(e.target.value)}
+                            className="text-lg py-6"
+                        />
+                    </div>
+                </div>
             </div>
 
             <Button
@@ -52,6 +82,6 @@ export default function Step1BasicInfo({ name, setName, relationship, setRelatio
                 다음 단계로
                 <ArrowRight className="w-5 h-5" />
             </Button>
-        </div>
+        </div >
     );
 }
