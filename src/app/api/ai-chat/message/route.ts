@@ -76,10 +76,21 @@ export async function POST(req: NextRequest) {
                 const dotProduct = (a: number[], b: number[]) => a.reduce((acc, val, i) => acc + val * b[i], 0);
 
                 // Calculate similarity for all vectors
-                const ratedVectors = vectors.map(v => ({
-                    content: v.content,
-                    similarity: dotProduct(JSON.parse(v.embedding), embedding) // v.embedding comes as string/JSON usually
-                }));
+                const ratedVectors = vectors.map(v => {
+                    let vec: number[];
+                    if (typeof v.embedding === 'string') {
+                        vec = JSON.parse(v.embedding);
+                    } else if (Array.isArray(v.embedding)) {
+                        vec = v.embedding;
+                    } else {
+                        vec = [];
+                    }
+
+                    return {
+                        content: v.content,
+                        similarity: vec.length > 0 ? dotProduct(vec, embedding) : 0
+                    };
+                });
 
                 // Sort and take top 3
                 similarContexts = ratedVectors
