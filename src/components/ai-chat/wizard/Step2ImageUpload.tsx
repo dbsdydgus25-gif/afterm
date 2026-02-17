@@ -18,13 +18,18 @@ export default function Step2ImageUpload({ images, setImages, onNext }: Step2Pro
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return;
 
+        if (images.length + e.target.files.length > 10) {
+            alert('최대 10장까지만 업로드할 수 있습니다.');
+            return;
+        }
+
         setIsUploading(true);
         const newUrls: string[] = [];
 
         try {
             for (const file of Array.from(e.target.files)) {
                 // Compress image before upload
-                const compressedFile = await compressImage(file);
+                const compressedFile = await compressImage(file, 2048, 0.8);
 
                 const fileExt = 'jpg'; // We compress to jpeg
                 const fileName = `persona/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
@@ -59,8 +64,9 @@ export default function Step2ImageUpload({ images, setImages, onNext }: Step2Pro
             <div className="text-center space-y-2 mb-8">
                 <h2 className="text-xl font-bold">대화 내용을 올려주세요</h2>
                 <p className="text-sm text-gray-500">
-                    고인과 나누었던 카카오톡 대화 캡처를<br />
-                    5장 이상 올려주시면 가장 좋습니다.
+                    SMS, 카카오톡, 인스타 DM 등 고인과 나누었던<br />
+                    직접적인 대화 내용을 캡처해서 올려주세요.<br />
+                    <span className="text-indigo-600 font-semibold">(최소 5장 ~ 최대 10장)</span>
                 </p>
             </div>
 
@@ -81,29 +87,31 @@ export default function Step2ImageUpload({ images, setImages, onNext }: Step2Pro
                     </div>
                 ))}
 
-                <label className={`flex flex-col items-center justify-center aspect-[9/16] border-2 border-dashed border-gray-300 rounded-lg transition-colors bg-gray-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer'}`}>
-                    {isUploading ? (
-                        <Loader2 className="w-6 h-6 text-indigo-500 animate-spin mb-2" />
-                    ) : (
-                        <ImageIcon className="w-6 h-6 text-gray-400 mb-2" />
-                    )}
-                    <span className="text-xs text-gray-500 font-medium text-center">
-                        {isUploading ? '압축 중...' : '사진 추가'}
-                    </span>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={handleImageChange}
-                        disabled={isUploading}
-                    />
-                </label>
+                {images.length < 10 && (
+                    <label className={`flex flex-col items-center justify-center aspect-[9/16] border-2 border-dashed border-gray-300 rounded-lg transition-colors bg-gray-50 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-500 hover:bg-indigo-50 cursor-pointer'}`}>
+                        {isUploading ? (
+                            <Loader2 className="w-6 h-6 text-indigo-500 animate-spin mb-2" />
+                        ) : (
+                            <ImageIcon className="w-6 h-6 text-gray-400 mb-2" />
+                        )}
+                        <span className="text-xs text-gray-500 font-medium text-center">
+                            {isUploading ? '압축 중...' : `${images.length}/10`}
+                        </span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleImageChange}
+                            disabled={isUploading}
+                        />
+                    </label>
+                )}
             </div>
 
             <Button
                 onClick={onNext}
-                disabled={images.length === 0 || isUploading}
+                disabled={images.length < 5 || isUploading}
                 className="w-full h-12 text-lg font-bold gap-2 mt-8 bg-indigo-600 hover:bg-indigo-700 text-white"
             >
                 다음 단계로
