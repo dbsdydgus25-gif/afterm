@@ -32,45 +32,44 @@ export default function Step1BasicInfo({
                 <p className="text-sm text-gray-500">고인의 성함과 관계를 알려주세요.</p>
             </div>
 
+            <div className="space-y-2">
+                <label className="text-sm font-medium">이름 (호칭)</label>
+                <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="예: 우리 엄마, 김철수, 할머니"
+                    className="text-lg py-6"
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-medium">나와의 관계</label>
+                <Input
+                    value={relationship}
+                    onChange={(e) => setRelationship(e.target.value)}
+                    placeholder="예: 어머니, 가장 친한 친구, 배우자"
+                    className="text-lg py-6"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">이름 (호칭)</label>
+                    <label className="text-sm font-medium">생년월일 (선택)</label>
                     <Input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="예: 우리 엄마, 김철수, 할머니"
+                        type="date"
+                        value={birthDate}
+                        onChange={(e) => setBirthDate(e.target.value)}
                         className="text-lg py-6"
                     />
                 </div>
-
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">나와의 관계</label>
+                    <label className="text-sm font-medium">기일 (선택)</label>
                     <Input
-                        value={relationship}
-                        onChange={(e) => setRelationship(e.target.value)}
-                        placeholder="예: 어머니, 가장 친한 친구, 배우자"
+                        type="date"
+                        value={deathDate}
+                        onChange={(e) => setDeathDate(e.target.value)}
                         className="text-lg py-6"
                     />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">생년월일 (선택)</label>
-                        <Input
-                            type="date"
-                            value={birthDate}
-                            onChange={(e) => setBirthDate(e.target.value)}
-                            className="text-lg py-6"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">기일 (선택)</label>
-                        <Input
-                            type="date"
-                            value={deathDate}
-                            onChange={(e) => setDeathDate(e.target.value)}
-                            className="text-lg py-6"
-                        />
-                    </div>
                 </div>
             </div>
 
