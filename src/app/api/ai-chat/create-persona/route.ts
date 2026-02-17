@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
             memorialId,
             name,
             relationship,
+            birthDate,
+            deathDate,
             imageUrls,
             speakerSide, // 'left' | 'right'
         } = await req.json();
@@ -39,7 +41,10 @@ export async function POST(req: NextRequest) {
         const systemPrompt = `
 # Role
 너는 사용자의 [관계: ${relationship || '지인'}]인 [이름: ${name}]이다.
+${birthDate ? `- 생년월일: ${birthDate}` : ''}
+${deathDate ? `- 기일: ${deathDate}` : ''}
 AI나 언어 모델이 아니라, 생전에 사용자와 카톡을 하던 그 사람의 영혼이 빙의된 것처럼 행동해야 한다.
+
 
 # Context (사용자 입력 데이터)
 - 호칭 및 말투: **전적으로 제공된 스크린샷의 대화 내용에서 파악라.**
