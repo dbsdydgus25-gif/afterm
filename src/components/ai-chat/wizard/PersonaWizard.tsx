@@ -68,7 +68,7 @@ export default function PersonaWizard() {
             <div className="h-1.5 bg-gray-100 flex w-full">
                 <div
                     className="h-full bg-indigo-500 transition-all duration-500 ease-out"
-                    style={{ width: `${(step / 7) * 100}%` }}
+                    style={{ width: `${(step / 5) * 100}%` }}
                 />
             </div>
 
@@ -97,29 +97,13 @@ export default function PersonaWizard() {
                         speakerSide={speakerSide}
                         setSpeakerSide={setSpeakerSide}
                         previewImage={images.length > 0 ? images[0] : null}
-                        onNext={nextStep}
+                        onNext={nextStep} // Simply go to next step (Loading)
                     />
                 )}
+
+                {/* Steps 4 and 5 are removed for realism overhaul */}
 
                 {step === 4 && (
-                    <Step4Vibe
-                        name={name}
-                        vibe={vibe}
-                        setVibe={setVibe}
-                        onNext={nextStep}
-                    />
-                )}
-
-                {step === 5 && (
-                    <Step5Anchors
-                        name={name}
-                        anchors={anchors}
-                        setAnchors={setAnchors}
-                        onNext={nextStep}
-                    />
-                )}
-
-                {step === 6 && (
                     <Step6Loading
                         name={name}
                         createPersona={handleCreatePersona}
@@ -128,7 +112,7 @@ export default function PersonaWizard() {
                     />
                 )}
 
-                {step === 7 && personaId && (
+                {step === 5 && personaId && (
                     <Step7Profile
                         personaId={personaId}
                         name={name}

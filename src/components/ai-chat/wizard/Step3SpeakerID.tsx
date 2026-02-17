@@ -43,7 +43,7 @@ export default function Step3SpeakerID({ name, speakerSide, setSpeakerSide, prev
                                 <div className="w-12 h-10 bg-white border rounded-tr-xl rounded-bl-xl rounded-br-xl shadow-sm flex items-center justify-center">
                                     <MessageCircle className="w-5 h-5 text-gray-400" />
                                 </div>
-                                <span className="font-bold text-sm text-gray-800">상대방 (흰색)</span>
+                                <span className="font-bold text-sm text-gray-800">상대방 (왼쪽)</span>
                                 {speakerSide === 'left' && <div className="text-xs text-indigo-600 font-bold">선택됨</div>}
                             </button>
 
@@ -51,15 +51,15 @@ export default function Step3SpeakerID({ name, speakerSide, setSpeakerSide, prev
                             <button
                                 onClick={() => setSpeakerSide('right')}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all transform hover:scale-105 ${speakerSide === 'right'
-                                        ? 'bg-yellow-100 ring-4 ring-yellow-400 shadow-xl scale-110 z-10'
+                                        ? 'bg-yellow-100 ring-4 ring-amber-400 shadow-xl scale-110 z-10'
                                         : 'bg-white/80 hover:bg-yellow-50 shadow-md grayscale hover:grayscale-0'
                                     }`}
                             >
-                                <div className="w-12 h-10 bg-yellow-300 rounded-tl-xl rounded-bl-xl rounded-br-xl shadow-sm flex items-center justify-center">
-                                    <MessageCircle className="w-5 h-5 text-yellow-800" />
+                                <div className="w-12 h-10 bg-amber-100 rounded-tl-xl rounded-bl-xl rounded-br-xl shadow-sm flex items-center justify-center">
+                                    <MessageCircle className="w-5 h-5 text-amber-700" />
                                 </div>
-                                <span className="font-bold text-sm text-gray-800">본인 (노란색)</span>
-                                {speakerSide === 'right' && <div className="text-xs text-yellow-600 font-bold">선택됨</div>}
+                                <span className="font-bold text-sm text-gray-800">본인 (오른쪽)</span>
+                                {speakerSide === 'right' && <div className="text-xs text-amber-600 font-bold">선택됨</div>}
                             </button>
                         </div>
                     </>
