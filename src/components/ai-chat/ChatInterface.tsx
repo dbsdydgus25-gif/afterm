@@ -83,6 +83,14 @@ export default function ChatInterface({
             };
 
             setMessages((prev) => [...prev, aiMsg]);
+
+            // [Debug Expert] Log AI Logic
+            if (data.debug) {
+                console.group('🤖 AI Logic Debug');
+                console.log('RAG Retrieved Contexts:', data.debug.retrievedContexts);
+                console.log('System Instruction Snapshot:', data.debug.systemInstructionSnapshot);
+                console.groupEnd();
+            }
         } catch (error) {
             console.error('Chat Error:', error);
             alert('메시지 전송에 실패했습니다.');
