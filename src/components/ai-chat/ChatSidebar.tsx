@@ -80,10 +80,14 @@ export default function ChatSidebar({ personas }: ChatSidebarProps) {
             )}>
                 <div className="p-4 border-b border-gray-200 pt-16 md:pt-4">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <MessageSquare className="w-5 h-5 text-indigo-600" />
-                            AI 추모 채팅
-                        </h2>
+                        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                            <span className="text-xl font-black tracking-tighter text-blue-600">
+                                AFTERM
+                            </span>
+                            <span className="text-sm font-bold text-gray-400">
+                                AI 추모 채팅
+                            </span>
+                        </Link>
                     </div>
 
                     <Link href="/ai-chat/setup" onClick={() => setIsOpen(false)}>

@@ -102,16 +102,16 @@ export default function ChatInterface({
     return (
         <div className="flex flex-col h-screen bg-[#bacee0]">
             {/* Header */}
-            <div className="bg-white/90 backdrop-blur-md px-4 py-3 flex items-center shadow-sm z-10 sticky top-0 border-b border-gray-200">
+            <div className="bg-white/90 backdrop-blur-md px-3 py-2 md:px-4 md:py-3 flex items-center shadow-sm z-10 sticky top-0 border-b border-gray-200">
                 <button
                     onClick={() => router.back()}
-                    className="mr-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    className="mr-2 md:mr-3 p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                    <ArrowLeft className="w-6 h-6 text-gray-700" />
+                    <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
                 </button>
                 <div>
-                    <h1 className="font-bold text-lg text-gray-900 leading-tight">{personaName}</h1>
-                    <p className="text-xs text-gray-500">AI 추모 채팅</p>
+                    <h1 className="font-bold text-base md:text-lg text-gray-900 leading-tight">{personaName}</h1>
+                    <p className="text-[10px] md:text-xs text-gray-500">AI 추모 채팅</p>
                 </div>
             </div>
 
@@ -131,7 +131,7 @@ export default function ChatInterface({
                             )}
                         >
                             <div className={cn(
-                                "max-w-[70%] px-4 py-2 rounded-xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words",
+                                "max-w-[85%] px-3 py-2 md:px-4 md:py-2.5 rounded-xl text-[13px] md:text-sm leading-relaxed shadow-sm whitespace-pre-wrap break-words",
                                 isUser
                                     ? "bg-blue-500 text-white rounded-tr-none"
                                     : "bg-white text-gray-900 rounded-tl-none"
@@ -154,22 +154,22 @@ export default function ChatInterface({
             </div>
 
             {/* Input Area */}
-            <div className="bg-white p-3 safe-area-bottom border-t border-gray-200">
-                <form onSubmit={handleSendMessage} className="flex gap-2 max-w-4xl mx-auto">
+            <div className="bg-white p-2 md:p-3 safe-area-bottom border-t border-gray-200">
+                <form onSubmit={handleSendMessage} className="flex gap-2 max-w-4xl mx-auto items-center">
                     <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="메시지를 입력하세요..."
-                        className="flex-1 rounded-full bg-gray-100 border-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                        placeholder="메시지를 입력..."
+                        className="flex-1 rounded-full bg-gray-100 border-none focus-visible:ring-1 focus-visible:ring-blue-500 text-[13px] md:text-sm h-9 md:h-10"
                         disabled={loading}
                     />
                     <Button
                         type="submit"
                         size="icon"
-                        className="rounded-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 w-10 h-10 shrink-0"
+                        className="rounded-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 w-9 h-9 md:w-10 md:h-10 shrink-0"
                         disabled={!inputValue.trim() || loading}
                     >
-                        <Send className="w-5 h-5 text-white" />
+                        <Send className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </Button>
                 </form>
             </div>
