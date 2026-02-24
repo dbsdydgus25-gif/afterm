@@ -1,7 +1,7 @@
 
-import HomePageClient from "@/components/home/HomePageClient";
+import TwoTrackLanding from "@/components/home/TwoTrackLanding";
 
 
 export default function AppEntryPage() {
-    return <HomePageClient />;
+    return <TwoTrackLanding />;
 }
