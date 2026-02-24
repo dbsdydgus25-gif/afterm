@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, PenLine, User, Users, Vault, Bell } from "lucide-react";
+import { Home, PenLine, Users, Vault, Bot } from "lucide-react";
 
 export function BottomNav() {
     const pathname = usePathname();
@@ -13,7 +13,7 @@ export function BottomNav() {
         { href: "/vault/create", icon: PenLine, label: "기억남기기" },
         { href: "/vault", icon: Vault, label: "디지털 유산" },
         { href: "/space", icon: Users, label: "디지털 추모관" },
-        { href: "/dashboard", icon: User, label: "내정보" },
+        { href: "/ai-chat", icon: Bot, label: "AI 채팅" },
     ];
 
     // 2. Space Navigation (Only for Space Section)

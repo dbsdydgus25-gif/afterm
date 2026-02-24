@@ -156,11 +156,11 @@ export default function PlansPageClient() {
 
                         {billingCycle === "monthly" ? (
                             <div className="text-3xl font-extrabold text-slate-900 mb-4">
-                                990원 <span className="text-xs font-normal text-slate-500">/ 월</span>
+                                100원 <span className="text-xs font-normal text-slate-500">/ 월</span>
                             </div>
                         ) : (
                             <div className="text-3xl font-extrabold text-slate-900 mb-4">
-                                9,900원 <span className="text-xs font-normal text-slate-500">/ 년</span>
+                                1,000원 <span className="text-xs font-normal text-slate-500">/ 년</span>
                             </div>
                         )}
                         <ul className="space-y-3 mb-6 text-left pl-2">
@@ -178,7 +178,7 @@ export default function PlansPageClient() {
                             </li>
                         </ul>
                         <Button
-                            onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "990원" : "9,900원")}
+                            onClick={() => handleSubscribe("Pro", billingCycle === "monthly" ? "100원" : "1,000원")}
                             disabled={isPro && currentBillingCycle === billingCycle}
                             className="w-full py-5 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                         >

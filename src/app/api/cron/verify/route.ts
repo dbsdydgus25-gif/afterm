@@ -21,6 +21,10 @@ const transporter = nodemailer.createTransport({
 export const dynamic = 'force-dynamic'; // Ensure no caching
 
 export async function GET() {
+    // [DISABLED] Dead Man's Switch cron is temporarily disabled.
+    // To re-enable, remove the return statement below.
+    return NextResponse.json({ message: "Cron disabled (Dead Man's Switch is paused)", status: "disabled" }, { status: 200 });
+
     try {
         const now = new Date();
         const results = { stage3_unlocked: 0, errors: [] as string[] };

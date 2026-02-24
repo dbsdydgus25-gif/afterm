@@ -98,7 +98,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    target={link.href === "/space" ? "_blank" : undefined}
                                     className={`text-sm font-medium transition-colors ${pathname === link.href
                                         ? "text-blue-600 font-bold"
                                         : "text-slate-500 hover:text-blue-600"
@@ -166,7 +165,6 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                     <Link
                                         key={link.href}
                                         href={link.href}
-                                        target={link.href === "/space" ? "_blank" : undefined}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className={`text-lg font-medium transition-colors ${pathname === link.href
                                             ? "text-blue-600 font-bold"

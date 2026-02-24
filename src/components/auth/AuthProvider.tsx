@@ -59,102 +59,100 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleUserSession = async (session: any) => {
-        if (session?.user) {
-            // Check for Soft Delete
-            const deleted = session.user.user_metadata?.deleted_at;
-            if (deleted) {
-                // If deleted, do NOT set user in store (blocks access)
-                setDeletedAt(deleted);
-                setIsRestoreModalOpen(true);
-            } else {
-                // Normal User
-                const supabase = createClient();
-
-                // Fetch PROFILE from 'profiles' table (Source of Truth)
-                // Wrap in try-catch to handle 406 or other DB errors smoothly
-                let profile = null;
-                try {
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .maybeSingle(); // Use maybeSingle to avoid 406 on empty
-
-                    if (error) {
-                        console.error("Profile fetch error:", error);
-                    } else {
-                        profile = data;
-                    }
-                } catch (err) {
-                    console.error("Profile fetch exception:", err);
-                }
-
-                // Check if user has completed onboarding
-                // CRITICAL FIX: Strictly enforce 'onboarding_completed' flag.
-                // Social login users have full_name but are NOT complete.
-                const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed === true;
-
-                // Whitelist: Auth pages and onboarding itself
-                const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
-
-                // Force incomplete users to onboarding globally
-                // ONLY redirect if user has NEITHER nickname NOR full_name (truly incomplete)
-                if (!hasCompletedOnboarding && !isAuthOrOnboarding) {
-                    console.log("Incomplete onboarding (no nickname AND no full_name), redirecting to /onboarding");
-                    router.replace("/onboarding");
-                    // Do NOT return here, let the state update so UI can render (or show loading)
-                    // If we return, setUser might not be called? 
-                    // Actually, if we redirect, we should stop processing. 
-                    // But to avoid "blank screen" if redirect fails, we should process user state.
-                }
-
-                // If user has completed onboarding but is still on signup/login pages, redirect to home
-                // Don't interfere with onboarding page - it handles its own logic
-                if (hasCompletedOnboarding && (pathname === "/signup" || pathname === "/login")) {
-                    console.log("Onboarding complete, redirecting to Main");
-                    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-                    const returnTo = params.get("returnTo") || "/";
-                    router.replace(returnTo);
-                }
-
-                // Determine display values (Profile Table > Metadata > Defaults)
-                const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email?.split("@")[0] || "사용자";
-                const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
-
-                const finalMetadata = {
-                    ...session.user.user_metadata,
-                    ...(profile ? {
-                        full_name: profile.full_name,
-                        nickname: profile.nickname,
-                        avatar_url: profile.avatar_url,
-                        bio: profile.bio,
-                        phone_verified: profile.phone_verified
-                    } : {})
-                };
-
-                setUser({
-                    id: session.user.id,
-                    name: finalName,
-                    email: session.user.email!,
-                    image: finalAvatar,
-                    user_metadata: finalMetadata,
-                    app_metadata: session.user.app_metadata
-                });
-                setIsRestoreModalOpen(false);
-
-                // Set Plan & Billing Cycle
-                const userPlan = profile?.plan || profile?.subscription_tier || 'free';
-                const userBillingCycle = profile?.billing_cycle || 'monthly';
-
-                setPlan(userPlan as 'free' | 'pro');
-                setBillingCycle(userBillingCycle as 'monthly' | 'yearly');
-            }
-        } else {
+        // [BUG FIX] If no session, always clear user immediately
+        if (!session || !session.user) {
             setUser(null);
             setIsRestoreModalOpen(false);
+            return;
+        }
 
-            // Clear verification on logout
-            if (typeof window !== 'undefined') sessionStorage.removeItem('auth_verified');
+        // Check for Soft Delete
+        const deleted = session.user.user_metadata?.deleted_at;
+        if (deleted) {
+            // If deleted, do NOT set user in store (blocks access)
+            setDeletedAt(deleted);
+            setIsRestoreModalOpen(true);
+        } else {
+            // Normal User
+            const supabase = createClient();
+
+            // Fetch PROFILE from 'profiles' table (Source of Truth)
+            // Wrap in try-catch to handle 406 or other DB errors smoothly
+            let profile = null;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .maybeSingle(); // Use maybeSingle to avoid 406 on empty
+
+                if (error) {
+                    console.error("Profile fetch error:", error);
+                } else {
+                    profile = data;
+                }
+            } catch (err) {
+                console.error("Profile fetch exception:", err);
+            }
+
+            // Check if user has completed onboarding
+            const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed === true;
+
+            // Whitelist: Auth pages and onboarding itself
+            const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
+
+            // Force incomplete users to onboarding globally
+            if (!hasCompletedOnboarding && !isAuthOrOnboarding) {
+                console.log("Incomplete onboarding, redirecting to /onboarding");
+                router.replace("/onboarding");
+            }
+
+            // If user has completed onboarding but is still on signup/login pages
+            if (hasCompletedOnboarding && (pathname === "/signup" || pathname === "/login")) {
+                console.log("Onboarding complete, redirecting to Main");
+                const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+                const returnTo = params.get("returnTo") || "/";
+                router.replace(returnTo);
+            }
+
+            // [BUG FIX] Removed email fallback which was causing "user" display for unauthenticated state
+            // Name must come from profile or user_metadata only - never from email prefix
+            const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || null;
+            const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
+
+            // If no name found at all (edge case), don't show ghost name
+            if (!finalName) {
+                console.log("[AuthProvider] No name found for user - skipping setUser to avoid ghost session");
+                return;
+            }
+
+            const finalMetadata = {
+                ...session.user.user_metadata,
+                ...(profile ? {
+                    full_name: profile.full_name,
+                    nickname: profile.nickname,
+                    avatar_url: profile.avatar_url,
+                    bio: profile.bio,
+                    phone_verified: profile.phone_verified
+                } : {})
+            };
+
+            setUser({
+                id: session.user.id,
+                name: finalName,
+                email: session.user.email!,
+                image: finalAvatar,
+                user_metadata: finalMetadata,
+                app_metadata: session.user.app_metadata
+            });
+            setIsRestoreModalOpen(false);
+
+            // Set Plan & Billing Cycle
+            const userPlan = profile?.plan || profile?.subscription_tier || 'free';
+            const userBillingCycle = profile?.billing_cycle || 'monthly';
+
+            setPlan(userPlan as 'free' | 'pro');
+            setBillingCycle(userBillingCycle as 'monthly' | 'yearly');
         }
     };
 
