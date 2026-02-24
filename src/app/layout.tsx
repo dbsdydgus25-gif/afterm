@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
+  title: "에프텀 AFTERM | 개인 웰다잉 관리 서비스",
   description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
   keywords: ["웰다잉", "디지털유산", "유언", "엔딩노트", "사전장례", "에프텀 AFTERM"],
   authors: [{ name: "에프텀 AFTERM" }],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
+    title: "에프텀 AFTERM | 개인 웰다잉 관리 서비스",
     description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
     url: 'https://afterm.co.kr',
     siteName: '에프텀 AFTERM',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "에프텀 AFTERM | 개인 웰다잉 관리 플랫폼",
+    title: "에프텀 AFTERM | 개인 웰다잉 관리 서비스",
     description: "갑자기 떠나도 괜찮습니다, 1분이면 됩니다. 삶의 이후를 위한 개인 맞춤 웰다잉 관리 솔루션.",
   },
   robots: {
