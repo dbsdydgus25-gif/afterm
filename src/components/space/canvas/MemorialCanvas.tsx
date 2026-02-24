@@ -455,11 +455,11 @@ export function MemorialCanvas({ space, initialBlocks, currentUser, role }: Memo
             {
                 (role === 'host' || role === 'editor' || role === 'member' || role === 'viewer') && (
                     /* Allow viewers to add notes? Assuming yes for memorial */
-                    <div className="fixed bottom-20 md:bottom-6 right-5 md:right-6 z-40 transition-all duration-300">
+                    <div className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-50 transition-all duration-300">
                         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                             <DialogTrigger asChild>
-                                <Button className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
-                                    <Plus size={24} className="md:w-7 md:h-7" />
+                                <Button className="w-14 h-14 md:w-14 md:h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center transition-transform hover:scale-105 active:scale-95">
+                                    <Plus size={28} className="md:w-7 md:h-7" />
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md w-[90%] rounded-2xl p-4 md:p-6">

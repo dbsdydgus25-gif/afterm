@@ -18,7 +18,7 @@ export function BottomNav() {
 
     // 2. Space Navigation (Only for Space Section)
     const spaceNavItems = [
-        { href: "/space", icon: Home, label: "공간 홈" },
+        { href: "/", icon: Home, label: "홈" },
         { href: "/space/create", icon: PenLine, label: "만들기" },
     ];
 
