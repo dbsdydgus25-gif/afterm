@@ -20,7 +20,6 @@ const serviceSubLinks = [
     { name: "메시지 남기기", href: "/create" },
     { name: "디지털 유산", href: "/vault/create" },
     { name: "디지털 추모관", href: "/space" },
-    { name: "AI 유산 관리", href: "/ai-assistant" },
     { name: "AI 추모 채팅", href: "/ai-chat" },
 ];
 
