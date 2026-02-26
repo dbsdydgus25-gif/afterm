@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { HeroPill } from "@/components/ui/hero-pill";
@@ -12,26 +12,77 @@ import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
-import { Mail } from "lucide-react";
+import { Mail, Send, ArrowRight } from "lucide-react";
+
+// 래디풀 아이콘 데이터
+const FLOATING_ICONS = [
+    { id: 1, emoji: "📧", x: "6%", y: "18%", d: 3.8 },
+    { id: 2, emoji: "💳", x: "14%", y: "68%", d: 5.2 },
+    { id: 3, emoji: "☁️", x: "22%", y: "35%", d: 4.5 },
+    { id: 4, emoji: "🎬", x: "80%", y: "22%", d: 3.5 },
+    { id: 5, emoji: "🔐", x: "88%", y: "62%", d: 5.0 },
+    { id: 6, emoji: "💌", x: "72%", y: "42%", d: 4.2 },
+    { id: 7, emoji: "📱", x: "4%", y: "52%", d: 4.8 },
+    { id: 8, emoji: "🎵", x: "90%", y: "82%", d: 3.9 },
+    { id: 9, emoji: "🗂️", x: "35%", y: "82%", d: 4.3 },
+    { id: 10, emoji: "🌐", x: "62%", y: "12%", d: 5.1 },
+    // 서비스 로고 (텍스트 기반)
+    { id: 11, emoji: "N", x: "18%", y: "12%", d: 4.4, isText: true, color: "#03C75A" },
+    { id: 12, emoji: "G", x: "48%", y: "88%", d: 3.7, isText: true, color: "#EA4335" },
+    { id: 13, emoji: "Y", x: "82%", y: "44%", d: 4.9, isText: true, color: "#FF0000" },
+];
+
+// Placeholder 롤링 데이터
+const PLACEHOLDERS = [
+    "나의 디지털 유산 찾고 관리해줘",
+    "내 유언장 작성해줘",
+    "내 구독 중인 서비스 목록 알려줘",
+    "소중한 사람엔게 남길 메시지 써줘",
+];
+
 
 export default function HomePageClient() {
     const router = useRouter();
     const { user, plan } = useMemoryStore();
 
-    // States for service sections
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
     const [targetPlan, setTargetPlan] = useState<"free" | "pro">("pro");
+    const [inputValue, setInputValue] = useState("");
+    const [inputError, setInputError] = useState("");
+    const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    // Placeholder 롤링
+    useEffect(() => {
+        const iv = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 3000);
+        return () => clearInterval(iv);
+    }, []);
 
     const handleSubscribe = (planName: "Standard" | "Pro", price: string) => {
-        if (!user) {
-            router.push('/login?returnTo=/');
-            return;
-        }
+        if (!user) { router.push('/login?returnTo=/'); return; }
         const newPlan = planName === "Pro" ? "pro" : "free";
         setTargetPlan(newPlan);
         router.push('/plans');
     };
 
+    // AI 입력 제출 핸들러 → 로그인 체크 후 /ai-assistant로
+    const handleAiSubmit = () => {
+        const trimmed = inputValue.trim();
+        if (trimmed.length < 10) { setInputError("최소 10자 이상 입력해주세요."); return; }
+        if (trimmed.length > 100) { setInputError("최대 100자입니다."); return; }
+        setInputError("");
+
+        if (!user) {
+            // 로그인 페이지로 이동, 돌아온 후 메시지를 복원하기 위해 pending 파라미터 전달
+            router.push(`/login?returnTo=/ai-assistant&pending=${encodeURIComponent(trimmed)}`);
+            return;
+        }
+        router.push(`/ai-assistant?q=${encodeURIComponent(trimmed)}`);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAiSubmit(); }
+    };
 
     return (
         <div className="flex flex-col min-h-screen font-sans relative">
@@ -46,6 +97,26 @@ export default function HomePageClient() {
                     <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px] pointer-events-none" />
                     <div className="absolute top-40 -right-20 w-[30rem] h-[30rem] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white pointer-events-none" />
+                    {/* 플로팅 아이콘 배경 */}
+                    {FLOATING_ICONS.map((icon) => (
+                        <motion.div
+                            key={icon.id}
+                            className="absolute pointer-events-none hidden sm:flex"
+                            style={{ left: icon.x, top: icon.y }}
+                            animate={{ y: [0, -10, 0], opacity: [0.3, 0.55, 0.3] }}
+                            transition={{ duration: icon.d, repeat: Infinity, ease: "easeInOut", delay: icon.id * 0.3 }}
+                        >
+                            {(icon as { isText?: boolean }).isText ? (
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-md" style={{ backgroundColor: (icon as { color?: string }).color + "cc" }}>
+                                    {icon.emoji}
+                                </div>
+                            ) : (
+                                <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-lg shadow-md border border-slate-100">
+                                    {icon.emoji}
+                                </div>
+                            )}
+                        </motion.div>
+                    ))}
                 </div>
 
                 {/* 1. Hero Content (Centered) - Optimized Spacing */}
@@ -82,55 +153,69 @@ export default function HomePageClient() {
                             </p>
                         </motion.div>
 
-                        {/* Core Feature - Two Options */}
+                        {/* AI 입력 프롬프트 창 */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.4 }}
                             className="w-full mt-4 md:mt-8"
                         >
-                            <div className="grid grid-cols-2 gap-4 md:gap-6 w-full max-w-[500px] mx-auto">
-                                {/* Option 1: Memory Message */}
-                                <button
-                                    onClick={() => router.push('/create')}
-                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-white/50 hover:border-blue-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
-                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-blue-100/80 to-blue-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-blue-100/50">
-                                            <span className="text-2xl md:text-4xl filter drop-shadow-sm">💌</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">
-                                                기억 남기기
-                                            </h3>
-                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">
-                                                소중한 마음을 전하세요
-                                            </p>
-                                        </div>
-                                    </div>
-                                </button>
+                            <div className={`relative bg-white/90 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/60 border-2 transition-all duration-200 max-w-[500px] mx-auto ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400"
+                                }`}>
+                                {/* Placeholder 롤링 */}
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={placeholderIdx}
+                                        className="absolute left-4 top-4 pointer-events-none text-slate-300 text-sm font-medium"
+                                        initial={{ opacity: 0, y: 4 }}
+                                        animate={{ opacity: inputValue ? 0 : 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -4 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        예: {PLACEHOLDERS[placeholderIdx]}
+                                    </motion.div>
+                                </AnimatePresence>
+                                <textarea
+                                    ref={inputRef}
+                                    value={inputValue}
+                                    onChange={(e) => { setInputValue(e.target.value); setInputError(""); }}
+                                    onKeyDown={handleKeyDown}
+                                    rows={2}
+                                    maxLength={100}
+                                    className="w-full pt-4 pb-12 px-4 bg-transparent text-slate-900 text-sm resize-none focus:outline-none placeholder-transparent"
+                                    placeholder=" "
+                                />
+                                {/* 하단 바 */}
+                                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pb-3">
+                                    <span className={`text-xs font-medium ${inputValue.length > 0 && inputValue.length < 10 ? "text-amber-500" : "text-slate-300"
+                                        }`}>
+                                        {inputValue.length}/100{inputValue.length > 0 && inputValue.length < 10 && " (최소 10자)"}
+                                    </span>
+                                    <button
+                                        onClick={handleAiSubmit}
+                                        className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${inputValue.trim().length >= 10
+                                            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/30"
+                                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                            }`}
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                        AI로 시작하기
+                                    </button>
+                                </div>
+                            </div>
+                            {inputError && <p className="mt-1.5 text-center text-xs text-red-500">{inputError}</p>}
 
-                                {/* Option 2: Digital Vault */}
-                                <button
-                                    onClick={() => router.push('/vault/create')}
-                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-white/50 hover:border-emerald-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
-                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-emerald-100/80 to-emerald-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-emerald-100/50">
-                                            <span className="text-2xl md:text-4xl filter drop-shadow-sm">🔐</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">
-                                                디지털 유산
-                                            </h3>
-                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">
-                                                계정 정보를 보관하세요
-                                            </p>
-                                        </div>
-                                    </div>
-                                </button>
+                            {/* 하단 배지 */}
+                            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                                {[
+                                    { icon: "⚡", text: "1분이면 내 디지털 유산 확인" },
+                                    { icon: "✨", text: "깔끔한 유산 정리" },
+                                    { icon: "📱", text: "모바일도 가능" },
+                                ].map((b, i) => (
+                                    <span key={i} className="flex items-center gap-1 px-3 py-1.5 bg-white/80 border border-slate-200 rounded-full text-[11px] font-semibold text-blue-600 shadow-sm whitespace-nowrap">
+                                        <span>{b.icon}</span>{b.text}
+                                    </span>
+                                ))}
                             </div>
                         </motion.div>
                     </div>
