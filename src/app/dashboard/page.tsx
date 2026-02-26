@@ -70,6 +70,16 @@ export default function DashboardPage() {
     const maxStorage = plan === 'pro' ? 1024 * 1024 * 1024 : 10 * 1024 * 1024; // 1GB vs 10MB
 
     useEffect(() => {
+        // 로그인 체크 - 미로그인 시 로그인 페이지로 리다이렉트
+        const supabase = createClient();
+        supabase.auth.getUser().then(({ data }) => {
+            if (!data.user) {
+                router.replace("/login?returnTo=/dashboard");
+            }
+        });
+    }, [router]);
+
+    useEffect(() => {
         const fetchDashboardData = async () => {
             if (!user?.id) return;
             const supabase = createClient();

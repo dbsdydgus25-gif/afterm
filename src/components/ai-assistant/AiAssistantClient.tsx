@@ -230,8 +230,10 @@ export function AiAssistantClient() {
     // ── 채팅 전송 처리 ───────────────────────────────────────
     const handleSendMessage = useCallback(async (text: string) => {
         const trimmed = text.trim();
-        if (trimmed.length < 10) { setInputError("10자 이상 입력해주세요."); return; }
-        if (trimmed.length > 100) { setInputError("100자 이하로 입력해주세요."); return; }
+        // 랜딩 페이지에서는 10자 이상 / 채팅 모드에서는 1자 이상
+        if (!isChatMode && trimmed.length < 10) { setInputError("10자 이상 입력해주세요."); return; }
+        if (!isChatMode && trimmed.length > 200) { setInputError("200자 이하로 입력해주세요."); return; }
+        if (trimmed.length === 0) return;
         setInputError("");
 
         // 로그인 체크
@@ -509,18 +511,14 @@ export function AiAssistantClient() {
                                         onChange={(e) => { setInputValue(e.target.value); setInputError(""); }}
                                         onKeyDown={handleKeyDown}
                                         rows={2}
-                                        maxLength={100}
                                         placeholder="무엇이든 물어보세요..."
                                         className="w-full px-4 pt-3 pb-10 bg-transparent text-sm text-slate-900 resize-none focus:outline-none placeholder:text-slate-300"
                                     />
-                                    <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pb-2">
-                                        <span className={`text-xs ${inputValue.length > 0 && inputValue.length < 10 ? "text-amber-500" : "text-slate-300"}`}>
-                                            {inputValue.length}/100
-                                        </span>
+                                    <div className="absolute bottom-0 left-0 right-0 flex items-center justify-end px-3 pb-2">
                                         <button
                                             onClick={() => handleSendMessage(inputValue)}
-                                            disabled={inputValue.trim().length < 10}
-                                            className={`p-2 rounded-lg transition-all ${inputValue.trim().length >= 10 ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                                            disabled={inputValue.trim().length === 0}
+                                            className={`p-2 rounded-lg transition-all ${inputValue.trim().length > 0 ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
                                         >
                                             <Send className="w-4 h-4" />
                                         </button>
