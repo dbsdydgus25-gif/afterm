@@ -12,6 +12,7 @@ import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
+import { Mail } from "lucide-react";
 
 export default function HomePageClient() {
     const router = useRouter();
@@ -541,7 +542,7 @@ export default function HomePageClient() {
                                 size="lg"
                                 className="px-10 h-16 text-xl bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1"
                             >
-                                기억 남기기
+                                메시지 남기기
                             </Button>
                             <Button
                                 onClick={() => router.push('/vault/create')}

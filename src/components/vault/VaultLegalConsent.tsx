@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, UserCheck } from "lucide-react";
+import { Shield } from "lucide-react";
 
 interface LegalConsentProps {
     onComplete: (consents: {
@@ -12,18 +12,14 @@ interface LegalConsentProps {
 }
 
 export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
-    const [financialConsent, setFinancialConsent] = useState(false);
-    const [platformConsent, setPlatformConsent] = useState(false);
-    const [delegationConsent, setDelegationConsent] = useState(false);
-
-    const allChecked = financialConsent && platformConsent && delegationConsent;
+    const [agreed, setAgreed] = useState(false);
 
     const handleContinue = () => {
-        if (allChecked) {
+        if (agreed) {
             onComplete({
-                financialConsent,
-                platformConsent,
-                delegationConsent
+                financialConsent: true,
+                platformConsent: true,
+                delegationConsent: true
             });
         }
     };
@@ -32,100 +28,61 @@ export function VaultLegalConsent({ onComplete }: LegalConsentProps) {
         <div className="max-w-md mx-auto">
             {/* Header */}
             <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">⚖️</span>
-                </div>
                 <h2 className="text-xl font-bold text-slate-900 mb-2">
-                    계정 정보 저장 전 필수 확인
+                    안전한 정보 저장을 위해<br />아래 내용을 확인해주세요
                 </h2>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                    금융 범죄 예방 및 안전한 상속을 위해<br />
-                    아래 내용을 반드시 동의해야 저장됩니다.
+                <p className="text-sm text-slate-500">
+                    원활한 사후 정리를 위한 기본 안내입니다.
                 </p>
             </div>
 
-            {/* Consent Checkboxes */}
-            <div className="space-y-3 mb-6">
-                {/* 1. Financial Consent */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={financialConsent}
-                            onChange={(e) => setFinancialConsent(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Shield className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-bold text-slate-900">
-                                    (필수) 은행/증권 보안매체 제외 확인
-                                </span>
-                            </div>
-                            <p className="text-xs text-slate-600 leading-relaxed">
-                                전자금융거래법상 타인 양도가 금지된 금융 정보(비번, OTP 등) 저장은 불법이며, 이에 대한 책임은 본인에게 있습니다.
-                            </p>
-                        </div>
-                    </label>
+            {/* Combined Consent Information */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-base font-bold text-slate-900">
+                        저장 전 알아두어야 할 사항
+                    </h3>
                 </div>
 
-                {/* 2. Platform Policy Consent (NEW) */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={platformConsent}
-                            onChange={(e) => setPlatformConsent(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Shield className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-bold text-slate-900">
-                                    (필수) 플랫폼별 이용 정책 확인
-                                </span>
-                            </div>
-                            <p className="text-xs text-slate-600 leading-relaxed">
-                                일부 서비스는 계정 공유를 제한할 수 있습니다. 하지만 <strong>&apos;사후 정리(해지/탈퇴)&apos;</strong>라는 특수 목적을 위해, 본인의 의지로 정보를 남김을 확인합니다.
-                            </p>
-                        </div>
-                    </label>
-                </div>
+                <ul className="text-sm text-slate-600 leading-relaxed space-y-3 list-disc pl-4 marker:text-slate-300">
+                    <li>
+                        <strong>금융 정보 제외:</strong> 전자금융거래법상 타인 양도가 금지된 은행/증권 등의 보안매체 정보(비밀번호, OTP 등) 저장은 불법이며, 본인에게 책임이 있습니다.
+                    </li>
+                    <li>
+                        <strong>플랫폼 정책 확인:</strong> 일부 서비스는 계정 공유를 제한할 수 있으나, 사후 계정 정리(해지/탈퇴) 목적을 위해 본인의 의지로 정보를 남김을 확인합니다.
+                    </li>
+                    <li>
+                        <strong>사후 정리 권한 위임:</strong> 본인은 사후에 지정된 수신자가 본 계정에 접속하여 데이터를 대신 정리하는 것에 동의합니다.
+                    </li>
+                </ul>
+            </div>
 
-                {/* 3. Delegation Consent */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={delegationConsent}
-                            onChange={(e) => setDelegationConsent(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded mt-0.5 flex-shrink-0"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                                <UserCheck className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-bold text-slate-900">
-                                    (필수) 사후 정리 권한 위임
-                                </span>
-                            </div>
-                            <p className="text-xs text-slate-600 leading-relaxed">
-                                본인은 사후에 지정된 수신자가 내 계정에 접속하여 데이터를 정리(해지/백업)하는 것에 동의합니다.
-                            </p>
-                        </div>
-                    </label>
-                </div>
+            {/* Combined Checkbox */}
+            <div className="mb-6">
+                <label className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-200 transition-colors">
+                    <input
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-600 flex-shrink-0"
+                    />
+                    <span className="text-sm font-bold text-slate-700">
+                        작성 정보 저장 전 동의 사항을 모두 확인했습니다.
+                    </span>
+                </label>
             </div>
 
             {/* Continue Button */}
             <button
                 onClick={handleContinue}
-                disabled={!allChecked}
-                className={`w-full h-12 rounded-xl font-bold text-sm transition-all ${allChecked
+                disabled={!agreed}
+                className={`w-full h-14 rounded-xl font-bold text-sm transition-all ${agreed
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     }`}
             >
-                {allChecked ? '다음 단계로' : '모든 항목에 동의해주세요'}
+                {agreed ? '작성 시작하기' : '안내 사항에 동의해주세요'}
             </button>
         </div>
     );

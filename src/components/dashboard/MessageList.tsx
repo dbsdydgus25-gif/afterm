@@ -52,9 +52,11 @@ export function MessageList({
             <div className="text-center py-20 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
                 <div className="text-5xl mb-4 grayscale opacity-50">📭</div>
                 <p className="text-slate-900 font-bold text-lg mb-2">남겨진 기억이 없습니다.</p>
-                <p className="text-slate-500 mb-6 text-sm">소중한 사람에게 마음을 미리 전해보세요.</p>
-                <Button onClick={onCreateNew} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3">
-                    첫 번째 기억 남기기
+                <p className="text-slate-500 mb-6 text-sm">
+                    소중한 사람들에게 전하고 싶은 이야기를 안전하게 보관하세요.
+                </p>
+                <Button onClick={onCreateNew} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    첫 번째 메시지 남기기
                 </Button>
             </div>
         );

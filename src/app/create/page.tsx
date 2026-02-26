@@ -121,59 +121,39 @@ export default function CreatePage() {
             </header>
 
             {step === 0 ? (
-                // DISCLAIMER STEP
+                // SIMPLE CONSENT STEP
                 <main className="flex-1 max-w-md w-full mx-auto p-6 flex flex-col justify-center animate-fade-in">
                     <div className="space-y-6">
                         <div className="text-center space-y-2">
-                            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span className="text-2xl">⚖️</span>
-                            </div>
                             <h1 className="text-xl font-bold text-slate-900">
-                                잠깐! 작성 전 확인해주세요
+                                안전한 정보 저장을 위해<br />아래 내용을 확인해주세요
                             </h1>
                             <p className="text-sm text-slate-500">
-                                안전하고 올바른 서비스 이용을 위한 안내입니다.
+                                올바른 서비스 이용을 위한 기본 안내입니다.
                             </p>
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                            <div className="flex gap-3">
-                                <div className="flex-shrink-0 mt-0.5">
-                                    <span className="text-amber-500">⚠️</span>
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-sm font-bold text-slate-900">법적 효력 없음</h3>
-                                    <p className="text-xs text-slate-600 leading-relaxed">
-                                        본 서비스(AFTERM)를 통해 작성된 메시지, 사진, 영상 등은 <span className="font-bold underline text-slate-800">유언장으로서의 법적 효력을 갖지 않습니다.</span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <hr className="border-slate-100" />
-
-                            <div className="flex gap-3">
-                                <div className="flex-shrink-0 mt-0.5">
-                                    <span className="text-blue-500">ℹ️</span>
-                                </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-sm font-bold text-slate-900">법률 상담 권장</h3>
-                                    <p className="text-xs text-slate-600 leading-relaxed">
-                                        법적 구속력이 있는 유언을 남기고자 하시는 경우, 반드시 변호사나 공증인 등 법률 전문가의 도움을 받으시기 바랍니다.
-                                    </p>
-                                </div>
-                            </div>
+                            <ul className="text-sm text-slate-600 leading-relaxed space-y-3 list-disc pl-4 marker:text-slate-300">
+                                <li>
+                                    본 서비스(AFTERM)를 통해 작성된 메시지 형식은 <strong className="text-slate-800">유언장으로서의 법적 효력이 없습니다.</strong>
+                                </li>
+                                <li>
+                                    법적 구속력이 있는 유언을 남기고자 하시는 경우, 전문가의 도움을 받으시기 바랍니다.
+                                </li>
+                            </ul>
                         </div>
 
                         <div className="pt-2">
-                            <label className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <label className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-blue-200 transition-colors">
                                 <input
                                     type="checkbox"
                                     checked={agreed}
                                     onChange={(e) => setAgreed(e.target.checked)}
-                                    className="w-5 h-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                                    className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
                                 />
                                 <span className="text-sm font-bold text-slate-700">
-                                    위 내용을 충분히 이해하였으며 동의합니다.
+                                    작성 정보 저장 전 동의 사항을 확인했습니다.
                                 </span>
                             </label>
                         </div>
@@ -181,10 +161,10 @@ export default function CreatePage() {
                         <Button
                             onClick={() => setStep(1)}
                             disabled={!agreed}
-                            className="w-full h-14 text-sm font-bold rounded-xl"
+                            className={`w-full h-14 text-sm font-bold rounded-xl transition-all ${agreed ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-200 text-slate-400'}`}
                             size="lg"
                         >
-                            확인했습니다
+                            {agreed ? '작성 시작하기' : '안내 사항에 동의해주세요'}
                         </Button>
                     </div>
                 </main>
