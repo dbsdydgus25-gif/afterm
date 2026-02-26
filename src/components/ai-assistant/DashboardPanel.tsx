@@ -24,6 +24,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export function DashboardPanel({ result, isAnalyzing, onResultChange }: DashboardPanelProps) {
     const router = useRouter();
+    const { setMessage, setRecipient } = useMemoryStore();
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [saveError, setSaveError] = useState("");
@@ -37,7 +38,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                 </div>
                 <p className="text-slate-400 text-sm font-medium leading-relaxed">
                     AI와 대화하면 결과물이 여기에 나타납니다.<br />
-                    구독 내역을 스캔하거나, 메시지를 작성해보세요.
+                    디지털 유산을 찾거나, 메시지를 작성해보세요.
                 </p>
             </div>
         );
@@ -60,8 +61,6 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
             </div>
         );
     }
-
-    const { setMessage, setRecipient } = useMemoryStore();
 
     const handleSave = async () => {
         if (!result) return;
