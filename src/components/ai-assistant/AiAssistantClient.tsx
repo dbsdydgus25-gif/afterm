@@ -254,7 +254,11 @@ export function AiAssistantClient() {
         if (!isChatMode) setIsChatMode(true);
 
         addMsg({ role: "user", content: trimmed });
-        setInputValue("");
+
+        // 브라우저별 한국어 IME 잔상 버그 방지를 위해 비동기 초기화
+        setTimeout(() => {
+            setInputValue("");
+        }, 10);
 
         // 첫 번째 메시지일 때만 선택지 버튼 제공 (이후는 AI가 직접 파싱)
         // (addMsg 직후이므로 messagesRef에는 아직 추가 전 상태임 -> length === 0이 첫 메시지)
@@ -312,11 +316,18 @@ export function AiAssistantClient() {
         }
     }, [isLoggedIn, pendingMessage, handleSendMessage]);
 
+    const lastSubmitTime = useRef(0);
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.nativeEvent.isComposing) return;
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage(inputValue);
+
+            // 한국어 IME 중복 입력 방지 (크롬/사파리)
+            const now = Date.now();
+            if (now - lastSubmitTime.current < 200) return;
+            lastSubmitTime.current = now;
+
+            handleSendMessage(e.currentTarget.value);
         }
     };
 
