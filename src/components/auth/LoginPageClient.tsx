@@ -244,6 +244,10 @@ export default function LoginPageClient() {
                     access_type: 'offline',
                     prompt: 'consent',
                 },
+                // Google 로그인 시 Gmail 스캔을 위한 스코프 추가
+                scopes: provider === 'google'
+                    ? 'email profile https://www.googleapis.com/auth/gmail.readonly'
+                    : undefined,
             },
         });
     };

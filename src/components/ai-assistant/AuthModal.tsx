@@ -18,6 +18,8 @@ export function AuthModal({ isOpen, onClose, pendingMessage }: AuthModalProps) {
             provider: "google",
             options: {
                 redirectTo: `${window.location.origin}/ai-assistant?pending=${encodeURIComponent(pendingMessage)}`,
+                queryParams: { access_type: 'offline', prompt: 'consent' },
+                scopes: 'email profile https://www.googleapis.com/auth/gmail.readonly',
             },
         });
     };

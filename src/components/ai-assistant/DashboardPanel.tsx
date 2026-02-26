@@ -25,6 +25,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [saveError, setSaveError] = useState("");
 
     // 빈 상태
     if (!isAnalyzing && !result) {
@@ -61,6 +62,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
 
     const handleSave = async () => {
         setIsSaving(true);
+        setSaveError("");
         try {
             const res = await fetch("/api/legacy/save", {
                 method: "POST",
@@ -69,8 +71,12 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
             });
             if (res.ok) {
                 setIsSaved(true);
-                setTimeout(() => setIsSaved(false), 3000);
+            } else {
+                const data = await res.json();
+                setSaveError(data.error || "저장에 실패했습니다.");
             }
+        } catch {
+            setSaveError("네트워크 오류가 발생했습니다.");
         } finally {
             setIsSaving(false);
         }
@@ -87,20 +93,47 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                         <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">✉️ 작성된 편지</p>
                         <h2 className="text-lg font-bold text-slate-900">To. {result.recipient}</h2>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving || isSaved}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isSaved ? "bg-green-600 text-white" : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"}`}
-                    >
-                        {isSaved ? <CheckCircle className="w-4 h-4" /> : isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {isSaved ? "저장 완료" : "보관함에 저장"}
-                    </button>
+                    {!isSaved ? (
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {isSaving ? "저장 중..." : "메시지 보관함에 저장"}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => router.push("/dashboard")}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 transition-all"
+                        >
+                            <CheckCircle className="w-4 h-4" />
+                            대시보드에서 확인하기 →
+                        </button>
+                    )}
                 </div>
+
+                {/* 저장 에러 */}
+                {saveError && (
+                    <div className="mx-6 mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                        {saveError}
+                    </div>
+                )}
+
+                {/* 저장 완료 배너 */}
+                {isSaved && (
+                    <div className="mx-6 mt-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-bold text-green-800">편지가 저장되었습니다! 🎉</p>
+                            <p className="text-xs text-green-600">대시보드에서 수신자 설정 및 발송 일정을 설정해주세요.</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* 편지지 */}
                 <div className="flex-1 p-6 overflow-y-auto">
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 relative min-h-64 font-serif">
-                        {/* 편지지 선 */}
                         <div className="absolute inset-x-8 top-8 bottom-8 flex flex-col gap-8 pointer-events-none">
                             {Array.from({ length: 12 }).map((_, i) => (
                                 <div key={i} className="h-px bg-slate-100" />
@@ -142,24 +175,53 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                 {/* 헤더 */}
                 <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
                     <div>
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">🔍 스캔 결과</p>
+                        <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">🗂️ 디지털 유산 목록</p>
                         <h2 className="text-base font-bold text-slate-900">
-                            현재 활성 구독 / 정기 결제{" "}
+                            구독 / 디지털 계정{" "}
                             <span className="text-blue-600">{items.length}개</span>
                         </h2>
                         <p className="text-xs text-slate-400 mt-0.5">
-                            MVP 버전이라 모든 데이터가 잡히진 않을 수 있어요.
+                            불필요한 항목은 삭제하고 필요한 것만 저장하세요.
                         </p>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving || isSaved || items.length === 0}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isSaved ? "bg-green-600 text-white" : items.length === 0 ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"}`}
-                    >
-                        {isSaved ? <CheckCircle className="w-4 h-4" /> : isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {isSaved ? "저장 완료" : "보관함에 저장"}
-                    </button>
+                    {!isSaved ? (
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || items.length === 0}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${items.length === 0
+                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                }`}
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {isSaving ? "저장 중..." : "디지털 유산에 저장"}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => router.push("/vault/create")}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 transition-all"
+                        >
+                            <CheckCircle className="w-4 h-4" />
+                            유산함 확인하기 →
+                        </button>
+                    )}
                 </div>
+
+                {/* 에러 / 저장 완료 배너 */}
+                {saveError && (
+                    <div className="mx-6 mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                        {saveError}
+                    </div>
+                )}
+                {isSaved && (
+                    <div className="mx-6 mt-3 px-4 py-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-bold text-green-800">디지털 유산에 저장 완료! 🎉</p>
+                            <p className="text-xs text-green-600">유산함에서 언제든지 확인하고 관리할 수 있어요.</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* 리스트 */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-3">
