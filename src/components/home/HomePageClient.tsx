@@ -123,33 +123,37 @@ export default function HomePageClient() {
                     <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px] pointer-events-none" />
                     <div className="absolute top-40 -right-20 w-[30rem] h-[30rem] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none" />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white pointer-events-none" />
-                    {/* 플로팅 아이콘 배경 */}
-                    {FLOATING_ICONS.map((icon) => (
-                        <motion.div
-                            key={icon.id}
-                            className="absolute pointer-events-none hidden sm:flex"
-                            style={{ left: icon.x, top: icon.y }}
-                            animate={{ y: [0, -10, 0], opacity: [0.3, 0.55, 0.3] }}
-                            transition={{ duration: icon.d, repeat: Infinity, ease: "easeInOut", delay: icon.id * 0.3 }}
-                        >
-                            {(icon as { isText?: boolean }).isText ? (
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-md" style={{ backgroundColor: (icon as { color?: string }).color + "cc" }}>
-                                    {icon.emoji}
-                                </div>
-                            ) : (
-                                <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-lg shadow-md border border-slate-100">
-                                    {icon.emoji}
-                                </div>
-                            )}
-                        </motion.div>
-                    ))}
                 </div>
 
                 {/* ══════════════════════════════════════════════
                     BLOCK 1: AI 유산 어시스턴트 (타이핑 후킹 + 입력창)
                 ════════════════════════════════════════════════ */}
-                <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-24">
-                    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-8 text-center">
+                <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-24 overflow-hidden">
+                    {/* 플로팅 아이콘 - Block 1 전용 (min-h-screen 내 퍼센트 좌표) */}
+                    {FLOATING_ICONS.map((icon) => (
+                        <motion.div
+                            key={icon.id}
+                            className="absolute pointer-events-none hidden sm:block"
+                            style={{ left: icon.x, top: icon.y }}
+                            animate={{ y: [0, -12, 0], opacity: [0.35, 0.65, 0.35] }}
+                            transition={{ duration: icon.d, repeat: Infinity, ease: "easeInOut", delay: icon.id * 0.3 }}
+                        >
+                            {(icon as { isText?: boolean }).isText ? (
+                                <div
+                                    className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm font-black shadow-lg"
+                                    style={{ backgroundColor: (icon as { color?: string }).color }}
+                                >
+                                    {icon.emoji}
+                                </div>
+                            ) : (
+                                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-xl shadow-lg border border-slate-100">
+                                    {icon.emoji}
+                                </div>
+                            )}
+                        </motion.div>
+                    ))}
+
+                    <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center gap-8 text-center">
                         {/* 타이핑 후킹 멘트 */}
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
