@@ -52,11 +52,37 @@ export default function HomePageClient() {
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
+    // 타이핑 후킹 멘트 상태
+    const HOOK_TEXTS = ["나의 웰다잉 관리는", "나의 디지털 유산 확인", "나의 메시지, 데이터 관리", "나의 이후를 준비하는 것"];
+    const [hookIdx, setHookIdx] = useState(0);
+    const [hookCharIdx, setHookCharIdx] = useState(0);
+    const [hookDeleting, setHookDeleting] = useState(false);
+    const [hookText, setHookText] = useState("");
+
+    // 타이핑 효과
+    useEffect(() => {
+        const current = HOOK_TEXTS[hookIdx];
+        let t: NodeJS.Timeout;
+        if (!hookDeleting && hookCharIdx < current.length) {
+            t = setTimeout(() => { setHookText(current.slice(0, hookCharIdx + 1)); setHookCharIdx(c => c + 1); }, 80);
+        } else if (!hookDeleting && hookCharIdx === current.length) {
+            t = setTimeout(() => setHookDeleting(true), 1800);
+        } else if (hookDeleting && hookCharIdx > 0) {
+            t = setTimeout(() => { setHookText(current.slice(0, hookCharIdx - 1)); setHookCharIdx(c => c - 1); }, 40);
+        } else if (hookDeleting && hookCharIdx === 0) {
+            setHookDeleting(false);
+            setHookIdx(i => (i + 1) % HOOK_TEXTS.length);
+        }
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hookCharIdx, hookDeleting, hookIdx]);
+
     // Placeholder 롤링
     useEffect(() => {
         const iv = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 3000);
         return () => clearInterval(iv);
     }, []);
+
 
     const handleSubscribe = (planName: "Standard" | "Pro", price: string) => {
         if (!user) { router.push('/login?returnTo=/'); return; }
@@ -119,48 +145,35 @@ export default function HomePageClient() {
                     ))}
                 </div>
 
-                {/* 1. Hero Content (Centered) - Optimized Spacing */}
-                <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center px-6 pt-52 md:pt-40 pb-52 md:pb-20 text-center space-y-6 md:space-y-10 min-h-[85vh] md:min-h-screen">
-                    {/* Typography */}
-                    <div className="relative z-10 flex flex-col items-center gap-6 md:gap-8 cursor-default w-full">
-                        {/* Promo Banner */}
-                        <div onClick={() => router.push('/plans')} className="z-20">
-                            <HeroPill
-                                href="/plans"
-                                label="PRO 플랜 3개월 무료 체험!"
-                                announcement="🎉 오픈 기념"
-                                className="cursor-pointer shadow-sm hover:shadow-md transition-shadow bg-blue-50/50 backdrop-blur-sm border border-blue-200/50"
-                            />
-                        </div>
-
+                {/* ══════════════════════════════════════════════
+                    BLOCK 1: AI 유산 어시스턴트 (타이핑 후킹 + 입력창)
+                ════════════════════════════════════════════════ */}
+                <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-24">
+                    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-8 text-center">
+                        {/* 타이핑 후킹 멘트 */}
                         <motion.div
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.2 }}
-                            className="space-y-4 md:space-y-6 text-center"
+                            transition={{ duration: 0.6 }}
+                            className="flex flex-col items-center gap-2"
                         >
-                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.2] break-keep drop-shadow-sm">
-                                <span className="block mb-2 md:mb-3 text-slate-800">갑자기 떠나도</span>
-                                <span className="text-blue-600 inline-block relative">
-                                    1분이면
-                                    <svg className="absolute w-[110%] h-3 sm:h-4 -bottom-1 -left-[5%] text-blue-300/40" viewBox="0 0 100 20" preserveAspectRatio="none">
-                                        <path d="M0 15 Q 50 20 100 5 L 100 20 L 0 20 Z" fill="currentColor" />
-                                    </svg>
-                                </span> <span className="inline-block relative z-10">괜찮아</span>
-                            </h1>
-                            <p className="text-sm sm:text-lg text-slate-500 font-medium tracking-normal break-keep inline-block mt-2 max-w-lg">
-                                소중한 사람들을 위한 마지막 센스,<br className="hidden sm:block" /> 미리 저장하는 특별한 안부인사
-                            </p>
+                            <div className="h-14 sm:h-16 flex items-center justify-center w-full">
+                                <span className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                                    {hookText}
+                                    <span className="inline-block w-0.5 h-8 sm:h-11 bg-blue-600 ml-1 animate-pulse align-middle" />
+                                </span>
+                            </div>
+                            <p className="text-slate-400 text-sm font-medium">AFTERM AI와 함께 시작해보세요</p>
                         </motion.div>
 
-                        {/* AI 입력 프롬프트 창 */}
+                        {/* 프롬프트 입력 창 */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.4 }}
-                            className="w-full mt-4 md:mt-8"
+                            transition={{ duration: 0.7, delay: 0.2 }}
+                            className="w-full"
                         >
-                            <div className={`relative bg-white/90 backdrop-blur-md rounded-2xl shadow-xl shadow-slate-200/60 border-2 transition-all duration-200 max-w-[500px] mx-auto ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400"
+                            <div className={`relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl shadow-slate-200/70 border-2 transition-all duration-200 ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400 focus-within:shadow-blue-100/60"
                                 }`}>
                                 {/* Placeholder 롤링 */}
                                 <AnimatePresence mode="wait">
@@ -180,46 +193,137 @@ export default function HomePageClient() {
                                     value={inputValue}
                                     onChange={(e) => { setInputValue(e.target.value); setInputError(""); }}
                                     onKeyDown={handleKeyDown}
-                                    rows={2}
+                                    rows={3}
                                     maxLength={100}
-                                    className="w-full pt-4 pb-12 px-4 bg-transparent text-slate-900 text-sm resize-none focus:outline-none placeholder-transparent"
+                                    className="w-full pt-5 pb-14 px-4 bg-transparent text-slate-900 text-sm resize-none focus:outline-none placeholder-transparent"
                                     placeholder=" "
                                 />
-                                {/* 하단 바 */}
-                                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pb-3">
+                                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 pb-3">
                                     <span className={`text-xs font-medium ${inputValue.length > 0 && inputValue.length < 10 ? "text-amber-500" : "text-slate-300"
                                         }`}>
                                         {inputValue.length}/100{inputValue.length > 0 && inputValue.length < 10 && " (최소 10자)"}
                                     </span>
                                     <button
                                         onClick={handleAiSubmit}
-                                        className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${inputValue.trim().length >= 10
-                                            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/30"
+                                        className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${inputValue.trim().length >= 10
+                                            ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/30 hover:-translate-y-0.5"
                                             : "bg-slate-100 text-slate-400 cursor-not-allowed"
                                             }`}
                                     >
-                                        <Send className="w-3.5 h-3.5" />
+                                        <Send className="w-4 h-4" />
                                         AI로 시작하기
                                     </button>
                                 </div>
                             </div>
-                            {inputError && <p className="mt-1.5 text-center text-xs text-red-500">{inputError}</p>}
+                            {inputError && <p className="mt-2 text-center text-xs text-red-500">{inputError}</p>}
 
                             {/* 하단 배지 */}
-                            <div className="flex flex-wrap gap-2 justify-center mt-4">
+                            <div className="flex flex-wrap gap-2 justify-center mt-5">
                                 {[
-                                    { icon: "⚡", text: "1분이면 내 디지털 유산 확인" },
-                                    { icon: "✨", text: "깔끔한 유산 정리" },
-                                    { icon: "📱", text: "모바일도 가능" },
+                                    { icon: "⚡", text: "1분이면 내 디지털 유산을 확인할 수 있어요" },
+                                    { icon: "✨", text: "깔끔하게 정리하는 내 유산" },
+                                    { icon: "📱", text: "모바일도 가능해요" },
                                 ].map((b, i) => (
-                                    <span key={i} className="flex items-center gap-1 px-3 py-1.5 bg-white/80 border border-slate-200 rounded-full text-[11px] font-semibold text-blue-600 shadow-sm whitespace-nowrap">
+                                    <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 border border-slate-200 rounded-full text-[11px] font-semibold text-blue-600 shadow-sm whitespace-nowrap">
                                         <span>{b.icon}</span>{b.text}
                                     </span>
                                 ))}
                             </div>
                         </motion.div>
                     </div>
-                </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════
+                    BLOCK 2: 1분이면 괜찮아 + 메시지 남기기 / 데이터 유산
+                ════════════════════════════════════════════════ */}
+                <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-20 bg-white border-t border-slate-100">
+                    <div className="w-full max-w-lg mx-auto flex flex-col items-center text-center gap-10">
+                        {/* 프로모 배너 */}
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            onClick={() => router.push('/plans')}
+                            className="cursor-pointer"
+                        >
+                            <HeroPill
+                                href="/plans"
+                                label="PRO 플랜 3개월 무료 체험!"
+                                announcement="🎉 오픈 기념"
+                                className="shadow-sm hover:shadow-md transition-shadow bg-blue-50/50 backdrop-blur-sm border border-blue-200/50"
+                            />
+                        </motion.div>
+
+                        {/* 타이틀 */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.7, delay: 0.1 }}
+                            className="space-y-4"
+                        >
+                            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.2] break-keep drop-shadow-sm">
+                                <span className="block mb-2 md:mb-3 text-slate-800">갑자기 떠나도</span>
+                                <span className="text-blue-600 inline-block relative">
+                                    1분이면
+                                    <svg className="absolute w-[110%] h-3 sm:h-4 -bottom-1 -left-[5%] text-blue-300/40" viewBox="0 0 100 20" preserveAspectRatio="none">
+                                        <path d="M0 15 Q 50 20 100 5 L 100 20 L 0 20 Z" fill="currentColor" />
+                                    </svg>
+                                </span>{" "}
+                                <span className="inline-block relative z-10">괜찮아</span>
+                            </h2>
+                            <p className="text-sm sm:text-lg text-slate-500 font-medium tracking-normal break-keep max-w-lg">
+                                소중한 사람들을 위한 마지막 센스,<br className="hidden sm:block" /> 미리 저장하는 특별한 안부인사
+                            </p>
+                        </motion.div>
+
+                        {/* 2버튼: 메시지 남기기 + 데이터 유산 */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.7, delay: 0.2 }}
+                            className="w-full"
+                        >
+                            <div className="grid grid-cols-2 gap-4 md:gap-6 w-full max-w-[480px] mx-auto">
+                                {/* 메시지 남기기 */}
+                                <button
+                                    onClick={() => router.push('/create')}
+                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-blue-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
+                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-blue-100/80 to-blue-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-blue-100/50">
+                                            <span className="text-2xl md:text-4xl">💌</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">메시지 남기기</h3>
+                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">소중한 마음을 전하세요</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                {/* 디지털 유산 */}
+                                <button
+                                    onClick={() => router.push('/vault/create')}
+                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
+                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-emerald-100/80 to-emerald-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-emerald-100/50">
+                                            <span className="text-2xl md:text-4xl">🔐</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">디지털 유산</h3>
+                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">계정 정보를 보관하세요</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
 
                 {/* 2. Left Behind Section (Gift) */}
                 <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
