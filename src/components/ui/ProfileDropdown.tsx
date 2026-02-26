@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, LogOut, CreditCard, ChevronDown } from "lucide-react";
-import Link from "next/link";
+import { User, LogOut, ChevronDown } from "lucide-react";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
 
 interface ProfileDropdownProps {
@@ -21,15 +20,26 @@ interface ProfileDropdownProps {
 
 export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDropdownProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [imgError, setImgError] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    // Close on outside click
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
-        <div className="relative">
+        <div className="relative" ref={ref}>
             <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
             >
-                {user.image && !imgError ? (
+                {user.image ? (
                     <SecureAvatar
                         src={user.image}
                         alt="Profile"
@@ -59,7 +69,7 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
+                        className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
                     >
                         <div className="p-3 border-b border-slate-50">
                             <p className="text-sm font-bold text-slate-900">{user?.name}</p>
@@ -69,23 +79,10 @@ export function ProfileDropdown({ user, plan, onLogout, onNavigate }: ProfileDro
                         </div>
                         <div className="p-1">
                             <button
-                                onClick={() => { setIsMenuOpen(false); onNavigate("/dashboard"); }}
+                                onClick={() => { setIsMenuOpen(false); onNavigate("/settings"); }}
                                 className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                             >
-                                <User className="w-4 h-4" /> 내 정보
-                            </button>
-                            <button
-                                onClick={() => { setIsMenuOpen(false); onNavigate("/plans"); }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2 justify-between"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <CreditCard className="w-4 h-4" /> 플랜 관리
-                                </div>
-                                {plan === 'pro' && (
-                                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">
-                                        PRO
-                                    </span>
-                                )}
+                                <User className="w-4 h-4" /> 마이페이지
                             </button>
                         </div>
                         <div className="p-1 border-t border-slate-50">

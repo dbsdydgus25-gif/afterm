@@ -8,7 +8,6 @@ import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { HeroPill } from "@/components/ui/hero-pill";
 import { Header } from "@/components/layout/Header";
-import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
@@ -559,7 +558,6 @@ export default function HomePageClient() {
             </div>
 
             <Footer />
-            <BottomNav />
             <FloatingKakaoButton />
         </div >
     );
