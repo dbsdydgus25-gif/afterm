@@ -246,8 +246,9 @@ export function AiAssistantClient() {
         addMsg({ role: "user", content: trimmed });
         setInputValue("");
 
-        // 디지털 유산 의도 감지 → 선택지 버튼 제공
-        const isLegacyIntent = /디지털 유산|유산|구독|계정|소셜|클라우드|정리/.test(trimmed);
+        // 첫 번째 메시지일 때만 선택지 버튼 제공 (이후는 AI가 직접 파싱)
+        const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 1;
+        const isLegacyIntent = isFirstMessage && /디지털 유산|유산 찾|구독 확인|계정 정리|소셜 계정|클라우드 정리/.test(trimmed);
 
         if (isLegacyIntent) {
             addMsg({
