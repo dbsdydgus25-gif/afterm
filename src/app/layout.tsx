@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
-import { Noto_Serif_KR } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 
-const notoSerifKr = Noto_Serif_KR({
-  variable: "--font-noto-serif-kr",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
-  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -58,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${notoSerifKr.variable} antialiased font-serif`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Deploy Check: Google Verified */}
         <AuthProvider>{children}</AuthProvider>
