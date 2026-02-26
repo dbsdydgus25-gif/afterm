@@ -313,7 +313,11 @@ export function AiAssistantClient() {
     }, [isLoggedIn, pendingMessage, handleSendMessage]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(inputValue); }
+        if (e.nativeEvent.isComposing) return;
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage(inputValue);
+        }
     };
 
     // ═══════════════════════════════════════════════════════════════
