@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { DashboardPanel } from "@/components/ai-assistant/DashboardPanel";
 import { AuthModal } from "@/components/ai-assistant/AuthModal";
 import { MobileBottomSheet } from "@/components/ai-assistant/MobileBottomSheet";
-import { Send, Bot, X } from "lucide-react";
+import { Send, Bot } from "lucide-react";
 
 // ─── 후킹 멘트 ──────────────────────────────────────────────────
 const HOOK_TEXTS = ["나의 웰다잉 관리는", "나의 디지털 유산 확인", "나의 메시지, 데이터 관리", "나의 이후를 준비하는 것"];
@@ -65,6 +66,7 @@ export type ChatMessage = {
 // ═══════════════════════════════════════════════════════════════
 export function AiAssistantClient() {
     const supabase = createClient();
+    const searchParams = useSearchParams();
 
     // 상태
     const [isChatMode, setIsChatMode] = useState(false);
@@ -89,11 +91,28 @@ export function AiAssistantClient() {
     const bottomRef = useRef<HTMLDivElement>(null);
     const messagesRef = useRef<ChatMessage[]>([]);
     messagesRef.current = messages;
+    const isInitialized = useRef(false);
 
-    // 로그인 확인
+    // 로그인 확인 + ?q= 자동 채팅 트리거
     useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
-    }, [supabase]);
+        supabase.auth.getUser().then(({ data }) => {
+            const loggedIn = !!data.user;
+            setIsLoggedIn(loggedIn);
+            const qParam = searchParams.get("q");
+            if (qParam && !isInitialized.current) {
+                isInitialized.current = true;
+                if (loggedIn) {
+                    // 로그인 상태 → 바로 채팅 시작
+                    setPendingMessage(qParam);
+                } else {
+                    // 미로그인 → 로그인 모달
+                    setPendingMessage(qParam);
+                    setShowAuthModal(true);
+                }
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // 타이핑 효과
     useEffect(() => {
@@ -247,8 +266,9 @@ export function AiAssistantClient() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    messages: [...messagesRef.current, { role: "user" as const, content: trimmed }]
-                        .filter(m => !m.isLoading)
+                    messages: messagesRef.current
+                        .filter(m => !m.isLoading && m.content)
+                        .concat({ role: "user" as const, content: trimmed, id: "tmp" })
                         .map(m => ({ role: m.role, content: m.content })),
                 }),
             });
@@ -288,7 +308,7 @@ export function AiAssistantClient() {
     // RENDER
     // ═══════════════════════════════════════════════════════════════
     return (
-        <div className="flex flex-col min-h-screen bg-white text-slate-900 font-sans overflow-hidden">
+        <div className="flex flex-col min-h-screen bg-white text-slate-900 font-sans overflow-hidden pt-16">
             <Header transparentOnTop={false} />
 
             <AnimatePresence mode="wait">

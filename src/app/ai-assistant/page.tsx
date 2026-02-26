@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { AiAssistantClient } from "@/components/ai-assistant/AiAssistantClient";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function AiAssistantPage() {
-    return <AiAssistantClient />;
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-slate-50" />}>
+            <AiAssistantClient />
+        </Suspense>
+    );
 }
