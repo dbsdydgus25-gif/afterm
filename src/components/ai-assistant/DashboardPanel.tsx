@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Save, CheckCircle, Plus, Loader2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemoryStore } from "@/store/useMemoryStore";
 import type { DashboardResult, LegacyItem } from "./AiAssistantClient";
 
 interface DashboardPanelProps {
@@ -60,7 +61,21 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
         );
     }
 
+    const { setMessage, setRecipient } = useMemoryStore();
+
     const handleSave = async () => {
+        if (!result) return;
+
+        // 편지인 경우: 작성/발송 페이지로 내용 넘기고 이동
+        if (result.type === "letter") {
+            const letterContent = result.editedContent ?? result.content;
+            setMessage(letterContent);
+            setRecipient({ name: result.recipient, phone: "", relationship: "" });
+            router.push("/create");
+            return;
+        }
+
+        // 디지털 유산인 경우: 기존 API 저장
         setIsSaving(true);
         setSaveError("");
         try {
@@ -102,12 +117,12 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                             onClick={handleSave}
                             disabled={isSaving || result.isComplete === false}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${result.isComplete === false
-                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
                                 }`}
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            {isSaving ? "저장 중..." : "메시지 보관함에 저장"}
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                            {isSaving ? "이동 중..." : "발송 설정하기"}
                         </button>
                     ) : (
                         <button
