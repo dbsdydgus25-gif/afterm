@@ -15,7 +15,7 @@ export default function SpaceLayout({
         <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 text-slate-900 font-sans">
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 p-6 bg-white z-50">
-                <Link href="/space" className="text-2xl font-black tracking-tighter mb-10 text-blue-600 px-2">
+                <Link href="/" className="text-2xl font-black tracking-tighter mb-10 text-blue-600 px-2">
                     AFTERM
                 </Link>
 

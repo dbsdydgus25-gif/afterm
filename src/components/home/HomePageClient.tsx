@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { HeroPill } from "@/components/ui/hero-pill";
@@ -16,7 +16,6 @@ import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 
 export default function HomePageClient() {
     const router = useRouter();
-    const [showSplash, setShowSplash] = useState(true);
     const { user, plan } = useMemoryStore();
 
     // States for service sections
@@ -33,59 +32,15 @@ export default function HomePageClient() {
         router.push('/plans');
     };
 
-    useEffect(() => {
-        const hasShownSplash = sessionStorage.getItem('splash_shown');
-
-        if (hasShownSplash) {
-            setShowSplash(false);
-        } else {
-            const timer = setTimeout(() => {
-                setShowSplash(false);
-                sessionStorage.setItem('splash_shown', 'true');
-            }, 2000); // 2 seconds splash
-            return () => clearTimeout(timer);
-        }
-    }, []);
 
     return (
         <div className="flex flex-col min-h-screen font-sans relative">
-
-            {/* Splash Screen (White + Logo as requested) */}
-            <AnimatePresence>
-                {showSplash && (
-                    <motion.div
-                        className="absolute inset-0 z-[100] flex items-center justify-center bg-white"
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 1.2, opacity: 0 }}
-                            transition={{ duration: 1.2, ease: "easeOut" }}
-                            className="text-center"
-                        >
-                            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-blue-600">
-                                AFTERM
-                            </h1>
-                            <p className="mt-2 text-sm text-slate-400 font-medium tracking-wide">
-                                당신의 기억을 영원히
-                            </p>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Header */}
             <Header transparentOnTop={false} />
 
             {/* Main Content */}
-            <motion.div
-                className="flex-1 flex flex-col items-center w-full relative"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: showSplash ? 0 : 1 }}
-                transition={{ duration: 0.5 }}
-            >
+            <div className="flex-1 flex flex-col items-center w-full relative">
                 {/* Background - Soft Dynamic Blur Effect */}
                 <div className="absolute inset-0 z-0 overflow-hidden bg-slate-50">
                     <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px] pointer-events-none" />
@@ -601,7 +556,7 @@ export default function HomePageClient() {
                     </div>
                 </section>
 
-            </motion.div>
+            </div>
 
             <Footer />
             <BottomNav />
