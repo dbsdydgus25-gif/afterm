@@ -90,14 +90,21 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                 {/* 헤더 */}
                 <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
                     <div>
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">✉️ 작성된 편지</p>
-                        <h2 className="text-lg font-bold text-slate-900">To. {result.recipient}</h2>
+                        <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">
+                            {result.isComplete === false ? "📝 편지 작성 중..." : "✉️ 완성된 편지"}
+                        </p>
+                        <h2 className="text-lg font-bold text-slate-900">
+                            {result.recipient ? `To. ${result.recipient}` : "수신자를 정해주세요"}
+                        </h2>
                     </div>
                     {!isSaved ? (
                         <button
                             onClick={handleSave}
-                            disabled={isSaving}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                            disabled={isSaving || result.isComplete === false}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${result.isComplete === false
+                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                }`}
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {isSaving ? "저장 중..." : "메시지 보관함에 저장"}
@@ -189,8 +196,8 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                             onClick={handleSave}
                             disabled={isSaving || items.length === 0}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${items.length === 0
-                                    ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
                                 }`}
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

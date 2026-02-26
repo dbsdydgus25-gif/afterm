@@ -44,7 +44,7 @@ const BOTTOM_BADGES = [
 
 // ─── 타입 ───────────────────────────────────────────────────────
 export type DashboardResult =
-    | { type: "letter"; recipient: string; content: string; editedContent?: string }
+    | { type: "letter"; recipient: string; content: string; editedContent?: string; isComplete?: boolean }
     | { type: "legacyList"; items: LegacyItem[]; scannedAt?: string }
     | null;
 
@@ -191,12 +191,37 @@ export function AiAssistantClient() {
         addMsg({ role: "user", content: choiceLabel });
 
         if (choiceId === "subscription" || choiceId === "cloud") {
-            // → 이메일 연동 동의 요청
+            // 마이데이터 연동 (MVP 프론트엔드 모의 구현)
             addMsg({
                 role: "assistant",
-                content: `${choiceLabel} 내역을 찾아드릴게요! 📧\n\n이메일 계정을 연동하면 자동으로 분석해드릴 수 있어요.\n이메일 주소를 스캔해도 괜찮을까요?\n*(이메일 본문을 읽어 구독 내역만 분석하며, 개인 정보는 저장하지 않아요)*`,
-                isEmailConsent: true,
+                content: `해당 내역을 찾아드릴게요! 🔍\n마이데이터 연동을 통해 최근 결제 내역을 분석합니다.\n잠시만 기다려주세요...`,
             });
+
+            // 우측 대시보드 로딩 표시
+            setIsAnalyzing(true);
+            setIsBottomSheetOpen(true);
+            setDashboardResult(null);
+
+            // 가짜 딜레이 (2.5초)
+            setTimeout(() => {
+                const mockItems = [
+                    { id: "1", service: "넷플릭스", cost: "17,000원", date: "매월 15일", category: "OTT" },
+                    { id: "2", service: "유튜브 프리미엄", cost: "14,900원", date: "매월 2일", category: "OTT" },
+                    { id: "3", service: "쿠팡 로켓와우", cost: "4,990원", date: "매월 11일", category: "쇼핑" },
+                ];
+                if (choiceId === "cloud") {
+                    mockItems.push({ id: "4", service: "iCloud 200GB", cost: "3,300원", date: "매월 5일", category: "클라우드" });
+                }
+
+                setIsAnalyzing(false);
+                setDashboardResult({ type: "legacyList", items: mockItems, scannedAt: new Date().toISOString() });
+
+                addMsg({
+                    role: "assistant",
+                    content: `분석 완료! 현재 확인된 구독/정기결제 내역이에요 😊\n우측에서 확인 후 불필요한 항목은 삭제하고 저장해주세요!\n\n(직접 추가하고 싶은 항목이 있다면 채팅으로 계속 입력해주세요)`,
+                });
+            }, 2500);
+
         } else if (choiceId === "social") {
             addMsg({
                 role: "assistant",
@@ -209,23 +234,6 @@ export function AiAssistantClient() {
             });
         }
     }, []);
-
-    // ── 이메일 동의 처리 ─────────────────────────────────────
-    const handleEmailConsent = useCallback(async (agreed: boolean) => {
-        setMessages(prev => prev.map(m => m.isEmailConsent ? { ...m, isEmailConsent: false } : m));
-
-        if (agreed) {
-            addMsg({ role: "user", content: "네, 이메일 스캔 동의해요!" });
-            addMsg({ role: "assistant", content: "감사해요! 이메일을 분석하는 중이에요 🔍\n잠시만 기다려주세요..." });
-            await runEmailScan();
-        } else {
-            addMsg({ role: "user", content: "아니요, 직접 입력할게요" });
-            addMsg({
-                role: "assistant",
-                content: `직접 추가하실 수 있어요!\n아래 보관함에서 직접 항목을 추가해주세요 📝`,
-            });
-        }
-    }, [runEmailScan]);
 
     // ── 채팅 전송 처리 ───────────────────────────────────────
     const handleSendMessage = useCallback(async (text: string) => {
@@ -249,7 +257,8 @@ export function AiAssistantClient() {
         setInputValue("");
 
         // 첫 번째 메시지일 때만 선택지 버튼 제공 (이후는 AI가 직접 파싱)
-        const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 1;
+        // (addMsg 직후이므로 messagesRef에는 아직 추가 전 상태임 -> length === 0이 첫 메시지)
+        const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 0;
         const isLegacyIntent = isFirstMessage && /디지털 유산|유산 찾|구독 확인|계정 정리|소셜 계정|클라우드 정리/.test(trimmed);
 
         if (isLegacyIntent) {
@@ -279,7 +288,7 @@ export function AiAssistantClient() {
             if (res.ok) {
                 const data = await res.json();
                 replaceMsg(loadingId, { isLoading: false, content: data.reply });
-                if (data.result?.type === "letter") {
+                if (data.result) {
                     setDashboardResult(data.result);
                     setIsBottomSheetOpen(true);
                 }
@@ -476,24 +485,6 @@ export function AiAssistantClient() {
                                                                 <p className="text-xs text-slate-400 mt-0.5">{c.desc}</p>
                                                             </button>
                                                         ))}
-                                                    </div>
-                                                )}
-
-                                                {/* 이메일 동의 버튼 */}
-                                                {msg.isEmailConsent && (
-                                                    <div className="flex gap-2 mt-1">
-                                                        <button
-                                                            onClick={() => handleEmailConsent(true)}
-                                                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all"
-                                                        >
-                                                            ✅ 네, 분석해주세요
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleEmailConsent(false)}
-                                                            className="flex-1 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all"
-                                                        >
-                                                            직접 입력할게요
-                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
