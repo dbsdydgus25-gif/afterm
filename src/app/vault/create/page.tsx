@@ -556,12 +556,10 @@ export default function VaultCreatePage() {
                         </div>
                     </div>
                 )}
-            </main>
 
-            {/* Bottom Sticky Action Bar */}
-            {currentStep > 0 && (
-                <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 z-40 safe-area-bottom">
-                    <div className="max-w-md mx-auto flex gap-3">
+                {/* Inline Action Buttons */}
+                {currentStep > 0 && (
+                    <div className="mt-8 flex gap-3 pb-6">
                         <Button
                             onClick={handlePrevStep}
                             variant="outline"
@@ -586,8 +584,8 @@ export default function VaultCreatePage() {
                             </Button>
                         )}
                     </div>
-                </div>
-            )}
+                )}
+            </main>
         </div>
     );
 }
