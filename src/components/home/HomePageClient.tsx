@@ -679,7 +679,7 @@ export default function HomePageClient() {
 
                                 <h3 className="text-2xl font-bold text-blue-900 mb-2">PRO</h3>
                                 <div className="flex items-baseline gap-1 mb-8">
-                                    <span className="text-5xl font-black text-slate-900">{billingCycle === 'monthly' ? '990원' : '9,900원'}</span>
+                                    <span className="text-5xl font-black text-slate-900">{billingCycle === 'monthly' ? '100원' : '1,000원'}</span>
                                     <span className="text-slate-500 font-medium text-lg">/{billingCycle === 'monthly' ? '월' : '년'}</span>
                                 </div>
 
@@ -704,7 +704,7 @@ export default function HomePageClient() {
 
                                 <div className="w-full mt-auto">
                                     <Button
-                                        onClick={() => handleSubscribe("Pro", billingCycle === 'monthly' ? "990원" : "9,900원")}
+                                        onClick={() => handleSubscribe("Pro", billingCycle === 'monthly' ? "100원" : "1,000원")}
                                         disabled={plan === 'pro'}
                                         className="w-full py-7 rounded-xl text-lg bg-blue-600 text-white hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/20"
                                     >

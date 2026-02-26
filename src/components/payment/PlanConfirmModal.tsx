@@ -23,7 +23,7 @@ export function PlanConfirmModal({ isOpen, onClose, targetPlan, currentPlan, rem
     let price = "무료";
     if (targetPlan === "pro") {
         // Show Standard Price but strike through or mention Free Trial
-        // price = billingCycle === "yearly" ? "9,900원 / 년" : "990원 / 월";
+        // price = billingCycle === "yearly" ? "1,000원 / 년" : "100원 / 월";
 
         // "3-Month Free Trial" display logic
         price = "0원 (3개월 무료 체험)";
