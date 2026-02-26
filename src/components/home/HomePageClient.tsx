@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
+import { HeroPill } from "@/components/ui/hero-pill";
 import { Header } from "@/components/layout/Header";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
@@ -36,7 +37,6 @@ export default function HomePageClient() {
         const hasShownSplash = sessionStorage.getItem('splash_shown');
 
         if (hasShownSplash) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowSplash(false);
         } else {
             const timer = setTimeout(() => {
@@ -86,86 +86,98 @@ export default function HomePageClient() {
                 animate={{ opacity: showSplash ? 0 : 1 }}
                 transition={{ duration: 0.5 }}
             >
-                {/* Background (Static Blue) - Full Screen */}
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
-                    {/* Optimized: removed backdrop-blur for mobile performance */}
-                    <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none"></div>
+                {/* Background - Soft Dynamic Blur Effect */}
+                <div className="absolute inset-0 z-0 overflow-hidden bg-slate-50">
+                    <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute top-40 -right-20 w-[30rem] h-[30rem] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white pointer-events-none" />
                 </div>
 
                 {/* 1. Hero Content (Centered) - Optimized Spacing */}
                 <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center justify-center px-6 pt-52 md:pt-40 pb-52 md:pb-20 text-center space-y-6 md:space-y-10 min-h-[85vh] md:min-h-screen">
                     {/* Typography */}
-                    <div className="relative z-10 flex flex-col items-center gap-4">
+                    <div className="relative z-10 flex flex-col items-center gap-6 md:gap-8 cursor-default w-full">
                         {/* Promo Banner */}
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5, duration: 0.5 }}
-                            onClick={() => router.push('/plans')}
-                            className="bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 shadow-sm cursor-pointer hover:bg-indigo-100 transition-colors"
-                        >
-                            <span className="text-[10px] sm:text-xs font-bold text-indigo-600 flex items-center gap-1.5 whitespace-nowrap">
-                                🎉 <span className="underline decoration-indigo-300 decoration-2 underline-offset-2">오픈 기념</span> PRO 플랜 3개월 무료 체험!
-                            </span>
-                        </motion.div>
+                        <div onClick={() => router.push('/plans')} className="z-20">
+                            <HeroPill
+                                href="/plans"
+                                label="PRO 플랜 3개월 무료 체험!"
+                                announcement="🎉 오픈 기념"
+                                className="cursor-pointer shadow-sm hover:shadow-md transition-shadow bg-blue-50/50 backdrop-blur-sm border border-blue-200/50"
+                            />
+                        </div>
 
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="space-y-3"
+                            transition={{ duration: 0.7, delay: 0.2 }}
+                            className="space-y-4 md:space-y-6 text-center"
                         >
-                            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900 leading-snug break-keep drop-shadow-sm whitespace-nowrap">
-                                <span className="inline-block mr-1">갑자기 떠나도</span>
-                                <span className="text-blue-600 inline-block mr-1">1분이면</span>
-                                <span className="inline-block">괜찮아</span>
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.2] break-keep drop-shadow-sm">
+                                <span className="block mb-2 md:mb-3 text-slate-800">갑자기 떠나도</span>
+                                <span className="text-blue-600 inline-block relative">
+                                    1분이면
+                                    <svg className="absolute w-[110%] h-3 sm:h-4 -bottom-1 -left-[5%] text-blue-300/40" viewBox="0 0 100 20" preserveAspectRatio="none">
+                                        <path d="M0 15 Q 50 20 100 5 L 100 20 L 0 20 Z" fill="currentColor" />
+                                    </svg>
+                                </span> <span className="inline-block relative z-10">괜찮아</span>
                             </h1>
-                            <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-normal break-keep inline-block mt-2">
-                                소중한 사람들을 위한 마지막 센스, 미리 저장하는 안부인사
+                            <p className="text-sm sm:text-lg text-slate-500 font-medium tracking-normal break-keep inline-block mt-2 max-w-lg">
+                                소중한 사람들을 위한 마지막 센스,<br className="hidden sm:block" /> 미리 저장하는 특별한 안부인사
                             </p>
                         </motion.div>
 
                         {/* Core Feature - Two Options */}
-                        <div className="w-full space-y-4 animate-fade-in delay-75">
-                            <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-sm mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.7, delay: 0.4 }}
+                            className="w-full mt-4 md:mt-8"
+                        >
+                            <div className="grid grid-cols-2 gap-4 md:gap-6 w-full max-w-[500px] mx-auto">
                                 {/* Option 1: Memory Message */}
                                 <button
                                     onClick={() => router.push('/create')}
-                                    className="group relative bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-slate-200 hover:border-blue-400 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100 active:scale-[0.98]"
+                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-white/50 hover:border-blue-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
                                 >
-                                    <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                            <span className="text-2xl md:text-2xl">💌</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
+                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-blue-100/80 to-blue-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-blue-100/50">
+                                            <span className="text-2xl md:text-4xl filter drop-shadow-sm">💌</span>
                                         </div>
-                                        <h3 className="text-sm md:text-lg font-bold text-slate-900 break-keep">
-                                            메시지
-                                        </h3>
-                                        <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed hidden md:block">
-                                            소중한 사람들에게<br />전할 마음을 남겨보세요
-                                        </p>
+                                        <div>
+                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">
+                                                기억 남기기
+                                            </h3>
+                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">
+                                                소중한 마음을 전하세요
+                                            </p>
+                                        </div>
                                     </div>
                                 </button>
 
                                 {/* Option 2: Digital Vault */}
                                 <button
                                     onClick={() => router.push('/vault/create')}
-                                    className="group relative bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border-2 border-slate-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-100 active:scale-[0.98]"
+                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-white/50 hover:border-emerald-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
                                 >
-                                    <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
-                                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                                            <span className="text-2xl md:text-2xl">🔐</span>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
+                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-emerald-100/80 to-emerald-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-emerald-100/50">
+                                            <span className="text-2xl md:text-4xl filter drop-shadow-sm">🔐</span>
                                         </div>
-                                        <h3 className="text-sm md:text-lg font-bold text-slate-900 break-keep">
-                                            데이터 보관
-                                        </h3>
-                                        <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed hidden md:block">
-                                            계정 정보를 안전하게<br />보관하고 전달하세요
-                                        </p>
+                                        <div>
+                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">
+                                                디지털 유산
+                                            </h3>
+                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">
+                                                계정 정보를 보관하세요
+                                            </p>
+                                        </div>
                                     </div>
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
 
