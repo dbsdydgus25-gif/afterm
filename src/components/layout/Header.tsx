@@ -21,6 +21,7 @@ const serviceSubLinks = [
     { name: "디지털 유산", href: "/vault/create" },
     { name: "디지털 추모관", href: "/space" },
     { name: "AI 추모 채팅", href: "/ai-chat" },
+    { name: "사후 행정/지원금 찾기", href: "/service/benefits" },
 ];
 
 const centerNavLinks = [
