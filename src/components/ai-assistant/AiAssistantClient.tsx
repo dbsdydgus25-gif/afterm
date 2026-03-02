@@ -314,17 +314,38 @@ export function AiAssistantClient() {
             setInputValue("");
         }, 10);
 
-        // 첫 번째 메시지일 때만 선택지 버튼 제공 (이후는 AI가 직접 파싱)
-        // (addMsg 직후이므로 messagesRef에는 아직 추가 전 상태임 -> length === 0이 첫 메시지)
+        // 디지털 유산 관련 (첫 메시지) → Gmail 연동 온보딩 플로우
         const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 0;
-        const isLegacyIntent = isFirstMessage && /디지털 유산|유산 찾|구독 확인|계정 정리|소셜 계정|클라우드 정리/.test(trimmed);
+        const isLegacyIntent = isFirstMessage && /디지털 유산|유산|구독|계정|정리|관리|데이터|클라우드/.test(trimmed);
 
         if (isLegacyIntent) {
+            // 단계 1: AI가 먼저 절차 설명
             addMsg({
                 role: "assistant",
-                content: "어떤 디지털 유산을 찾아드릴까요? 아래에서 선택해주세요 😊",
-                choices: LEGACY_CHOICES,
+                content: "알겠습니다! 디지털 유산을 정리하기 전에 몇 가지 절차가 필요해요.\n\nGmail 연동을 통해 구독 중인 서비스와 정기결제 내역을 분석하여 데이터 관리를 도와드릴 수 있어요! 📧\n\nGmail 연동을 도와드려도 될까요?",
             });
+            // 단계 2: 잠깐의 딜레이 후 연동 버튼 표시
+            setTimeout(() => {
+                if (userPlan !== "pro") {
+                    addMsg({
+                        role: "assistant",
+                        content: "Gmail 연동 및 자동 분석 기능은 PRO 플랜에서 이용 가능해요 👑\n지금 업그레이드하면 모든 구독 내역을 자동으로 찾아드려요!",
+                        actionButtons: [{ label: "PRO 플랜 시작하기", icon: "crown", style: "primary", action: "goToPlans" }],
+                    });
+                } else {
+                    addMsg({
+                        role: "assistant",
+                        content: isGoogleLinked
+                            ? "✅ Google 계정이 이미 연결되어 있어요! 바로 Gmail을 분석해드릴게요."
+                            : "Gmail 계정을 연결하면 자동으로 구독/결제 내역을 찾아드려요.\n아래 버튼을 눌러 Google 계정을 연결해주세요!",
+                        actionButtons: [
+                            isGoogleLinked
+                                ? { label: "Gmail 스캔 시작하기", icon: "mail", style: "primary", action: "runScan" }
+                                : { label: "Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }
+                        ],
+                    });
+                }
+            }, 800);
             return;
         }
 
@@ -565,8 +586,8 @@ export function AiAssistantClient() {
                                                                 key={i}
                                                                 onClick={() => handleActionButton(btn.action)}
                                                                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all ${btn.style === "primary"
-                                                                        ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
-                                                                        : "bg-white border-2 border-slate-200 hover:border-blue-400 text-slate-800"
+                                                                    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                                                    : "bg-white border-2 border-slate-200 hover:border-blue-400 text-slate-800"
                                                                     }`}
                                                             >
                                                                 {btn.icon === "mail" && <Mail className="w-4 h-4" />}
