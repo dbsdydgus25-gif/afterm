@@ -95,6 +95,7 @@ export function AiAssistantClient() {
     const [charIndex, setCharIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
     const [displayHook, setDisplayHook] = useState("");
+    const [isCheckingPlan, setIsCheckingPlan] = useState(true);
 
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -134,6 +135,7 @@ export function AiAssistantClient() {
                     setShowAuthModal(true);
                 }
             }
+            setIsCheckingPlan(false);
         };
         init();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -409,6 +411,54 @@ export function AiAssistantClient() {
     // ═══════════════════════════════════════════════════════════════
     // RENDER
     // ═══════════════════════════════════════════════════════════════
+
+    // 플랜 확인 중 로딩
+    if (isCheckingPlan) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-slate-50">
+                <Header transparentOnTop={false} />
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-slate-400 text-sm">잠시만 기다려주세요...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // PRO 전용 - 미가입자 업그레이드 유도
+    if (isLoggedIn && userPlan !== "pro") {
+        return (
+            <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
+                <Header transparentOnTop={false} />
+                <div className="flex flex-1 items-center justify-center p-6 pt-24">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-3xl shadow-xl p-10 max-w-md w-full text-center"
+                    >
+                        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <Crown className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-2xl font-black text-slate-900 mb-3">PRO 플랜 전용 기능</h2>
+                        <p className="text-slate-500 text-sm leading-relaxed mb-8">
+                            AFTERM AI 어시스턴트는 <strong className="text-slate-800">PRO 플랜</strong> 구독자만 이용할 수 있어요.
+                            <br /><br />
+                            Gmail 연동으로 디지털 유산을 자동 정리하고,
+                            소중한 사람에게 남길 메시지를 AI와 함께 작성해보세요.
+                        </p>
+                        <button
+                            onClick={() => router.push("/plans")}
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-0.5"
+                        >
+                            PRO 플랜 시작하기 →
+                        </button>
+                        <p className="text-xs text-slate-400 mt-4">3개월 무료 체험 포함</p>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col min-h-screen bg-white text-slate-900 font-sans overflow-hidden pt-16">
             <Header transparentOnTop={false} />
