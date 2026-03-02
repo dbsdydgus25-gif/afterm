@@ -258,6 +258,34 @@ export function AiAssistantClient() {
         setMessages(prev => prev.map(m => m.choices ? { ...m, choices: undefined } : m));
         addMsg({ role: "user", content: choiceLabel });
 
+        // Gmail Yes/No 응답 처리
+        if (choiceId === "gmail_yes") {
+            if (isGoogleLinked) {
+                // 이미 구글 연동 → 바로 스캔
+                addMsg({
+                    role: "assistant",
+                    content: "✅ Google 계정이 이미 연결되어 있어요! Gmail 분석을 바로 시작할게요 🔍",
+                });
+                runEmailScan();
+            } else {
+                // 구글 미연동 → OAuth 연동 버튼
+                addMsg({
+                    role: "assistant",
+                    content: "아래 버튼을 눌러 Google 계정을 연결해주세요.\n연결이 완료되면 자동으로 구독/정기결제 내역을 찾아드릴게요! 📧",
+                    actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
+                });
+            }
+            return;
+        }
+
+        if (choiceId === "gmail_no") {
+            addMsg({
+                role: "assistant",
+                content: "알겠어요! 언제든지 Gmail 연동이 필요하시면 말씀해주세요 😊\n직접 구독 서비스 목록을 알려주시면 정리해드릴 수도 있어요.",
+            });
+            return;
+        }
+
         if (choiceId === "subscription" || choiceId === "cloud") {
             // ── 1) PRO 요금제 확인 ──────────────────────────────────
             if (userPlan !== "pro") {
@@ -316,38 +344,33 @@ export function AiAssistantClient() {
             setInputValue("");
         }, 10);
 
-        // 디지털 유산 관련 (첫 메시지) → Gmail 연동 온보딩 플로우
+        // 디지털 유산 관련 (첫 메시지) → Gmail 연동 동의 요청 (Yes/No)
         const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 0;
         const isLegacyIntent = isFirstMessage && /디지털 유산|유산|구독|계정|정리|관리|데이터|클라우드/.test(trimmed);
 
         if (isLegacyIntent) {
-            // 단계 1: AI가 먼저 절차 설명
             addMsg({
                 role: "assistant",
-                content: "알겠습니다! 디지털 유산을 정리하기 전에 몇 가지 절차가 필요해요.\n\nGmail 연동을 통해 구독 중인 서비스와 정기결제 내역을 분석하여 데이터 관리를 도와드릴 수 있어요! 📧\n\nGmail 연동을 도와드려도 될까요?",
+                content: "알겠습니다! 디지털 유산을 정리하기 전에 Gmail 연동이 필요해요.\nGmail을 연동하면 구독 중인 서비스와 정기결제 내역을 자동으로 분석해 관리를 도와드릴 수 있어요 📧\n\nGmail 연동을 도와드려도 될까요?",
+                choices: [
+                    { id: "gmail_yes", label: "네, 연동할게요!", desc: "Gmail에서 구독/결제 내역을 자동으로 찾아드려요" },
+                    { id: "gmail_no", label: "아니요, 나중에요", desc: "직접 입력해서 유산을 기록할게요" },
+                ],
             });
-            // 단계 2: 잠깐의 딜레이 후 연동 버튼 표시
-            setTimeout(() => {
-                if (userPlan !== "pro") {
-                    addMsg({
-                        role: "assistant",
-                        content: "Gmail 연동 및 자동 분석 기능은 PRO 플랜에서 이용 가능해요 👑\n지금 업그레이드하면 모든 구독 내역을 자동으로 찾아드려요!",
-                        actionButtons: [{ label: "PRO 플랜 시작하기", icon: "crown", style: "primary", action: "goToPlans" }],
-                    });
-                } else {
-                    addMsg({
-                        role: "assistant",
-                        content: isGoogleLinked
-                            ? "✅ Google 계정이 이미 연결되어 있어요! 바로 Gmail을 분석해드릴게요."
-                            : "Gmail 계정을 연결하면 자동으로 구독/결제 내역을 찾아드려요.\n아래 버튼을 눌러 Google 계정을 연결해주세요!",
-                        actionButtons: [
-                            isGoogleLinked
-                                ? { label: "Gmail 스캔 시작하기", icon: "mail", style: "primary", action: "runScan" }
-                                : { label: "Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }
-                        ],
-                    });
-                }
-            }, 800);
+            return;
+        }
+
+        // 대화 중 Gmail 연동 요청 감지
+        const isGmailRequest = /gmail|지메일|연동|이메일 연결|메일 연결|메일 분석|구독 찾아/.test(trimmed.toLowerCase());
+        if (isGmailRequest) {
+            addMsg({
+                role: "assistant",
+                content: "Gmail 연동을 원하시는군요! 이메일에서 구독/정기결제 내역을 자동으로 찾아드릴게요 📧\n\n연동을 시작할까요?",
+                choices: [
+                    { id: "gmail_yes", label: "네, 연동 시작!", desc: "Gmail 계정을 연결해 구독 내역을 분석해요" },
+                    { id: "gmail_no", label: "아니요", desc: "취소" },
+                ],
+            });
             return;
         }
 
