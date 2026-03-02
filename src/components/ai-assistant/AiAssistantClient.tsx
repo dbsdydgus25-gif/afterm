@@ -237,17 +237,17 @@ export function AiAssistantClient() {
             router.push("/plans");
         } else if (action === "linkGmail" || action === "runScan") {
             if (action === "linkGmail") {
-                // Google OAuth 재연동 (gmail.readonly 스코프 포함)
+                // gmail.readonly 스코프 포함한 Google OAuth
+                // 성공 후 ?scan=true 파라미터로 돌아와서 자동 스캔 트리거
                 await supabase.auth.signInWithOAuth({
                     provider: "google",
                     options: {
-                        redirectTo: `${window.location.origin}/ai-assistant`,
+                        redirectTo: `${window.location.origin}/ai-assistant?scan=true`,
                         queryParams: { access_type: "offline", prompt: "consent" },
                         scopes: "email profile https://www.googleapis.com/auth/gmail.readonly",
                     },
                 });
             } else {
-                // 이미 연동됨 → 바로 스캔 실행
                 runEmailScan();
             }
         }
@@ -260,21 +260,13 @@ export function AiAssistantClient() {
 
         // Gmail Yes/No 응답 처리
         if (choiceId === "gmail_yes") {
-            if (isGoogleLinked) {
-                // 이미 구글 연동 → 바로 스캔
-                addMsg({
-                    role: "assistant",
-                    content: "✅ Google 계정이 이미 연결되어 있어요! Gmail 분석을 바로 시작할게요 🔍",
-                });
-                runEmailScan();
-            } else {
-                // 구글 미연동 → OAuth 연동 버튼
-                addMsg({
-                    role: "assistant",
-                    content: "아래 버튼을 눌러 Google 계정을 연결해주세요.\n연결이 완료되면 자동으로 구독/정기결제 내역을 찾아드릴게요! 📧",
-                    actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
-                });
-            }
+            // 항상 gmail.readonly 스코프로 OAuth 재인증
+            // (일반 로그인은 gmail 스코프가 없어서 provider_token으로 Gmail API 호출 불가)
+            addMsg({
+                role: "assistant",
+                content: "Google 계정 연동을 시작할게요! 아래 버튼을 눌러 Gmail 읽기 권한을 허용해주세요 🔐",
+                actionButtons: [{ label: "Google 계정으로 Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }],
+            });
             return;
         }
 
@@ -415,6 +407,27 @@ export function AiAssistantClient() {
             handleSendMessage(msg);
         }
     }, [isLoggedIn, pendingMessage, handleSendMessage]);
+
+    // Gmail OAuth 콜백 후 ?scan=true 감지 → 자동 스캔 시작
+    const scanHandled = useRef(false);
+    useEffect(() => {
+        const shouldScan = searchParams.get("scan") === "true";
+        if (shouldScan && isLoggedIn && !scanHandled.current && !isCheckingPlan) {
+            scanHandled.current = true;
+            // URL에서 scan 파라미터 제거
+            window.history.replaceState({}, "", "/ai-assistant");
+            // 채팅 모드 진입 후 스캔 안내 메시지와 함께 스캔 시작
+            setIsChatMode(true);
+            setTimeout(() => {
+                addMsg({
+                    role: "assistant",
+                    content: "Gmail 연동이 완료되었어요! 🎉\n이메일을 분석해서 구독 중인 서비스와 정기결제 내역을 찾아드릴게요.",
+                });
+                setTimeout(() => runEmailScan(), 500);
+            }, 300);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoggedIn, isCheckingPlan, searchParams]);
 
     const lastSubmitTime = useRef(0);
 
