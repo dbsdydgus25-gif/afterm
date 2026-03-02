@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { DashboardPanel } from "@/components/ai-assistant/DashboardPanel";
 import { AuthModal } from "@/components/ai-assistant/AuthModal";
 import { MobileBottomSheet } from "@/components/ai-assistant/MobileBottomSheet";
-import { Send, Bot } from "lucide-react";
+import { Send, Bot, Mail, Crown } from "lucide-react";
 
 // ─── 후킹 멘트 ──────────────────────────────────────────────────
 const HOOK_TEXTS = ["나의 웰다잉 관리는", "나의 디지털 유산 확인", "나의 메시지, 데이터 관리", "나의 이후를 준비하는 것"];
@@ -50,15 +50,21 @@ export type DashboardResult =
 
 export type LegacyItem = { id: string; service: string; cost: string; date: string; category: string };
 
+export type ActionButton = {
+    label: string;
+    icon?: "mail" | "crown";
+    style?: "primary" | "secondary";
+    action: "linkGmail" | "goToPlans" | "runScan";
+};
+
 export type ChatMessage = {
     id: string;
     role: "user" | "assistant";
     content: string;
     isLoading?: boolean;
-    // 선택지 버튼을 보여줄 경우
     choices?: { id: string; label: string; desc: string }[];
-    // 이메일 동의 버튼
     isEmailConsent?: boolean;
+    actionButtons?: ActionButton[];
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -67,10 +73,13 @@ export type ChatMessage = {
 export function AiAssistantClient() {
     const supabase = createClient();
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     // 상태
     const [isChatMode, setIsChatMode] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userPlan, setUserPlan] = useState<"free" | "pro">("free");
+    const [isGoogleLinked, setIsGoogleLinked] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [pendingMessage, setPendingMessage] = useState("");
     const [inputValue, setInputValue] = useState("");
@@ -93,24 +102,40 @@ export function AiAssistantClient() {
     messagesRef.current = messages;
     const isInitialized = useRef(false);
 
-    // 로그인 확인 + ?q= 자동 채팅 트리거
+    // 로그인 확인 + 플랜/Google 연동 여부 확인 + ?q= 자동 채팅 트리거
     useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => {
-            const loggedIn = !!data.user;
+        const init = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            const loggedIn = !!user;
             setIsLoggedIn(loggedIn);
+
+            if (loggedIn && user) {
+                // Google OAuth 여부 확인
+                const { data: session } = await supabase.auth.getSession();
+                const provider = session?.session?.user?.app_metadata?.provider;
+                setIsGoogleLinked(provider === "google");
+
+                // 플랜 확인
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("plan")
+                    .eq("id", user.id)
+                    .single();
+                if (profile?.plan === "pro") setUserPlan("pro");
+            }
+
             const qParam = searchParams.get("q");
             if (qParam && !isInitialized.current) {
                 isInitialized.current = true;
                 if (loggedIn) {
-                    // 로그인 상태 → 바로 채팅 시작
                     setPendingMessage(qParam);
                 } else {
-                    // 미로그인 → 로그인 모달
                     setPendingMessage(qParam);
                     setShowAuthModal(true);
                 }
             }
-        });
+        };
+        init();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -160,6 +185,11 @@ export function AiAssistantClient() {
     const runEmailScan = useCallback(async () => {
         setIsAnalyzing(true);
         setIsBottomSheetOpen(true);
+        // 로딩 중 안내 메시지
+        addMsg({
+            role: "assistant",
+            content: "Gmail을 분석하고 있어요... ✉️\n이메일에서 구독/결제 내역을 찾는 중입니다. 잠시만 기다려주세요!",
+        });
         try {
             const res = await fetch("/api/scan-emails", {
                 method: "POST",
@@ -168,13 +198,30 @@ export function AiAssistantClient() {
             });
             if (res.ok) {
                 const data = await res.json();
-                setDashboardResult({ type: "legacyList", ...data, scannedAt: new Date().toISOString() });
-                addMsg({
-                    role: "assistant",
-                    content: `스캔 완료! 현재 확인된 구독/정기결제 내역이에요 😊\n(MVP 버전이라 모든 데이터가 잡히진 않을 수 있어요)\n우측에서 확인 후 불필요한 항목은 삭제하고 저장해주세요!`,
-                });
+                if (data.items && data.items.length > 0) {
+                    setDashboardResult({ type: "legacyList", items: data.items, scannedAt: new Date().toISOString() });
+                    addMsg({
+                        role: "assistant",
+                        content: `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 구독/정기결제 내역을 찾았어요.\n우측에서 확인 후 불필요한 항목은 삭제하고 저장할 수 있어요!`,
+                    });
+                } else {
+                    addMsg({
+                        role: "assistant",
+                        content: data.message ?? "이메일에서 정기 구독 내역을 찾지 못했어요 😔\n결제 관련 메일이 없거나, 분석 가능한 형식의 영수증 메일이 없을 수 있어요.",
+                    });
+                }
             } else {
-                throw new Error();
+                const errData = await res.json();
+                // Google 연동이 필요한 경우
+                if (errData.requires_auth) {
+                    addMsg({
+                        role: "assistant",
+                        content: "Gmail 연동이 필요해요! 아래 버튼을 눌러 Google 계정을 연결해주세요.",
+                        actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
+                    });
+                } else {
+                    throw new Error();
+                }
             }
         } catch {
             addMsg({ role: "assistant", content: "이메일 스캔 중 오류가 발생했어요. 잠시 후 다시 시도해주세요." });
@@ -182,45 +229,52 @@ export function AiAssistantClient() {
         setIsAnalyzing(false);
     }, []);
 
+    // ── 액션 버튼 핸들러 ─────────────────────────────────────
+    const handleActionButton = useCallback(async (action: ActionButton["action"]) => {
+        if (action === "goToPlans") {
+            router.push("/plans");
+        } else if (action === "linkGmail" || action === "runScan") {
+            if (action === "linkGmail") {
+                // Google OAuth 재연동 (gmail.readonly 스코프 포함)
+                await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo: `${window.location.origin}/ai-assistant`,
+                        queryParams: { access_type: "offline", prompt: "consent" },
+                        scopes: "email profile https://www.googleapis.com/auth/gmail.readonly",
+                    },
+                });
+            } else {
+                // 이미 연동됨 → 바로 스캔 실행
+                runEmailScan();
+            }
+        }
+    }, [router, supabase, runEmailScan]);
+
     // ── 선택지 버튼 클릭 ─────────────────────────────────────
     const handleChoiceSelect = useCallback(async (choiceId: string, choiceLabel: string) => {
-        // 선택지 버튼 숨기기 (클릭한 것만 남기기)
         setMessages(prev => prev.map(m => m.choices ? { ...m, choices: undefined } : m));
-
-        // 유저 선택 메시지 추가
         addMsg({ role: "user", content: choiceLabel });
 
         if (choiceId === "subscription" || choiceId === "cloud") {
-            // 마이데이터 연동 (MVP 프론트엔드 모의 구현)
-            addMsg({
-                role: "assistant",
-                content: `해당 내역을 찾아드릴게요! 🔍\n마이데이터 연동을 통해 최근 결제 내역을 분석합니다.\n잠시만 기다려주세요...`,
-            });
-
-            // 우측 대시보드 로딩 표시
-            setIsAnalyzing(true);
-            setIsBottomSheetOpen(true);
-            setDashboardResult(null);
-
-            // 가짜 딜레이 (2.5초)
-            setTimeout(() => {
-                const mockItems = [
-                    { id: "1", service: "넷플릭스", cost: "17,000원", date: "매월 15일", category: "OTT" },
-                    { id: "2", service: "유튜브 프리미엄", cost: "14,900원", date: "매월 2일", category: "OTT" },
-                    { id: "3", service: "쿠팡 로켓와우", cost: "4,990원", date: "매월 11일", category: "쇼핑" },
-                ];
-                if (choiceId === "cloud") {
-                    mockItems.push({ id: "4", service: "iCloud 200GB", cost: "3,300원", date: "매월 5일", category: "클라우드" });
-                }
-
-                setIsAnalyzing(false);
-                setDashboardResult({ type: "legacyList", items: mockItems, scannedAt: new Date().toISOString() });
-
+            // ── 1) PRO 요금제 확인 ──────────────────────────────────
+            if (userPlan !== "pro") {
                 addMsg({
                     role: "assistant",
-                    content: `분석 완료! 현재 확인된 구독/정기결제 내역이에요 😊\n우측에서 확인 후 불필요한 항목은 삭제하고 저장해주세요!\n\n(직접 추가하고 싶은 항목이 있다면 채팅으로 계속 입력해주세요)`,
+                    content: `실제 Gmail 연동을 통한 구독 내역 분석은 **PRO 플랜** 전용 기능이에요 👑\n\n지금 바로 업그레이드하면 이메일을 전수 분석해서 놓친 구독 내역까지 모두 찾아드려요!`,
+                    actionButtons: [{ label: "PRO 플랜 업그레이드하기", icon: "crown", style: "primary", action: "goToPlans" }],
                 });
-            }, 2500);
+                return;
+            }
+
+            // ── 2) 구글 계정 연동 여부 확인 ────────────────────────
+            addMsg({
+                role: "assistant",
+                content: `알겠습니다! 📧 Gmail을 직접 분석해서 실제 구독/정기결제 내역을 찾아드릴게요.\n\n구글 계정의 이메일 읽기 권한이 필요해요. 연동하시겠어요?`,
+                actionButtons: isGoogleLinked
+                    ? [{ label: "Gmail 스캔 시작하기", icon: "mail", style: "primary", action: "runScan" }]
+                    : [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
+            });
 
         } else if (choiceId === "social") {
             addMsg({
@@ -233,7 +287,7 @@ export function AiAssistantClient() {
                 content: `어떤 디지털 유산에 대해 궁금하신가요? 편하게 말씀해주세요 😊`,
             });
         }
-    }, []);
+    }, [userPlan, isGoogleLinked]);
 
     // ── 채팅 전송 처리 ───────────────────────────────────────
     const handleSendMessage = useCallback(async (text: string) => {
@@ -498,6 +552,26 @@ export function AiAssistantClient() {
                                                             >
                                                                 <p className="font-bold text-slate-800">{c.label}</p>
                                                                 <p className="text-xs text-slate-400 mt-0.5">{c.desc}</p>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* 액션 버튼 */}
+                                                {msg.actionButtons && (
+                                                    <div className="flex flex-col gap-2 mt-2">
+                                                        {msg.actionButtons.map((btn, i) => (
+                                                            <button
+                                                                key={i}
+                                                                onClick={() => handleActionButton(btn.action)}
+                                                                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all ${btn.style === "primary"
+                                                                        ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                                                        : "bg-white border-2 border-slate-200 hover:border-blue-400 text-slate-800"
+                                                                    }`}
+                                                            >
+                                                                {btn.icon === "mail" && <Mail className="w-4 h-4" />}
+                                                                {btn.icon === "crown" && <Crown className="w-4 h-4" />}
+                                                                {btn.label}
                                                             </button>
                                                         ))}
                                                     </div>

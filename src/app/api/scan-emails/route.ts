@@ -48,10 +48,12 @@ export async function POST(req: NextRequest) {
         if (provider === "google" && providerToken) {
             emailTexts = await scanGmailEmails(providerToken);
         } else {
+            // Google으로 로그인하지 않았거나 providerToken이 없음
+            // 프론트엔드에서 Gmail 연동 버튼을 표시하도록 requires_auth 반환
             return NextResponse.json({
-                items: [],
-                message: "Google 계정으로 로그인하면 이메일을 자동 분석할 수 있어요!"
-            });
+                requires_auth: true,
+                message: "Gmail 연동이 필요합니다. Google 계정으로 이메일 읽기 권한을 허용해주세요.",
+            }, { status: 403 });
         }
 
         if (!emailTexts.trim()) {
