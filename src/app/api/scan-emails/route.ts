@@ -90,11 +90,14 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
 
         // 여러 검색 쿼리로 넘게 잡기
         const queries = [
-            // 한/영문 혼합 결제 키워드 (subject + body 전체)
-            "(결제 OR 구독 OR 청구서 OR 영수증 OR 정기결제 OR 월정액 OR payment OR subscription OR receipt OR invoice OR billing OR renewal OR charged) newer_than:365d",
-            // 알려진 구독 서비스 신쟣자
-            "from:(netflix.com OR spotify.com OR apple.com OR google.com OR youtube.com OR coupang.com OR kakao.com OR naver.com OR discord.com OR notion.so OR adobe.com OR microsoft.com OR amazon.com OR chatgpt.com OR openai.com OR midjourney.com OR figma.com OR github.com OR slack.com OR zoom.us) newer_than:365d",
+            // 한국어 결제/구독 키워드 (제목+본문 전체)
+            "(결제 OR 구독 OR 청구 OR 청구서 OR 영수증 OR 정기결제 OR 정기구독 OR 월정액 OR 자동결제 OR 자동이체 OR 카드결제 OR 이용내역 OR 결제완료 OR 결제확인 OR 구독갱신 OR 갱신 OR 해지 OR 취소 OR 구독료) newer_than:365d",
+            // 영어 결제/구독 키워드
+            "(payment OR subscription OR receipt OR invoice OR billing OR renewal OR charged OR charge OR auto-renewal OR monthly OR annual OR plan OR \"your plan\" OR \"thank you for subscribing\" OR \"payment confirmed\" OR \"payment successful\" OR \"order confirmation\" OR \"payment receipt\" OR \"credit card\" OR \"debit card\" OR \"auto pay\" OR \"autopay\") newer_than:365d",
+            // 알려진 구독 서비스 발신자 도메인 (한국+글로벌)
+            "from:(netflix.com OR spotify.com OR apple.com OR google.com OR youtube.com OR coupang.com OR kakao.com OR naver.com OR discord.com OR notion.so OR adobe.com OR microsoft.com OR amazon.com OR chatgpt.com OR openai.com OR midjourney.com OR figma.com OR github.com OR slack.com OR zoom.us OR watcha.com OR wavve.com OR tving.com OR melon.com OR genie.co.kr OR vibe.naver.com OR hulu.com OR disneyplus.com OR max.com OR paramount.com OR dropbox.com OR icloud.com) newer_than:365d",
         ];
+
 
         const seenIds = new Set<string>();
         const emailBodies: string[] = [];
