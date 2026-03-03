@@ -245,12 +245,64 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                 )}
 
                 {/* 리스트 */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-3">
-                    <AnimatePresence>
-                        {items.map((item) => (
-                            <LegacyCard key={item.id} item={item} onDelete={handleDeleteItem} />
-                        ))}
-                    </AnimatePresence>
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* 1. 유료 구독 서비스 */}
+                    {items.filter(item => !item.cost.includes("무료") && !item.cost.includes("알 수 없음")).length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="w-1 h-4 bg-rose-500 rounded-full" />
+                                <h3 className="text-sm font-bold text-slate-800">유료 구독 서비스</h3>
+                            </div>
+                            <div className="space-y-3">
+                                <AnimatePresence>
+                                    {items
+                                        .filter(item => !item.cost.includes("무료") && !item.cost.includes("알 수 없음"))
+                                        .map((item) => (
+                                            <EnhancedLegacyCard
+                                                key={item.id}
+                                                item={item}
+                                                onDelete={handleDeleteItem}
+                                                onUpdate={(updated) => {
+                                                    onResultChange({
+                                                        ...result,
+                                                        items: items.map(it => it.id === updated.id ? updated : it)
+                                                    });
+                                                }}
+                                            />
+                                        ))}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. 일반 이용 서비스 */}
+                    {items.filter(item => item.cost.includes("무료") || item.cost.includes("알 수 없음")).length > 0 && (
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className="w-1 h-4 bg-blue-500 rounded-full" />
+                                <h3 className="text-sm font-bold text-slate-800">일반 이용 서비스</h3>
+                            </div>
+                            <div className="space-y-3">
+                                <AnimatePresence>
+                                    {items
+                                        .filter(item => item.cost.includes("무료") || item.cost.includes("알 수 없음"))
+                                        .map((item) => (
+                                            <EnhancedLegacyCard
+                                                key={item.id}
+                                                item={item}
+                                                onDelete={handleDeleteItem}
+                                                onUpdate={(updated) => {
+                                                    onResultChange({
+                                                        ...result,
+                                                        items: items.map(it => it.id === updated.id ? updated : it)
+                                                    });
+                                                }}
+                                            />
+                                        ))}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    )}
 
                     {items.length === 0 && (
                         <div className="text-center py-12 text-slate-400 text-sm">
@@ -264,7 +316,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                             더 남기고 싶은 유산이 있으신가요?
                         </p>
                         <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-                            스캔으로 찾지 못한 계정이나 직접 기록하고 싶은 정보가있다면 아래 버튼을 이용해주세요.
+                            스캔으로 찾지 못한 계정이나 직접 기록하고 싶은 정보가 있다면 아래 버튼을 이용해주세요.
                         </p>
                         <button
                             onClick={() => router.push("/vault/create")}
@@ -283,37 +335,113 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
     return null;
 }
 
-// 개별 유산 카드
-function LegacyCard({ item, onDelete }: { item: LegacyItem; onDelete: (id: string) => void }) {
+interface EnhancedLegacyCardProps {
+    item: LegacyItem;
+    onDelete: (id: string) => void;
+    onUpdate: (item: LegacyItem) => void;
+}
+
+function EnhancedLegacyCard({ item, onDelete, onUpdate }: EnhancedLegacyCardProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
     const colorClass = CATEGORY_COLORS[item.category] ?? CATEGORY_COLORS["기타"];
+
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95, height: 0 }}
+            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all"
         >
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${colorClass}`}>
-                        {item.category}
-                    </span>
+            <div
+                className="p-4 flex items-center gap-4 cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${colorClass}`}>
+                            {item.category}
+                        </span>
+                    </div>
+                    <p className="font-bold text-slate-900 text-sm truncate">{item.service}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] font-medium text-slate-500">{item.cost}</span>
+                        <span className="text-slate-300 text-[10px]">|</span>
+                        <span className="text-[11px] text-slate-400">
+                            {item.date.includes("갱신") || item.date.includes("결제") ? item.date : `갱신예정: ${item.date}`}
+                        </span>
+                    </div>
                 </div>
-                <p className="font-bold text-slate-900 text-sm truncate">{item.service}</p>
-                <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-slate-500">{item.cost}</span>
-                    <span className="text-xs text-slate-400">·</span>
-                    <span className="text-xs text-slate-500">{item.date.includes("갱신") || item.date.includes("결제") ? item.date : `다음 갱신/결제일: ${item.date}`}</span>
+
+                <div className="flex items-center gap-2">
+                    {!isExpanded && (
+                        <span className="text-[10px] text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
+                            정보 입력
+                        </span>
+                    )}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(item.id);
+                        }}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                    <div className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <button
-                onClick={() => onDelete(item.id)}
-                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-            >
-                <Trash2 className="w-4 h-4" />
-            </button>
+
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="px-4 pb-5 border-t border-slate-50 space-y-4 pt-4"
+                    >
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1">아이디 (ID)</label>
+                                <input
+                                    type="text"
+                                    value={item.username || ""}
+                                    onChange={(e) => onUpdate({ ...item, username: e.target.value })}
+                                    placeholder="계정 아이디 입력"
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-500 ml-1">비밀번호 (PW)</label>
+                                <input
+                                    type="text"
+                                    value={item.password || ""}
+                                    onChange={(e) => onUpdate({ ...item, password: e.target.value })}
+                                    placeholder="비밀번호 힌트 등"
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-slate-500 ml-1">관련 메모</label>
+                            <textarea
+                                value={item.memo || ""}
+                                onChange={(e) => onUpdate({ ...item, memo: e.target.value })}
+                                placeholder="남기고 싶은 정보를 적어주세요 (예: 매달 가족 공유 중)"
+                                rows={2}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }

@@ -48,7 +48,16 @@ export type DashboardResult =
     | { type: "legacyList"; items: LegacyItem[]; scannedAt?: string }
     | null;
 
-export type LegacyItem = { id: string; service: string; cost: string; date: string; category: string };
+export type LegacyItem = {
+    id: string;
+    service: string;
+    cost: string;
+    date: string;
+    category: string;
+    username?: string;
+    password?: string;
+    memo?: string;
+};
 
 export type ActionButton = {
     label: string;

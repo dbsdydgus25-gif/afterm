@@ -31,11 +31,21 @@ export async function POST(req: NextRequest) {
         // 디지털 유산 리스트 저장
         if (result.type === "legacyList" && Array.isArray(result.items)) {
             const vaultItems = result.items.map((item: {
-                service: string; cost: string; date: string; category: string;
+                service: string;
+                cost: string;
+                date: string;
+                category: string;
+                username?: string;
+                password?: string;
+                memo?: string;
             }) => ({
                 user_id: user.id,
                 platform_name: item.service,
-                notes: `${item.category} | ${item.cost} | 결제일: ${item.date}`,
+                account_id: item.username || "",
+                // PIN이 없으므로 암호화 없이 일시적으로 notes나 별도 처리가 필요할 수 있음
+                // 여기서는 일단 notes에 합쳐서 저장하도록 대응 (기본 vault UI와 호환)
+                notes: `[AI 스캔] ${item.category} | ${item.cost} | 결제일: ${item.date}${item.password ? ` | 패스워드: ${item.password}` : ""}${item.memo ? ` | 메모: ${item.memo}` : ""}`,
+                category: "subscription" // 기본값
             }));
 
             const { error } = await supabase.from("vault_items").insert(vaultItems);
