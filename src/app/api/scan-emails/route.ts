@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(SCAN_PROMPT(emailTexts));
         const rawText = result.response.text().trim();
 
@@ -91,76 +91,57 @@ async function scanGmailEmails(accessToken: string): Promise<{ emailTexts: strin
         auth.setCredentials({ access_token: accessToken });
         const gmail = google.gmail({ version: "v1", auth });
 
-        // 전략 1: INBOX 직접 읽기
-        try {
-            const listRes = await gmail.users.messages.list({
-                userId: "me",
-                labelIds: ["INBOX"],
-                maxResults: 100,
-            });
-            const messages = listRes.data.messages ?? [];
-            inboxCount = messages.length;
-            console.log(`[Gmail] INBOX 메시지 수: ${inboxCount}`);
-
-            for (const msg of messages) {
-                if (!msg.id || processedMessageIds.has(msg.id)) continue;
-                processedMessageIds.add(msg.id);
-                try {
-                    const msgData = await gmail.users.messages.get({
+        // 헬퍼: 메시지 ID 목록 → 메타데이터 병렬 패치
+        const fetchMeta = async (ids: string[]) => {
+            const results = await Promise.allSettled(
+                ids.map(id =>
+                    gmail.users.messages.get({
                         userId: "me",
-                        id: msg.id,
+                        id,
                         format: "metadata",
                         metadataHeaders: ["Subject", "From", "Date"],
-                    });
-                    const headers = msgData.data.payload?.headers ?? [];
+                    })
+                )
+            );
+            return results
+                .filter((r): r is PromiseFulfilledResult<typeof r extends PromiseFulfilledResult<infer T> ? T : never> => r.status === "fulfilled")
+                .map(r => {
+                    const d = (r as PromiseFulfilledResult<{ data: { payload?: { headers?: { name?: string; value?: string }[] }; snippet?: string } }>).value.data;
+                    const headers = d.payload?.headers ?? [];
                     const subject = headers.find(h => h.name === "Subject")?.value ?? "";
                     const from = headers.find(h => h.name === "From")?.value ?? "";
                     const date = headers.find(h => h.name === "Date")?.value ?? "";
-                    const snippet = msgData.data.snippet ?? "";
-                    emailBodies.push(`제목: ${subject}\n발신자: ${from}\n날짜: ${date}\n내용: ${snippet}`);
-                } catch (e) {
-                    lastError = String(e);
-                }
-            }
+                    const snippet = d.snippet ?? "";
+                    return `제목: ${subject}\n발신자: ${from}\n날짜: ${date}\n내용: ${snippet}`;
+                });
+        };
+
+        // INBOX 최근 25개
+        try {
+            const listRes = await gmail.users.messages.list({ userId: "me", labelIds: ["INBOX"], maxResults: 25 });
+            const ids = (listRes.data.messages ?? []).map(m => m.id!).filter(Boolean);
+            inboxCount = ids.length;
+            console.log(`[Gmail] INBOX: ${inboxCount}개`);
+            const texts = await fetchMeta(ids);
+            emailBodies.push(...texts);
         } catch (e) {
             lastError = String(e);
-            console.error("[Gmail] INBOX 읽기 실패:", e);
+            console.error("[Gmail] INBOX 실패:", e);
         }
 
-        // 전략 2: 프로모션 탭 읽기 (영수증/결제 메일이 여기 분류됨)
+        // PROMOTIONS 최근 25개 (결제/영수증 메일 대부분 여기)
         try {
-            const promoRes = await gmail.users.messages.list({
-                userId: "me",
-                labelIds: ["CATEGORY_PROMOTIONS"],
-                maxResults: 100,
-            });
-            const promoMessages = promoRes.data.messages ?? [];
-            promoCount = promoMessages.length;
-            console.log(`[Gmail] PROMOTIONS 메시지 수: ${promoCount}`);
-
-            for (const msg of promoMessages) {
-                if (!msg.id || processedMessageIds.has(msg.id)) continue;
-                processedMessageIds.add(msg.id);
-                try {
-                    const msgData = await gmail.users.messages.get({
-                        userId: "me",
-                        id: msg.id,
-                        format: "metadata",
-                        metadataHeaders: ["Subject", "From", "Date"],
-                    });
-                    const headers = msgData.data.payload?.headers ?? [];
-                    const subject = headers.find(h => h.name === "Subject")?.value ?? "";
-                    const from = headers.find(h => h.name === "From")?.value ?? "";
-                    const date = headers.find(h => h.name === "Date")?.value ?? "";
-                    const snippet = msgData.data.snippet ?? "";
-                    emailBodies.push(`제목: ${subject}\n발신자: ${from}\n날짜: ${date}\n내용: ${snippet}`);
-                } catch (e) {
-                    lastError = String(e);
-                }
-            }
+            const promoRes = await gmail.users.messages.list({ userId: "me", labelIds: ["CATEGORY_PROMOTIONS"], maxResults: 25 });
+            const ids = (promoRes.data.messages ?? [])
+                .map(m => m.id!)
+                .filter(id => id && !processedMessageIds.has(id));
+            promoCount = ids.length;
+            console.log(`[Gmail] PROMOTIONS: ${promoCount}개`);
+            const texts = await fetchMeta(ids);
+            emailBodies.push(...texts);
         } catch (e) {
             lastError = String(e);
-            console.error("[Gmail] PROMOTIONS 읽기 실패:", e);
+            console.error("[Gmail] PROMOTIONS 실패:", e);
         }
 
     } catch (error) {
