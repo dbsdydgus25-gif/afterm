@@ -226,20 +226,30 @@ export function AiAssistantClient() {
 
                 }
             } else {
-                const errData = await res.json();
-                // Google 연동이 필요한 경우
-                if (errData.requires_auth) {
+                let errData;
+                let errText = await res.text();
+                try {
+                    errData = JSON.parse(errText);
+                } catch {
+                    // Not JSON (e.g., Vercel 504 Gateway Timeout HTML page)
+                }
+
+                if (errData?.requires_auth) {
                     addMsg({
                         role: "assistant",
                         content: "Gmail 연동이 필요해요! 아래 버튼을 눌러 Google 계정을 연결해주세요.",
                         actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
                     });
                 } else {
-                    throw new Error();
+                    throw new Error(errData?.detail || errData?.error || errText || `서버 오류 (${res.status})`);
                 }
             }
-        } catch {
-            addMsg({ role: "assistant", content: "이메일 스캔 중 오류가 발생했어요. 잠시 후 다시 시도해주세요." });
+        } catch (error: any) {
+            console.error("[runEmailScan Error]", error);
+            addMsg({
+                role: "assistant",
+                content: `이메일 스캔 중 오류가 발생했어요.\n\n[상세 내역]\n${error.message || String(error)}`
+            });
         }
         setIsAnalyzing(false);
     }, []);
