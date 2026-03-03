@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const model = genai.getGenerativeModel({ model: "gemini-pro" });
+        const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts));
         const rawText = result.response.text().trim();
 
