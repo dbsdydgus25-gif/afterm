@@ -213,10 +213,17 @@ export function AiAssistantClient() {
                         content: `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 구독/정기결제 내역을 찾았어요.\n우측에서 확인 후 불필요한 항목은 삭제하고 저장할 수 있어요!`,
                     });
                 } else {
+                    const debug = data.debug;
+                    let debugMsg = "";
+                    if (debug) {
+                        debugMsg = `\n\n[진단 정보]\n• 토큰 수신: ${debug.tokenReceived ? "✅" : "❌"}\n• 받은편지함: ${debug.inboxCount ?? 0}개\n• 프로모션함: ${debug.promoCount ?? 0}개`;
+                        if (debug.scanError) debugMsg += `\n• 오류: ${debug.scanError}`;
+                    }
                     addMsg({
                         role: "assistant",
-                        content: data.message ?? "이메일에서 정기 구독 내역을 찾지 못했어요 😔\n결제 관련 메일이 없거나, 분석 가능한 형식의 영수증 메일이 없을 수 있어요.",
+                        content: (data.message ?? "이메일에서 정기 구독 내역을 찾지 못했어요.") + debugMsg,
                     });
+
                 }
             } else {
                 const errData = await res.json();

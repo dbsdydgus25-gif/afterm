@@ -40,25 +40,27 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // provider_token은 클라이언트 세션에만 의존하나 SSR 서버에서는 접근 불가
-        // 프론트에서 직접 body로 전달받는다
         const body = await req.json().catch(() => ({}));
         const providerToken: string | undefined = body?.providerToken;
 
-        console.log("[Scan Emails] providerToken 존재:", !!providerToken);
+        console.log("[Scan Emails] providerToken 존재:", !!providerToken, "길이:", providerToken?.length ?? 0);
 
         if (!providerToken) {
             return NextResponse.json({
                 requires_auth: true,
-                message: "Gmail 연동이 필요합니다. Google 계정으로 이메일 읽기 권한을 허용해주세요.",
+                message: "Gmail 연동이 필요합니다.",
             }, { status: 403 });
         }
 
-        const emailTexts = await scanGmailEmails(providerToken);
-        console.log("[Scan Emails] 수집된 이메일 텍스트 길이:", emailTexts.length);
+        const { emailTexts, inboxCount, promoCount, error: scanError } = await scanGmailEmails(providerToken);
+        console.log("[Scan Emails] INBOX:", inboxCount, "PROMO:", promoCount, "텍스트 길이:", emailTexts.length, "오류:", scanError);
 
         if (!emailTexts.trim()) {
-            return NextResponse.json({ items: [], message: "구독/결제 관련 이메일을 찾지 못했어요. Gmail에 정기 결제 이메일이 있으신가요?" });
+            return NextResponse.json({
+                items: [],
+                message: "구독/결제 관련 이메일을 찾지 못했어요. Gmail에 정기 결제 이메일이 있으신가요?",
+                debug: { tokenReceived: true, inboxCount, promoCount, scanError },
+            });
         }
 
         const model = genai.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
@@ -68,30 +70,28 @@ export async function POST(req: NextRequest) {
         const jsonMatch = rawText.match(/\[[\s\S]*\]/);
         let items: unknown[] = [];
         if (jsonMatch) {
-            try {
-                items = JSON.parse(jsonMatch[0]);
-            } catch {
-                items = [];
-            }
+            try { items = JSON.parse(jsonMatch[0]); } catch { items = []; }
         }
 
-        return NextResponse.json({ items });
+        return NextResponse.json({ items, debug: { tokenReceived: true, inboxCount, promoCount, scanError } });
     } catch (error) {
         console.error("[Scan Emails Error]", error);
-        return NextResponse.json({ error: "이메일 스캔 중 오류가 발생했습니다." }, { status: 500 });
+        return NextResponse.json({ error: "이메일 스캔 중 오류가 발생했습니다.", detail: String(error) }, { status: 500 });
     }
 }
+async function scanGmailEmails(accessToken: string): Promise<{ emailTexts: string; inboxCount: number; promoCount: number; error?: string }> {
+    const emailBodies: string[] = [];
+    const processedMessageIds = new Set<string>(); // To prevent duplicates across INBOX and PROMOTIONS
+    let inboxCount = 0;
+    let promoCount = 0;
+    let lastError = "";
 
-async function scanGmailEmails(accessToken: string): Promise<string> {
     try {
         const auth = new google.auth.OAuth2();
         auth.setCredentials({ access_token: accessToken });
         const gmail = google.gmail({ version: "v1", auth });
 
-        const emailBodies: string[] = [];
-
-        // 전략 1: 받은 편지함에서 최근 100개 직접 읽기 (검색 쿼리 없이)
-        // → Gmail 검색 쿼리 파싱 문제를 완전히 우회
+        // 전략 1: INBOX 직접 읽기
         try {
             const listRes = await gmail.users.messages.list({
                 userId: "me",
@@ -99,10 +99,12 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
                 maxResults: 100,
             });
             const messages = listRes.data.messages ?? [];
-            console.log(`[Gmail] INBOX 메시지 수: ${messages.length}`);
+            inboxCount = messages.length;
+            console.log(`[Gmail] INBOX 메시지 수: ${inboxCount}`);
 
             for (const msg of messages) {
-                if (!msg.id) continue;
+                if (!msg.id || processedMessageIds.has(msg.id)) continue;
+                processedMessageIds.add(msg.id);
                 try {
                     const msgData = await gmail.users.messages.get({
                         userId: "me",
@@ -116,14 +118,16 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
                     const date = headers.find(h => h.name === "Date")?.value ?? "";
                     const snippet = msgData.data.snippet ?? "";
                     emailBodies.push(`제목: ${subject}\n발신자: ${from}\n날짜: ${date}\n내용: ${snippet}`);
-                } catch { /* 개별 메시지 실패 무시 */ }
+                } catch (e) {
+                    lastError = String(e);
+                }
             }
         } catch (e) {
+            lastError = String(e);
             console.error("[Gmail] INBOX 읽기 실패:", e);
         }
 
-        // 전략 2: 보낸 편지함/프로모션 탭도 추가로 읽기
-        // (많은 구독 영수증이 프로모션 탭으로 분류됨)
+        // 전략 2: 프로모션 탭 읽기 (영수증/결제 메일이 여기 분류됨)
         try {
             const promoRes = await gmail.users.messages.list({
                 userId: "me",
@@ -131,12 +135,12 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
                 maxResults: 100,
             });
             const promoMessages = promoRes.data.messages ?? [];
-            console.log(`[Gmail] PROMOTIONS 메시지 수: ${promoMessages.length}`);
+            promoCount = promoMessages.length;
+            console.log(`[Gmail] PROMOTIONS 메시지 수: ${promoCount}`);
 
-            const seenIds = new Set(emailBodies.map((_, i) => i.toString()));
             for (const msg of promoMessages) {
-                if (!msg.id || seenIds.has(msg.id)) continue;
-                seenIds.add(msg.id);
+                if (!msg.id || processedMessageIds.has(msg.id)) continue;
+                processedMessageIds.add(msg.id);
                 try {
                     const msgData = await gmail.users.messages.get({
                         userId: "me",
@@ -150,17 +154,25 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
                     const date = headers.find(h => h.name === "Date")?.value ?? "";
                     const snippet = msgData.data.snippet ?? "";
                     emailBodies.push(`제목: ${subject}\n발신자: ${from}\n날짜: ${date}\n내용: ${snippet}`);
-                } catch { /* 개별 메시지 실패 무시 */ }
+                } catch (e) {
+                    lastError = String(e);
+                }
             }
         } catch (e) {
+            lastError = String(e);
             console.error("[Gmail] PROMOTIONS 읽기 실패:", e);
         }
 
-        console.log(`[Gmail] 최종 수집 이메일 수: ${emailBodies.length}개`);
-        // Gemini 토큰 절약을 위해 최대 150개만 전달
-        return emailBodies.slice(0, 150).join("\n---\n");
     } catch (error) {
+        lastError = String(error);
         console.error("[Gmail Scan Error]", error);
-        return "";
     }
+
+    console.log(`[Gmail] 최종 수집 이메일: ${emailBodies.length}개, 오류: ${lastError}`);
+    return {
+        emailTexts: emailBodies.slice(0, 150).join("\n---\n"),
+        inboxCount,
+        promoCount,
+        error: lastError || undefined,
+    };
 }
