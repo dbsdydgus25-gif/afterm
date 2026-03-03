@@ -172,56 +172,6 @@ export function AiAssistantClient() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // ✨ 채팅 중 뒤로가기/이탈 방지 경고 추가
-    useEffect(() => {
-        if (!isChatMode) return;
-
-        // 브라우저 새로고침/종료 방지
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            e.preventDefault();
-            e.returnValue = "지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?";
-        };
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        // Next.js 내부 라우팅(Link) 클릭 방해
-        const handleLinkClick = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            const anchor = target.closest("a");
-
-            if (anchor && anchor.href && anchor.target !== "_blank") {
-                const isInternal = anchor.href.startsWith(window.location.origin);
-                // 현재 페이지 해시 이동은 제외
-                if (isInternal && !anchor.href.includes("#")) {
-                    const confirmLeave = window.confirm("지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?");
-                    if (!confirmLeave) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                }
-            }
-        };
-        document.addEventListener("click", handleLinkClick, { capture: true });
-
-        // 브라우저 뒤로가기(팝스테이트) 감지 스니펫
-        window.history.pushState(null, "", window.location.href);
-        const handlePopState = () => {
-            const confirmLeave = window.confirm("지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?");
-            if (!confirmLeave) {
-                // 뒤로가기 취소 시 다시 히스토리 밀어넣기
-                window.history.pushState(null, "", window.location.href);
-            } else {
-                window.history.back();
-            }
-        };
-        window.addEventListener("popstate", handlePopState);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-            document.removeEventListener("click", handleLinkClick, { capture: true });
-            window.removeEventListener("popstate", handlePopState);
-        };
-    }, [isChatMode]);
-
     // ── 메시지 추가 헬퍼 ──────────────────────────────────────
     const addMsg = (msg: Omit<ChatMessage, "id">) => {
         const newMsg = { ...msg, id: Date.now().toString() + Math.random() };
@@ -409,9 +359,8 @@ export function AiAssistantClient() {
             setInputValue("");
         }, 10);
 
-        // 디지털 유산 관련 (첫 메시지) → Gmail 연동 동의 요청 (Yes/No)
-        const isFirstMessage = messagesRef.current.filter(m => m.role === "user").length === 0;
-        const isLegacyIntent = isFirstMessage && /디지털 유산|유산|구독|계정|정리|관리|데이터|클라우드/.test(trimmed);
+        // 대화 중 언제든지 자산/유산/구독 정리 요청 감지 시 Gmail 연동 동의 요청
+        const isLegacyIntent = /디지털 유산|유산 정리|유산 찾아|자산 찾아|구독|결제 내역|결제내역|구독한거|계정 찾아/.test(trimmed);
 
         if (isLegacyIntent) {
             addMsg({

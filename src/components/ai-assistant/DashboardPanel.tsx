@@ -305,7 +305,7 @@ function LegacyCard({ item, onDelete }: { item: LegacyItem; onDelete: (id: strin
                 <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs text-slate-500">{item.cost}</span>
                     <span className="text-xs text-slate-400">·</span>
-                    <span className="text-xs text-slate-500">{item.date}</span>
+                    <span className="text-xs text-slate-500">{item.date.includes("갱신") || item.date.includes("결제") ? item.date : `다음 갱신/결제일: ${item.date}`}</span>
                 </div>
             </div>
             <button

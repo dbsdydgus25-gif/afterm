@@ -7,21 +7,22 @@ const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 const SCAN_PROMPT = (emailTexts: string) => `
 다음은 사용자의 이메일 내용들입니다. 이 이메일들을 분석하여 "실제로 결제가 발생하고 있는" 정기 결제 및 구독 서비스 내역만 JSON 배열로 추출해주세요.
 
-[매우 엄격한 필터링 규칙 - 반드시 지킬 것]
-1. 단순 회원가입 환영 메일 (예: AFTERM 가입 환영), 뉴스레터 구독, 무료 서비스 안내 메일은 **절대 포함하지 마세요**.
-2. 이메일 본문에 실제 "결제 내역", "영수증", "승인번호", "갱신일", "다음 결제일", 통화 단위("원", "$") 등 **명확한 금전적 거래 증거**가 있는 서비스만 포함하세요. (예: Canva, n8n, Netflix 등)
-3. 구독 취소 확인 이메일, 결제 실패, 환불 처리 이메일이 있는 서비스는 제외하세요.
-4. 일회성 단순 쇼핑/배달 결제는 제외하고, 정기 구독/월정액 성격의 서비스만 포함하세요.
-5. 중복 서비스는 최신 것 하나만 포함하세요.
-6. 만약 이메일에서 확실하게 돈이 나가는 구독 서비스라고 판단할 수 없으면, **과감하게 제외하세요**. 추측해서 넣지 마세요.
+[매우 엄격한 필터링 규칙 - 2단계로 진행할 것]
+1단계: 먼저 이메일에 언급된 모든 서비스 가입, 구독, 환영 메일을 전부 찾아내세요.
+2단계: 그 중에서 실제 "결제 내역", "영수증(Receipt)", "인보이스(Invoice)", "승인번호", 통화 단위("원", "$") 등 **명확하게 돈이 결제된 증거**가 있거나, **확실한 다음 갱신일/결제일**이 적혀 있는 서비스만 최종 결과로 남기세요.
+3단계: 단순 회원가입 환영 메일 (예: AFTERM 가입 환영), 무료 계정 생성, 단순 가입, 뉴스레터 구독은 **반드시 제외**하세요.
+
+[필수 요구사항]
+- 중복 서비스는 가장 최신 결제/갱신 내역 하나만 포함하세요.
+- 일회성 단순 쇼핑(쿠팡 배달 등)은 제외하고, 월정액/구독/라이선스 갱신 성격의 서비스(예: Canva, n8n, Netflix, ChatGPT 등)만 포함하세요.
 
 [출력 형식 - JSON 배열만 출력, 다른 텍스트 금지]
 [
   {
     "id": "고유숫자",
-    "service": "서비스 이름 (예: Canva, n8n)",
+    "service": "서비스 이름 (예: Canva, n8n, Netflix 등)",
     "cost": "결제액 (예: 17,000원/월 또는 $15/month)",
-    "date": "다음 결제일 또는 갱신일 (예: 매월 15일, 2026년 4월 1일 등)",
+    "date": "다음 갱신/결제 날짜만 (예: 2026년 4월 1일)",
     "category": "생산성 툴|OTT|음악|클라우드|게임|기타 중 하나"
   }
 ]
@@ -58,23 +59,23 @@ export async function POST(req: NextRequest) {
         if (!providerToken) {
             return NextResponse.json({
                 requires_auth: true,
-                message: "Gmail 연동이 필요합니다.",
-            }, { status: 403 });
+                message: "Gmail 연동이 필요합니다."
+            }, { status: 400 });
         }
 
         const scanResult = await scanGmailEmails(providerToken);
         console.log("[Scan Emails] INBOX:", scanResult.inboxCount, "PROMO:", scanResult.promoCount, "오류:", scanResult.error);
 
-        if (!scanResult.emailTexts.trim()) {
+        if (!scanResult.emailTexts) {
             return NextResponse.json({
                 items: [],
-                message: "구독/결제 관련 이메일을 찾지 못했어요. Gmail에 정기 결제 이메일이 있으신가요?",
+                message: "최근 이메일에서 유용한 결제/구독 내역을 찾을 수 없습니다.",
                 debug: {
-                    tokenReceived: true,
                     inboxCount: scanResult.inboxCount,
                     promoCount: scanResult.promoCount,
                     scanError: scanResult.error,
-                },
+                    tokenReceived: !!providerToken
+                }
             });
         }
 
@@ -82,27 +83,35 @@ export async function POST(req: NextRequest) {
         const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts));
         const rawText = result.response.text().trim();
 
-        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-        let items: unknown[] = [];
-        if (jsonMatch) {
-            try { items = JSON.parse(jsonMatch[0]); } catch { items = []; }
+        console.log("[Gemini Raw Text]:", rawText);
+
+        try {
+            const jsonStart = rawText.indexOf("[");
+            const jsonEnd = rawText.lastIndexOf("]");
+            if (jsonStart === -1 || jsonEnd === -1) throw new Error("JSON 배열을 찾을 수 없음");
+
+            const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+            return NextResponse.json({
+                items: parsed,
+                debug: {
+                    inboxCount: scanResult.inboxCount,
+                    promoCount: scanResult.promoCount,
+                    tokenReceived: !!providerToken
+                }
+            });
+        } catch (jsonErr) {
+            console.error("Gemini JSON Parsing Error:", jsonErr, "Raw output:", rawText);
+            return NextResponse.json({ error: "AI 분석 결과 형식이 잘못되었습니다." }, { status: 500 });
         }
 
-        return NextResponse.json({
-            items,
-            debug: { tokenReceived: true, inboxCount: scanResult.inboxCount, promoCount: scanResult.promoCount }
-        });
-    } catch (error) {
-        console.error("[Scan Emails Error]", error);
-        return NextResponse.json({
-            error: "이메일 스캔 중 오류가 발생했습니다.",
-            detail: String(error),
-        }, { status: 500 });
+    } catch (e: any) {
+        console.error("Email scan error:", e);
+        return NextResponse.json({ error: e.message || "서버 오류가 발생했습니다." }, { status: 500 });
     }
 }
 
 async function scanGmailEmails(token: string) {
-    const emailBodies: string[] = [];
+    let emailBodies: string[] = [];
     let inboxCount = 0;
     let promoCount = 0;
     let lastError = "";
@@ -122,12 +131,11 @@ async function scanGmailEmails(token: string) {
         }
     };
 
-    // 최근 6개월 구매/영수증 관련 메일 검색 쿼리
-    // 영수증, 결제, 구독, 승인, receipt, invoice, payment 키워드
-    const query = encodeURIComponent(`newer_than:6m (결제 OR 영수증 OR 구독 OR 승인 OR receipt OR invoice OR payment)`);
+    // 최근 6개월 구매/가입/영수증 관련 메일 검색 쿼리 (최대한 넓게)
+    const query = encodeURIComponent(`newer_than:6m (결제 OR 영수증 OR 구독 OR 가입 OR 환영 OR 승인 OR receipt OR invoice OR payment OR subscription OR welcome)`);
 
     try {
-        const data = await gmailGet(token, `/messages?maxResults=40&q=${query}`);
+        const data = await gmailGet(token, `/messages?maxResults=60&q=${query}`);
         const msgs: { id: string }[] = data.messages ?? [];
         inboxCount = msgs.length;
         promoCount = 0; // 이제 쿼리 기반이라 하나로 통일
