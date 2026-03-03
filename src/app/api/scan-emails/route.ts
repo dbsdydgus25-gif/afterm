@@ -40,28 +40,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        const providerToken = sessionData?.session?.provider_token;
-        const provider = sessionData?.session?.user?.app_metadata?.provider;
+        // provider_token은 클라이언트 세션에만 의존하나 SSR 서버에서는 접근 불가
+        // 프론트에서 직접 body로 전달받는다
+        const body = await req.json().catch(() => ({}));
+        const providerToken: string | undefined = body?.providerToken;
 
-        let emailTexts = "";
+        console.log("[Scan Emails] providerToken 존재:", !!providerToken);
 
-        if (provider === "google" && providerToken) {
-            emailTexts = await scanGmailEmails(providerToken);
-        } else {
-            // Google으로 로그인하지 않았거나 providerToken이 없음
-            // 프론트엔드에서 Gmail 연동 버튼을 표시하도록 requires_auth 반환
+        if (!providerToken) {
             return NextResponse.json({
                 requires_auth: true,
                 message: "Gmail 연동이 필요합니다. Google 계정으로 이메일 읽기 권한을 허용해주세요.",
             }, { status: 403 });
         }
 
+        const emailTexts = await scanGmailEmails(providerToken);
+        console.log("[Scan Emails] 수집된 이메일 텍스트 길이:", emailTexts.length);
+
         if (!emailTexts.trim()) {
-            return NextResponse.json({ items: [], message: "분석할 이메일을 찾지 못했어요." });
+            return NextResponse.json({ items: [], message: "구독/결제 관련 이메일을 찾지 못했어요. Gmail에 정기 결제 이메일이 있으신가요?" });
         }
 
-        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
         const result = await model.generateContent(SCAN_PROMPT(emailTexts));
         const rawText = result.response.text().trim();
 
@@ -91,11 +91,11 @@ async function scanGmailEmails(accessToken: string): Promise<string> {
         // 여러 검색 쿼리로 넘게 잡기
         const queries = [
             // 한국어 결제/구독 키워드 (제목+본문 전체)
-            "(결제 OR 구독 OR 청구 OR 청구서 OR 영수증 OR 정기결제 OR 정기구독 OR 월정액 OR 자동결제 OR 자동이체 OR 카드결제 OR 이용내역 OR 결제완료 OR 결제확인 OR 구독갱신 OR 갱신 OR 해지 OR 취소 OR 구독료) newer_than:365d",
+            "(결제 OR 구독 OR 청구 OR 청구서 OR 영수증 OR 정기결제 OR 정기구독 OR 월정액 OR 자동결제 OR 자동이체 OR 카드결제 OR 이용내역 OR 결제완료 OR 결제확인 OR 구독갱신 OR 갱신 OR 해지 OR 취소 OR 구독료) newer_than:180d",
             // 영어 결제/구독 키워드
-            "(payment OR subscription OR receipt OR invoice OR billing OR renewal OR charged OR charge OR auto-renewal OR monthly OR annual OR plan OR \"your plan\" OR \"thank you for subscribing\" OR \"payment confirmed\" OR \"payment successful\" OR \"order confirmation\" OR \"payment receipt\" OR \"credit card\" OR \"debit card\" OR \"auto pay\" OR \"autopay\") newer_than:365d",
+            "(payment OR subscription OR receipt OR invoice OR billing OR renewal OR charged OR charge OR auto-renewal OR monthly OR annual OR plan OR \"your plan\" OR \"thank you for subscribing\" OR \"payment confirmed\" OR \"payment successful\" OR \"order confirmation\" OR \"payment receipt\" OR \"credit card\" OR \"debit card\" OR \"auto pay\" OR \"autopay\") newer_than:180d",
             // 알려진 구독 서비스 발신자 도메인 (한국+글로벌)
-            "from:(netflix.com OR spotify.com OR apple.com OR google.com OR youtube.com OR coupang.com OR kakao.com OR naver.com OR discord.com OR notion.so OR adobe.com OR microsoft.com OR amazon.com OR chatgpt.com OR openai.com OR midjourney.com OR figma.com OR github.com OR slack.com OR zoom.us OR watcha.com OR wavve.com OR tving.com OR melon.com OR genie.co.kr OR vibe.naver.com OR hulu.com OR disneyplus.com OR max.com OR paramount.com OR dropbox.com OR icloud.com) newer_than:365d",
+            "from:(netflix.com OR spotify.com OR apple.com OR google.com OR youtube.com OR coupang.com OR kakao.com OR naver.com OR discord.com OR notion.so OR adobe.com OR microsoft.com OR amazon.com OR chatgpt.com OR openai.com OR midjourney.com OR figma.com OR github.com OR slack.com OR zoom.us OR watcha.com OR wavve.com OR tving.com OR melon.com OR genie.co.kr OR vibe.naver.com OR hulu.com OR disneyplus.com OR max.com OR paramount.com OR dropbox.com OR icloud.com) newer_than:180d",
         ];
 
 

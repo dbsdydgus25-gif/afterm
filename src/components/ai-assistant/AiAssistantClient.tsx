@@ -193,11 +193,17 @@ export function AiAssistantClient() {
             content: "Gmail을 분석하고 있어요... ✉️\n이메일에서 구독/결제 내역을 찾는 중입니다. 잠시만 기다려주세요!",
         });
         try {
+            // provider_token은 브라우저 세션에만 존재 → 직접 꺼내서 body로 전달
+            const { data: sessionData } = await supabase.auth.getSession();
+            const providerToken = sessionData?.session?.provider_token;
+            console.log("[runEmailScan] providerToken 존재:", !!providerToken);
+
             const res = await fetch("/api/scan-emails", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ providerToken }),
             });
+
             if (res.ok) {
                 const data = await res.json();
                 if (data.items && data.items.length > 0) {
