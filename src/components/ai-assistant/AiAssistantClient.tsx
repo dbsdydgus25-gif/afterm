@@ -172,6 +172,56 @@ export function AiAssistantClient() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    // ✨ 채팅 중 뒤로가기/이탈 방지 경고 추가
+    useEffect(() => {
+        if (!isChatMode) return;
+
+        // 브라우저 새로고침/종료 방지
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = "지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?";
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // Next.js 내부 라우팅(Link) 클릭 방해
+        const handleLinkClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const anchor = target.closest("a");
+
+            if (anchor && anchor.href && anchor.target !== "_blank") {
+                const isInternal = anchor.href.startsWith(window.location.origin);
+                // 현재 페이지 해시 이동은 제외
+                if (isInternal && !anchor.href.includes("#")) {
+                    const confirmLeave = window.confirm("지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?");
+                    if (!confirmLeave) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            }
+        };
+        document.addEventListener("click", handleLinkClick, { capture: true });
+
+        // 브라우저 뒤로가기(팝스테이트) 감지 스니펫
+        window.history.pushState(null, "", window.location.href);
+        const handlePopState = () => {
+            const confirmLeave = window.confirm("지금까지 했던 대화내역은 저장되지 않습니다. 나가시겠습니까?");
+            if (!confirmLeave) {
+                // 뒤로가기 취소 시 다시 히스토리 밀어넣기
+                window.history.pushState(null, "", window.location.href);
+            } else {
+                window.history.back();
+            }
+        };
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            document.removeEventListener("click", handleLinkClick, { capture: true });
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, [isChatMode]);
+
     // ── 메시지 추가 헬퍼 ──────────────────────────────────────
     const addMsg = (msg: Omit<ChatMessage, "id">) => {
         const newMsg = { ...msg, id: Date.now().toString() + Math.random() };
@@ -366,10 +416,10 @@ export function AiAssistantClient() {
         if (isLegacyIntent) {
             addMsg({
                 role: "assistant",
-                content: "알겠습니다! 디지털 유산을 정리하기 전에 Gmail 연동이 필요해요.\nGmail을 연동하면 구독 중인 서비스와 정기결제 내역을 자동으로 분석해 관리를 도와드릴 수 있어요 📧\n\nGmail 연동을 도와드려도 될까요?",
+                content: "디지털 유산 정리를 도와드릴게요! 📧\n\nGmail을 연동시켜서 숨은 구독 내역을 자동으로 찾을 수도 있고, 연동 없이 직접 입력해서 따로 다루실 수도 있어요.\n자동 스캔을 위해 Gmail 연동을 진행해 드릴까요?",
                 choices: [
                     { id: "gmail_yes", label: "네, 연동할게요!", desc: "Gmail에서 구독/결제 내역을 자동으로 찾아드려요" },
-                    { id: "gmail_no", label: "아니요, 나중에요", desc: "직접 입력해서 유산을 기록할게요" },
+                    { id: "gmail_no", label: "아니요, 따로 할게요", desc: "직접 입력해서 유산을 기록할게요" },
                 ],
             });
             return;

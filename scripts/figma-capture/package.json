@@ -1,0 +1,14 @@
+{
+  "name": "afterm-figma-capture",
+  "version": "1.0.0",
+  "description": "Afterm 베타 서버 스크린샷 캡처 → Figma 임포트 도구",
+  "main": "capture.js",
+  "scripts": {
+    "capture": "node capture.js --capture",
+    "serve": "node capture.js --serve",
+    "start": "node capture.js"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}

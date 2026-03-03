@@ -122,30 +122,24 @@ async function scanGmailEmails(token: string) {
         }
     };
 
-    // INBOX 최근 15개
+    // 최근 6개월 구매/영수증 관련 메일 검색 쿼리
+    // 영수증, 결제, 구독, 승인, receipt, invoice, payment 키워드
+    const query = encodeURIComponent(`newer_than:6m (결제 OR 영수증 OR 구독 OR 승인 OR receipt OR invoice OR payment)`);
+
     try {
-        const data = await gmailGet(token, "/messages?maxResults=15&labelIds=INBOX");
+        const data = await gmailGet(token, `/messages?maxResults=40&q=${query}`);
         const msgs: { id: string }[] = data.messages ?? [];
         inboxCount = msgs.length;
-        console.log(`[Gmail] INBOX: ${inboxCount}개`);
-        const results = await Promise.all(msgs.map(m => getMeta(m.id)));
-        results.forEach(r => { if (r) emailBodies.push(r); });
-    } catch (e) {
-        lastError = String(e);
-        console.error("[Gmail] INBOX 실패:", e);
-    }
+        promoCount = 0; // 이제 쿼리 기반이라 하나로 통일
 
-    // PROMOTIONS 최근 15개 (결제 영수증이 여기 분류됨)
-    try {
-        const data = await gmailGet(token, "/messages?maxResults=15&labelIds=CATEGORY_PROMOTIONS");
-        const msgs: { id: string }[] = data.messages ?? [];
-        promoCount = msgs.length;
-        console.log(`[Gmail] PROMOTIONS: ${promoCount}개`);
+        console.log(`[Gmail] 6개월 결제/영수증 검색 결과: ${msgs.length}개`);
+
+        // 너무 많으면 Timeout 위험이 있으므로 Promise.all로 병렬 처리하되 40개까지만 (maxResults=40)
         const results = await Promise.all(msgs.map(m => getMeta(m.id)));
         results.forEach(r => { if (r) emailBodies.push(r); });
     } catch (e) {
         lastError = String(e);
-        console.error("[Gmail] PROMOTIONS 실패:", e);
+        console.error("[Gmail] 쿼리 검색 실패:", e);
     }
 
     console.log(`[Gmail] 최종 수집: ${emailBodies.length}개, 오류: ${lastError}`);

@@ -1,0 +1,12 @@
+{
+  "name": "Afterm Screen Importer",
+  "id": "afterm-screen-importer-001",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["http://localhost:3456"],
+    "reasoning": "로컬 캡처 서버에서 Afterm 베타 스크린샷을 가져옵니다"
+  }
+}
