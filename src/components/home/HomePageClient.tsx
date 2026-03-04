@@ -13,6 +13,9 @@ import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 import { Mail, Send, ArrowRight } from "lucide-react";
+import dynamic from 'next/dynamic';
+
+const SpiralAnimation = dynamic(() => import('@/components/animations/SpiralAnimation'), { ssr: false });
 
 // 래디풀 아이콘 데이터
 const FLOATING_ICONS = [
@@ -237,8 +240,11 @@ export default function HomePageClient() {
                     </div>
                 </section>
 
+                {/* GSAP Spiral Animation Section */}
+                <SpiralAnimation />
+
                 {/* ══════════════════════════════════════════════
-                    BLOCK 2: 1분이면 괜찮아 + 메시지 남기기 / 데이터 유산
+                    BLOCK 2: 1분이면 괜찮아 + 메시지 남기기 / 데이터 유산 / 유산 찾기
                 ════════════════════════════════════════════════ */}
                 <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-20 bg-white border-t border-slate-100">
                     <div className="w-full max-w-lg mx-auto flex flex-col items-center text-center gap-10">
@@ -290,7 +296,7 @@ export default function HomePageClient() {
                             transition={{ duration: 0.7, delay: 0.2 }}
                             className="w-full"
                         >
-                            <div className="grid grid-cols-2 gap-4 md:gap-6 w-full max-w-[480px] mx-auto">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 w-full max-w-[800px] mx-auto">
                                 {/* 메시지 남기기 */}
                                 <button
                                     onClick={() => router.push('/create')}
@@ -321,6 +327,23 @@ export default function HomePageClient() {
                                         <div>
                                             <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">디지털 유산</h3>
                                             <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">계정 정보를 보관하세요</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                {/* 고인 디지털 유산 찾기 */}
+                                <button
+                                    onClick={() => router.push('/vault')}
+                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
+                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-indigo-100/80 to-indigo-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-100/50">
+                                            <span className="text-2xl md:text-4xl">🔍</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">고인 데이터 유산 찾기</h3>
+                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">숨겨진 유산을 확인하세요</p>
                                         </div>
                                     </div>
                                 </button>

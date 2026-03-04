@@ -59,8 +59,14 @@ export default function DashboardPage() {
 
     // UI States
     const [currentPage, setCurrentPage] = useState(1);
+    const [vaultCurrentPage, setVaultCurrentPage] = useState(1);
     const [activeTab, setActiveTab] = useState<"messages" | "vault">("messages");
     const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
+
+    // Vault Edit States
+    const [editingVaultId, setEditingVaultId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState<Partial<VaultItem>>({});
+    const vaultItemsPerPage = 5;
 
     // Limits based on plan
     const maxMessages = plan === 'pro' ? 100 : 1;
@@ -165,6 +171,42 @@ export default function DashboardPage() {
         setVaultItems(prev => prev.filter(v => v.id !== id));
     };
 
+    const handleEditVaultClick = (item: VaultItem) => {
+        setEditingVaultId(item.id);
+        setEditForm({
+            platform_name: item.platform_name,
+            account_id: item.account_id,
+            category: item.category,
+            notes: item.notes
+        });
+    };
+
+    const handleUpdateVault = async (id: string) => {
+        if (!editForm.platform_name || !editForm.account_id) {
+            alert("플랫폼명과 아이디를 입력해주세요.");
+            return;
+        }
+
+        const supabase = createClient();
+        const { error } = await supabase
+            .from("vault_items")
+            .update({
+                platform_name: editForm.platform_name,
+                account_id: editForm.account_id,
+                category: editForm.category,
+                notes: editForm.notes
+            })
+            .eq("id", id);
+
+        if (error) {
+            alert("수정 중 오류가 발생했습니다.");
+            return;
+        }
+
+        setVaultItems(prev => prev.map(item => item.id === id ? { ...item, ...editForm } as VaultItem : item));
+        setEditingVaultId(null);
+    };
+
     const getCategoryLabel = (category: string) => VAULT_CATEGORIES[category as keyof typeof VAULT_CATEGORIES] || category;
     const getRequestTypeLabel = (type: string) => VAULT_REQUEST_TYPES[type as keyof typeof VAULT_REQUEST_TYPES] || type;
 
@@ -173,6 +215,8 @@ export default function DashboardPage() {
     const vaultPercent = Math.min((vaultItems.length / maxVault) * 100, 100);
     const storagePercent = Math.min((storageUsed / maxStorage) * 100, 100);
     const freePercent = 100 - msgPercent - vaultPercent - storagePercent; // Simplified just for the combined bar visual
+
+    const paginatedVaultItems = vaultItems.slice((vaultCurrentPage - 1) * vaultItemsPerPage, vaultCurrentPage * vaultItemsPerPage);
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
@@ -427,53 +471,126 @@ export default function DashboardPage() {
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        {vaultItems.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow relative overflow-hidden"
-                                            >
-                                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none opacity-50" />
-                                                <div className="flex items-start justify-between gap-3 relative z-10">
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold ring-1 ring-emerald-200 shadow-sm">
-                                                                {getCategoryLabel(item.category)}
-                                                            </span>
-                                                            <h3 className="text-lg font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                                                                {item.platform_name}
-                                                            </h3>
-                                                        </div>
+                                    <div className="space-y-4">
+                                        <div className="space-y-3">
+                                            {paginatedVaultItems.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow relative overflow-hidden"
+                                                >
+                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none opacity-50" />
 
-                                                        <div className="space-y-2 text-sm max-w-sm mt-4">
-                                                            <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                                    {editingVaultId === item.id ? (
+                                                        /* --- Edit Mode --- */
+                                                        <div className="relative z-10 space-y-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <select
+                                                                    value={editForm.category}
+                                                                    onChange={e => setEditForm(prev => ({ ...prev, category: e.target.value }))}
+                                                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                                                >
+                                                                    {Object.entries(VAULT_CATEGORIES).map(([key, label]) => (
+                                                                        <option key={key} value={key}>{label}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editForm.platform_name || ""}
+                                                                    onChange={e => setEditForm(prev => ({ ...prev, platform_name: e.target.value }))}
+                                                                    placeholder="플랫폼/사이트명"
+                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-500"
+                                                                />
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
                                                                 <FileKey className="w-4 h-4 text-slate-400" />
-                                                                <span className="text-slate-900 font-mono font-bold tracking-tight">{item.account_id}</span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editForm.account_id || ""}
+                                                                    onChange={e => setEditForm(prev => ({ ...prev, account_id: e.target.value }))}
+                                                                    placeholder="아이디 또는 이메일"
+                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-emerald-500"
+                                                                />
+                                                            </div>
+                                                            <textarea
+                                                                value={editForm.notes || ""}
+                                                                onChange={e => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                                                                placeholder="메모 (선택)"
+                                                                rows={2}
+                                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 resize-none"
+                                                            />
+                                                            <div className="flex justify-end gap-2 pt-2">
+                                                                <Button variant="outline" size="sm" onClick={() => setEditingVaultId(null)} className="h-8 text-xs">취소</Button>
+                                                                <Button size="sm" onClick={() => handleUpdateVault(item.id)} className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700">저장</Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        /* --- View Mode --- */
+                                                        <div className="flex items-start justify-between gap-3 relative z-10">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold ring-1 ring-emerald-200 shadow-sm">
+                                                                        {getCategoryLabel(item.category)}
+                                                                    </span>
+                                                                    <h3 className="text-lg font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                                                                        {item.platform_name}
+                                                                    </h3>
+                                                                    <button
+                                                                        onClick={() => handleEditVaultClick(item)}
+                                                                        className="ml-2 text-xs text-blue-500 hover:text-blue-700 underline underline-offset-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        수정
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="space-y-2 text-sm max-w-sm mt-4">
+                                                                    <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                                                        <FileKey className="w-4 h-4 text-slate-400" />
+                                                                        <span className="text-slate-900 font-mono font-bold tracking-tight">{item.account_id}</span>
+                                                                    </div>
+
+                                                                    {item.notes && (
+                                                                        <div className="flex items-start gap-2 pt-3 mt-2 border-t border-slate-100 px-3">
+                                                                            <span className="text-slate-400 w-16 flex-shrink-0 text-xs font-bold">메모</span>
+                                                                            <span className="text-slate-600 flex-1 text-sm bg-slate-50 p-2 rounded-lg border border-slate-100 whitespace-pre-wrap">{item.notes}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="mt-4 text-xs text-slate-400 font-medium">
+                                                                    등록일: {new Date(item.created_at).toLocaleDateString('ko-KR')}
+                                                                </div>
                                                             </div>
 
-                                                            {item.notes && (
-                                                                <div className="flex items-start gap-2 pt-3 mt-2 border-t border-slate-100 px-3">
-                                                                    <span className="text-slate-400 w-16 flex-shrink-0 text-xs font-bold">메모</span>
-                                                                    <span className="text-slate-600 flex-1 text-sm bg-slate-50 p-2 rounded-lg border border-slate-100 whitespace-pre-wrap">{item.notes}</span>
-                                                                </div>
-                                                            )}
+                                                            <button
+                                                                onClick={() => handleDeleteVault(item.id)}
+                                                                className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100 shadow-sm"
+                                                                title="해당 디지털 유산 삭제"
+                                                            >
+                                                                <Trash2 className="w-5 h-5" />
+                                                            </button>
                                                         </div>
-
-                                                        <div className="mt-4 text-xs text-slate-400 font-medium">
-                                                            등록일: {new Date(item.created_at).toLocaleDateString('ko-KR')}
-                                                        </div>
-                                                    </div>
-
-                                                    <button
-                                                        onClick={() => handleDeleteVault(item.id)}
-                                                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100 shadow-sm"
-                                                        title="해당 디지털 유산 삭제"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
+                                                    )}
                                                 </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Vault Pagination */}
+                                        {vaultItems.length > vaultItemsPerPage && (
+                                            <div className="flex justify-center gap-2 pt-4 pb-8">
+                                                {Array.from({ length: Math.ceil(vaultItems.length / vaultItemsPerPage) }, (_, i) => i + 1).map((page) => (
+                                                    <button
+                                                        key={page}
+                                                        onClick={() => setVaultCurrentPage(page)}
+                                                        className={`w-8 h-8 rounded-full text-sm font-bold transition-colors ${vaultCurrentPage === page
+                                                            ? "bg-emerald-600 text-white"
+                                                            : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
+                                                            }`}
+                                                    >
+                                                        {page}
+                                                    </button>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 )}
                             </motion.div>
