@@ -154,7 +154,8 @@ function GuardianOpenContent() {
 
     const [step, setStep] = useState<Step>("landing");
     const [guardianName, setGuardianName] = useState("");
-    const [guardianPhone, setGuardianPhone] = useState("");
+    const [deceasedName, setDeceasedName] = useState("");
+    const [deceasedPhone, setDeceasedPhone] = useState("");
     const [apiKey, setApiKey] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -188,16 +189,16 @@ function GuardianOpenContent() {
     };
 
     const handleSubmit = async () => {
-        if (!guardianName || !guardianPhone || !apiKey) {
-            setErrorMsg("이름, 핸드폰 번호, API 키를 모두 입력해주세요."); return;
+        if (!guardianName || !deceasedName || !deceasedPhone || !apiKey) {
+            setErrorMsg("모든 항목을 입력해주세요."); return;
         }
         setIsLoading(true);
         setErrorMsg("");
         try {
             const endpoint = userId ? "/api/guardians/verify-open" : "/api/guardians/find-by-key";
             const body = userId
-                ? { userId, guardianName, guardianPhone, apiKey }
-                : { guardianName, guardianPhone, apiKey };
+                ? { userId, guardianName, guardianPhone: deceasedPhone, apiKey }
+                : { guardianName, deceasedName, deceasedPhone, apiKey };
 
             const res = await fetch(endpoint, {
                 method: "POST",
@@ -365,16 +366,29 @@ function GuardianOpenContent() {
                     </h1>
 
                     <div className="w-full max-w-sm space-y-3 fade-up" style={{ animationDelay: "0.1s" }}>
-                        {/* 핸드폰 번호 */}
+                        {/* 고인 이름 */}
+                        <div style={{ backgroundColor: "#27272a", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)" }}
+                            className="w-full h-14 rounded-full flex items-center gap-3 px-5">
+                            <User className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            <input
+                                type="text"
+                                autoFocus
+                                placeholder="고인 이름 (예: 홍길동)"
+                                value={deceasedName}
+                                onChange={e => setDeceasedName(e.target.value)}
+                                className="flex-1 bg-transparent text-white placeholder-zinc-500 text-sm outline-none"
+                            />
+                        </div>
+
+                        {/* 고인 핸드폰 번호 */}
                         <div style={{ backgroundColor: "#27272a", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)" }}
                             className="w-full h-14 rounded-full flex items-center gap-3 px-5">
                             <Phone className="w-4 h-4 text-slate-500 flex-shrink-0" />
                             <input
                                 type="tel"
-                                autoFocus
-                                placeholder="핸드폰 번호 (010-0000-0000)"
-                                value={guardianPhone}
-                                onChange={e => setGuardianPhone(formatPhone(e.target.value))}
+                                placeholder="고인 핸드폰 번호 (010-0000-0000)"
+                                value={deceasedPhone}
+                                onChange={e => setDeceasedPhone(formatPhone(e.target.value))}
                                 className="flex-1 bg-transparent text-white placeholder-zinc-500 text-sm outline-none"
                             />
                         </div>
@@ -401,7 +415,7 @@ function GuardianOpenContent() {
                         {/* 열기 버튼 */}
                         <button
                             onClick={handleSubmit}
-                            disabled={isLoading || !guardianPhone || !apiKey}
+                            disabled={isLoading || !deceasedName || !deceasedPhone || !apiKey}
                             className="w-full h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center gap-2"
                         >
                             {isLoading ? (

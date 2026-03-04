@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// 가디언즈 이름 + 핸드폰 + API 키로 고인 디지털 유산을 찾는 API
+// 가디언즈 본인 이름 + 고인 이름 + 고인 핸드폰 + API 키로 고인 디지털 유산을 찾는 API
 export async function POST(req: NextRequest) {
     try {
-        const { guardianName, guardianPhone, apiKey } = await req.json();
+        const { guardianName, deceasedName, deceasedPhone, apiKey } = await req.json();
 
-        if (!guardianName || !guardianPhone || !apiKey) {
-            return NextResponse.json({ error: "이름, 핸드폰 번호, API 키를 모두 입력해주세요." }, { status: 400 });
+        if (!guardianName || !deceasedName || !deceasedPhone || !apiKey) {
+            return NextResponse.json({ error: "가디언즈 이름, 고인 이름, 고인 핸드폰 번호, API 키를 모두 입력해주세요." }, { status: 400 });
         }
 
         const supabase = await createClient();
 
-        // 1) API 키로 유저(고인) 찾기
+        // 1) API 키로 고인 계정 찾기
         const { data: profile, error: profileErr } = await supabase
             .from("profiles")
-            .select("id, name, api_key")
+            .select("id, name, phone, api_key")
             .eq("api_key", apiKey)
             .single();
 
@@ -23,26 +23,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "유효하지 않은 API 키입니다. 고인이 공유한 API 키를 다시 확인해주세요." }, { status: 404 });
         }
 
-        // 2) 가디언즈 인증 - 핸드폰 번호로 등록된 가디언즈인지 확인
-        const cleanPhone = guardianPhone.replace(/[^0-9]/g, "");
-        const { data: guardian } = await supabase
-            .from("guardians")
-            .select("id, name, phone")
-            .eq("user_id", profile.id)
-            .single();
-
-        // 가디언즈가 설정되어 있으면 폰 번호 대조, 없으면 이름만 확인
-        if (guardian) {
-            const cleanStoredPhone = (guardian.phone || "").replace(/[^0-9]/g, "");
-            if (cleanStoredPhone && cleanStoredPhone !== cleanPhone) {
-                return NextResponse.json(
-                    { error: "인증에 실패했습니다. 가디언즈로 등록된 정보와 일치하지 않습니다." },
-                    { status: 403 }
-                );
-            }
+        // 2) 고인 이름 대조
+        const profileName = (profile.name || "").trim().replace(/\s/g, "");
+        const inputName = deceasedName.trim().replace(/\s/g, "");
+        if (profileName && profileName !== inputName) {
+            return NextResponse.json({ error: "고인 이름이 등록된 정보와 일치하지 않습니다." }, { status: 403 });
         }
 
-        // 3) 디지털 유산(vault_items) 조회
+        // 3) 고인 핸드폰 번호 대조
+        const profilePhone = (profile.phone || "").replace(/[^0-9]/g, "");
+        const inputPhone = deceasedPhone.replace(/[^0-9]/g, "");
+        if (profilePhone && profilePhone !== inputPhone) {
+            return NextResponse.json({ error: "고인 핸드폰 번호가 등록된 정보와 일치하지 않습니다." }, { status: 403 });
+        }
+
+        // 4) 디지털 유산(vault_items) 조회
         const { data: vaultItems, error: vaultErr } = await supabase
             .from("vault_items")
             .select("id, category, platform_name, account_id, notes, created_at")
@@ -51,14 +46,13 @@ export async function POST(req: NextRequest) {
 
         if (vaultErr) throw vaultErr;
 
-        // 4) 메시지 공개 처리
+        // 5) 잠긴 메시지 공개 처리
         const { data: messages } = await supabase
             .from("messages")
-            .select("id, content, recipient_name, recipient_phone, status, created_at")
+            .select("id, content, recipient_name, recipient_phone, status")
             .eq("user_id", profile.id)
             .eq("status", "locked");
 
-        // 메시지 unlock 처리
         if (messages && messages.length > 0) {
             await supabase
                 .from("messages")
@@ -67,16 +61,15 @@ export async function POST(req: NextRequest) {
                 .eq("status", "locked");
         }
 
-        // 5) 접근 로그 기록
+        // 6) 접근 로그 기록
         try {
             await supabase.from("guardian_access_logs").insert({
                 target_user_id: profile.id,
                 access_type: "api_key_open",
                 guardian_name: guardianName,
-                guardian_phone: guardianPhone,
                 accessed_at: new Date().toISOString()
             });
-        } catch { /* 로그 실패는 무시 */ }
+        } catch { /* 로그 실패 무시 */ }
 
         return NextResponse.json({
             success: true,
