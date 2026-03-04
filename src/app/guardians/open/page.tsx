@@ -105,17 +105,16 @@ const VaultCarouselInner = memo(
         const radius = Math.max((faceWidth / 2) / Math.tan(Math.PI / faceCount), faceWidth) + 30; // 여유 공간
 
         const rotation = useMotionValue(0);
-        const transform = useTransform(rotation, (value) => `rotate3d(0, 1, 0, ${value}deg)`);
 
         return (
             <div
                 className="flex h-full items-center justify-center pt-5 pb-10 overflow-visible"
-                style={{ perspective: "1200px", transformStyle: "preserve-3d", willChange: "transform" }}
+                style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
             >
                 <motion.div
                     drag={isCarouselActive ? "x" : false}
                     className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
-                    style={{ transform, rotateY: rotation, width: cylinderWidth, transformStyle: "preserve-3d" }}
+                    style={{ rotateY: rotation, z: -radius, width: cylinderWidth, transformStyle: "preserve-3d" }}
                     onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * 0.1)}
                     onDragEnd={(_, info) =>
                         isCarouselActive &&
