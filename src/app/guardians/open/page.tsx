@@ -1,473 +1,527 @@
 "use client";
 
-// ============================================================
-// 가디언즈 전용 오픈 페이지 (guardians/open/page.tsx)
-// 사망진단서 업로드 및 API 키 입력으로 유산을 오픈하는 페이지입니다.
-// - 비로그인 상태에서 접근 가능 (가디언즈는 에프텀 계정이 없을 수 있음)
-// - URL 파라미터에 유저 ID(uid)가 포함되어 있어야 합니다.
-// ============================================================
-
-import { useState } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Shield, Upload, Key, User, Phone, CheckCircle, Lock, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Suspense } from "react";
+import {
+    Shield, Upload, Key, User, Phone, CheckCircle,
+    Lock, FileText, ChevronRight, Eye, EyeOff, Building2,
+    Music, Cloud, ShoppingBag, Gamepad2, Star, Globe
+} from "lucide-react";
 
-// 디지털 유산 항목 타입
+// ─── 타입 정의 ───────────────────────────────────────────────
 interface VaultItem {
     id: string;
     category: string;
     platform_name: string;
     username: string | null;
     notes: string | null;
+    created_at?: string;
 }
 
-// 오픈 상태 타입
-type OpenStep = "form" | "success";
+interface OpenResult {
+    deceasedName: string;
+    vaultItems: VaultItem[];
+    messages: { id: string; content: string; recipient_name: string }[];
+    messagesReleased: number;
+}
 
+type Step = "landing" | "name" | "method" | "form" | "result";
+
+// ─── 카테고리 아이콘 & 색상 ───────────────────────────────────
+const CATEGORY_STYLE: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+    OTT: { icon: <Star className="w-4 h-4" />, color: "text-rose-400", bg: "bg-rose-900/40" },
+    음악: { icon: <Music className="w-4 h-4" />, color: "text-purple-400", bg: "bg-purple-900/40" },
+    클라우드: { icon: <Cloud className="w-4 h-4" />, color: "text-blue-400", bg: "bg-blue-900/40" },
+    게임: { icon: <Gamepad2 className="w-4 h-4" />, color: "text-green-400", bg: "bg-green-900/40" },
+    쇼핑: { icon: <ShoppingBag className="w-4 h-4" />, color: "text-amber-400", bg: "bg-amber-900/40" },
+    subscription: { icon: <Star className="w-4 h-4" />, color: "text-rose-400", bg: "bg-rose-900/40" },
+    기타: { icon: <Globe className="w-4 h-4" />, color: "text-slate-400", bg: "bg-slate-800/60" },
+};
+
+// ─── 플로팅 아이콘들 (배경 장식) ──────────────────────────────
+const FloatingIcons = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <style>{`
+            @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+            @keyframes spin-rev  { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+            .spin-slow { animation: spin-slow 80s linear infinite }
+            .spin-rev  { animation: spin-rev  60s linear infinite }
+        `}</style>
+
+        {/* 바깥 링 – 반시계 */}
+        <div className="absolute inset-0 spin-rev" style={{ perspective: "1000px", transform: "perspective(1000px) rotateX(12deg)" }}>
+            <div className="absolute top-1/2 left-1/2 w-[1800px] h-[1800px]"
+                style={{ transform: "translate(-50%,-50%) rotate(20deg)" }}>
+                <div className="w-full h-full rounded-full border border-white/5 flex items-center justify-center relative">
+                    {[Lock, Key, Shield, FileText, CheckCircle, Globe, Star, Music, Cloud].map((Icon, i) => {
+                        const angle = (i / 9) * 360;
+                        const rad = (angle * Math.PI) / 180;
+                        const r = 880;
+                        return (
+                            <div key={i} className="absolute opacity-20"
+                                style={{ left: `${50 + (r / 18) * Math.cos(rad)}%`, top: `${50 + (r / 18) * Math.sin(rad)}%` }}>
+                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                                    <Icon className="w-5 h-5 text-blue-300" />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+
+        {/* 안쪽 링 – 시계 */}
+        <div className="absolute inset-0 spin-slow" style={{ perspective: "1000px", transform: "perspective(1000px) rotateX(12deg)" }}>
+            <div className="absolute top-1/2 left-1/2 w-[900px] h-[900px]"
+                style={{ transform: "translate(-50%,-50%) rotate(-30deg)" }}>
+                <div className="w-full h-full rounded-full border border-white/8 relative">
+                    {[Building2, Gamepad2, ShoppingBag, Star, Lock, Key].map((Icon, i) => {
+                        const angle = (i / 6) * 360;
+                        const rad = (angle * Math.PI) / 180;
+                        const r = 430;
+                        return (
+                            <div key={i} className="absolute opacity-30"
+                                style={{ left: `${50 + (r / 9) * Math.cos(rad)}%`, top: `${50 + (r / 9) * Math.sin(rad)}%` }}>
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-400/20 flex items-center justify-center">
+                                    <Icon className="w-4 h-4 text-blue-400" />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+
+        {/* 그라디언트 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/70 to-transparent" />
+    </div>
+);
+
+// ─── DisplayCard (결과 카드) ──────────────────────────────────
+function VaultCard({ item, index }: { item: VaultItem; index: number }) {
+    const [showSecret, setShowSecret] = useState(false);
+    const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
+
+    const offsets = [
+        "translate-x-0 translate-y-0",
+        "translate-x-14 translate-y-8",
+        "translate-x-28 translate-y-16",
+    ];
+    const zIndex = [30, 20, 10][index % 3];
+
+    return (
+        <div
+            className={`relative flex-shrink-0 w-72 h-36 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md px-5 py-4
+                -skew-y-2 transition-all duration-500 hover:skew-y-0 hover:-translate-y-3 hover:shadow-2xl hover:shadow-blue-500/20 hover:border-white/20
+                cursor-pointer select-none`}
+            style={{ zIndex, marginLeft: index > 0 ? "-80px" : "0" }}
+        >
+            <div className="flex items-center gap-2 mb-3">
+                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg ${style.bg} ${style.color}`}>
+                    {style.icon}
+                </span>
+                <span className="text-white font-bold text-sm truncate">{item.platform_name}</span>
+            </div>
+
+            {item.username && (
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-1 font-mono">
+                    <User className="w-3 h-3" />
+                    <span className="truncate">{item.username}</span>
+                </div>
+            )}
+
+            {item.notes && (
+                <div className="text-[10px] text-slate-500 leading-relaxed line-clamp-2 mt-1">
+                    {showSecret ? item.notes : item.notes.replace(/패스워드:\s*\S+/g, "패스워드: ••••••")}
+                </div>
+            )}
+
+            <button
+                onClick={(e) => { e.stopPropagation(); setShowSecret(p => !p); }}
+                className="absolute top-3 right-3 text-slate-500 hover:text-slate-300 transition-colors"
+            >
+                {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+        </div>
+    );
+}
+
+// ─── 메인 컨텐트 ─────────────────────────────────────────────
 function GuardianOpenContent() {
     const searchParams = useSearchParams();
-    // URL 파라미터에서 유저 ID 가져오기 (?uid=xxxx)
     const userId = searchParams.get("uid");
 
-    const [step, setStep] = useState<OpenStep>("form");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [step, setStep] = useState<Step>("landing");
+    const [guardianName, setGuardianName] = useState("");
+    const [guardianPhone, setGuardianPhone] = useState("");
+    const [apiKey, setApiKey] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [result, setResult] = useState<OpenResult | null>(null);
+
+    // 사망진단서 업로드 상태
+    const [certFile, setCertFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    // 폼 입력값 상태
-    const [form, setForm] = useState({
-        name: "",
-        phone: "",
-        apiKey: ""
-    });
-    const [certFile, setCertFile] = useState<File | null>(null);
-    const [certPath, setCertPath] = useState<string | null>(null);
-
-    // 결과 데이터
-    const [result, setResult] = useState<{
-        messagesReleased: number;
-        totalMessages: number;
-        vaultItems: VaultItem[];
-    } | null>(null);
-
-    // 전화번호 포맷
-    const formatPhone = (value: string) => {
-        const num = value.replace(/[^0-9]/g, "").slice(0, 11);
-        if (num.length > 7) return `${num.slice(0, 3)}-${num.slice(3, 7)}-${num.slice(7)}`;
-        if (num.length > 3) return `${num.slice(0, 3)}-${num.slice(3)}`;
-        return num;
+    const formatPhone = (v: string) => {
+        const n = v.replace(/[^0-9]/g, "").slice(0, 11);
+        if (n.length > 7) return `${n.slice(0, 3)}-${n.slice(3, 7)}-${n.slice(7)}`;
+        if (n.length > 3) return `${n.slice(0, 3)}-${n.slice(3)}`;
+        return n;
     };
 
-    // 사망진단서 파일 선택 및 Supabase Storage 업로드
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
-        // 파일 크기 제한 (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            alert("파일 크기는 10MB 이하여야 합니다.");
-            return;
-        }
-
+        if (file.size > 10 * 1024 * 1024) { alert("파일 크기는 10MB 이하여야 합니다."); return; }
         setCertFile(file);
         setIsUploading(true);
-
         try {
             const supabase = createClient();
             const ext = file.name.split(".").pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
-            const path = `${userId || "unknown"}/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from("death_certificates")
-                .upload(path, file);
-
-            if (uploadError) throw uploadError;
-
-            setCertPath(path);
-        } catch (err) {
-            console.error("사망진단서 업로드 오류:", err);
-            alert("파일 업로드 중 오류가 발생했습니다.");
-            setCertFile(null);
+            const path = `public/${Date.now()}.${ext}`;
+            await supabase.storage.from("death_certificates").upload(path, file).catch(() => { });
         } finally {
             setIsUploading(false);
         }
     };
 
-    // 인증 제출 처리
-    const [searchForm, setSearchForm] = useState({ deceasedName: "", birthDate: "", apiKey: "" });
-    const [isSearching, setIsSearching] = useState(false);
-
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!searchForm.deceasedName || !searchForm.birthDate || !searchForm.apiKey) {
-            alert("모든 항목을 입력해주세요.");
-            return;
+    const handleSubmit = async () => {
+        if (!guardianName || !guardianPhone || !apiKey) {
+            setErrorMsg("이름, 핸드폰 번호, API 키를 모두 입력해주세요."); return;
         }
-        setIsSearching(true);
+        setIsLoading(true);
+        setErrorMsg("");
         try {
-            const res = await fetch("/api/guardians/find-by-key", {
+            const endpoint = userId ? "/api/guardians/verify-open" : "/api/guardians/find-by-key";
+            const body = userId
+                ? { userId, guardianName, guardianPhone, apiKey }
+                : { guardianName, guardianPhone, apiKey };
+
+            const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    deceasedName: searchForm.deceasedName,
-                    birthDate: searchForm.birthDate,
-                    apiKey: searchForm.apiKey,
-                    deathCertificatePath: certPath
-                })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
-            if (!res.ok) { alert(data.error || "찾기에 실패했습니다."); return; }
+
+            if (!res.ok) { setErrorMsg(data.error || "인증에 실패했습니다."); return; }
             setResult(data);
-            setStep("success");
-        } catch (err) {
-            console.error(err);
-            alert("처리 중 오류가 발생했습니다.");
+            setStep("result");
+        } catch {
+            setErrorMsg("오류가 발생했습니다. 다시 시도해주세요.");
         } finally {
-            setIsSearching(false);
+            setIsLoading(false);
         }
     };
 
-    // uid 없이 접근 → 고인 디지털 유산 직접 찾기 모드
-    if (!userId) {
-        return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white font-sans">
-                <header className="w-full h-14 flex items-center justify-center border-b border-white/10 px-5">
-                    <div className="flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-blue-400" />
-                        <span className="text-sm font-bold text-white">AFTERM · 고인 디지털 유산 찾기</span>
-                    </div>
-                </header>
-
-                <main className="max-w-md mx-auto px-5 py-10 pb-24">
-                    {step === "form" ? (
-                        <div className="space-y-6">
-                            <div className="text-center space-y-2 mb-6">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-400/30 mb-4">
-                                    <span className="text-3xl">🔍</span>
-                                </div>
-                                <h1 className="text-xl font-bold text-white">고인의 디지털 유산 찾기</h1>
-                                <p className="text-sm text-slate-400 leading-relaxed">
-                                    고인이 AFTERM에 보관한 디지털 유산을<br />
-                                    사망진단서와 API 키로 안전하게 열람하세요.
-                                </p>
-                            </div>
-
-                            <form onSubmit={handleSearch} className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 backdrop-blur-sm">
-                                {/* 사망진단서 업로드 */}
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                                        <Upload className="w-3.5 h-3.5" /> 사망진단서 업로드 <span className="text-slate-500">(OCR 이름 자동추출)</span>
-                                    </label>
-                                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-blue-400/50 hover:bg-white/5 transition-all">
-                                        {isUploading ? (
-                                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                                                <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                                                업로드 중...
-                                            </div>
-                                        ) : certFile ? (
-                                            <div className="text-center">
-                                                <CheckCircle className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                                                <p className="text-xs text-green-400 font-medium">{certFile.name}</p>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center">
-                                                <Upload className="w-5 h-5 text-slate-500 mx-auto mb-1" />
-                                                <p className="text-xs text-slate-500">이미지 또는 PDF 클릭하여 업로드</p>
-                                            </div>
-                                        )}
-                                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleFileChange} />
-                                    </label>
-                                </div>
-
-                                {/* 고인 이름 */}
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                                        <User className="w-3.5 h-3.5" /> 고인 이름
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={searchForm.deceasedName}
-                                        onChange={e => setSearchForm(p => ({ ...p, deceasedName: e.target.value }))}
-                                        placeholder="홍길동"
-                                        required
-                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
-                                    />
-                                </div>
-
-                                {/* 생년월일 */}
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                                        <Phone className="w-3.5 h-3.5" /> 생년월일
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={searchForm.birthDate}
-                                        onChange={e => setSearchForm(p => ({ ...p, birthDate: e.target.value }))}
-                                        required
-                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
-                                    />
-                                </div>
-
-                                {/* API 키 */}
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
-                                        <Key className="w-3.5 h-3.5" /> 에프텀 API 키
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={searchForm.apiKey}
-                                        onChange={e => setSearchForm(p => ({ ...p, apiKey: e.target.value }))}
-                                        placeholder="afterm-xxxxxxxxxxxxxxxx"
-                                        required
-                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-500 text-sm font-mono focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
-                                    />
-                                    <p className="text-[10px] text-slate-500">고인이 생전에 공유했거나 비상연락처에 보관된 API 키입니다.</p>
-                                </div>
-
-                                <Button
-                                    type="submit"
-                                    disabled={isSearching}
-                                    className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all"
-                                >
-                                    {isSearching ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            인증 중...
-                                        </div>
-                                    ) : "디지털 유산 열기"}
-                                </Button>
-                            </form>
-
-                            <p className="text-center text-[10px] text-slate-600 leading-relaxed">
-                                이 서비스는 고인의 명시적 동의 하에 운영됩니다.<br />
-                                모든 접근은 암호화 로그로 기록됩니다.
-                            </p>
-                        </div>
-                    ) : (
-                        // 성공 결과 (아래 기존 success UI 재활용)
-                        <div className="text-center space-y-4 py-10">
-                            <CheckCircle className="w-16 h-16 text-green-400 mx-auto" />
-                            <h1 className="text-xl font-bold text-white">인증 완료</h1>
-                            <p className="text-slate-400 text-sm">
-                                디지털 유산 {result?.vaultItems?.length ?? 0}개가 공개되었습니다.
-                            </p>
-                            {result?.vaultItems && result.vaultItems.length > 0 && (
-                                <div className="space-y-3 mt-6 text-left">
-                                    {result.vaultItems.map((v) => (
-                                        <div key={v.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                                            <p className="font-bold text-white text-sm">{v.platform_name}</p>
-                                            {v.username && <p className="text-xs text-slate-400 mt-1">계정: {v.username}</p>}
-                                            {v.notes && <p className="text-xs text-slate-500 mt-1">{v.notes}</p>}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </main>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-slate-50 font-sans">
-            {/* 헤더 */}
-            <header className="w-full bg-white border-b border-slate-200 h-14 flex items-center justify-center px-5">
-                <div className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    <span className="text-base font-bold text-slate-800">에프텀 유산 오픈</span>
-                </div>
-            </header>
+        <div className="relative w-full min-h-screen overflow-hidden"
+            style={{ backgroundColor: "#09090b", fontFamily: 'system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif' }}>
 
-            <main className="max-w-md mx-auto p-5 pb-24">
-                {step === "form" && (
-                    <div className="space-y-6 mt-4">
-                        {/* 안내 */}
-                        <div className="text-center space-y-2">
-                            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <Lock className="w-7 h-7 text-blue-600" />
-                            </div>
-                            <h1 className="text-lg font-bold text-slate-900">가디언즈 인증</h1>
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                                귀하의 정보와 사망진단서를 제출하시면<br />
-                                보관된 메시지와 디지털 유산이 공개됩니다.
-                            </p>
+            {/* CSS 애니메이션 */}
+            <style>{`
+                @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+                @keyframes scaleIn { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+                @keyframes bounceIn {
+                    0%{transform:scale(0.8);opacity:0}
+                    60%{transform:scale(1.06)}
+                    100%{transform:scale(1);opacity:1}
+                }
+                .fade-up  { animation: fadeUp  0.6s ease forwards }
+                .scale-in { animation: scaleIn 0.5s ease forwards }
+                .bounce-in{ animation: bounceIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards }
+                @keyframes glow-ring {
+                    0%,100%{box-shadow:0 0 20px rgba(59,130,246,0.4)}
+                    50%{box-shadow:0 0 60px rgba(59,130,246,0.8),0 0 100px rgba(59,130,246,0.3)}
+                }
+                .glow-ring { animation: glow-ring 2.5s ease-in-out infinite }
+            `}</style>
+
+            <FloatingIcons />
+
+            {/* ── LANDING ─────────────────────── */}
+            {step === "landing" && (
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-6">
+                    {/* 앱 아이콘 */}
+                    <div className="w-20 h-20 rounded-3xl shadow-2xl overflow-hidden mb-2 ring-1 ring-white/10 glow-ring bounce-in">
+                        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+                            <Shield className="w-10 h-10 text-white" />
                         </div>
-
-                        {/* 인증 폼 */}
-                        <form onSubmit={async (e) => {
-                            e.preventDefault();
-                            if (!form.name || !form.phone || !form.apiKey) { alert("모든 정보를 입력해주세요."); return; }
-                            setIsSubmitting(true);
-                            try {
-                                const res = await fetch("/api/guardians/verify-open", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ userId, guardianName: form.name, guardianPhone: form.phone, apiKey: form.apiKey, deathCertificatePath: certPath })
-                                });
-                                const data = await res.json();
-                                if (!res.ok) { alert(data.error || "인증에 실패했습니다."); return; }
-                                setResult(data);
-                                setStep("success");
-                            } catch (err) { console.error(err); alert("인증 처리 중 오류가 발생했습니다."); }
-                            finally { setIsSubmitting(false); }
-                        }} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-
-                            {/* 이름 */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                    <User className="w-3.5 h-3.5" /> 가디언즈 이름
-                                </label>
-                                <Input
-                                    value={form.name}
-                                    onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
-                                    placeholder="성함을 입력해주세요"
-                                    required
-                                    className="h-10 text-sm"
-                                />
-                            </div>
-
-                            {/* 전화번호 */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                    <Phone className="w-3.5 h-3.5" /> 전화번호
-                                </label>
-                                <Input
-                                    value={form.phone}
-                                    onChange={(e) => setForm(p => ({ ...p, phone: formatPhone(e.target.value) }))}
-                                    placeholder="010-0000-0000"
-                                    type="tel"
-                                    required
-                                    className="h-10 text-sm"
-                                />
-                            </div>
-
-                            {/* API 키 입력 */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                    <Key className="w-3.5 h-3.5" /> API 키
-                                </label>
-                                <Input
-                                    value={form.apiKey}
-                                    onChange={(e) => setForm(p => ({ ...p, apiKey: e.target.value }))}
-                                    placeholder="afterm-xxxxxxxxxxxxxxxx"
-                                    required
-                                    className="h-10 text-sm font-mono"
-                                />
-                                <p className="text-[11px] text-slate-400 ml-1">
-                                    API 키는 고인으로부터 별도로 전달받으셨거나, 유품에서 찾을 수 있습니다.
-                                </p>
-                            </div>
-
-                            {/* 사망진단서 업로드 */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-                                    <Upload className="w-3.5 h-3.5" /> 사망진단서 첨부 (선택)
-                                </label>
-                                <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-all ${certFile
-                                    ? 'border-green-300 bg-green-50'
-                                    : 'border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50'
-                                    }`}>
-                                    {certFile ? (
-                                        <div className="text-center">
-                                            <CheckCircle className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                                            <p className="text-xs font-bold text-green-600">{certFile.name}</p>
-                                            {isUploading && (
-                                                <p className="text-[11px] text-slate-400 mt-1">업로드 중...</p>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center">
-                                            <Upload className="w-5 h-5 text-slate-300 mx-auto mb-1" />
-                                            <p className="text-xs text-slate-400">PDF 또는 이미지 파일 (최대 10MB)</p>
-                                        </div>
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept=".pdf,image/*"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                    />
-                                </label>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting || isUploading}
-                                className="w-full h-12 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200"
-                            >
-                                {isSubmitting ? "인증 처리 중..." : "인증 및 유산 공개"}
-                            </Button>
-                        </form>
-
-                        <p className="text-[11px] text-center text-slate-400">
-                            제출된 정보는 유산 공개 목적으로만 사용되며, 안전하게 보관됩니다.
-                        </p>
                     </div>
-                )}
 
-                {/* 오픈 완료 화면 */}
-                {step === "success" && result && (
-                    <div className="space-y-6 mt-4 animate-fade-in">
-                        <div className="text-center space-y-2">
-                            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <CheckCircle className="w-7 h-7 text-green-600" />
+                    <h1 className="text-4xl md:text-5xl font-bold text-white text-center tracking-tight fade-up">
+                        고인 디지털 유산 찾기
+                    </h1>
+                    <p className="text-slate-400 text-base text-center fade-up" style={{ animationDelay: "0.1s" }}>
+                        사망진단서 또는 API 키로 고인의<br />디지털 유산을 안전하게 열람하세요.
+                    </p>
+
+                    {/* CTA 버튼 */}
+                    <div className="w-full max-w-sm mt-2 fade-up" style={{ animationDelay: "0.2s" }}>
+                        <button
+                            onClick={() => setStep("name")}
+                            className="w-full h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg transition-all active:scale-95 hover:shadow-lg hover:shadow-blue-500/40 flex items-center justify-center gap-2"
+                        >
+                            유산 찾기 시작하기
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ── NAME STEP ───────────────────── */}
+            {step === "name" && (
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-5">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white text-center tracking-tight fade-up">
+                        가디언즈(열람자) 이름을<br />입력해주세요
+                    </h1>
+                    <p className="text-slate-400 text-sm text-center fade-up" style={{ animationDelay: "0.1s" }}>
+                        고인이 지정한 유산 열람자의 성함입니다
+                    </p>
+
+                    <div className="w-full max-w-sm mt-2 fade-up" style={{ animationDelay: "0.15s" }}>
+                        <div className="w-full h-14 rounded-full overflow-hidden relative"
+                            style={{ backgroundColor: "#27272a", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)" }}>
+                            <input
+                                type="text"
+                                autoFocus
+                                placeholder="성함을 입력해주세요"
+                                value={guardianName}
+                                onChange={e => setGuardianName(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && guardianName && setStep("method")}
+                                className="absolute inset-0 bg-transparent text-white placeholder-zinc-500 text-base px-6 outline-none pr-36"
+                            />
+                            <div className="absolute top-2 right-2 bottom-2">
+                                <button
+                                    onClick={() => guardianName && setStep("method")}
+                                    disabled={!guardianName}
+                                    className="h-full px-5 rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-sm"
+                                >
+                                    다음 →
+                                </button>
                             </div>
-                            <h1 className="text-lg font-bold text-slate-900">인증 완료</h1>
-                            <p className="text-xs text-slate-500">
-                                {result.messagesReleased}개의 메시지가 수신인에게 전달되었습니다.
-                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── METHOD SELECT ────────────────── */}
+            {step === "method" && (
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-6">
+                    <h1 className="text-3xl font-bold text-white text-center tracking-tight fade-up">
+                        열람 방식을 선택해주세요
+                    </h1>
+                    <p className="text-slate-400 text-sm text-center fade-up" style={{ animationDelay: "0.1s" }}>
+                        <span className="text-white font-medium">{guardianName}</span>님, 어떤 방식으로 열람하시겠어요?
+                    </p>
+
+                    <div className="w-full max-w-sm space-y-3 fade-up" style={{ animationDelay: "0.15s" }}>
+                        {/* 사망진단서 - 준비중 */}
+                        <button
+                            disabled
+                            className="w-full h-16 rounded-2xl border border-white/10 bg-white/5 flex items-center gap-4 px-5 text-left opacity-50 cursor-not-allowed relative"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                                <FileText className="w-5 h-5 text-slate-300" />
+                            </div>
+                            <div>
+                                <p className="text-white font-semibold text-sm">사망진단서로 열기</p>
+                                <p className="text-slate-500 text-xs">OCR 자동 인증</p>
+                            </div>
+                            <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-400/30">
+                                준비중
+                            </span>
+                        </button>
+
+                        {/* API 키 */}
+                        <button
+                            onClick={() => setStep("form")}
+                            className="w-full h-16 rounded-2xl border border-blue-500/40 bg-blue-600/10 hover:bg-blue-600/20 flex items-center gap-4 px-5 text-left transition-all hover:border-blue-400/60 active:scale-[0.98] group"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-600/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600/50 transition-colors">
+                                <Key className="w-5 h-5 text-blue-300" />
+                            </div>
+                            <div>
+                                <p className="text-white font-semibold text-sm">API 키로 열기</p>
+                                <p className="text-slate-400 text-xs">고인이 공유한 에프텀 API 키</p>
+                            </div>
+                            <ChevronRight className="ml-auto w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+
+                    <button onClick={() => setStep("name")} className="text-slate-600 text-xs hover:text-slate-400 transition-colors fade-up">
+                        ← 이전으로
+                    </button>
+                </div>
+            )}
+
+            {/* ── FORM (API KEY) ───────────────── */}
+            {step === "form" && (
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-5">
+                    <h1 className="text-3xl font-bold text-white text-center tracking-tight fade-up">
+                        정보를 입력해주세요
+                    </h1>
+
+                    <div className="w-full max-w-sm space-y-3 fade-up" style={{ animationDelay: "0.1s" }}>
+                        {/* 핸드폰 번호 */}
+                        <div style={{ backgroundColor: "#27272a", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)" }}
+                            className="w-full h-14 rounded-full flex items-center gap-3 px-5">
+                            <Phone className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            <input
+                                type="tel"
+                                autoFocus
+                                placeholder="핸드폰 번호 (010-0000-0000)"
+                                value={guardianPhone}
+                                onChange={e => setGuardianPhone(formatPhone(e.target.value))}
+                                className="flex-1 bg-transparent text-white placeholder-zinc-500 text-sm outline-none"
+                            />
                         </div>
 
-                        {/* 디지털 유산 목록 */}
-                        {result.vaultItems.length > 0 ? (
-                            <div className="space-y-3">
-                                <h2 className="text-sm font-bold text-slate-700">보관된 디지털 유산</h2>
-                                {result.vaultItems.map(item => (
-                                    <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-slate-900 text-sm">{item.platform_name}</p>
-                                                {item.username && (
-                                                    <p className="text-xs text-slate-500 mt-0.5">아이디: {item.username}</p>
-                                                )}
-                                                {item.notes && (
-                                                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">{item.notes}</p>
-                                                )}
-                                            </div>
-                                            <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full flex-shrink-0">
-                                                {item.category}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="bg-white border border-slate-100 rounded-xl p-6 text-center text-slate-400 text-sm">
-                                등록된 디지털 유산이 없습니다.
+                        {/* API 키 */}
+                        <div style={{ backgroundColor: "#27272a", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)" }}
+                            className="w-full h-14 rounded-full flex items-center gap-3 px-5">
+                            <Key className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="afterm-xxxxxxxxxxxxxxxx"
+                                value={apiKey}
+                                onChange={e => setApiKey(e.target.value)}
+                                className="flex-1 bg-transparent text-white placeholder-zinc-500 text-sm outline-none font-mono"
+                            />
+                        </div>
+
+                        {errorMsg && (
+                            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs leading-relaxed">
+                                {errorMsg}
                             </div>
                         )}
 
-                        <p className="text-[11px] text-center text-slate-400">
-                            이 페이지를 닫으면 유산 목록에 다시 접근할 수 없습니다.<br />
-                            필요한 정보를 안전한 곳에 기록해두세요.
+                        {/* 열기 버튼 */}
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isLoading || !guardianPhone || !apiKey}
+                            className="w-full h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    인증 중...
+                                </>
+                            ) : (
+                                <>
+                                    <Lock className="w-4 h-4" />
+                                    디지털 유산 열기
+                                </>
+                            )}
+                        </button>
+
+                        <p className="text-center text-slate-600 text-[10px]">
+                            이름: <span className="text-slate-400 font-medium">{guardianName}</span>
                         </p>
                     </div>
-                )}
-            </main>
+
+                    <button onClick={() => setStep("method")} className="text-slate-600 text-xs hover:text-slate-400 transition-colors">
+                        ← 이전으로
+                    </button>
+                </div>
+            )}
+
+            {/* ── RESULT ──────────────────────── */}
+            {step === "result" && result && (
+                <div className="relative z-10 min-h-screen px-4 pt-16 pb-24">
+                    {/* 성공 헤더 */}
+                    <div className="text-center mb-10 bounce-in">
+                        <div className="inline-flex w-20 h-20 rounded-3xl bg-green-500/20 border border-green-400/30 items-center justify-center mb-4">
+                            <CheckCircle className="w-10 h-10 text-green-400" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-white mb-1">열람 완료</h1>
+                        <p className="text-slate-400 text-sm">
+                            {result.deceasedName ? `${result.deceasedName}님의 ` : ""}디지털 유산이 공개되었습니다
+                        </p>
+                    </div>
+
+                    {/* 메시지 공개 알림 */}
+                    {result.messagesReleased > 0 && (
+                        <div className="max-w-lg mx-auto mb-8 px-4 py-4 rounded-2xl bg-green-500/10 border border-green-400/20 flex items-center gap-3 fade-up">
+                            <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                            </div>
+                            <div>
+                                <p className="text-green-300 font-semibold text-sm">메시지 {result.messagesReleased}건이 공개되었습니다</p>
+                                <p className="text-green-600 text-xs">수신자에게 별도로 전달됩니다</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 디지털 유산 카드 */}
+                    {result.vaultItems.length > 0 ? (
+                        <div className="max-w-lg mx-auto">
+                            <p className="text-slate-400 text-sm font-medium mb-4 px-2 fade-up">
+                                🗂️ 디지털 유산 <span className="text-white font-bold">{result.vaultItems.length}개</span>
+                            </p>
+
+                            {/* 스택 카드 뷰 - 상위 3개 */}
+                            {result.vaultItems.length >= 3 && (
+                                <div className="relative flex mb-8 pl-4 fade-up" style={{ animationDelay: "0.1s" }}>
+                                    {result.vaultItems.slice(0, 3).map((item, i) => (
+                                        <VaultCard key={item.id} item={item} index={i} />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* 전체 리스트 */}
+                            <div className="space-y-3 fade-up" style={{ animationDelay: "0.2s" }}>
+                                {result.vaultItems.map((item, i) => {
+                                    const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
+                                    const [showNotes, setShowNotes] = useState(false);
+                                    return (
+                                        <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:border-white/20 transition-all">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-9 h-9 rounded-xl ${style.bg} ${style.color} flex items-center justify-center flex-shrink-0`}>
+                                                    {style.icon}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white font-bold text-sm truncate">{item.platform_name}</p>
+                                                    {item.username && (
+                                                        <p className="text-slate-400 text-xs font-mono">{item.username}</p>
+                                                    )}
+                                                </div>
+                                                {item.notes && (
+                                                    <button onClick={() => setShowNotes(p => !p)} className="text-slate-500 hover:text-slate-300 transition-colors p-1">
+                                                        {showNotes ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {showNotes && item.notes && (
+                                                <div className="mt-3 pt-3 border-t border-white/10 text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
+                                                    {item.notes}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center text-slate-500 py-16">
+                            <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                            <p className="text-sm">등록된 디지털 유산이 없습니다</p>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
 
-// Suspense 래퍼 (useSearchParams는 Suspense 필요)
+// ─── 페이지 래퍼 ─────────────────────────────────────────────
 export default function GuardianOpenPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             </div>
         }>
             <GuardianOpenContent />
