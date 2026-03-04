@@ -61,10 +61,14 @@ export async function POST(req: NextRequest) {
 
         // ─── 4. 가디언즈 명단 대조 ─────────────────────────────────
         // 등록된 가디언즈 목록을 가져옴
-        const { data: guardiansList } = await serviceSupabase
+        const { data: guardiansList, error: guardiansErr } = await serviceSupabase
             .from("guardians")
-            .select("id, guardian_name, name")
+            .select("id, guardian_name, guardian_phone")
             .eq("user_id", profile.id);
+
+        if (guardiansErr) {
+            console.error("guardians fetch error:", guardiansErr);
+        }
 
         if (!guardiansList || guardiansList.length === 0) {
             return NextResponse.json({ error: "해당 고인의 계정에 등록된 가디언즈가 없습니다." }, { status: 403 });
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
 
         const inputGuardianNorm = norm(guardianName);
         const matchedGuardian = guardiansList.find(g =>
-            norm(g.guardian_name) === inputGuardianNorm || norm(g.name) === inputGuardianNorm
+            norm(g.guardian_name) === inputGuardianNorm
         );
 
         if (!matchedGuardian) {
