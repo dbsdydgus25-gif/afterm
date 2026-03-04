@@ -74,39 +74,30 @@ export async function POST(req: NextRequest) {
 
         if (updateError) throw updateError;
 
-        // 5. 해당 유저의 잠긴 메시지 목록 조회
+        // 5. 해당 유저의 전체 메시지 목록 조회 (status 무관 - guardians 인증 후 모두 릴리즈)
         const { data: messages } = await serviceSupabase
             .from("messages")
-            .select("id, content, recipient_name, recipient_phone, recipient_relationship")
-            .eq("user_id", userId)
-            .eq("status", "locked");
+            .select("id, content, recipient_name, recipient_phone, recipient_relationship, status")
+            .eq("user_id", userId);
+
+        // SMS 대상: locked 상태이거나 status가 없는 메시지 (아직 전달 안 된 것)
+        const pendingMessages = messages?.filter(m => !m.status || m.status === 'locked') || [];
 
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://afterm.co.kr";
         const smsResults: { id: string; success: boolean }[] = [];
 
-        // 6. 잠긴 메시지 각각을 수신인에게 SMS 발송
-        if (messages && messages.length > 0) {
-            for (const msg of messages) {
+        // 6. pending 메시지들을 수신인에게 SMS 발송
+        if (pendingMessages.length > 0) {
+            for (const msg of pendingMessages) {
                 try {
-                    // 메시지 열람 링크를 포함한 SMS 발송
                     const smsMessage = `[에프텀] ${profile.full_name || "사용자"}님이 남긴 소중한 메시지가 있습니다.\n아래 링크에서 확인해주세요.\n${siteUrl}/view/${msg.id}`;
-
                     const smsRes = await fetch(`${siteUrl}/api/sms/send`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            phone: msg.recipient_phone,
-                            message: smsMessage
-                        })
+                        body: JSON.stringify({ phone: msg.recipient_phone, message: smsMessage })
                     });
-
-                    // SMS 발송 성공 시 메시지 상태를 'unlocked'으로 변경
                     if (smsRes.ok) {
-                        await serviceSupabase
-                            .from("messages")
-                            .update({ status: "unlocked" })
-                            .eq("id", msg.id);
-
+                        await serviceSupabase.from("messages").update({ status: "unlocked" }).eq("id", msg.id);
                         smsResults.push({ id: msg.id, success: true });
                     } else {
                         smsResults.push({ id: msg.id, success: false });

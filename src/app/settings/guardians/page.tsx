@@ -12,7 +12,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, Copy, Check, Plus, Trash2, Shield, Key, Users, Phone, User } from "lucide-react";
+import { ArrowLeft, Copy, Check, Plus, Trash2, Shield, Key, Users, Phone, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -40,6 +40,7 @@ export default function GuardiansSettingPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [showApiKey, setShowApiKey] = useState(false); // API 키 마스킹 토글
 
     // 약관 동의 상태
     const [agreed, setAgreed] = useState(false);
@@ -102,9 +103,13 @@ export default function GuardiansSettingPage() {
         }
     };
 
-    // 클립보드 복사
+    // 복사 시 경고 화인 후 클립보드
     const handleCopy = () => {
         if (!apiKey) return;
+        const confirmed = window.confirm(
+            '⚠️ API 키 보안 경고\n\nAPI 키는 가디언즈(\uc720산 관리자) 이외의 다른 사람에게 절대 공유하지 마세요.\n키를 복사하시겠습니까?'
+        );
+        if (!confirmed) return;
         navigator.clipboard.writeText(apiKey);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -195,11 +200,23 @@ export default function GuardiansSettingPage() {
                     </div>
 
                     {apiKey ? (
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
-                            <code className="text-xs font-mono text-slate-700 truncate">{apiKey}</code>
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-2">
+                            <code className="text-xs font-mono text-slate-700 truncate flex-1">
+                                {showApiKey ? apiKey : apiKey.replace(/afterm-(.+)/, (_, k) => `afterm-${'•'.repeat(k.length)}`)}
+                            </code>
+                            {/* 눈 아이콘: 보기/숨기기 토글 */}
+                            <button
+                                onClick={() => setShowApiKey(!showApiKey)}
+                                className="flex-shrink-0 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
+                                title={showApiKey ? 'API 키 숨기기' : 'API 키 보기'}
+                            >
+                                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                            {/* 복사 버튼 */}
                             <button
                                 onClick={handleCopy}
                                 className="flex-shrink-0 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                title="복사"
                             >
                                 {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                             </button>

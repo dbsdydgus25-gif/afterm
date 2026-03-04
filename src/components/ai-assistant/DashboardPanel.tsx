@@ -74,7 +74,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
             return;
         }
 
-        // 디지털 유산인 경우: 기존 API 저장
+        // 디지털 유산인 경우: 기존 API 저장 후 대시보드로 이동
         setIsSaving(true);
         setSaveError("");
         try {
@@ -85,6 +85,8 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
             });
             if (res.ok) {
                 setIsSaved(true);
+                // 저장 완료 후 1.2초 뒤 대시보드로 자동 이동
+                setTimeout(() => router.push("/dashboard"), 1200);
             } else {
                 const data = await res.json();
                 setSaveError(data.error || "저장에 실패했습니다.");

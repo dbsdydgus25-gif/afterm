@@ -33,9 +33,7 @@ interface VaultItem {
     category: string;
     platform_name: string;
     account_id: string;
-    request_type: string;
     notes: string;
-    recipient_name: string;
     created_at: string;
 }
 
@@ -66,7 +64,7 @@ export default function DashboardPage() {
 
     // Limits based on plan
     const maxMessages = plan === 'pro' ? 100 : 1;
-    const maxVault = plan === 'pro' ? 10 : 1;
+    const maxVault = plan === 'pro' ? 100 : 10;
     const maxStorage = plan === 'pro' ? 1024 * 1024 * 1024 : 10 * 1024 * 1024; // 1GB vs 10MB
 
     useEffect(() => {
@@ -452,14 +450,7 @@ export default function DashboardPage() {
                                                                 <FileKey className="w-4 h-4 text-slate-400" />
                                                                 <span className="text-slate-900 font-mono font-bold tracking-tight">{item.account_id}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-2 px-3 py-1">
-                                                                <span className="text-slate-400 w-16 text-xs font-bold">수신인</span>
-                                                                <span className="text-slate-700 font-medium">{item.recipient_name}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 px-3 py-1">
-                                                                <span className="text-slate-400 w-16 text-xs font-bold">요청사항</span>
-                                                                <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-xs border border-emerald-100">{getRequestTypeLabel(item.request_type)}</span>
-                                                            </div>
+
                                                             {item.notes && (
                                                                 <div className="flex items-start gap-2 pt-3 mt-2 border-t border-slate-100 px-3">
                                                                     <span className="text-slate-400 w-16 flex-shrink-0 text-xs font-bold">메모</span>
