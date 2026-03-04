@@ -90,61 +90,63 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
             >
                 <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
 
-                    {/* Left: Logo */}
-                    <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0">
-                        <span className="text-xl font-black tracking-tighter text-blue-600">
-                            AFTERM
-                        </span>
-                    </Link>
+                    {/* Left: Logo + Nav Links */}
+                    <div className="flex items-center gap-1">
+                        <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0 mr-3">
+                            <span className="text-xl font-black tracking-tighter text-blue-600">
+                                AFTERM
+                            </span>
+                        </Link>
 
-                    {/* Center: Nav Links (Desktop Only) */}
-                    <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-                        {/* 주요 서비스 with dropdown */}
-                        <div className="relative" ref={serviceDropdownRef}>
-                            <button
-                                onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}
-                                className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isServiceDropdownOpen ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:text-blue-600 hover:bg-slate-50"}`}
-                            >
-                                주요 서비스
-                                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isServiceDropdownOpen ? "rotate-180" : ""}`} />
-                            </button>
-                            <AnimatePresence>
-                                {isServiceDropdownOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
-                                    >
-                                        {serviceSubLinks.map((item) => (
-                                            <Link
-                                                key={item.href}
-                                                href={item.href}
-                                                onClick={() => setIsServiceDropdownOpen(false)}
-                                                className={`flex items-center px-4 py-3 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${pathname === item.href ? "text-blue-600 bg-blue-50" : "text-slate-700"}`}
-                                            >
-                                                {item.name}
-                                            </Link>
-                                        ))}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                        {/* Center: Nav Links (Desktop Only) */}
+                        <nav className="hidden md:flex items-center gap-1">
+                            {/* 주요 서비스 with dropdown */}
+                            <div className="relative" ref={serviceDropdownRef}>
+                                <button
+                                    onClick={() => setIsServiceDropdownOpen(!isServiceDropdownOpen)}
+                                    className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isServiceDropdownOpen ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:text-blue-600 hover:bg-slate-50"}`}
+                                >
+                                    주요 서비스
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isServiceDropdownOpen ? "rotate-180" : ""}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {isServiceDropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
+                                        >
+                                            {serviceSubLinks.map((item) => (
+                                                <Link
+                                                    key={item.href}
+                                                    href={item.href}
+                                                    onClick={() => setIsServiceDropdownOpen(false)}
+                                                    className={`flex items-center px-4 py-3 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-600 ${pathname === item.href ? "text-blue-600 bg-blue-50" : "text-slate-700"}`}
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
-                        {centerNavLinks.filter(l => !l.hasDropdown).map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${pathname === link.href
-                                    ? "text-blue-600 bg-blue-50"
-                                    : "text-slate-600 hover:text-blue-600 hover:bg-slate-50"
-                                    }`}
-                            >
-                                {link.name}
-                            </Link>
-                        ))}
-                    </nav>
+                            {centerNavLinks.filter(l => !l.hasDropdown).map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${pathname === link.href
+                                        ? "text-blue-600 bg-blue-50"
+                                        : "text-slate-600 hover:text-blue-600 hover:bg-slate-50"
+                                        }`}
+                                >
+                                    {link.name}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
 
                     {/* Right: Dashboard Button + Profile */}
                     <div className="flex items-center gap-3 flex-shrink-0">

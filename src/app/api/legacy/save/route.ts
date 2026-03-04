@@ -48,7 +48,11 @@ export async function POST(req: NextRequest) {
                 category: "subscription" // 기본값
             }));
 
-            const { error } = await supabase.from("vault_items").insert(vaultItems);
+            // upsert: user_id + platform_name 기준 중복이면 최신버전으로 업데이트
+            const { error } = await supabase.from("vault_items").upsert(vaultItems, {
+                onConflict: "user_id,platform_name",
+                ignoreDuplicates: false
+            });
             if (error) throw error;
         }
 

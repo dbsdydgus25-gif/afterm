@@ -97,63 +97,177 @@ function GuardianOpenContent() {
     };
 
     // 인증 제출 처리
-    const handleSubmit = async (e: React.FormEvent) => {
+    const [searchForm, setSearchForm] = useState({ deceasedName: "", birthDate: "", apiKey: "" });
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!userId) {
-            alert("올바르지 않은 링크입니다. 문자로 받은 링크를 다시 확인해주세요.");
+        if (!searchForm.deceasedName || !searchForm.birthDate || !searchForm.apiKey) {
+            alert("모든 항목을 입력해주세요.");
             return;
         }
-
-        if (!form.name || !form.phone || !form.apiKey) {
-            alert("모든 정보를 입력해주세요.");
-            return;
-        }
-
-        setIsSubmitting(true);
+        setIsSearching(true);
         try {
-            const res = await fetch("/api/guardians/verify-open", {
+            const res = await fetch("/api/guardians/find-by-key", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userId,
-                    guardianName: form.name,
-                    guardianPhone: form.phone,
-                    apiKey: form.apiKey,
+                    deceasedName: searchForm.deceasedName,
+                    birthDate: searchForm.birthDate,
+                    apiKey: searchForm.apiKey,
                     deathCertificatePath: certPath
                 })
             });
-
             const data = await res.json();
-
-            if (!res.ok) {
-                alert(data.error || "인증에 실패했습니다.");
-                return;
-            }
-
+            if (!res.ok) { alert(data.error || "찾기에 실패했습니다."); return; }
             setResult(data);
             setStep("success");
         } catch (err) {
-            console.error("오픈 인증 오류:", err);
-            alert("인증 처리 중 오류가 발생했습니다.");
+            console.error(err);
+            alert("처리 중 오류가 발생했습니다.");
         } finally {
-            setIsSubmitting(false);
+            setIsSearching(false);
         }
     };
 
-    // 유효하지 않은 링크
+    // uid 없이 접근 → 고인 디지털 유산 직접 찾기 모드
     if (!userId) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-                <div className="max-w-sm w-full text-center space-y-4">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                        <X className="w-8 h-8 text-red-500" />
+            <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white font-sans">
+                <header className="w-full h-14 flex items-center justify-center border-b border-white/10 px-5">
+                    <div className="flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-blue-400" />
+                        <span className="text-sm font-bold text-white">AFTERM · 고인 디지털 유산 찾기</span>
                     </div>
-                    <h1 className="text-lg font-bold text-slate-800">올바르지 않은 링크입니다.</h1>
-                    <p className="text-sm text-slate-500">
-                        문자로 받으신 링크를 다시 확인해주세요.
-                    </p>
-                </div>
+                </header>
+
+                <main className="max-w-md mx-auto px-5 py-10 pb-24">
+                    {step === "form" ? (
+                        <div className="space-y-6">
+                            <div className="text-center space-y-2 mb-6">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-400/30 mb-4">
+                                    <span className="text-3xl">🔍</span>
+                                </div>
+                                <h1 className="text-xl font-bold text-white">고인의 디지털 유산 찾기</h1>
+                                <p className="text-sm text-slate-400 leading-relaxed">
+                                    고인이 AFTERM에 보관한 디지털 유산을<br />
+                                    사망진단서와 API 키로 안전하게 열람하세요.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleSearch} className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 backdrop-blur-sm">
+                                {/* 사망진단서 업로드 */}
+                                <div className="space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                                        <Upload className="w-3.5 h-3.5" /> 사망진단서 업로드 <span className="text-slate-500">(OCR 이름 자동추출)</span>
+                                    </label>
+                                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-blue-400/50 hover:bg-white/5 transition-all">
+                                        {isUploading ? (
+                                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                                업로드 중...
+                                            </div>
+                                        ) : certFile ? (
+                                            <div className="text-center">
+                                                <CheckCircle className="w-5 h-5 text-green-400 mx-auto mb-1" />
+                                                <p className="text-xs text-green-400 font-medium">{certFile.name}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center">
+                                                <Upload className="w-5 h-5 text-slate-500 mx-auto mb-1" />
+                                                <p className="text-xs text-slate-500">이미지 또는 PDF 클릭하여 업로드</p>
+                                            </div>
+                                        )}
+                                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleFileChange} />
+                                    </label>
+                                </div>
+
+                                {/* 고인 이름 */}
+                                <div className="space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                                        <User className="w-3.5 h-3.5" /> 고인 이름
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={searchForm.deceasedName}
+                                        onChange={e => setSearchForm(p => ({ ...p, deceasedName: e.target.value }))}
+                                        placeholder="홍길동"
+                                        required
+                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-500 text-sm focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
+                                    />
+                                </div>
+
+                                {/* 생년월일 */}
+                                <div className="space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                                        <Phone className="w-3.5 h-3.5" /> 생년월일
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={searchForm.birthDate}
+                                        onChange={e => setSearchForm(p => ({ ...p, birthDate: e.target.value }))}
+                                        required
+                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
+                                    />
+                                </div>
+
+                                {/* API 키 */}
+                                <div className="space-y-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                                        <Key className="w-3.5 h-3.5" /> 에프텀 API 키
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={searchForm.apiKey}
+                                        onChange={e => setSearchForm(p => ({ ...p, apiKey: e.target.value }))}
+                                        placeholder="afterm-xxxxxxxxxxxxxxxx"
+                                        required
+                                        className="w-full h-10 px-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-slate-500 text-sm font-mono focus:outline-none focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
+                                    />
+                                    <p className="text-[10px] text-slate-500">고인이 생전에 공유했거나 비상연락처에 보관된 API 키입니다.</p>
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    disabled={isSearching}
+                                    className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all"
+                                >
+                                    {isSearching ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            인증 중...
+                                        </div>
+                                    ) : "디지털 유산 열기"}
+                                </Button>
+                            </form>
+
+                            <p className="text-center text-[10px] text-slate-600 leading-relaxed">
+                                이 서비스는 고인의 명시적 동의 하에 운영됩니다.<br />
+                                모든 접근은 암호화 로그로 기록됩니다.
+                            </p>
+                        </div>
+                    ) : (
+                        // 성공 결과 (아래 기존 success UI 재활용)
+                        <div className="text-center space-y-4 py-10">
+                            <CheckCircle className="w-16 h-16 text-green-400 mx-auto" />
+                            <h1 className="text-xl font-bold text-white">인증 완료</h1>
+                            <p className="text-slate-400 text-sm">
+                                디지털 유산 {result?.vaultItems?.length ?? 0}개가 공개되었습니다.
+                            </p>
+                            {result?.vaultItems && result.vaultItems.length > 0 && (
+                                <div className="space-y-3 mt-6 text-left">
+                                    {result.vaultItems.map((v) => (
+                                        <div key={v.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                                            <p className="font-bold text-white text-sm">{v.platform_name}</p>
+                                            {v.username && <p className="text-xs text-slate-400 mt-1">계정: {v.username}</p>}
+                                            {v.notes && <p className="text-xs text-slate-500 mt-1">{v.notes}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </main>
             </div>
         );
     }
@@ -184,7 +298,23 @@ function GuardianOpenContent() {
                         </div>
 
                         {/* 인증 폼 */}
-                        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!form.name || !form.phone || !form.apiKey) { alert("모든 정보를 입력해주세요."); return; }
+                            setIsSubmitting(true);
+                            try {
+                                const res = await fetch("/api/guardians/verify-open", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ userId, guardianName: form.name, guardianPhone: form.phone, apiKey: form.apiKey, deathCertificatePath: certPath })
+                                });
+                                const data = await res.json();
+                                if (!res.ok) { alert(data.error || "인증에 실패했습니다."); return; }
+                                setResult(data);
+                                setStep("success");
+                            } catch (err) { console.error(err); alert("인증 처리 중 오류가 발생했습니다."); }
+                            finally { setIsSubmitting(false); }
+                        }} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
 
                             {/* 이름 */}
                             <div className="space-y-1.5">
