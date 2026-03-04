@@ -1,16 +1,21 @@
 "use client";
 
+// ============================================================
+// 수신인 지정 페이지 (recipient/page.tsx)
+// 변경사항: 메시지 저장 시 즉시 SMS 발송 로직 제거
+// 메시지는 가디언즈 인증(사망진단서 + API 키) 이후에만 수신인에게 전달됩니다.
+// ============================================================
+
 import { useMemoryStore } from "@/store/useMemoryStore";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { User, Phone, Heart, ArrowRight, Mail } from "lucide-react";
+import { User, Phone, Heart, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RecipientPage() {
     const router = useRouter();
     const { message, setMessage, messageId, setMessageId, recipient, setRecipient, user, plan, files, setFiles } = useMemoryStore();
-    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -20,6 +25,7 @@ export default function RecipientPage() {
         agreed: false
     });
 
+    // 전화번호 형식 자동 변환 (010-XXXX-XXXX)
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value.replace(/[^0-9]/g, "");
         if (value.length > 11) value = value.slice(0, 11);
@@ -33,6 +39,7 @@ export default function RecipientPage() {
         setFormData(prev => ({ ...prev, phone: value }));
     };
 
+    // 메시지 저장 핸들러
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.agreed) return;
@@ -52,17 +59,14 @@ export default function RecipientPage() {
             });
 
             const supabase = createClient();
-
-
             const uploadedFiles: { path: string, size: number, type: string }[] = [];
             let legacyFilePath: string | null = null;
             let legacyFileSize = 0;
             let legacyFileType = null;
-
             let finalMessageId = messageId;
             const textBytes = new Blob([message]).size;
 
-            // 1. Upload All Files
+            // 1. 첨부 파일 업로드 처리
             if (files && files.length > 0) {
                 for (const file of files) {
                     const fileExt = file.name.split('.').pop();
@@ -75,14 +79,9 @@ export default function RecipientPage() {
 
                     if (uploadError) throw uploadError;
 
-                    uploadedFiles.push({
-                        path: path,
-                        size: file.size,
-                        type: file.type
-                    });
+                    uploadedFiles.push({ path, size: file.size, type: file.type });
                 }
 
-                // Set Legacy Info (First file)
                 if (uploadedFiles.length > 0) {
                     legacyFilePath = uploadedFiles[0].path;
                     legacyFileSize = uploadedFiles[0].size;
@@ -91,13 +90,7 @@ export default function RecipientPage() {
             }
 
             if (messageId) {
-                // Update existing message logic
-
-                // Note: If updating, we should think about existing files. 
-                // But this flow seems to be for "New Creation" mostly or "Editing Draft". 
-                // If messageId exists here, it means we came back or are editing a draft.
-                // Logic: update message info.
-
+                // 기존 메시지 수정 로직
                 const { data: updatedData, error } = await supabase
                     .from('messages')
                     .update({
@@ -106,11 +99,6 @@ export default function RecipientPage() {
                         recipient_phone: formData.phone,
                         recipient_relationship: formData.relationship,
                         updated_at: new Date().toISOString(),
-                        // Only update legacy columns if we have new files. 
-                        // If no new files, we keep old ones? 
-                        // Actually 'files' store should contain ALL files we want to have effectively.
-                        // But usually 'create' flow is fresh. 
-                        // If we are editing, we assume 'files' contains what we want.
                         ...(legacyFilePath && {
                             file_url: null,
                             file_path: legacyFilePath,
@@ -126,7 +114,7 @@ export default function RecipientPage() {
                 if (error) throw error;
                 finalMessageId = updatedData.id;
             } else {
-                // Insert new message -> Check Limit
+                // 새 메시지 저장 전 한도 체크
                 const { data: dbProfile } = await supabase
                     .from('profiles')
                     .select('plan')
@@ -142,13 +130,13 @@ export default function RecipientPage() {
                         .eq('user_id', user.id);
 
                     if (count !== null && count >= 1) {
-                        alert(`[Debug: Plan=${effectivePlan}, DB=${dbProfile?.plan || 'null'}] 무료 플랜은 1개의 메시지만 저장할 수 있습니다.`);
+                        alert(`무료 플랜은 1개의 메시지만 저장할 수 있습니다.`);
                         setIsSaving(false);
                         return;
                     }
                 }
 
-                // Insert new message
+                // 새 메시지 INSERT (status는 'locked' - 가디언즈 오픈 전까지 잠금)
                 const { data: insertedData, error } = await supabase
                     .from('messages')
                     .insert({
@@ -158,9 +146,11 @@ export default function RecipientPage() {
                         recipient_phone: formData.phone,
                         recipient_relationship: formData.relationship,
                         file_url: null,
-                        file_path: legacyFilePath, // Backward compatibility
+                        file_path: legacyFilePath,
                         file_size: legacyFileSize,
-                        file_type: legacyFileType
+                        file_type: legacyFileType,
+                        // status 필드가 존재하면 'locked'로 저장 (가디언즈 오픈 전 잠금)
+                        status: 'locked'
                     })
                     .select()
                     .single();
@@ -169,7 +159,7 @@ export default function RecipientPage() {
                 finalMessageId = insertedData.id;
             }
 
-            // 2. Insert into message_attachments
+            // 2. 첨부 파일 attachments 테이블에 저장
             if (uploadedFiles.length > 0 && finalMessageId) {
                 const attachmentsData = uploadedFiles.map(f => ({
                     message_id: finalMessageId,
@@ -185,7 +175,7 @@ export default function RecipientPage() {
                 if (attachError) throw attachError;
             }
 
-            // 3. Update Storage Usage
+            // 3. 스토리지 용량 업데이트
             const totalFilesSize = uploadedFiles.reduce((acc, f) => acc + f.size, 0);
             const totalBytesToAdd = totalFilesSize + textBytes;
 
@@ -205,28 +195,17 @@ export default function RecipientPage() {
                     updated_at: new Date().toISOString()
                 });
 
-            if (profileError) console.error("Failed to update storage usage:", profileError);
+            if (profileError) console.error("스토리지 용량 업데이트 실패:", profileError);
 
-            // 4. Send SMS Notification
-            if (finalMessageId) {
-                fetch('/api/sms/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        recipientPhone: formData.phone,
-                        recipientName: formData.name,
-                        senderName: user.name || "사용자",
-                        messageId: finalMessageId
-                    })
-                }).catch(err => console.error("SMS send background error:", err));
-            }
+            // ✅ [변경 포인트] 즉시 SMS 발송 로직 완전 제거
+            // 이제 메시지는 가디언즈가 사망진단서와 API 키로 인증을 완료한 이후에만
+            // 수신인에게 SMS 전달이 이루어집니다. (verify-open API에서 처리)
+            alert("메시지가 안전하게 보관되었습니다.\n가디언즈 인증 후 수신인에게 전달됩니다.");
 
-            alert("저장되었습니다.");
-
-            // Clear store
+            // 스토어 초기화
             setMessage('');
             setMessageId(null);
-            setFiles([]); // Clear files
+            setFiles([]);
             setRecipient({ name: '', phone: '', relationship: '' });
 
             router.push('/dashboard');
@@ -247,13 +226,14 @@ export default function RecipientPage() {
                         누구에게 전할까요?
                     </h1>
                     <p className="text-xs text-muted-foreground">
-                        당신의 소중한 이야기가 안전하게 전달됩니다.
+                        저장된 메시지는 가디언즈 인증 후 수신인에게 전달됩니다.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5 bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-black/5">
 
                     <div className="space-y-3">
+                        {/* 이름 입력 */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1.5">
                                 <User className="w-3.5 h-3.5 text-slate-500" /> 이름
@@ -267,6 +247,7 @@ export default function RecipientPage() {
                             />
                         </div>
 
+                        {/* 연락처 입력 */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold leading-none flex items-center gap-1.5">
                                 <Phone className="w-3.5 h-3.5 text-slate-500" /> 연락처
@@ -281,6 +262,7 @@ export default function RecipientPage() {
                             />
                         </div>
 
+                        {/* 관계 선택 */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold leading-none flex items-center gap-1.5">
                                 <Heart className="w-3.5 h-3.5 text-slate-500" /> 관계
@@ -291,7 +273,7 @@ export default function RecipientPage() {
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         if (val === '기타') {
-                                            setFormData({ ...formData, relationship: '' }); // Clear to force user input
+                                            setFormData({ ...formData, relationship: '' });
                                         } else {
                                             setFormData({ ...formData, relationship: val });
                                         }
@@ -319,6 +301,7 @@ export default function RecipientPage() {
                         </div>
                     </div>
 
+                    {/* 동의 체크박스 */}
                     <div className="flex items-center space-x-2 pt-1">
                         <input
                             type="checkbox"
@@ -335,6 +318,7 @@ export default function RecipientPage() {
                         </label>
                     </div>
 
+                    {/* 저장 버튼 */}
                     <Button
                         type="submit"
                         disabled={!formData.agreed || isSaving}

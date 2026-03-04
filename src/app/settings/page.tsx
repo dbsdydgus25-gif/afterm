@@ -540,6 +540,15 @@ function SettingsContent() {
                             멤버십
                         </button>
 
+                        {/* 가디언즈 관리 링크: 설정 사이드바 */}
+                        <Link
+                            href="/settings/guardians"
+                            className="w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 text-slate-500 hover:bg-blue-50 hover:text-blue-700"
+                        >
+                            <Shield className="w-3.5 h-3.5" />
+                            가디언즈 관리
+                        </Link>
+
                         <div className="border-t border-slate-100 my-2 pt-2">
                             <button
                                 onClick={handleLogout}
@@ -583,6 +592,13 @@ function SettingsContent() {
                         >
                             멤버십
                         </button>
+                        {/* 모바일: 가디언즈 탭 링크 */}
+                        <Link
+                            href="/settings/guardians"
+                            className="px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors text-blue-600 bg-blue-50 font-bold"
+                        >
+                            🛡️ 가디언즈
+                        </Link>
                     </div>
 
                     <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
