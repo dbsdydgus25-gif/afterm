@@ -151,6 +151,12 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                         {/* Desktop Only */}
                         <div className="hidden md:flex items-center gap-3">
                             <Link
+                                href="/guardians/open"
+                                className="px-4 py-2 text-sm font-bold text-indigo-600 border border-indigo-200 hover:bg-indigo-50 rounded-lg transition-colors"
+                            >
+                                🔍 고인 유산 찾기
+                            </Link>
+                            <Link
                                 href="/dashboard"
                                 className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
                             >
@@ -242,6 +248,15 @@ export function Header({ transparentOnTop = false }: HeaderProps) {
                                 ))}
 
                                 <div className="h-px bg-slate-100 my-2" />
+
+                                {/* 고인 유산 찾기 */}
+                                <Link
+                                    href="/guardians/open"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="px-3 py-3 text-base font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                >
+                                    🔍 고인 디지털 유산 찾기
+                                </Link>
 
                                 {/* Dashboard */}
                                 <Link

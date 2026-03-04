@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Save, CheckCircle, Plus, Loader2, ArrowRight } from "lucide-react";
+import { Trash2, Save, CheckCircle, Plus, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemoryStore } from "@/store/useMemoryStore";
 import type { DashboardResult, LegacyItem } from "./AiAssistantClient";
@@ -21,6 +21,59 @@ const CATEGORY_COLORS: Record<string, string> = {
     "쇼핑": "bg-amber-50 text-amber-600 border-amber-100",
     "기타": "bg-slate-50 text-slate-600 border-slate-100",
 };
+
+function LoadingIconCycle({ steps }: { steps: { icon: string; msg: string }[] }) {
+    const [idx, setIdx] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        timerRef.current = setTimeout(() => {
+            setIdx(prev => (prev + 1) % steps.length);
+        }, 1600);
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, [idx, steps.length]);
+
+    const current = steps[idx];
+    return (
+        <div className="flex flex-col items-center gap-6 py-10">
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 1.2, y: -10 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="text-6xl md:text-7xl"
+                >
+                    {current.icon}
+                </motion.div>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
+                <motion.p
+                    key={`msg-${idx}`}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.35 }}
+                    className="text-sm font-semibold text-slate-600 text-center"
+                >
+                    {current.msg}
+                </motion.p>
+            </AnimatePresence>
+            {/* 도트 인디케이터 */}
+            <div className="flex gap-1.5">
+                {steps.map((_, i) => (
+                    <div
+                        key={i}
+                        className={`rounded-full transition-all duration-300 ${i === idx ? 'w-5 h-2 bg-blue-500' : 'w-2 h-2 bg-slate-200'}`}
+                    />
+                ))}
+            </div>
+            <p className="text-xs text-slate-400">이메일에서 데이터를 가져오고 있어요...</p>
+        </div>
+    );
+}
+
 
 export function DashboardPanel({ result, isAnalyzing, onResultChange }: DashboardPanelProps) {
     const router = useRouter();
@@ -44,20 +97,21 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
         );
     }
 
-    // 스켈레톤 로딩 (스캐닝 중)
+    // 스켈레톤 로딩 (스캐닝 중) - 재밌는 아이콘 & 상태 메시지
     if (isAnalyzing) {
+        const loadingSteps = [
+            { icon: "📧", msg: "Gmail 메일함을 열고 있어요..." },
+            { icon: "🔍", msg: "디지털 유산을 찾고 있어요..." },
+            { icon: "💳", msg: "결제 내역을 분석 중이에요..." },
+            { icon: "📱", msg: "구독 서비스 이용 내역을 분석 중이에요..." },
+            { icon: "☁️", msg: "클라우드 서비스를 확인하고 있어요..." },
+            { icon: "🎵", msg: "음악·영상 스트리밍을 찾는 중이에요..." },
+            { icon: "🔐", msg: "보안 계정 정보를 정리하고 있어요..." },
+            { icon: "✨", msg: "거의 다 됐어요! 마무리 중이에요..." },
+        ];
         return (
-            <div className="p-6 space-y-4">
-                <div className="flex items-center gap-3 mb-6">
-                    <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                    <div>
-                        <p className="text-sm font-bold text-slate-900">최근 1년 치 결제 내역을 분석 중입니다...</p>
-                        <p className="text-xs text-slate-400">구독 서비스, 클라우드, 정기 결제를 찾고 있어요</p>
-                    </div>
-                </div>
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <SkeletonCard key={i} delay={i * 0.1} />
-                ))}
+            <div className="p-6 space-y-6 flex flex-col items-center justify-center min-h-[400px]">
+                <LoadingIconCycle steps={loadingSteps} />
             </div>
         );
     }
@@ -122,7 +176,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                                 : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
                                 }`}
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                            {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <ArrowRight className="w-4 h-4" />}
                             {isSaving ? "이동 중..." : "발송 설정하기"}
                         </button>
                     ) : (
@@ -216,7 +270,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                                 : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
                                 }`}
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                             {isSaving ? "저장 중..." : "디지털 유산에 저장"}
                         </button>
                     ) : (

@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { SecureAvatar } from "@/components/ui/SecureAvatar";
-import { User, LogOut, CreditCard, ChevronDown, Plus, MessageSquare, Lock, Trash2, ShieldCheck, FileKey, Database } from "lucide-react";
+import { User, LogOut, CreditCard, ChevronDown, Plus, MessageSquare, Lock, Trash2, ShieldCheck, FileKey, Database, CheckSquare, Square, Pencil } from "lucide-react";
 
 import { MessageList } from "@/components/dashboard/MessageList";
 import { VAULT_CATEGORIES, VAULT_REQUEST_TYPES } from "@/lib/vault-constants";
@@ -67,6 +67,12 @@ export default function DashboardPage() {
     const [editingVaultId, setEditingVaultId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<VaultItem>>({});
     const vaultItemsPerPage = 5;
+
+    // Bulk Select States
+    const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
+    const [selectedVaultIds, setSelectedVaultIds] = useState<Set<string>>(new Set());
+    const [msgSelectMode, setMsgSelectMode] = useState(false);
+    const [vaultSelectMode, setVaultSelectMode] = useState(false);
 
     // Limits based on plan
     const maxMessages = plan === 'pro' ? 100 : 1;
@@ -208,7 +214,49 @@ export default function DashboardPage() {
     };
 
     const getCategoryLabel = (category: string) => VAULT_CATEGORIES[category as keyof typeof VAULT_CATEGORIES] || category;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getRequestTypeLabel = (type: string) => VAULT_REQUEST_TYPES[type as keyof typeof VAULT_REQUEST_TYPES] || type;
+
+    const handleBulkDeleteMessages = async () => {
+        if (selectedMsgIds.size === 0) return;
+        if (!confirm(`선택한 ${selectedMsgIds.size}개의 메시지를 삭제하시겠습니까?`)) return;
+        const supabase = createClient();
+        for (const id of Array.from(selectedMsgIds)) {
+            const { data: msg } = await supabase.from('messages').select('file_path, file_size, content').eq('id', id).single();
+            await supabase.from('messages').delete().eq('id', id);
+            if (msg?.file_path) await supabase.storage.from('memories').remove([msg.file_path]);
+        }
+        setMessages(prev => prev.filter(m => !selectedMsgIds.has(m.id)));
+        setSelectedMsgIds(new Set());
+        setMsgSelectMode(false);
+    };
+
+    const handleBulkDeleteVaults = async () => {
+        if (selectedVaultIds.size === 0) return;
+        if (!confirm(`선택한 ${selectedVaultIds.size}개의 디지털 유산을 삭제하시겠습니까?`)) return;
+        const supabase = createClient();
+        const ids = Array.from(selectedVaultIds);
+        await supabase.from('vault_items').delete().in('id', ids);
+        setVaultItems(prev => prev.filter(v => !selectedVaultIds.has(v.id)));
+        setSelectedVaultIds(new Set());
+        setVaultSelectMode(false);
+    };
+
+    const toggleMsgSelect = (id: string) => {
+        setSelectedMsgIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleVaultSelect = (id: string) => {
+        setSelectedVaultIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
 
     // Progress calculations
     const msgPercent = Math.min((messages.length / maxMessages) * 100, 100);
@@ -398,6 +446,28 @@ export default function DashboardPage() {
                         </button>
                     </div>
 
+                    {/* Bulk Action Toolbar */}
+                    {activeTab === "messages" && msgSelectMode && (
+                        <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
+                            <span className="text-sm font-medium text-red-600">{selectedMsgIds.size}개 선택됨</span>
+                            <button onClick={() => { setMessages(prev => { const ids = new Set(prev.map(m => m.id)); setSelectedMsgIds(ids); return prev; }); setSelectedMsgIds(new Set(messages.map(m => m.id))); }} className="text-xs text-slate-500 hover:text-slate-700 underline">전체 선택</button>
+                            <button onClick={() => { setMsgSelectMode(false); setSelectedMsgIds(new Set()); }} className="ml-auto text-xs text-slate-400 hover:text-slate-600">취소</button>
+                            <Button onClick={handleBulkDeleteMessages} size="sm" className="h-7 bg-red-600 hover:bg-red-700 text-xs">
+                                <Trash2 className="w-3.5 h-3.5 mr-1" />선택 삭제
+                            </Button>
+                        </div>
+                    )}
+                    {activeTab === "vault" && vaultSelectMode && (
+                        <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
+                            <span className="text-sm font-medium text-red-600">{selectedVaultIds.size}개 선택됨</span>
+                            <button onClick={() => setSelectedVaultIds(new Set(vaultItems.map(v => v.id)))} className="text-xs text-slate-500 hover:text-slate-700 underline">전체 선택</button>
+                            <button onClick={() => { setVaultSelectMode(false); setSelectedVaultIds(new Set()); }} className="ml-auto text-xs text-slate-400 hover:text-slate-600">취소</button>
+                            <Button onClick={handleBulkDeleteVaults} size="sm" className="h-7 bg-red-600 hover:bg-red-700 text-xs">
+                                <Trash2 className="w-3.5 h-3.5 mr-1" />선택 삭제
+                            </Button>
+                        </div>
+                    )}
+
                     {/* Content Area */}
                     <AnimatePresence mode="wait">
                         {activeTab === "messages" ? (
@@ -409,19 +479,49 @@ export default function DashboardPage() {
                                 transition={{ duration: 0.2 }}
                                 className="space-y-4"
                             >
-                                <MessageList
-                                    messages={messages.slice((currentPage - 1) * 3, currentPage * 3)}
-                                    loading={loading}
-                                    imageUrls={imageUrls}
-                                    onEdit={handleEditMessage}
-                                    onDelete={handleDeleteMessage}
-                                    onCreateNew={() => {
-                                        setMessage('');
-                                        setMessageId(null);
-                                        setRecipient({ name: '', phone: '', relationship: '' });
-                                        router.push('/create');
-                                    }}
-                                />
+                                {/* Bulk select toggle for messages */}
+                                <div className="flex justify-end mb-2">
+                                    <button
+                                        onClick={() => { setMsgSelectMode(!msgSelectMode); setSelectedMsgIds(new Set()); }}
+                                        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600"
+                                    >
+                                        <CheckSquare className="w-3.5 h-3.5" />
+                                        {msgSelectMode ? '선택 잠금' : '선택 삭제'}
+                                    </button>
+                                </div>
+                                {msgSelectMode && (
+                                    <div className="space-y-2 mb-4">
+                                        {messages.slice((currentPage - 1) * 3, currentPage * 3).map(msg => (
+                                            <button
+                                                key={msg.id}
+                                                onClick={() => toggleMsgSelect(msg.id)}
+                                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left text-sm transition-all ${selectedMsgIds.has(msg.id) ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
+                                            >
+                                                {selectedMsgIds.has(msg.id)
+                                                    ? <CheckSquare className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                                    : <Square className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                                                }
+                                                <span className="font-medium text-slate-700 truncate">{msg.recipient_name}님에게</span>
+                                                <span className="text-slate-400 text-xs ml-auto">{new Date(msg.created_at).toLocaleDateString('ko-KR')}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {!msgSelectMode && (
+                                    <MessageList
+                                        messages={messages.slice((currentPage - 1) * 3, currentPage * 3)}
+                                        loading={loading}
+                                        imageUrls={imageUrls}
+                                        onEdit={handleEditMessage}
+                                        onDelete={handleDeleteMessage}
+                                        onCreateNew={() => {
+                                            setMessage('');
+                                            setMessageId(null);
+                                            setRecipient({ name: '', phone: '', relationship: '' });
+                                            router.push('/create');
+                                        }}
+                                    />
+                                )}
 
                                 {/* Pagination */}
                                 {messages.length > 3 && (
@@ -473,10 +573,25 @@ export default function DashboardPage() {
                                 ) : (
                                     <div className="space-y-4">
                                         <div className="space-y-3">
+                                            {/* Vault select mode toggle */}
+                                            <div className="flex justify-end mb-2">
+                                                <button
+                                                    onClick={() => { setVaultSelectMode(!vaultSelectMode); setSelectedVaultIds(new Set()); }}
+                                                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600"
+                                                >
+                                                    <CheckSquare className="w-3.5 h-3.5" />
+                                                    {vaultSelectMode ? '선택 잠금' : '선택 삭제'}
+                                                </button>
+                                            </div>
                                             {paginatedVaultItems.map((item) => (
                                                 <div
                                                     key={item.id}
-                                                    className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow relative overflow-hidden"
+                                                    className={`bg-white rounded-2xl border p-5 transition-all relative overflow-hidden group ${vaultSelectMode && selectedVaultIds.has(item.id)
+                                                            ? 'border-red-300 bg-red-50/60'
+                                                            : 'border-slate-200 hover:shadow-md'
+                                                        }`}
+                                                    onClick={vaultSelectMode ? () => toggleVaultSelect(item.id) : undefined}
+                                                    style={vaultSelectMode ? { cursor: 'pointer' } : undefined}
                                                 >
                                                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none opacity-50" />
 
@@ -528,18 +643,20 @@ export default function DashboardPage() {
                                                         <div className="flex items-start justify-between gap-3 relative z-10">
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2 mb-3">
+                                                                    {vaultSelectMode && (
+                                                                        <div className="flex-shrink-0">
+                                                                            {selectedVaultIds.has(item.id)
+                                                                                ? <CheckSquare className="w-4 h-4 text-red-500" />
+                                                                                : <Square className="w-4 h-4 text-slate-300" />
+                                                                            }
+                                                                        </div>
+                                                                    )}
                                                                     <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold ring-1 ring-emerald-200 shadow-sm">
                                                                         {getCategoryLabel(item.category)}
                                                                     </span>
-                                                                    <h3 className="text-lg font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                                                                    <h3 className="text-base md:text-lg font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
                                                                         {item.platform_name}
                                                                     </h3>
-                                                                    <button
-                                                                        onClick={() => handleEditVaultClick(item)}
-                                                                        className="ml-2 text-xs text-blue-500 hover:text-blue-700 underline underline-offset-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                    >
-                                                                        수정
-                                                                    </button>
                                                                 </div>
 
                                                                 <div className="space-y-2 text-sm max-w-sm mt-4">
@@ -561,13 +678,22 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </div>
 
-                                                            <button
-                                                                onClick={() => handleDeleteVault(item.id)}
-                                                                className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100 shadow-sm"
-                                                                title="해당 디지털 유산 삭제"
-                                                            >
-                                                                <Trash2 className="w-5 h-5" />
-                                                            </button>
+                                                            <div className="flex flex-col gap-2">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleEditVaultClick(item); }}
+                                                                    className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100 shadow-sm"
+                                                                    title="수정"
+                                                                >
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDeleteVault(item.id); }}
+                                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100 shadow-sm"
+                                                                    title="해당 디지털 유산 삭제"
+                                                                >
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
