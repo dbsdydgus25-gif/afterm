@@ -256,7 +256,7 @@ function PasswordChangeForm({ userPhone }: { userPhone: string }) {
 function SettingsContent() {
     const searchParams = useSearchParams();
     const initialTab = searchParams.get('tab') as "profile" | "security" | "billing" | "memories" || "profile";
-    const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing" | "memories">(initialTab);
+    const [activeTab, setActiveTab] = useState<"profile" | "security" | "billing" | "memories" | "guardians">(initialTab);
 
     // Sync tab with URL
     useEffect(() => {
@@ -540,14 +540,17 @@ function SettingsContent() {
                             멤버십
                         </button>
 
-                        {/* 가디언즈 관리 링크: 설정 사이드바 */}
-                        <Link
-                            href="/settings/guardians"
-                            className="w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 text-slate-500 hover:bg-blue-50 hover:text-blue-700"
+                        {/* 가디언즈 탭 버튼 (인라인) */}
+                        <button
+                            onClick={() => setActiveTab("guardians" as any)}
+                            className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center gap-2 ${(activeTab as string) === "guardians"
+                                ? "bg-blue-50 text-blue-700 font-bold"
+                                : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
+                                }`}
                         >
                             <Shield className="w-3.5 h-3.5" />
                             가디언즈 관리
-                        </Link>
+                        </button>
 
                         <div className="border-t border-slate-100 my-2 pt-2">
                             <button
@@ -592,13 +595,16 @@ function SettingsContent() {
                         >
                             멤버십
                         </button>
-                        {/* 모바일: 가디언즈 탭 링크 */}
-                        <Link
-                            href="/settings/guardians"
-                            className="px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors text-blue-600 bg-blue-50 font-bold"
+                        {/* 모바일: 가디언즈 탭 */}
+                        <button
+                            onClick={() => setActiveTab("guardians" as any)}
+                            className={`px-3 py-1.5 text-xs rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${(activeTab as string) === "guardians"
+                                ? "bg-blue-600 text-white font-bold"
+                                : "text-blue-600 bg-blue-50 font-bold"
+                                }`}
                         >
                             🛡️ 가디언즈
-                        </Link>
+                        </button>
                     </div>
 
                     <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -841,9 +847,37 @@ function SettingsContent() {
                                 </div>
                             </div>
                         )}
+
+                        {/* 4. Guardians Tab */}
+                        {activeTab === "guardians" && (
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                <h2 className="text-lg font-bold text-slate-900 mb-1">가디언즈 관리</h2>
+                                <p className="text-xs text-slate-500 mb-6 border-b border-slate-100 pb-4">
+                                    가디언즈는 사망 후 디지털 유산을 열람할 수 있는 신뢰할 수 있는 사람입니다.
+                                </p>
+                                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4 flex items-start gap-3">
+                                    <Shield className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-bold text-blue-900 mb-1">가디언즈 설정 안내</p>
+                                        <p className="text-xs text-blue-700 leading-relaxed">
+                                            가디언즈를 설정하면 해당 분께 안내 문자가 발송됩니다.<br />
+                                            신뢰할 수 있는 분으로 <strong>최소 3명 이상</strong> 설정하시는 것을 권장합니다.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+                                    <iframe
+                                        src="/settings/guardians?embed=1"
+                                        className="w-full border-0"
+                                        style={{ minHeight: "600px" }}
+                                        title="가디언즈 관리"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </main>
-            </div>
+            </div >
 
             <WithdrawModal isOpen={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} />
 
@@ -853,7 +887,7 @@ function SettingsContent() {
                 currentEmail={user.email || ""}
                 onSuccess={(newPhone) => setPhone(newPhone)}
             />
-        </div>
+        </div >
     );
 
 
