@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import GuardiansTab from "./GuardiansTab";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useMemoryStore } from "@/store/useMemoryStore";
@@ -855,24 +858,7 @@ function SettingsContent() {
                                 <p className="text-xs text-slate-500 mb-6 border-b border-slate-100 pb-4">
                                     가디언즈는 사망 후 디지털 유산을 열람할 수 있는 신뢰할 수 있는 사람입니다.
                                 </p>
-                                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4 flex items-start gap-3">
-                                    <Shield className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-bold text-blue-900 mb-1">가디언즈 설정 안내</p>
-                                        <p className="text-xs text-blue-700 leading-relaxed">
-                                            가디언즈를 설정하면 해당 분께 안내 문자가 발송됩니다.<br />
-                                            신뢰할 수 있는 분으로 <strong>최소 3명 이상</strong> 설정하시는 것을 권장합니다.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
-                                    <iframe
-                                        src="/settings/guardians?embed=1"
-                                        className="w-full border-0"
-                                        style={{ minHeight: "600px" }}
-                                        title="가디언즈 관리"
-                                    />
-                                </div>
+                                <GuardiansTab />
                             </div>
                         )}
                     </div>

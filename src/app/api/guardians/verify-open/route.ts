@@ -1,130 +1,138 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// ============================================================
-// 가디언즈 오픈 인증 엔드포인트 (/api/guardians/verify-open)
-// 가디언즈가 제출한 정보(이름, 전화번호, API 키, 사망진단서)를 검증합니다.
-// 검증 성공 시:
-//  1. 해당 유저의 잠긴 메시지들을 수신인에게 SMS 발송
-//  2. 해당 가디언즈의 status를 'opened'로 업데이트
-//  3. 디지털 유산 목록 접근 토큰 발행 (임시 세션 기반)
-// ============================================================
+/**
+ * 고인 디지털 유산 열람 통합 API (/api/guardians/verify-open)
+ * UID 유무와 상관없이 가장 엄격하게 4가지(가디언즈 이름, 고인 이름, 고인 전화번호, API 키)를 모두 검증합니다.
+ */
 
-// 서비스 역할 클라이언트 (RLS 우회 - 서버 전용)
 const serviceSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+function norm(s: string | null | undefined): string {
+    return (s || "").trim().replace(/\s+/g, "").toLowerCase();
+}
+
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
-        const { guardianName, guardianPhone, apiKey, deathCertificatePath, userId } = body;
+        const { guardianName, deceasedName, deceasedPhone, apiKey, userId } = await req.json();
 
-        // 1. 필수 입력값 검증
-        if (!guardianName || !guardianPhone || !apiKey || !userId) {
-            return NextResponse.json({ error: "필수 정보가 누락되었습니다." }, { status: 400 });
+        // ─── 1. 기본 입력값 검증 ─────────────────────────────────────
+        if (!guardianName || !deceasedName || !deceasedPhone || !apiKey) {
+            return NextResponse.json({ error: "모든 항목을 입력해주세요." }, { status: 400 });
         }
 
-        // 2. API 키로 유저 조회 (profiles 테이블에서 api_key 매칭)
-        const { data: profile, error: profileError } = await serviceSupabase
-            .from("profiles")
-            .select("id, full_name")
-            .eq("id", userId)
-            .eq("api_key", apiKey)
-            .single();
+        const inputDeceasedPhone = deceasedPhone.replace(/[^0-9]/g, "");
 
-        if (profileError || !profile) {
-            return NextResponse.json(
-                { error: "API 키가 일치하지 않습니다. 다시 확인해주세요." },
-                { status: 401 }
-            );
+        // ─── 2. API 키 (또는 userId)로 고인 프로필 조회 ───────────────
+        let query = serviceSupabase.from("profiles").select("id, full_name, phone, api_key").eq("api_key", apiKey.trim());
+        if (userId) {
+            query = query.eq("id", userId);
         }
 
-        // 3. 해당 유저의 가디언즈 목록에서 이름+전화번호 일치하는 항목 찾기
-        const phoneNormalized = guardianPhone.replace(/-/g, "");
-        const { data: allGuardians } = await serviceSupabase
+        const { data: profile, error: profileErr } = await query.maybeSingle();
+
+        if (profileErr || !profile) {
+            return NextResponse.json({ error: "API 키가 유효하지 않거나 고인 정보와 일치하지 않습니다." }, { status: 403 });
+        }
+
+        // ─── 3. 고인 이름 및 전화번호 대조 (auth metadata 폴백 포함) ──
+        let resolvedName = profile.full_name || "";
+        let resolvedPhone = (profile.phone || "").replace(/[^0-9]/g, "");
+
+        if (!resolvedName || !resolvedPhone) {
+            const { data: authUser } = await serviceSupabase.auth.admin.getUserById(profile.id);
+            if (!resolvedName) {
+                resolvedName = authUser?.user?.user_metadata?.full_name || authUser?.user?.user_metadata?.name || "";
+            }
+            if (!resolvedPhone) {
+                resolvedPhone = (authUser?.user?.user_metadata?.phone || authUser?.user?.phone || "").replace(/[^0-9]/g, "");
+            }
+        }
+
+        if (norm(resolvedName) !== norm(deceasedName)) {
+            return NextResponse.json({ error: "고인 이름이 일치하지 않습니다. 정확한 이름을 입력해주세요." }, { status: 403 });
+        }
+        if (resolvedPhone !== inputDeceasedPhone) {
+            return NextResponse.json({ error: "고인 전화번호가 일치하지 않습니다." }, { status: 403 });
+        }
+
+        // ─── 4. 가디언즈 명단 대조 ─────────────────────────────────
+        // 등록된 가디언즈 목록을 가져옴
+        const { data: guardiansList } = await serviceSupabase
             .from("guardians")
-            .select("*")
-            .eq("user_id", userId);
+            .select("id, guardian_name, name")
+            .eq("user_id", profile.id);
 
-        const matchedGuardian = allGuardians?.find(g => {
-            const dbPhone = (g.guardian_phone || "").replace(/-/g, "");
-            return (
-                g.guardian_name === guardianName &&
-                dbPhone === phoneNormalized
-            );
-        });
+        if (!guardiansList || guardiansList.length === 0) {
+            return NextResponse.json({ error: "해당 고인의 계정에 등록된 가디언즈가 없습니다." }, { status: 403 });
+        }
+
+        const inputGuardianNorm = norm(guardianName);
+        const matchedGuardian = guardiansList.find(g =>
+            norm(g.guardian_name) === inputGuardianNorm || norm(g.name) === inputGuardianNorm
+        );
 
         if (!matchedGuardian) {
-            return NextResponse.json(
-                { error: "등록된 가디언즈 정보와 일치하지 않습니다." },
-                { status: 403 }
-            );
+            return NextResponse.json({ error: "등록된 가디언즈 이름과 일치하지 않습니다." }, { status: 403 });
         }
 
-        // 4. 사망진단서 경로 저장 및 가디언즈 상태를 'opened'로 변경
-        const { error: updateError } = await serviceSupabase
-            .from("guardians")
-            .update({
-                status: "opened",
-                death_certificate_path: deathCertificatePath || null
-            })
-            .eq("id", matchedGuardian.id);
+        // 인증 성공! 상태 업데이트
+        await serviceSupabase.from("guardians").update({ status: "opened" }).eq("id", matchedGuardian.id);
 
-        if (updateError) throw updateError;
+        // ─── 5. 디지털 유산 및 잠긴 메시지 처리 ───────────────────────
+        const [vaultRes, msgRes] = await Promise.all([
+            serviceSupabase.from("vault_items").select("id, category, platform_name, account_id, notes, created_at").eq("user_id", profile.id).order("created_at", { ascending: true }),
+            serviceSupabase.from("messages").select("id, content, recipient_name, recipient_phone, status").eq("user_id", profile.id).in("status", ["locked", "pending"])
+        ]);
 
-        // 5. 해당 유저의 전체 메시지 목록 조회 (status 무관 - guardians 인증 후 모두 릴리즈)
-        const { data: messages } = await serviceSupabase
-            .from("messages")
-            .select("id, content, recipient_name, recipient_phone, recipient_relationship, status")
-            .eq("user_id", userId);
+        const vaultItems = vaultRes.data || [];
+        const pendingMessages = msgRes.data || [];
 
-        // SMS 대상: locked 상태이거나 status가 없는 메시지 (아직 전달 안 된 것)
-        const pendingMessages = messages?.filter(m => !m.status || m.status === 'locked') || [];
-
+        let messagesReleased = 0;
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://afterm.co.kr";
-        const smsResults: { id: string; success: boolean }[] = [];
 
-        // 6. pending 메시지들을 수신인에게 SMS 발송
         if (pendingMessages.length > 0) {
             for (const msg of pendingMessages) {
                 try {
-                    const smsMessage = `[에프텀] ${profile.full_name || "사용자"}님이 남긴 소중한 메시지가 있습니다.\n아래 링크에서 확인해주세요.\n${siteUrl}/view/${msg.id}`;
-                    const smsRes = await fetch(`${siteUrl}/api/sms/send`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ phone: msg.recipient_phone, message: smsMessage })
-                    });
-                    if (smsRes.ok) {
-                        await serviceSupabase.from("messages").update({ status: "unlocked" }).eq("id", msg.id);
-                        smsResults.push({ id: msg.id, success: true });
-                    } else {
-                        smsResults.push({ id: msg.id, success: false });
+                    await serviceSupabase.from("messages").update({ status: "unlocked", is_unlocked: true }).eq("id", msg.id);
+                    if (msg.recipient_phone) {
+                        const smsText = `[에프텀] ${resolvedName}님이 남긴 소중한 메시지가 있습니다.\n아래 링크에서 확인해주세요.\n${siteUrl}/view/${msg.id}`;
+                        await fetch(`${siteUrl}/api/sms/send`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ phone: msg.recipient_phone, message: smsText })
+                        }).catch(() => { });
                     }
-                } catch (smsError) {
-                    console.error(`메시지 ${msg.id} SMS 발송 오류:`, smsError);
-                    smsResults.push({ id: msg.id, success: false });
+                    messagesReleased++;
+                } catch (e) {
+                    console.error("Message release error:", e);
                 }
             }
         }
 
-        // 7. 디지털 유산 목록 조회 (해당 가디언즈에게만 반환)
-        const { data: vaultItems } = await serviceSupabase
-            .from("vault_items")
-            .select("id, category, platform_name, username, notes")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: true });
+        // 접근 로그 기록
+        try {
+            await serviceSupabase.from("guardian_access_logs").insert({
+                target_user_id: profile.id, access_type: "verify_open", guardian_name: guardianName, accessed_at: new Date().toISOString()
+            });
+        } catch (e) {
+            // ignore
+        }
 
         return NextResponse.json({
             success: true,
-            guardianId: matchedGuardian.id,
-            messagesReleased: smsResults.filter(r => r.success).length,
-            totalMessages: messages?.length || 0,
-            vaultItems: vaultItems || [],
+            deceasedName: resolvedName,
+            vaultItems: vaultItems.map(v => ({
+                id: v.id, category: v.category, platform_name: v.platform_name, account_id: v.account_id, notes: v.notes, created_at: v.created_at
+            })),
+            messagesReleased
         });
+
     } catch (error) {
-        console.error("[가디언즈 인증 오류]", error);
-        return NextResponse.json({ error: "인증 처리 중 오류가 발생했습니다." }, { status: 500 });
+        console.error("[Verify Open API Error]", error);
+        return NextResponse.json({ error: "인증 처리 중 서버 오류가 발생했습니다." }, { status: 500 });
     }
 }
