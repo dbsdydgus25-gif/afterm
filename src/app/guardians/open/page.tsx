@@ -147,6 +147,35 @@ function VaultCard({ item, index }: { item: VaultItem; index: number }) {
     );
 }
 
+// ─── 리스트 아이템 컴포넌트 (hook 규칙 준수용) ────────────────
+function VaultListItem({ item }: { item: VaultItem }) {
+    const [showNotes, setShowNotes] = useState(false);
+    const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
+    return (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:border-white/20 transition-all">
+            <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl ${style.bg} ${style.color} flex items-center justify-center flex-shrink-0`}>
+                    {style.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-white font-bold text-sm truncate">{item.platform_name}</p>
+                    {item.username && <p className="text-slate-400 text-xs font-mono">{item.username}</p>}
+                </div>
+                {item.notes && (
+                    <button onClick={() => setShowNotes(p => !p)} className="text-slate-500 hover:text-slate-300 transition-colors p-1">
+                        {showNotes ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                )}
+            </div>
+            {showNotes && item.notes && (
+                <div className="mt-3 pt-3 border-t border-white/10 text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
+                    {item.notes}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── 메인 컨텐트 ─────────────────────────────────────────────
 function GuardianOpenContent() {
     const searchParams = useSearchParams();
@@ -244,23 +273,26 @@ function GuardianOpenContent() {
 
             {/* ── LANDING ─────────────────────── */}
             {step === "landing" && (
-                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-6">
-                    {/* 앱 아이콘 */}
-                    <div className="w-20 h-20 rounded-3xl shadow-2xl overflow-hidden mb-2 ring-1 ring-white/10 glow-ring bounce-in">
-                        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-                            <Shield className="w-10 h-10 text-white" />
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 gap-5">
+                    {/* 앱 아이콘 - 프리미엄 */}
+                    <div className="w-24 h-24 rounded-3xl shadow-2xl overflow-hidden ring-1 ring-white/10 glow-ring bounce-in mb-2">
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 flex flex-col items-center justify-center gap-1">
+                            <Shield className="w-8 h-8 text-white" />
+                            <span className="text-[9px] font-bold text-blue-200 tracking-widest">AFTERM</span>
                         </div>
                     </div>
 
-                    <h1 className="text-4xl md:text-5xl font-bold text-white text-center tracking-tight fade-up">
-                        고인 디지털 유산 찾기
-                    </h1>
-                    <p className="text-slate-400 text-base text-center fade-up" style={{ animationDelay: "0.1s" }}>
-                        사망진단서 또는 API 키로 고인의<br />디지털 유산을 안전하게 열람하세요.
-                    </p>
+                    <div className="text-center">
+                        <h1 className="text-4xl md:text-5xl font-bold text-white text-center tracking-tight fade-up mb-3">
+                            고인 디지털 유산 찾기
+                        </h1>
+                        <p className="text-slate-400 text-base text-center fade-up" style={{ animationDelay: "0.1s" }}>
+                            사망진단서 또는 API 키로 고인의<br />디지털 유산을 안전하게 열람하세요.
+                        </p>
+                    </div>
 
                     {/* CTA 버튼 */}
-                    <div className="w-full max-w-sm mt-2 fade-up" style={{ animationDelay: "0.2s" }}>
+                    <div className="w-full max-w-sm mt-4 fade-up" style={{ animationDelay: "0.2s" }}>
                         <button
                             onClick={() => setStep("name")}
                             className="w-full h-14 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg transition-all active:scale-95 hover:shadow-lg hover:shadow-blue-500/40 flex items-center justify-center gap-2"
@@ -269,12 +301,14 @@ function GuardianOpenContent() {
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
+
+                    <p className="text-slate-700 text-xs mt-2">고인이 생전에 AFTERM에 등록한 경우에만 이용 가능합니다</p>
                 </div>
             )}
 
             {/* ── NAME STEP ───────────────────── */}
             {step === "name" && (
-                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-5">
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 gap-5">
                     <h1 className="text-3xl md:text-4xl font-bold text-white text-center tracking-tight fade-up">
                         가디언즈(열람자) 이름을<br />입력해주세요
                     </h1>
@@ -310,7 +344,7 @@ function GuardianOpenContent() {
 
             {/* ── METHOD SELECT ────────────────── */}
             {step === "method" && (
-                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-6">
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 gap-6">
                     <h1 className="text-3xl font-bold text-white text-center tracking-tight fade-up">
                         열람 방식을 선택해주세요
                     </h1>
@@ -360,7 +394,7 @@ function GuardianOpenContent() {
 
             {/* ── FORM (API KEY) ───────────────── */}
             {step === "form" && (
-                <div className="relative z-10 min-h-screen flex flex-col items-center justify-end pb-20 px-6 gap-5">
+                <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 gap-5">
                     <h1 className="text-3xl font-bold text-white text-center tracking-tight fade-up">
                         정보를 입력해주세요
                     </h1>
@@ -487,35 +521,9 @@ function GuardianOpenContent() {
 
                             {/* 전체 리스트 */}
                             <div className="space-y-3 fade-up" style={{ animationDelay: "0.2s" }}>
-                                {result.vaultItems.map((item, i) => {
-                                    const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
-                                    const [showNotes, setShowNotes] = useState(false);
-                                    return (
-                                        <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:border-white/20 transition-all">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-xl ${style.bg} ${style.color} flex items-center justify-center flex-shrink-0`}>
-                                                    {style.icon}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-white font-bold text-sm truncate">{item.platform_name}</p>
-                                                    {item.username && (
-                                                        <p className="text-slate-400 text-xs font-mono">{item.username}</p>
-                                                    )}
-                                                </div>
-                                                {item.notes && (
-                                                    <button onClick={() => setShowNotes(p => !p)} className="text-slate-500 hover:text-slate-300 transition-colors p-1">
-                                                        {showNotes ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {showNotes && item.notes && (
-                                                <div className="mt-3 pt-3 border-t border-white/10 text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
-                                                    {item.notes}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                {result.vaultItems.map((item) => (
+                                    <VaultListItem key={item.id} item={item} />
+                                ))}
                             </div>
                         </div>
                     ) : (

@@ -33,6 +33,7 @@ interface VaultItem {
     category: string;
     platform_name: string;
     account_id: string;
+    password?: string;
     notes: string;
     created_at: string;
 }
@@ -183,7 +184,8 @@ export default function DashboardPage() {
             platform_name: item.platform_name,
             account_id: item.account_id,
             category: item.category,
-            notes: item.notes
+            notes: item.notes,
+            password: item.password || ""
         });
     };
 
@@ -194,13 +196,20 @@ export default function DashboardPage() {
         }
 
         const supabase = createClient();
+        // 비밀번호가 있으면 notes에 "패스워드: xxx" 형태로 포함
+        let finalNotes = editForm.notes || "";
+        if (editForm.password) {
+            // 기존 notes에서 패스워드 라인 제거 후 새로 추가
+            finalNotes = finalNotes.replace(/패스워드:\s*.+/g, "").trim();
+            finalNotes = finalNotes ? `${finalNotes}\n패스워드: ${editForm.password}` : `패스워드: ${editForm.password}`;
+        }
         const { error } = await supabase
             .from("vault_items")
             .update({
                 platform_name: editForm.platform_name,
                 account_id: editForm.account_id,
                 category: editForm.category,
-                notes: editForm.notes
+                notes: finalNotes
             })
             .eq("id", id);
 
@@ -209,7 +218,7 @@ export default function DashboardPage() {
             return;
         }
 
-        setVaultItems(prev => prev.map(item => item.id === id ? { ...item, ...editForm } as VaultItem : item));
+        setVaultItems(prev => prev.map(item => item.id === id ? { ...item, ...editForm, notes: finalNotes } as VaultItem : item));
         setEditingVaultId(null);
     };
 
@@ -587,8 +596,8 @@ export default function DashboardPage() {
                                                 <div
                                                     key={item.id}
                                                     className={`bg-white rounded-2xl border p-5 transition-all relative overflow-hidden group ${vaultSelectMode && selectedVaultIds.has(item.id)
-                                                            ? 'border-red-300 bg-red-50/60'
-                                                            : 'border-slate-200 hover:shadow-md'
+                                                        ? 'border-red-300 bg-red-50/60'
+                                                        : 'border-slate-200 hover:shadow-md'
                                                         }`}
                                                     onClick={vaultSelectMode ? () => toggleVaultSelect(item.id) : undefined}
                                                     style={vaultSelectMode ? { cursor: 'pointer' } : undefined}
@@ -623,6 +632,16 @@ export default function DashboardPage() {
                                                                     value={editForm.account_id || ""}
                                                                     onChange={e => setEditForm(prev => ({ ...prev, account_id: e.target.value }))}
                                                                     placeholder="아이디 또는 이메일"
+                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-emerald-500"
+                                                                />
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editForm.password || ""}
+                                                                    onChange={e => setEditForm(prev => ({ ...prev, password: e.target.value }))}
+                                                                    placeholder="비밀번호 (선택)"
                                                                     className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-emerald-500"
                                                                 />
                                                             </div>
