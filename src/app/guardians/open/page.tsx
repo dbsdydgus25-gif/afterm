@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
     Shield, Key, User, Phone, CheckCircle, Lock, ChevronRight, Eye, EyeOff,
     Copy, Check, FileText, ChevronDown, ChevronUp, CreditCard, Music, Cloud,
-    Gamepad2, ShoppingBag, Terminal, Users, Info, X, Globe
+    Gamepad2, ShoppingBag, Terminal, Users, Info, X, Globe, LayoutGrid, Box
 } from "lucide-react";
 import {
     AnimatePresence,
@@ -146,7 +146,7 @@ const VaultCarouselInner = memo(
                                     width: `${faceWidth}px`,
                                     transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
                                 }}
-                                onClick={() => handleClick(item)}
+                                onTap={() => handleClick(item)}
                             >
                                 {/* ── 회전하는 3D 카드 UI ── */}
                                 <motion.div
@@ -179,6 +179,7 @@ const VaultCarouselInner = memo(
 
 
 function VaultCarousel({ items }: { items: VaultItem[] }) {
+    const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
     const [activeItem, setActiveItem] = useState<VaultItem | null>(null);
     const [isCarouselActive, setIsCarouselActive] = useState(true);
     const controls = useAnimation();
@@ -308,17 +309,66 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
                 )}
             </AnimatePresence>
 
-            <div className="relative h-[400px] sm:h-[450px] w-full mt-6">
-                <VaultCarouselInner
-                    handleClick={handleClick}
-                    controls={controls}
-                    items={items}
-                    isCarouselActive={isCarouselActive}
-                />
-                {/* 블러 처리 오버레이 (좌우 가장자리) */}
-                <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-slate-50/50 to-transparent pointer-events-none" />
-                <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-slate-50/50 to-transparent pointer-events-none" />
+            <div className="flex justify-end mb-4 z-10 relative px-4 sm:px-0">
+                <button
+                    onClick={() => setViewMode(viewMode === "carousel" ? "grid" : "carousel")}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+                >
+                    {viewMode === "carousel" ? (
+                        <><LayoutGrid className="w-4 h-4" /> 전체 보기</>
+                    ) : (
+                        <><Box className="w-4 h-4" /> 3D 회전 뷰</>
+                    )}
+                </button>
             </div>
+
+            {viewMode === "grid" ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 sm:px-0 pb-20 relative z-0"
+                >
+                    {items.map(item => {
+                        const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
+                        const Icon = style.icon;
+
+                        return (
+                            <motion.div
+                                layoutId={`card-${item.id}`}
+                                key={`grid-${item.id}`}
+                                onClick={() => handleClick(item)}
+                                className="bg-white rounded-[20px] border border-slate-100 shadow-sm overflow-hidden p-5 cursor-pointer hover:border-blue-200 hover:shadow-md transition-all flex flex-col items-center group"
+                            >
+                                <div className={`w-14 h-14 rounded-2xl ${style.bg} flex items-center justify-center border ${style.border} flex-shrink-0 relative overflow-hidden mb-3 group-hover:scale-105 transition-transform`}>
+                                    <Icon className={`w-7 h-7 ${style.color}`} />
+                                </div>
+                                <h3 className="text-[15px] font-bold text-slate-800 tracking-tight leading-snug text-center mb-1.5 line-clamp-1">{item.platform_name}</h3>
+                                <div className="mt-auto">
+                                    <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full ${style.color} ${style.bg} border ${style.border} uppercase tracking-widest`}>
+                                        {item.category === "기타" ? "subscription" : item.category}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </motion.div>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="relative h-[400px] sm:h-[450px] w-full mt-2"
+                >
+                    <VaultCarouselInner
+                        handleClick={handleClick}
+                        controls={controls}
+                        items={items}
+                        isCarouselActive={isCarouselActive}
+                    />
+                    {/* 블러 처리 오버레이 (좌우 가장자리) */}
+                    <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-slate-50/50 to-transparent pointer-events-none" />
+                    <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-slate-50/50 to-transparent pointer-events-none" />
+                </motion.div>
+            )}
         </motion.div>
     );
 }
