@@ -10,9 +10,8 @@ import {
 import {
     AnimatePresence,
     motion,
-    useAnimation,
     useMotionValue,
-    useTransform,
+    animate
 } from "framer-motion";
 
 // ─── 유틸 ───────────────────────────────────────────────
@@ -87,12 +86,10 @@ const transitionOverlay = { duration: 0.5, ease: [0.32, 0.72, 0, 1] };
 const VaultCarouselInner = memo(
     ({
         handleClick,
-        controls,
         items,
         isCarouselActive,
     }: {
         handleClick: (item: VaultItem) => void;
-        controls: any;
         items: VaultItem[];
         isCarouselActive: boolean;
     }) => {
@@ -106,6 +103,12 @@ const VaultCarouselInner = memo(
 
         const rotation = useMotionValue(0);
 
+        useEffect(() => {
+            if (!isCarouselActive) {
+                rotation.stop();
+            }
+        }, [isCarouselActive, rotation]);
+
         return (
             <div
                 className="flex h-full items-center justify-center pt-5 pb-10 overflow-visible"
@@ -114,6 +117,9 @@ const VaultCarouselInner = memo(
                 <motion.div
                     className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing touch-none"
                     style={{ rotateY: rotation, z: -radius, width: cylinderWidth, transformStyle: "preserve-3d" }}
+                    onPanStart={() => {
+                        rotation.stop();
+                    }}
                     onPan={(_, info) => {
                         if (isCarouselActive) {
                             rotation.set(rotation.get() + info.delta.x * 0.5);
@@ -121,18 +127,17 @@ const VaultCarouselInner = memo(
                     }}
                     onPanEnd={(_, info) => {
                         if (isCarouselActive) {
-                            controls.start({
-                                rotateY: rotation.get() + info.velocity.x * 0.1,
-                                transition: { type: "spring", stiffness: 50, damping: 20, mass: 0.5 },
+                            animate(rotation, rotation.get() + info.velocity.x * 0.1, {
+                                type: "spring", stiffness: 50, damping: 20, mass: 0.5
                             });
                         }
                     }}
                     onWheel={(e) => {
                         if (isCarouselActive) {
+                            rotation.stop();
                             rotation.set(rotation.get() - e.deltaX * 0.2 - e.deltaY * 0.2);
                         }
                     }}
-                    animate={controls}
                 >
                     {items.map((item, i) => {
                         const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
@@ -182,7 +187,6 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
     const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
     const [activeItem, setActiveItem] = useState<VaultItem | null>(null);
     const [isCarouselActive, setIsCarouselActive] = useState(true);
-    const controls = useAnimation();
 
     const [showPass, setShowPass] = useState(false);
     const [copied, setCopied] = useState<"id" | "pw" | null>(null);
@@ -190,7 +194,6 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
     const handleClick = (item: VaultItem) => {
         setActiveItem(item);
         setIsCarouselActive(false);
-        controls.stop();
     };
 
     const handleClose = () => {
@@ -360,7 +363,6 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
                 >
                     <VaultCarouselInner
                         handleClick={handleClick}
-                        controls={controls}
                         items={items}
                         isCarouselActive={isCarouselActive}
                     />
