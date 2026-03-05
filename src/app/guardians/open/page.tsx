@@ -112,17 +112,26 @@ const VaultCarouselInner = memo(
                 style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
             >
                 <motion.div
-                    drag={isCarouselActive ? "x" : false}
-                    className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing"
+                    className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing touch-none"
                     style={{ rotateY: rotation, z: -radius, width: cylinderWidth, transformStyle: "preserve-3d" }}
-                    onDrag={(_, info) => isCarouselActive && rotation.set(rotation.get() + info.offset.x * 0.1)}
-                    onDragEnd={(_, info) =>
-                        isCarouselActive &&
-                        controls.start({
-                            rotateY: rotation.get() + info.velocity.x * 0.05,
-                            transition: { type: "spring", stiffness: 100, damping: 30, mass: 0.1 },
-                        })
-                    }
+                    onPan={(_, info) => {
+                        if (isCarouselActive) {
+                            rotation.set(rotation.get() + info.delta.x * 0.5);
+                        }
+                    }}
+                    onPanEnd={(_, info) => {
+                        if (isCarouselActive) {
+                            controls.start({
+                                rotateY: rotation.get() + info.velocity.x * 0.1,
+                                transition: { type: "spring", stiffness: 50, damping: 20, mass: 0.5 },
+                            });
+                        }
+                    }}
+                    onWheel={(e) => {
+                        if (isCarouselActive) {
+                            rotation.set(rotation.get() - e.deltaX * 0.2 - e.deltaY * 0.2);
+                        }
+                    }}
                     animate={controls}
                 >
                     {items.map((item, i) => {
