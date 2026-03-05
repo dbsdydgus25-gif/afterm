@@ -78,129 +78,25 @@ const CATEGORY_STYLE: Record<string, { icon: any; color: string; border: string;
 };
 
 
-// ─── 3D CAROUSEL 구현 (가로 회전 / 드래그 모션) ──────────
+// ─── 3D CAROUSEL 구현 (가로 회전 / 드래그 모션) 대신 세로형 아코디언 구조 ──────────
 const duration = 0.15;
 const transition = { duration, ease: [0.32, 0.72, 0, 1] };
 const transitionOverlay = { duration: 0.5, ease: [0.32, 0.72, 0, 1] };
 
-const VaultCarouselInner = memo(
-    ({
-        handleClick,
-        items,
-        isCarouselActive,
-    }: {
-        handleClick: (item: VaultItem) => void;
-        items: VaultItem[];
-        isCarouselActive: boolean;
-    }) => {
-        const isScreenSizeSm = useMediaQuery("(max-width: 640px)");
+function VaultAccordion({ items }: { items: VaultItem[] }) {
+    const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
-        // 카드 갯수에 따라 원통 크기 자동 조절
-        const faceCount = Math.max(items.length, 3); // 최소 3각형
-        const faceWidth = isScreenSizeSm ? 260 : 320;
-        const cylinderWidth = faceWidth * faceCount;
-        const radius = Math.max((faceWidth / 2) / Math.tan(Math.PI / faceCount), faceWidth) + 30; // 여유 공간
-
-        const rotation = useMotionValue(0);
-
-        useEffect(() => {
-            if (!isCarouselActive) {
-                rotation.stop();
-            }
-        }, [isCarouselActive, rotation]);
-
-        return (
-            <div
-                className="flex h-full items-center justify-center pt-5 pb-10 overflow-visible"
-                style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
-            >
-                <motion.div
-                    className="relative flex h-full origin-center cursor-grab justify-center active:cursor-grabbing touch-none"
-                    style={{ rotateY: rotation, z: -radius, width: cylinderWidth, transformStyle: "preserve-3d" }}
-                    onPanStart={() => {
-                        rotation.stop();
-                    }}
-                    onPan={(_, info) => {
-                        if (isCarouselActive) {
-                            rotation.set(rotation.get() + info.delta.x * 0.5);
-                        }
-                    }}
-                    onPanEnd={(_, info) => {
-                        if (isCarouselActive) {
-                            animate(rotation, rotation.get() + info.velocity.x * 0.1, {
-                                type: "spring", stiffness: 50, damping: 20, mass: 0.5
-                            });
-                        }
-                    }}
-                    onWheel={(e) => {
-                        if (isCarouselActive) {
-                            rotation.stop();
-                            rotation.set(rotation.get() - e.deltaX * 0.2 - e.deltaY * 0.2);
-                        }
-                    }}
-                >
-                    {items.map((item, i) => {
-                        const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
-                        const Icon = style.icon;
-
-                        return (
-                            <motion.div
-                                key={`vault-${item.id}`}
-                                className="absolute flex flex-col h-full origin-center items-center justify-center p-2"
-                                style={{
-                                    width: `${faceWidth}px`,
-                                    transform: `rotateY(${i * (360 / faceCount)}deg) translateZ(${radius}px)`,
-                                }}
-                                onTap={() => handleClick(item)}
-                            >
-                                {/* ── 회전하는 3D 카드 UI ── */}
-                                <motion.div
-                                    layoutId={`card-${item.id}`}
-                                    className="w-full bg-white rounded-[24px] border border-slate-100 shadow-xl overflow-hidden p-6 cursor-pointer hover:border-blue-200 hover:shadow-2xl transition-all"
-                                >
-                                    <div className="flex flex-col items-center">
-                                        <div className={`w-16 h-16 rounded-2xl ${style.bg} flex items-center justify-center border ${style.border} flex-shrink-0 relative overflow-hidden mb-4 shadow-inner`}>
-                                            <Icon className={`w-8 h-8 ${style.color}`} />
-                                        </div>
-                                        <h3 className="text-[18px] font-bold text-slate-800 tracking-tight leading-snug text-center mb-1.5 line-clamp-1">{item.platform_name}</h3>
-                                        <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${style.color} ${style.bg} border ${style.border} uppercase tracking-widest`}>
-                                            {item.category === "기타" ? "subscription" : item.category}
-                                        </span>
-                                        <div className="mt-8 text-center w-full">
-                                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100/50 inline-flex items-center gap-1">
-                                                <Lock className="w-3.5 h-3.5" /> 클릭하여 비밀번호 확인
-                                            </span>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </motion.div>
-                        );
-                    })}
-                </motion.div>
-            </div>
-        );
-    }
-);
-
-
-function VaultCarousel({ items }: { items: VaultItem[] }) {
-    const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
-    const [activeItem, setActiveItem] = useState<VaultItem | null>(null);
-    const [isCarouselActive, setIsCarouselActive] = useState(true);
-
-    const [showPass, setShowPass] = useState(false);
+    const [showPass, setShowPass] = useState<Record<string, boolean>>({});
     const [copied, setCopied] = useState<"id" | "pw" | null>(null);
 
-    const handleClick = (item: VaultItem) => {
-        setActiveItem(item);
-        setIsCarouselActive(false);
+    const toggleExpand = (id: string) => {
+        setExpandedId(prev => prev === id ? null : id);
     };
 
-    const handleClose = () => {
-        setActiveItem(null);
-        setIsCarouselActive(true);
-        setShowPass(false);
-        setCopied(null);
+    const toggleShowPass = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setShowPass(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
     const copyToClipboard = (e: React.MouseEvent, text: string, type: "id" | "pw") => {
@@ -212,115 +108,16 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
     };
 
     return (
-        <motion.div layout className="relative w-full">
-            <AnimatePresence mode="sync">
-                {activeItem && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4"
-                        onClick={handleClose}
-                    >
-                        {/* ── 팝업 상세 모달 ── */}
-                        <motion.div
-                            layoutId={`card-${activeItem.id}`}
-                            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden cursor-default relative"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={handleClose}
-                                className="absolute top-4 right-4 p-2 bg-slate-100/80 rounded-full hover:bg-slate-200 text-slate-500 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-
-                            {(() => {
-                                const style = CATEGORY_STYLE[activeItem.category] ?? CATEGORY_STYLE["기타"];
-                                const Icon = style.icon;
-                                const passMatch = activeItem.notes?.match(/패스워드:\s*(.*)/);
-                                const passwordText = passMatch?.[1]?.trim() || null;
-                                const memoText = activeItem.notes?.replace(/패스워드:\s*.+/g, "").trim() || null;
-
-                                return (
-                                    <div className="p-6">
-                                        <div className="flex items-center gap-4 mb-8 border-b border-slate-100 pb-6">
-                                            <div className={`w-14 h-14 rounded-2xl border ${style.border} ${style.bg} shadow-inner flex items-center justify-center flex-shrink-0`}>
-                                                <Icon className={`w-7 h-7 ${style.color}`} />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-[20px] font-extrabold text-slate-900 tracking-tight leading-none mb-2">{activeItem.platform_name}</h2>
-                                                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.border} ${style.bg} ${style.color}`}>
-                                                    {activeItem.category === "기타" ? "subscription" : activeItem.category}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            {/* 아이디 영역 (항상 렌더링) */}
-                                            <div>
-                                                <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">아이디 / 이메일</p>
-                                                <div className="flex items-center justify-between bg-slate-50 rounded-2xl border border-slate-100 px-4 py-3">
-                                                    <p className={`text-[15px] font-mono tracking-wide break-all ${activeItem.account_id ? 'text-slate-800' : 'text-slate-400 italic'}`}>
-                                                        {activeItem.account_id || "미등록"}
-                                                    </p>
-                                                    {activeItem.account_id && (
-                                                        <button onClick={(e) => copyToClipboard(e, activeItem.account_id!, "id")} className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 transition-colors shadow-sm">
-                                                            {copied === "id" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* 비밀번호 영역 (항상 렌더링) */}
-                                            <div>
-                                                <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">비밀번호</p>
-                                                <div className="flex items-center justify-between bg-slate-50 rounded-2xl border border-slate-100 px-4 py-3">
-                                                    <p className={`text-[15px] font-mono tracking-widest break-all ${passwordText ? 'text-slate-800' : 'text-slate-400 italic'}`}>
-                                                        {passwordText ? (showPass ? passwordText : "•".repeat(Math.min(passwordText.length, 12))) : "미등록"}
-                                                    </p>
-                                                    {passwordText && (
-                                                        <div className="flex items-center gap-1">
-                                                            <button onClick={() => setShowPass(!showPass)} className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 transition-colors shadow-sm">
-                                                                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                            </button>
-                                                            <button onClick={(e) => copyToClipboard(e, passwordText, "pw")} className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 transition-colors shadow-sm">
-                                                                {copied === "pw" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* 메모 영역 */}
-                                            {(memoText) && (
-                                                <div>
-                                                    <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">메모</p>
-                                                    <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4">
-                                                        <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">
-                                                            {memoText}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
+        <motion.div layout className="relative w-full max-w-3xl mx-auto">
             <div className="flex justify-end mb-4 z-10 relative px-4 sm:px-0">
                 <button
-                    onClick={() => setViewMode(viewMode === "carousel" ? "grid" : "carousel")}
+                    onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
                 >
-                    {viewMode === "carousel" ? (
+                    {viewMode === "list" ? (
                         <><LayoutGrid className="w-4 h-4" /> 전체 보기</>
                     ) : (
-                        <><Box className="w-4 h-4" /> 3D 회전 뷰</>
+                        <><Box className="w-4 h-4" /> 세로 리스트 보기</>
                     )}
                 </button>
             </div>
@@ -339,7 +136,7 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
                             <motion.div
                                 layoutId={`card-${item.id}`}
                                 key={`grid-${item.id}`}
-                                onClick={() => handleClick(item)}
+                                onClick={() => { setViewMode("list"); setExpandedId(item.id); }}
                                 className="bg-white rounded-[20px] border border-slate-100 shadow-sm overflow-hidden p-5 cursor-pointer hover:border-blue-200 hover:shadow-md transition-all flex flex-col items-center group"
                             >
                                 <div className={`w-14 h-14 rounded-2xl ${style.bg} flex items-center justify-center border ${style.border} flex-shrink-0 relative overflow-hidden mb-3 group-hover:scale-105 transition-transform`}>
@@ -359,16 +156,103 @@ function VaultCarousel({ items }: { items: VaultItem[] }) {
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="relative h-[400px] sm:h-[450px] w-full mt-2"
+                    className="flex flex-col gap-4 px-4 sm:px-0 pb-20"
                 >
-                    <VaultCarouselInner
-                        handleClick={handleClick}
-                        items={items}
-                        isCarouselActive={isCarouselActive}
-                    />
-                    {/* 블러 처리 오버레이 (좌우 가장자리) */}
-                    <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-slate-50/50 to-transparent pointer-events-none" />
-                    <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-slate-50/50 to-transparent pointer-events-none" />
+                    {items.map(item => {
+                        const style = CATEGORY_STYLE[item.category] ?? CATEGORY_STYLE["기타"];
+                        const Icon = style.icon;
+                        const isExpanded = expandedId === item.id;
+
+                        const passMatch = item.notes?.match(/패스워드:\s*(.*)/);
+                        const passwordText = passMatch?.[1]?.trim() || null;
+                        const memoText = item.notes?.replace(/패스워드:\s*.+/g, "").trim() || null;
+
+                        return (
+                            <motion.div
+                                layoutId={`card-${item.id}`}
+                                key={`list-${item.id}`}
+                                className="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden cursor-pointer hover:border-blue-300 transition-colors"
+                                onClick={() => toggleExpand(item.id)}
+                            >
+                                <div className="p-5 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-xl ${style.bg} flex items-center justify-center border ${style.border} shadow-inner`}>
+                                            <Icon className={`w-6 h-6 ${style.color}`} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-[18px] font-extrabold text-slate-900 tracking-tight leading-none mb-1.5">{item.platform_name}</h3>
+                                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${style.color} ${style.bg} border ${style.border} uppercase tracking-widest`}>
+                                                {item.category === "기타" ? "subscription" : item.category}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 hover:bg-slate-100 transition-colors">
+                                        {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                                    </div>
+                                </div>
+                                <AnimatePresence>
+                                    {isExpanded && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden border-t border-slate-100 bg-slate-50/50"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <div className="p-5 space-y-4">
+                                                {/* 아이디 영역 */}
+                                                <div>
+                                                    <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">아이디 / 이메일</p>
+                                                    <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
+                                                        <p className={`text-[15px] font-mono tracking-wide break-all ${item.account_id ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                                                            {item.account_id || "미등록"}
+                                                        </p>
+                                                        {item.account_id && (
+                                                            <button onClick={(e) => copyToClipboard(e, item.account_id!, "id")} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
+                                                                {copied === "id" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* 비밀번호 영역 */}
+                                                <div>
+                                                    <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">비밀번호</p>
+                                                    <div className="flex items-center justify-between bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
+                                                        <p className={`text-[15px] font-mono tracking-widest break-all ${passwordText ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                                                            {passwordText ? (showPass[item.id] ? passwordText : "•".repeat(Math.min(passwordText.length, 12))) : "미등록"}
+                                                        </p>
+                                                        {passwordText && (
+                                                            <div className="flex items-center gap-1">
+                                                                <button onClick={(e) => toggleShowPass(e, item.id)} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
+                                                                    {showPass[item.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                                </button>
+                                                                <button onClick={(e) => copyToClipboard(e, passwordText, "pw")} className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
+                                                                    {copied === "pw" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* 메모 영역 */}
+                                                {memoText && (
+                                                    <div>
+                                                        <p className="text-[11px] font-bold text-slate-400 mb-1.5 ml-1">메모</p>
+                                                        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                                                            <p className="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">
+                                                                {memoText}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        );
+                    })}
                 </motion.div>
             )}
         </motion.div>
@@ -639,7 +523,7 @@ function GuardianOpenContent() {
 
                     <div className="flex-1 w-full max-w-[1200px] overflow-hidden relative">
                         {result.vaultItems.length > 0 ? (
-                            <VaultCarousel items={result.vaultItems} />
+                            <VaultAccordion items={result.vaultItems} />
                         ) : (
                             <div className="text-center py-20 bg-white mx-5 rounded-3xl border border-slate-200 shadow-sm mt-6">
                                 <Globe className="w-12 h-12 text-slate-300 mx-auto mb-3" />
