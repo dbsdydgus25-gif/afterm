@@ -11,6 +11,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
+import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 import { Mail, Send, ArrowRight } from "lucide-react";
 import dynamic from 'next/dynamic';
@@ -244,113 +245,9 @@ export default function HomePageClient() {
                 <SpiralAnimation />
 
                 {/* ══════════════════════════════════════════════
-                    BLOCK 2: 1분이면 괜찮아 + 메시지 남기기 / 데이터 유산 / 유산 찾기
+                    BLOCK 2: Feature Grid Layout (6 Items)
                 ════════════════════════════════════════════════ */}
-                <section className="relative z-10 w-full min-h-screen flex items-center justify-center px-6 py-20 bg-white border-t border-slate-100">
-                    <div className="w-full max-w-lg mx-auto flex flex-col items-center text-center gap-10">
-                        {/* 프로모 배너 */}
-                        <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                            onClick={() => router.push('/plans')}
-                            className="cursor-pointer"
-                        >
-                            <HeroPill
-                                href="/plans"
-                                label="PRO 플랜 3개월 무료 체험!"
-                                announcement="🎉 오픈 기념"
-                                className="shadow-sm hover:shadow-md transition-shadow bg-blue-50/50 backdrop-blur-sm border border-blue-200/50"
-                            />
-                        </motion.div>
-
-                        {/* 타이틀 */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.7, delay: 0.1 }}
-                            className="space-y-4"
-                        >
-                            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.2] break-keep drop-shadow-sm">
-                                <span className="block mb-2 md:mb-3 text-slate-800">갑자기 떠나도</span>
-                                <span className="text-blue-600 inline-block relative">
-                                    1분이면
-                                    <svg className="absolute w-[110%] h-3 sm:h-4 -bottom-1 -left-[5%] text-blue-300/40" viewBox="0 0 100 20" preserveAspectRatio="none">
-                                        <path d="M0 15 Q 50 20 100 5 L 100 20 L 0 20 Z" fill="currentColor" />
-                                    </svg>
-                                </span>{" "}
-                                <span className="inline-block relative z-10">괜찮아</span>
-                            </h2>
-                            <p className="text-sm sm:text-lg text-slate-500 font-medium tracking-normal break-keep max-w-lg">
-                                소중한 사람들을 위한 마지막 센스,<br className="hidden sm:block" /> 미리 저장하는 특별한 안부인사
-                            </p>
-                        </motion.div>
-
-                        {/* 2버튼: 메시지 남기기 + 데이터 유산 */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.7, delay: 0.2 }}
-                            className="w-full"
-                        >
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 w-full max-w-[800px] mx-auto">
-                                {/* 메시지 남기기 */}
-                                <button
-                                    onClick={() => router.push('/create')}
-                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-blue-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
-                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-blue-100/80 to-blue-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-blue-100/50">
-                                            <span className="text-2xl md:text-4xl">💌</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">메시지 남기기</h3>
-                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">소중한 마음을 전하세요</p>
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* 디지털 유산 */}
-                                <button
-                                    onClick={() => router.push('/vault/create')}
-                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-emerald-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
-                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-emerald-100/80 to-emerald-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-emerald-100/50">
-                                            <span className="text-2xl md:text-4xl">🔐</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">디지털 유산</h3>
-                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">계정 정보를 보관하세요</p>
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* 고인 디지털 유산 찾기 */}
-                                <button
-                                    onClick={() => router.push('/vault')}
-                                    className="group relative bg-white/80 backdrop-blur-md p-5 md:p-8 rounded-3xl border border-slate-100 hover:border-indigo-200 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="relative flex flex-col items-center text-center space-y-3 md:space-y-4">
-                                        <div className="w-14 h-14 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-indigo-100/80 to-indigo-50/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm border border-indigo-100/50">
-                                            <span className="text-2xl md:text-4xl">🔍</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm md:text-xl font-bold text-slate-800 tracking-tight mb-1 md:mb-2">고인 데이터 유산 찾기</h3>
-                                            <p className="text-[10px] md:text-sm text-slate-500 leading-relaxed max-w-[120px] md:max-w-[160px] mx-auto hidden sm:block">숨겨진 유산을 확인하세요</p>
-                                        </div>
-                                    </div>
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                </section>
+                <FeatureGrid />
 
                 {/* 2. Left Behind Section (Gift) */}
                 <section className="w-full bg-slate-900 text-white py-12 md:py-32 overflow-hidden relative">
