@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 });
         }
 
-        const scanResult = await scanGmailEmails(providerToken);
+        const scanResult = await scanGmailEmails(providerToken, userIntent);
         console.log("[Scan Emails] 수집 이메일:", scanResult.inboxCount, "오류:", scanResult.error);
 
         if (!scanResult.emailTexts || scanResult.emailTexts.length < 30) {
@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-async function scanGmailEmails(token: string) {
+async function scanGmailEmails(token: string, userIntent?: string) {
     let emailBodies: string[] = [];
     let inboxCount = 0;
     let lastError = "";
@@ -229,12 +229,36 @@ async function scanGmailEmails(token: string) {
         }
     };
 
-    // 개선된 스마트 필터링 쿼리 (단건/광고 배제)
-    const queries = [
-        `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 일시불 OR 단건)`,
-        `newer_than:12m (receipt OR 영수증) (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
-        `newer_than:12m ("가입을 환영합니다" OR "welcome to") -label:promotions -("뉴스레터" OR "소식지" OR "광고")`,
-    ];
+    // 사용자 의도에 따른 기본/맞춤형 쿼리 생성
+    let queries: string[] = [];
+    const intentLower = userIntent?.toLowerCase() || "";
+
+    if (intentLower.includes("클라우드") || intentLower.includes("데이터")) {
+        queries = [
+            `newer_than:12m (cloud OR 드라이브 OR drive OR 아이클라우드 OR icloud OR 원드라이브 OR "google one" OR "구글 원") -("1회성" OR "일시불")`,
+            `newer_than:12m ("가입을 환영합니다" OR "welcome to") (cloud OR 드라이브 OR drive OR 아이클라우드 OR icloud OR 원드라이브)`,
+        ];
+    } else if (intentLower.includes("ott") || intentLower.includes("넷플릭스") || intentLower.includes("스트리밍")) {
+        queries = [
+            `newer_than:12m (netflix OR 넷플릭스 OR 디즈니 OR 티빙 OR tving OR 왓챠 OR 쿠팡플레이 OR wavve OR 웨이브 OR "youtube premium" OR "유튜브 프리미엄") -("1회성" OR "일시불")`
+        ];
+    } else if (intentLower.includes("소셜") || intentLower.includes("sns") || intentLower.includes("계정")) {
+        queries = [
+            `newer_than:12m ("가입을 환영합니다" OR "welcome to" OR "계정 생성" OR "새로운 로그인") -label:promotions -("뉴스레터" OR "광고")`
+        ];
+    } else if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
+        queries = [
+            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 일시불 OR 단건)`,
+            `newer_than:12m (receipt OR 영수증) (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
+        ];
+    } else {
+        // 일반적인 "디지털 유산 찾아줘" 요청 시 (전체 스캔)
+        queries = [
+            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 일시불 OR 단건)`,
+            `newer_than:12m (receipt OR 영수증) (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
+            `newer_than:12m ("가입을 환영합니다" OR "welcome to") -label:promotions -("뉴스레터" OR "소식지" OR "광고")`,
+        ];
+    }
 
     for (const q of queries) {
         try {
