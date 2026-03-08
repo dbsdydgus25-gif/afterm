@@ -286,6 +286,7 @@ export function AiAssistantClient() {
         } else if (action === "linkGmail" || action === "runScan") {
             if (action === "linkGmail") {
                 // 실 연동 (Google OAuth) 진행
+                console.log("[AiAssistant] Starting Google OAuth...");
                 await supabase.auth.signInWithOAuth({
                     provider: "google",
                     options: {
@@ -307,11 +308,10 @@ export function AiAssistantClient() {
 
         // Gmail Yes/No 응답 처리
         if (choiceId === "gmail_yes") {
-            // 항상 gmail.readonly 스코프로 OAuth 재인증
-            // (일반 로그인은 gmail 스코프가 없어서 provider_token으로 Gmail API 호출 불가)
+            // 항상 gmail.readonly 스코프로 OAuth 인증 (실제 연동을 위한 액션)
             addMsg({
                 role: "assistant",
-                content: "Google 계정 연동을 시작할게요! 아래 버튼을 눌러 권한을 허용해주세요 🔐\n(Google 클라우드 승인 전이므로, 관리자가 등록한 일부 테스터만 가능합니다.)",
+                content: "좋아요! Google 계정 연동을 시작할게요. 아래 버튼을 눌러 연동을 허용해주세요 🔐\n(현재 승인 대기 단계라, 사전에 등록된 테스터만 진행할 수 있습니다.)",
                 actionButtons: [{ label: "Google 계정으로 Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }],
             });
             return;
@@ -339,10 +339,10 @@ export function AiAssistantClient() {
             // ── 2) 구글 계정 연동 여부 확인 ────────────────────────
             addMsg({
                 role: "assistant",
-                content: `알겠습니다! 📧 Gmail을 직접 분석해서 실제 구독/정기결제 내역을 찾아드릴게요.\n\n구글 계정의 이메일 읽기 권한이 필요해요. 연동하시겠어요?`,
+                content: `알겠습니다! 📧 Gmail을 직접 분석해서 실제 구독/정기결제 내역을 찾아드릴게요.\n\n구글 계정의 이메일 읽기 권한이 필요해요. 아래 버튼을 통해 연동을 시작할까요?`,
                 actionButtons: isGoogleLinked
-                    ? [{ label: "Gmail 스캔 시작하기", icon: "mail", style: "primary", action: "runScan" }]
-                    : [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
+                    ? [{ label: "Gmail 스캔 바로 시작하기", icon: "mail", style: "primary", action: "runScan" }]
+                    : [{ label: "Google 계정으로 Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }],
             });
 
         } else if (choiceId === "social") {
