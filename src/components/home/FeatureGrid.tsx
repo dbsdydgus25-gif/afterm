@@ -54,7 +54,7 @@ export function FeatureGrid() {
                     </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative z-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 relative z-10">
                     {features.map((feature, index) => (
                         <Feature key={feature.title} {...feature} index={index} />
                     ))}
@@ -81,27 +81,29 @@ const Feature = ({
         <div
             onClick={onClick}
             className={cn(
-                "flex flex-col lg:border-r py-12 relative group/feature border-slate-100 cursor-pointer overflow-hidden",
-                (index === 0 || index === 3) && "lg:border-l border-slate-100",
-                index < 3 && "lg:border-b border-slate-100"
+                "flex flex-col py-6 px-3 md:py-12 md:px-8 relative group/feature border-slate-100 cursor-pointer overflow-hidden items-center text-center md:items-start md:text-left",
+                // Mobile 2 cols bases
+                (index % 2 === 0) && "border-r",
+                (index < 4) && "border-b",
+                // Desktop 3 cols overrides & additions
+                "md:border-r",
+                (index < 3) && "md:border-b",
+                (index === 3) && "md:border-b-0", // reset mobile's border-b on index 3 for desktop
+                (index === 0 || index === 3) && "md:border-l"
             )}
         >
-            {index < 3 && (
-                <div className="opacity-0 group-hover/feature:opacity-100 transition duration-300 absolute inset-0 h-full w-full bg-gradient-to-t from-blue-50/50 to-transparent pointer-events-none" />
-            )}
-            {index >= 3 && (
-                <div className="opacity-0 group-hover/feature:opacity-100 transition duration-300 absolute inset-0 h-full w-full bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
-            )}
-            <div className="mb-6 relative z-10 px-8 text-slate-500 group-hover/feature:text-blue-500 transition-colors duration-200">
-                {icon}
+            <div className="opacity-0 group-hover/feature:opacity-100 transition duration-300 absolute inset-0 h-full w-full bg-gradient-to-t from-blue-50/50 to-transparent pointer-events-none" />
+
+            <div className="mb-3 md:mb-6 relative z-10 text-slate-500 group-hover/feature:text-blue-500 transition-colors duration-200">
+                <div className="transform scale-75 md:scale-100">{icon}</div>
             </div>
-            <div className="text-xl font-bold mb-3 relative z-10 px-8">
-                <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1.5 rounded-tr-full rounded-br-full bg-slate-200 group-hover/feature:bg-blue-600 transition-all duration-200 origin-center" />
-                <span className="group-hover/feature:translate-x-3 transition duration-200 inline-block text-slate-800">
+            <div className="text-[13px] md:text-xl font-bold mb-2 md:mb-3 relative z-10 w-full px-1 md:px-0">
+                <div className="hidden md:block absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1.5 rounded-tr-full rounded-br-full bg-slate-200 group-hover/feature:bg-blue-600 transition-all duration-200 origin-center -ml-8" />
+                <span className="md:group-hover/feature:translate-x-3 transition duration-200 inline-block text-slate-800 tracking-tight break-keep">
                     {title}
                 </span>
             </div>
-            <p className="text-sm text-slate-500 max-w-sm relative z-10 px-8 leading-relaxed">
+            <p className="hidden md:block text-[11px] md:text-sm text-slate-500 max-w-sm relative z-10 leading-snug md:leading-relaxed break-keep px-1 md:px-0">
                 {description}
             </p>
         </div>

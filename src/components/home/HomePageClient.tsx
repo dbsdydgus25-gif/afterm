@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { HeroPill } from "@/components/ui/hero-pill";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { FeatureSteps } from "@/components/home/FeatureSteps";
@@ -367,12 +366,7 @@ export default function HomePageClient() {
                     />
                 </section>
 
-                {/* 4. Unexpected Absence (Risk Awareness) */}
-                <div className="bg-slate-900 w-full">
-                    <RiskAwarenessSection />
-                </div>
-
-                {/* 5. 5. Well-dying Trends (News Section) */}
+                {/* 5. Well-dying Trends (News Section) */}
                 <NewsSection />
 
                 {/* 6. Online Memorial Section */}
