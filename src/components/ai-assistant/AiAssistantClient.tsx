@@ -239,7 +239,7 @@ export function AiAssistantClient() {
                     setDashboardResult({ type: "legacyList", items: data.items, scannedAt: new Date().toISOString() });
                     addMsg({
                         role: "assistant",
-                        content: `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 구독/정기결제 내역을 찾았어요.\n우측에서 확인 후 불필요한 항목은 삭제하고 저장할 수 있어요!`,
+                        content: `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 구독/정기결제 내역을 찾았어요.\n우측 대시보드에서 찾은 목록을 정리해드릴게요. 내용을 확인하시고 보관해주세요!`,
                     });
                 } else {
                     const debug = data.debug;
@@ -452,6 +452,11 @@ export function AiAssistantClient() {
                 role: "assistant",
                 content: "아앗, Google 권한 승인 창에서 액세스가 차단되었군요! 😢\n\n현재 구글 승인 심사 대기 중이라 사전에 등록된 테스터만 즉시 연동이 가능합니다.\n대신 좌측 하단의 **[플러그 모양 아이콘 🔌]**을 눌러 커넥터 메뉴에서 **'베타 접수하기'**를 신청해주시면, 권한을 열어드리고 무료로 이용하실 수 있도록 안내해 드리겠습니다!",
             });
+            return;
+        }
+
+        // [추가] 유산/구독 관련 요청인 경우, runEmailScan 내부에서 이미 어시스턴트 메시지를 보내므로 여기서 중단하여 중복 응답(GPT 채팅)을 방지함
+        if (isLegacyIntent || isGmailRequest) {
             return;
         }
 
