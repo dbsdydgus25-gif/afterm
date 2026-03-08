@@ -283,13 +283,22 @@ export function AiAssistantClient() {
     const handleActionButton = useCallback(async (action: ActionButton["action"]) => {
         if (action === "goToPlans") {
             router.push("/plans");
-        } else if (action === "linkGmail") {
-            // 구글 클라우드 미승인 상태이므로 실 연동 대신 팝업 표시
-            setShowBetaModal(true);
-        } else if (action === "runScan") {
-            runEmailScan();
+        } else if (action === "linkGmail" || action === "runScan") {
+            if (action === "linkGmail") {
+                // 실 연동 (Google OAuth) 진행
+                await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo: `${window.location.origin}/ai-assistant?scan=true`,
+                        queryParams: { access_type: "offline", prompt: "consent" },
+                        scopes: "email profile https://www.googleapis.com/auth/gmail.readonly",
+                    },
+                });
+            } else {
+                runEmailScan();
+            }
         }
-    }, [router, runEmailScan]);
+    }, [router, supabase, runEmailScan]);
 
     // ── 선택지 버튼 클릭 ─────────────────────────────────────
     const handleChoiceSelect = useCallback(async (choiceId: string, choiceLabel: string) => {
@@ -302,7 +311,7 @@ export function AiAssistantClient() {
             // (일반 로그인은 gmail 스코프가 없어서 provider_token으로 Gmail API 호출 불가)
             addMsg({
                 role: "assistant",
-                content: "Google 계정 연동을 시작할게요! 아래 버튼을 눌러 Gmail 읽기 권한을 허용해주세요 🔐",
+                content: "Google 계정 연동을 시작할게요! 아래 버튼을 눌러 권한을 허용해주세요 🔐\n(Google 클라우드 승인 전이므로, 관리자가 등록한 일부 테스터만 가능합니다.)",
                 actionButtons: [{ label: "Google 계정으로 Gmail 연동하기", icon: "mail", style: "primary", action: "linkGmail" }],
             });
             return;
@@ -378,6 +387,15 @@ export function AiAssistantClient() {
         const isLegacyIntent = /디지털 유산|유산 정리|유산 찾아|자산 찾아|구독|결제 내역|결제내역|구독한거|계정 찾아/.test(trimmed);
 
         if (isLegacyIntent) {
+            if (isGoogleLinked) {
+                addMsg({
+                    role: "assistant",
+                    content: "이미 연동된 Gmail 스위치가 켜져있어요! 바로 자동 스캔을 시작할게요. 📧",
+                });
+                runEmailScan();
+                return;
+            }
+
             addMsg({
                 role: "assistant",
                 content: "디지털 유산 정리를 도와드릴게요! 📧\n\nGmail을 연동시켜서 숨은 구독 내역을 자동으로 찾을 수도 있고, 연동 없이 직접 입력해서 따로 다루실 수도 있어요.\n자동 스캔을 위해 Gmail 연동을 진행해 드릴까요?",
@@ -392,6 +410,15 @@ export function AiAssistantClient() {
         // 대화 중 Gmail 연동 요청 감지
         const isGmailRequest = /gmail|지메일|연동|이메일 연결|메일 연결|메일 분석|구독 찾아/.test(trimmed.toLowerCase());
         if (isGmailRequest) {
+            if (isGoogleLinked) {
+                addMsg({
+                    role: "assistant",
+                    content: "이미 연동된 Gmail 스위치가 켜져있어요! 바로 자동 스캔을 시작할게요. 📧",
+                });
+                runEmailScan();
+                return;
+            }
+
             addMsg({
                 role: "assistant",
                 content: "Gmail 연동을 원하시는군요! 이메일에서 구독/정기결제 내역을 자동으로 찾아드릴게요 📧\n\n연동을 시작할까요?",
@@ -432,6 +459,36 @@ export function AiAssistantClient() {
             replaceMsg(loadingId, { isLoading: false, content: "죄송합니다, 일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요." });
         }
     }, [isLoggedIn, isChatMode]);
+
+    // ── Gmail 연동 스위치 (플러그) 토글 ───────────────────────
+    const handleToggleGmail = useCallback(async () => {
+        if (!isLoggedIn) {
+            setShowAuthModal(true);
+            return;
+        }
+
+        if (isGoogleLinked) {
+            // 연동 해제 로직
+            const confirmUnlink = window.confirm("Gmail 연동 스위치를 끄시겠습니까?\n저장된 스캔용 토큰이 삭제됩니다.");
+            if (confirmUnlink) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    await supabase.from("profiles").update({
+                        gmail_connected: false,
+                        gmail_refresh_token: null
+                    }).eq("id", user.id);
+                    setIsGoogleLinked(false);
+
+                    if (isChatMode) {
+                        addMsg({ role: "assistant", content: "Gmail 연동 스위치가 꺼졌습니다. 🔌" });
+                    }
+                }
+            }
+        } else {
+            // 연동 안 된 상태 -> 베타 테스터 팝업 노출
+            setShowBetaModal(true);
+        }
+    }, [isLoggedIn, isGoogleLinked, isChatMode, supabase]);
 
     // 로그인 후 pending message 처리 (한 번만 실행)
     const pendingHandled = useRef(false);
@@ -633,7 +690,7 @@ export function AiAssistantClient() {
                                 onOpenDashboard={() => setIsBottomSheetOpen(true)}
                                 hasDashboard={!!dashboardResult || isAnalyzing}
                                 isGoogleLinked={isGoogleLinked}
-                                onOpenBetaModal={() => setShowBetaModal(true)}
+                                onToggleGmail={handleToggleGmail}
                             />
                         </div>
 

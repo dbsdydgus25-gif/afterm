@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, ChevronUp, Plus, Plug, Puzzle } from "lucide-react";
+import { Send, Bot, ChevronUp, Plus, Plug } from "lucide-react";
 import type { ChatMessage } from "./AiAssistantClient";
 
 interface ChatPanelProps {
@@ -12,10 +12,10 @@ interface ChatPanelProps {
     onOpenDashboard: () => void;
     hasDashboard: boolean;
     isGoogleLinked: boolean;
-    onOpenBetaModal: () => void;
+    onToggleGmail: () => void;
 }
 
-export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard, isGoogleLinked, onOpenBetaModal }: ChatPanelProps) {
+export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard, isGoogleLinked, onToggleGmail }: ChatPanelProps) {
     const [inputValue, setInputValue] = useState("");
     const [inputError, setInputError] = useState("");
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -130,17 +130,14 @@ export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard
                         <Plus className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={onOpenBetaModal}
+                        onClick={onToggleGmail}
                         className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${isGoogleLinked
                                 ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
                                 : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
                             }`}
-                        title={isGoogleLinked ? "Gmail 연동됨" : "Gmail 연동하기"}
+                        title={isGoogleLinked ? "Gmail 스위치 켜짐 (클릭하여 해제)" : "Gmail 스위치 꺼짐 (베타 접수하기)"}
                     >
                         <Plug className="w-4 h-4" />
-                    </button>
-                    <button className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
-                        <Puzzle className="w-4 h-4" />
                     </button>
                 </div>
 
