@@ -472,7 +472,7 @@ export function AiAssistantClient() {
         } catch {
             replaceMsg(loadingId, { isLoading: false, content: "죄송합니다, 일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요." });
         }
-    }, [isLoggedIn, isChatMode]);
+    }, [isLoggedIn, isChatMode, isGoogleLinked, runEmailScan]);
 
     // ── Gmail 연동 스위치 (플러그) 토글 ───────────────────────
     const handleToggleGmail = useCallback(async () => {
