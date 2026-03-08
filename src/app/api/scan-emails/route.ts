@@ -162,6 +162,19 @@ export async function POST(req: NextRequest) {
         const scanResult = await scanGmailEmails(providerToken, userIntent);
         console.log("[Scan Emails] 수집 이메일:", scanResult.inboxCount, "오류:", scanResult.error);
 
+        // 스코프 부족, 인증 에러인 경우 재연동 유도 (DB 초기화)
+        if (scanResult.error && (scanResult.error.includes("insufficient authentication scopes") || scanResult.error.includes("invalid_grant") || scanResult.error.includes("403") || scanResult.error.includes("401"))) {
+            await supabase.from("profiles").update({
+                gmail_connected: false,
+                gmail_refresh_token: null
+            }).eq("id", user.id);
+
+            return NextResponse.json({
+                requires_auth: true,
+                message: "Gmail 읽기 권한이 없습니다. 다시 연동해주세요."
+            }, { status: 400 });
+        }
+
         if (!scanResult.emailTexts || scanResult.emailTexts.length < 30) {
             return NextResponse.json({
                 items: [],

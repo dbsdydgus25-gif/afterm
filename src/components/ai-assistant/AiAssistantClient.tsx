@@ -139,7 +139,10 @@ export function AiAssistantClient() {
                 let connected = profile?.gmail_connected || false;
 
                 // 세션에 리프레시 토큰이 있고, DB에 아직 연동 정보가 없거나 갱신이 필요하다면 저장
-                if (provider === "google" && session?.provider_refresh_token) {
+                // 단, scan=true 파라미터가 있을 때만 (즉, Gmail 연동 버튼으로 로그인했을 때만) 저장하도록 변경
+                const isScanRedirect = searchParams.get("scan") === "true";
+
+                if (provider === "google" && session?.provider_refresh_token && isScanRedirect) {
                     await supabase.from("profiles").update({
                         gmail_connected: true,
                         gmail_refresh_token: session.provider_refresh_token
