@@ -6,7 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { DashboardPanel } from "@/components/ai-assistant/DashboardPanel";
+import { ChatPanel } from "@/components/ai-assistant/ChatPanel";
 import { AuthModal } from "@/components/ai-assistant/AuthModal";
+import { BetaApplyModal } from "@/components/ai-assistant/BetaApplyModal";
 import { MobileBottomSheet } from "@/components/ai-assistant/MobileBottomSheet";
 import { Send, Bot, Mail, Crown } from "lucide-react";
 
@@ -97,6 +99,7 @@ export function AiAssistantClient() {
     const [dashboardResult, setDashboardResult] = useState<DashboardResult>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+    const [showBetaModal, setShowBetaModal] = useState(false);
 
     // 타이핑 후킹 멘트
     const [hookIndex, setHookIndex] = useState(0);
@@ -120,18 +123,31 @@ export function AiAssistantClient() {
             setIsLoggedIn(loggedIn);
 
             if (loggedIn && user) {
-                // Google OAuth 여부 확인
-                const { data: session } = await supabase.auth.getSession();
-                const provider = session?.session?.user?.app_metadata?.provider;
-                setIsGoogleLinked(provider === "google");
-
-                // 플랜 확인
+                // 플랜 및 기존 연동 여부 확인
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("plan")
+                    .select("plan, gmail_connected")
                     .eq("id", user.id)
                     .single();
+
                 if (profile?.plan === "pro") setUserPlan("pro");
+
+                const { data: sessionData } = await supabase.auth.getSession();
+                const session = sessionData?.session;
+                const provider = session?.user?.app_metadata?.provider;
+
+                let connected = profile?.gmail_connected || false;
+
+                // 세션에 리프레시 토큰이 있고, DB에 아직 연동 정보가 없거나 갱신이 필요하다면 저장
+                if (provider === "google" && session?.provider_refresh_token) {
+                    await supabase.from("profiles").update({
+                        gmail_connected: true,
+                        gmail_refresh_token: session.provider_refresh_token
+                    }).eq("id", user.id);
+                    connected = true;
+                }
+
+                setIsGoogleLinked(connected);
             }
 
             const qParam = searchParams.get("q");
@@ -267,23 +283,13 @@ export function AiAssistantClient() {
     const handleActionButton = useCallback(async (action: ActionButton["action"]) => {
         if (action === "goToPlans") {
             router.push("/plans");
-        } else if (action === "linkGmail" || action === "runScan") {
-            if (action === "linkGmail") {
-                // gmail.readonly 스코프 포함한 Google OAuth
-                // 성공 후 ?scan=true 파라미터로 돌아와서 자동 스캔 트리거
-                await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: {
-                        redirectTo: `${window.location.origin}/ai-assistant?scan=true`,
-                        queryParams: { access_type: "offline", prompt: "consent" },
-                        scopes: "email profile https://www.googleapis.com/auth/gmail.readonly",
-                    },
-                });
-            } else {
-                runEmailScan();
-            }
+        } else if (action === "linkGmail") {
+            // 구글 클라우드 미승인 상태이므로 실 연동 대신 팝업 표시
+            setShowBetaModal(true);
+        } else if (action === "runScan") {
+            runEmailScan();
         }
-    }, [router, supabase, runEmailScan]);
+    }, [router, runEmailScan]);
 
     // ── 선택지 버튼 클릭 ─────────────────────────────────────
     const handleChoiceSelect = useCallback(async (choiceId: string, choiceLabel: string) => {
@@ -620,130 +626,15 @@ export function AiAssistantClient() {
                     >
                         {/* 좌측: 채팅 */}
                         <div className="w-full md:w-[40%] flex flex-col border-r border-slate-100 bg-white">
-                            {/* 헤더 */}
-                            <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 flex-shrink-0">
-                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <Bot className="w-4 h-4 text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">AFTERM AI</p>
-                                    <p className="text-xs text-green-500 font-medium">● 온라인</p>
-                                </div>
-                                {(!!dashboardResult || isAnalyzing) && (
-                                    <button onClick={() => setIsBottomSheetOpen(true)} className="md:hidden ml-auto flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold">
-                                        결과 보기
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* 메시지 목록 */}
-                            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-                                {/* 환영 메시지 */}
-                                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
-                                    <div className="w-8 h-8 bg-blue-600 rounded-full flex-shrink-0 flex items-center justify-center">
-                                        <Bot className="w-4 h-4 text-white" />
-                                    </div>
-                                    <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 max-w-xs">
-                                        <p className="text-sm text-slate-700 leading-relaxed">
-                                            안녕하세요! 😊 저는 <strong>AFTERM AI</strong>예요.<br />
-                                            디지털 유산 정리나 소중한 메시지 작성을 도와드릴게요.
-                                        </p>
-                                    </div>
-                                </motion.div>
-
-                                <AnimatePresence>
-                                    {messages.map((msg) => (
-                                        <motion.div
-                                            key={msg.id}
-                                            initial={{ opacity: 0, y: 8 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.25 }}
-                                            className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-                                        >
-                                            {msg.role === "assistant" && (
-                                                <div className="w-8 h-8 bg-blue-600 rounded-full flex-shrink-0 flex items-center justify-center mt-auto">
-                                                    <Bot className="w-4 h-4 text-white" />
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col gap-2 max-w-[78%]">
-                                                {/* 말풍선 */}
-                                                {(msg.content || msg.isLoading) && (
-                                                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "bg-slate-900 text-white rounded-tr-sm" : "bg-slate-100 text-slate-700 rounded-tl-sm"}`}>
-                                                        {msg.isLoading ? (
-                                                            <div className="flex gap-1 py-1">
-                                                                {[0, 1, 2].map(i => (
-                                                                    <span key={i} className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                                                                ))}
-                                                            </div>
-                                                        ) : msg.content}
-                                                    </div>
-                                                )}
-
-                                                {/* 선택지 버튼 */}
-                                                {msg.choices && (
-                                                    <div className="flex flex-col gap-2 mt-1">
-                                                        {msg.choices.map((c) => (
-                                                            <button
-                                                                key={c.id}
-                                                                onClick={() => handleChoiceSelect(c.id, c.label)}
-                                                                className="text-left px-4 py-3 bg-white border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl transition-all text-sm"
-                                                            >
-                                                                <p className="font-bold text-slate-800">{c.label}</p>
-                                                                <p className="text-xs text-slate-400 mt-0.5">{c.desc}</p>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                {/* 액션 버튼 */}
-                                                {msg.actionButtons && (
-                                                    <div className="flex flex-col gap-2 mt-2">
-                                                        {msg.actionButtons.map((btn, i) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => handleActionButton(btn.action)}
-                                                                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all ${btn.style === "primary"
-                                                                    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20"
-                                                                    : "bg-white border-2 border-slate-200 hover:border-blue-400 text-slate-800"
-                                                                    }`}
-                                                            >
-                                                                {btn.icon === "mail" && <Mail className="w-4 h-4" />}
-                                                                {btn.icon === "crown" && <Crown className="w-4 h-4" />}
-                                                                {btn.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                                <div ref={bottomRef} />
-                            </div>
-
-                            {/* 입력창 */}
-                            <div className="px-4 py-3 border-t border-slate-100 flex-shrink-0">
-                                <div className={`relative bg-slate-50 border rounded-xl transition-all duration-200 ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400 focus-within:bg-white"}`}>
-                                    <textarea
-                                        value={inputValue}
-                                        onChange={(e) => { setInputValue(e.target.value); setInputError(""); }}
-                                        onKeyDown={handleKeyDown}
-                                        rows={2}
-                                        placeholder="무엇이든 물어보세요..."
-                                        className="w-full px-4 pt-3 pb-10 bg-transparent text-sm text-slate-900 resize-none focus:outline-none placeholder:text-slate-300"
-                                    />
-                                    <div className="absolute bottom-0 left-0 right-0 flex items-center justify-end px-3 pb-2">
-                                        <button
-                                            onClick={() => handleSendMessage(inputValue)}
-                                            disabled={inputValue.trim().length === 0}
-                                            className={`p-2 rounded-lg transition-all ${inputValue.trim().length > 0 ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
-                                        >
-                                            <Send className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                {inputError && <p className="mt-1 text-xs text-red-500">{inputError}</p>}
-                            </div>
+                            <ChatPanel
+                                messages={messages}
+                                onSendMessage={handleSendMessage}
+                                isAiTyping={false} // Loading state is somewhat handled in messages array
+                                onOpenDashboard={() => setIsBottomSheetOpen(true)}
+                                hasDashboard={!!dashboardResult || isAnalyzing}
+                                isGoogleLinked={isGoogleLinked}
+                                onOpenBetaModal={() => setShowBetaModal(true)}
+                            />
                         </div>
 
                         {/* 우측: 대시보드 (PC) */}
@@ -759,8 +650,9 @@ export function AiAssistantClient() {
                 <DashboardPanel result={dashboardResult} isAnalyzing={isAnalyzing} onResultChange={setDashboardResult} />
             </MobileBottomSheet>
 
-            {/* Auth Modal */}
+            {/* Auth Modal / Beta Apply Modal */}
             <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} pendingMessage={pendingMessage} />
+            <BetaApplyModal isOpen={showBetaModal} onClose={() => setShowBetaModal(false)} />
         </div>
     );
 }

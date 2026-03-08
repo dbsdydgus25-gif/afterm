@@ -97,9 +97,52 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json().catch(() => ({}));
-        const providerToken: string | undefined = body?.providerToken;
+        let providerToken: string | undefined = body?.providerToken;
 
-        console.log("[Scan Emails] providerToken 존재:", !!providerToken, "길이:", providerToken?.length ?? 0);
+        console.log("[Scan Emails] 클라이언트 providerToken 존재:", !!providerToken);
+
+        if (!providerToken) {
+            // DB에서 리프레시 토큰 조회
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("gmail_refresh_token")
+                .eq("id", user.id)
+                .single();
+
+            const refreshToken = profile?.gmail_refresh_token;
+
+            if (refreshToken) {
+                const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+                const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+                if (clientId && clientSecret) {
+                    try {
+                        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: new URLSearchParams({
+                                client_id: clientId,
+                                client_secret: clientSecret,
+                                refresh_token: refreshToken,
+                                grant_type: "refresh_token"
+                            })
+                        });
+
+                        if (tokenRes.ok) {
+                            const tokenData = await tokenRes.json();
+                            providerToken = tokenData.access_token;
+                            console.log("[Scan Emails] 리프레시 토큰으로 Access Token 갱신 성공");
+                        } else {
+                            console.error("[Scan Emails] 리프레시 토큰 갱신 실패:", await tokenRes.text());
+                        }
+                    } catch (refreshErr) {
+                        console.error("[Scan Emails] 토큰 갱신 요청 에러:", refreshErr);
+                    }
+                } else {
+                    console.warn("[Scan Emails] GOOGLE_CLIENT_ID 또는 GOOGLE_CLIENT_SECRET 환경 변수가 없어 토큰을 갱신할 수 없습니다.");
+                }
+            }
+        }
 
         if (!providerToken) {
             return NextResponse.json({

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, ChevronUp } from "lucide-react";
+import { Send, Bot, ChevronUp, Plus, Plug, Puzzle } from "lucide-react";
 import type { ChatMessage } from "./AiAssistantClient";
 
 interface ChatPanelProps {
@@ -11,9 +11,11 @@ interface ChatPanelProps {
     isAiTyping: boolean;
     onOpenDashboard: () => void;
     hasDashboard: boolean;
+    isGoogleLinked: boolean;
+    onOpenBetaModal: () => void;
 }
 
-export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard }: ChatPanelProps) {
+export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard, isGoogleLinked, onOpenBetaModal }: ChatPanelProps) {
     const [inputValue, setInputValue] = useState("");
     const [inputError, setInputError] = useState("");
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -96,8 +98,8 @@ export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard
                             )}
                             <div
                                 className={`max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.role === "user"
-                                        ? "bg-slate-900 text-white rounded-tr-sm"
-                                        : "bg-slate-100 text-slate-700 rounded-tl-sm"
+                                    ? "bg-slate-900 text-white rounded-tr-sm"
+                                    : "bg-slate-100 text-slate-700 rounded-tl-sm"
                                     }`}
                             >
                                 {msg.isLoading ? (
@@ -121,31 +123,48 @@ export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard
             </div>
 
             {/* 입력 영역 */}
-            <div className="px-4 py-3 border-t border-slate-100 flex-shrink-0">
-                <div className={`relative bg-slate-50 border rounded-xl transition-all duration-200 ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400 focus-within:bg-white"}`}>
+            <div className="px-4 py-3 border-t border-slate-100 flex-shrink-0 bg-white">
+                {/* 아이콘 툴바 영역 */}
+                <div className="flex items-center gap-3 mb-3 pl-1">
+                    <button className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
+                        <Plus className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={onOpenBetaModal}
+                        className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${isGoogleLinked
+                                ? "bg-blue-50 border-blue-200 text-blue-600 shadow-sm"
+                                : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                            }`}
+                        title={isGoogleLinked ? "Gmail 연동됨" : "Gmail 연동하기"}
+                    >
+                        <Plug className="w-4 h-4" />
+                    </button>
+                    <button className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
+                        <Puzzle className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div className={`relative bg-slate-50 border rounded-2xl transition-all duration-200 ${inputError ? "border-red-400" : "border-slate-200 focus-within:border-blue-400 focus-within:bg-white"}`}>
                     <textarea
                         value={inputValue}
                         onChange={(e) => { setInputValue(e.target.value); setInputError(""); }}
                         onKeyDown={handleKeyDown}
-                        rows={2}
-                        maxLength={100}
+                        rows={1}
                         placeholder="무엇이든 물어보세요..."
-                        className="w-full px-4 pt-3 pb-10 bg-transparent text-sm text-slate-900 resize-none focus:outline-none placeholder:text-slate-300"
+                        className="w-full px-4 py-3.5 bg-transparent text-sm text-slate-900 resize-none focus:outline-none placeholder:text-slate-400 min-h-[52px]"
+                        style={{ height: inputValue ? "auto" : "52px" }}
                     />
-                    <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pb-2">
-                        <span className={`text-xs ${inputValue.length > 0 && inputValue.length < 10 ? "text-amber-500" : "text-slate-300"}`}>
-                            {inputValue.length}/100
-                        </span>
+                    <div className="absolute bottom-2 right-2 flex items-center">
                         <button
                             onClick={handleSend}
-                            disabled={inputValue.trim().length < 10}
-                            className={`p-2 rounded-lg transition-all ${inputValue.trim().length >= 10 ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                            disabled={inputValue.trim().length === 0}
+                            className={`p-2 rounded-xl transition-all ${inputValue.trim().length > 0 ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
                         >
                             <Send className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
-                {inputError && <p className="mt-1 text-xs text-red-500">{inputError}</p>}
+                {inputError && <p className="mt-1 text-xs text-red-500 ml-1">{inputError}</p>}
             </div>
         </div>
     );
