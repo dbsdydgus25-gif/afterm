@@ -247,7 +247,7 @@ export function AiAssistantClient() {
                     }
                     addMsg({
                         role: "assistant",
-                        content: (data.message ?? "이메일에서 정기 구독 내역을 찾지 못했어요.") + debugMsg,
+                        content: (data.message ?? (userIntent ? `현재 Gmail 연동으로 찾았지만, 요청하신 '${userIntent}'에 해당하는 디지털 유산은 찾지 못했어요.` : "현재 Gmail 연동으로 찾았을 때 해당하는 디지털 유산은 찾지 못했어요. 직접 입력해서 추가하시겠어요?")) + debugMsg,
                     });
 
                 }
@@ -388,7 +388,7 @@ export function AiAssistantClient() {
         }, 10);
 
         // 대화 중 언제든지 자산/유산/구독 정리 요청 감지 시 Gmail 연동 동의 요청
-        const isLegacyIntent = /디지털 유산|디지털 자산|유산 정리|유산 찾아|자산 찾아|자산 정리|자산 관리|구독|결제 내역|결제내역|구독한거|계정 찾아/.test(trimmed);
+        const isLegacyIntent = /유산|자산|구독|결제|계정|클라우드|소셜|ott/i.test(trimmed);
 
         if (isLegacyIntent) {
             if (isGoogleLinked) {

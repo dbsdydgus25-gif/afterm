@@ -165,7 +165,9 @@ export async function POST(req: NextRequest) {
         if (!scanResult.emailTexts || scanResult.emailTexts.length < 30) {
             return NextResponse.json({
                 items: [],
-                message: "최근 이메일에서 유용한 결제/구독 내역을 찾을 수 없습니다.",
+                message: userIntent
+                    ? `현재 Gmail 연동으로 찾았지만, '${userIntent}'와(과) 관련된 내역을 찾지 못했어요.`
+                    : "현재 Gmail 연동으로 찾았을 때 해당하는 디지털 유산은 찾지 못했어요.",
                 debug: {
                     inboxCount: scanResult.inboxCount,
                     scanError: scanResult.error,
