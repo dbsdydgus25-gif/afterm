@@ -691,6 +691,8 @@ export function AiAssistantClient() {
                                 hasDashboard={!!dashboardResult || isAnalyzing}
                                 isGoogleLinked={isGoogleLinked}
                                 onToggleGmail={handleToggleGmail}
+                                onChoiceSelect={handleChoiceSelect}
+                                onActionButton={handleActionButton}
                             />
                         </div>
 

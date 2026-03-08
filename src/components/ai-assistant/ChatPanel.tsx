@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, ChevronUp, Plus, Plug } from "lucide-react";
-import type { ChatMessage } from "./AiAssistantClient";
+import { Send, Bot, ChevronUp, Plus, Plug, Mail, Crown } from "lucide-react";
+import type { ChatMessage, ActionButton } from "./AiAssistantClient";
 
 interface ConnectorItem {
     id: string;
@@ -20,9 +20,11 @@ interface ChatPanelProps {
     hasDashboard: boolean;
     isGoogleLinked: boolean;
     onToggleGmail: () => void;
+    onChoiceSelect?: (id: string, label: string) => void;
+    onActionButton?: (action: ActionButton["action"]) => void;
 }
 
-export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard, isGoogleLinked, onToggleGmail }: ChatPanelProps) {
+export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard, hasDashboard, isGoogleLinked, onToggleGmail, onChoiceSelect, onActionButton }: ChatPanelProps) {
     const [inputValue, setInputValue] = useState("");
     const [inputError, setInputError] = useState("");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -141,7 +143,41 @@ export function ChatPanel({ messages, onSendMessage, isAiTyping, onOpenDashboard
                                         ))}
                                     </div>
                                 ) : (
-                                    msg.content
+                                    <>
+                                        {msg.content}
+                                        {/* 선택지 버튼 렌더링 */}
+                                        {msg.choices && msg.choices.length > 0 && (
+                                            <div className="flex flex-col gap-2 mt-4">
+                                                {msg.choices.map((choice) => (
+                                                    <button
+                                                        key={choice.id}
+                                                        onClick={() => onChoiceSelect && onChoiceSelect(choice.id, choice.label)}
+                                                        className="w-full text-left bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 px-4 py-3 rounded-xl transition-all shadow-sm"
+                                                    >
+                                                        <p className="font-semibold text-slate-800 text-sm">{choice.label}</p>
+                                                        <p className="text-xs text-slate-500 mt-1">{choice.desc}</p>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {/* 액션 버튼 렌더링 */}
+                                        {msg.actionButtons && msg.actionButtons.length > 0 && (
+                                            <div className="flex flex-col gap-2 mt-4">
+                                                {msg.actionButtons.map((btn, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => onActionButton && onActionButton(btn.action)}
+                                                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all ${btn.style === "primary" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/30" : "bg-slate-200 hover:bg-slate-300 text-slate-800"
+                                                            }`}
+                                                    >
+                                                        {btn.icon === "mail" && <Mail className="w-4 h-4" />}
+                                                        {btn.icon === "crown" && <Crown className="w-4 h-4" />}
+                                                        {btn.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </motion.div>
