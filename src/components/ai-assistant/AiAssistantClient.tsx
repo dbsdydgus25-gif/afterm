@@ -139,10 +139,10 @@ export function AiAssistantClient() {
                 let connected = profile?.gmail_connected || false;
 
                 // 세션에 리프레시 토큰이 있고, DB에 아직 연동 정보가 없거나 갱신이 필요하다면 저장
-                // 단, scan=true 파라미터가 있을 때만 (즉, Gmail 연동 버튼으로 로그인했을 때만) 저장하도록 변경
                 const isScanRedirect = searchParams.get("scan") === "true";
 
-                if (provider === "google" && session?.provider_refresh_token && isScanRedirect) {
+                // [안정화] scan=true 이거나, 구글 로그인이면서 아직 연동 정보가 없는 경우 토큰을 저장하여 연동 상태 유지
+                if (provider === "google" && session?.provider_refresh_token && (isScanRedirect || !connected)) {
                     await supabase.from("profiles").update({
                         gmail_connected: true,
                         gmail_refresh_token: session.provider_refresh_token
@@ -291,10 +291,18 @@ export function AiAssistantClient() {
             if (action === "linkGmail") {
                 // 실 연동 (Google OAuth) 진행
                 console.log("[AiAssistant] Starting Google OAuth...");
+                // LoginPageClient와 동일하게 /auth/callback 경로로 리다이렉트 유도
+                const isProduction = typeof window !== 'undefined' && (window.location.hostname === 'afterm.co.kr' || window.location.hostname === 'www.afterm.co.kr');
+                const callbackUrl = isProduction
+                    ? 'https://afterm.co.kr/auth/callback'
+                    : `${window.location.origin}/auth/callback`;
+
+                const returnTo = "/ai-assistant?scan=true";
+
                 await supabase.auth.signInWithOAuth({
                     provider: "google",
                     options: {
-                        redirectTo: `${window.location.origin}/ai-assistant?scan=true`,
+                        redirectTo: `${callbackUrl}?next=${encodeURIComponent(returnTo)}`,
                         queryParams: { access_type: "offline", prompt: "consent" },
                         scopes: "email profile https://www.googleapis.com/auth/gmail.readonly",
                     },
