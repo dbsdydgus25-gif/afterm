@@ -4,9 +4,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
-const SCAN_PROMPT = (emailTexts: string) => `
+const SCAN_PROMPT = (emailTexts: string, userIntent?: string) => `
 당신은 사용자의 디지털 유산 관리를 돕는 수석 풀스택 개발자이자 AI 비서입니다.
 제공된 이메일 메타데이터(제목, 발신자, 날짜, 요약본문)들을 분석하여, 사용자가 '실제로 가입하여 이용 중이거나', '자동 결제/구독 중인' **유효 디지털 서비스 및 계정 목록**을 최대한 정확히 찾아내 JSON 배열로 추출해주세요.
+
+${userIntent ? `[✅ 사용자 특별 지시사항 (가장 강력한 우선순위)]
+사용자가 방금 이렇게 요청했습니다: "${userIntent}"
+만약 이 요청이 특정 카테고리(예: OTT만, 클라우드만, 음악앱만 등)를 지정하고 있다면, 이메일 내역 중 **해당 조건에 부합하는 서비스들만** 추출하여 결과 JSON 배열에 담으세요. 조건에 맞지 않는 다른 서비스들은 과감히 버리세요.` : ""}
 
 [추출 목적 및 대상]
 - 목적: 사후 방치될 수 있는 모든 '디지털 유산(계정, 구독, 자동결제 등)'을 파악하고 관리하기 위함입니다.
@@ -20,12 +24,14 @@ const SCAN_PROMPT = (emailTexts: string) => `
   3. **구글 플레이(Google Play), 앱스토어(App Store) 결제 내역이라도 본문이나 제목에 "구독(Subscription)"이 명시되지 않고 단순히 게임 아이템 현질(인앱 결제)이나 앱 1회 다운로드 결제일 뿐인 경우 절대 무시할 것.**
 
 [추출 규칙]
-1. **유/무료 구분 및 1회성 결제 철저 배제**: 금액이 명시되어 리카링(정기구독) 성격이면 금액 기재. 단순 1회성 제품 결제면 추출 배열에서 이 자체를 삭제하세요. 무료 플랫폼 가입이면 "무료"라고 적으세요.
+1. **유/무료 구분 및 금액 기재 엄격화**: 
+   - [중요!] 본문에 명확한 결제 금액(예: 14,900원, $15.99)이 적혀 있는 "돈이 나간 흔적"이 있어야만 그 금액을 \`cost\`에 적으세요. 금액 증빙 문구가 없다면 유료 구독으로 추측하지 말고 무조건 \`cost\` 필드에 "무료"라고 적으세요.
+   - 1회성 제품/서비스 결제건은 추출 대상에서 완전히 통째로 제거하세요.
 2. **아이디(account_id) 및 비밀번호 추출**:
-   - 이메일 수신자 주소나 본문에 명시된 계정 ID가 있다면 \`account_id\`에 반드시 기재하세요.
-   - 만약 본문에 "임시 비밀번호", "초기 비밀번호" 등이 명시되어 제공되었다면, 해당 정보를 \`notes\` 필드에 "패스워드: ~~~~" 형태로 반드시 기록하세요. 비밀번호가 없으면 이 내용은 생략가능합니다.
-3. 중복 서비스 제거: 같은 서비스(예: Netflix)의 메일이 여러 번 발견되면 가장 최신/유효한 정보 1개로 합쳐서 추출하세요. 
-4. 서비스 식별: '발신자(From)' 도메인과 '제목'을 바탕으로 실제 서비스 이름(예: Facebook, Notion, 쿠팡 등)을 깔끔한 고유명사로 추출하세요.
+   - 이메일 수신자 주소나 본문에 명시된 계정 ID가 있다면 \`account_id\`에 기재.
+   - 본문에 "임시 비밀번호" 등이 명시되었다면, \`notes\` 필드에 "패스워드: ~~~~" 형태로 기록 (없으면 생략).
+3. **중복 계정 합병 (상태 전이 반영)**: 똑같은 서비스(예: Netflix)에 대해 '가입 환영 메일(과거)'과 '최근 결제 영수증(현재)'이 두 개 스캔되었다면, 무조건 **하나의 객체로 합쳐서 반환**하세요. 무료 상태와 유료 상태가 겹치면 가급적 가장 최신의 돈을 지불하는 형태(유료)를 기준으로 1개의 서비스만 남기세요. 동일 플랫폼이 2개 이상 추출되면 안 됩니다.
+4. 서비스 식별: '발신자(From)' 도메인과 '제목'을 바탕으로 실제 서비스 이름(예: Facebook, Notion, 쿠팡 등)을 깔끔하게 추출.
 
 [출력 형식 - 오직 유효한 JSON 배열만 출력, \`\`\`json 등 마크다운 블록 제외]
 [
@@ -98,8 +104,10 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json().catch(() => ({}));
         let providerToken: string | undefined = body?.providerToken;
+        let userIntent: string | undefined = body?.userIntent;
 
         console.log("[Scan Emails] 클라이언트 providerToken 존재:", !!providerToken);
+        console.log("[Scan Emails] 클라이언트 userIntent 존재:", !!userIntent, userIntent);
 
         if (!providerToken) {
             // DB에서 리프레시 토큰 조회
@@ -167,7 +175,7 @@ export async function POST(req: NextRequest) {
         }
 
         const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts));
+        const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
         const rawText = result.response.text().trim();
 
         console.log("[Gemini Raw Text 앞500자]:", rawText.slice(0, 500));

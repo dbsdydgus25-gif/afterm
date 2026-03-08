@@ -209,7 +209,7 @@ export function AiAssistantClient() {
     };
 
     // ── 이메일 스캔 실행 ─────────────────────────────────────
-    const runEmailScan = useCallback(async () => {
+    const runEmailScan = useCallback(async (userIntent?: string) => {
         setIsAnalyzing(true);
         setIsBottomSheetOpen(true);
         // 로딩 중 안내 메시지
@@ -222,11 +222,12 @@ export function AiAssistantClient() {
             const { data: sessionData } = await supabase.auth.getSession();
             const providerToken = sessionData?.session?.provider_token;
             console.log("[runEmailScan] providerToken 존재:", !!providerToken);
+            console.log("[runEmailScan] 사용자 의도(Context):", userIntent || "없음");
 
             const res = await fetch("/api/scan-emails", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ providerToken }),
+                body: JSON.stringify({ providerToken, userIntent }),
             });
 
             if (res.ok) {
@@ -296,7 +297,10 @@ export function AiAssistantClient() {
                     },
                 });
             } else {
-                runEmailScan();
+                // 버튼 클릭으로 실행될 때, 가장 최근 사용자 메시지를 의도로 전달
+                const userMsgs = messagesRef.current.filter(m => m.role === "user");
+                const lastUserIntent = userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].content : undefined;
+                runEmailScan(lastUserIntent);
             }
         }
     }, [router, supabase, runEmailScan]);
@@ -392,7 +396,7 @@ export function AiAssistantClient() {
                     role: "assistant",
                     content: "이미 연동된 Gmail 스위치가 켜져있어요! 바로 자동 스캔을 시작할게요. 📧",
                 });
-                runEmailScan();
+                runEmailScan(trimmed);
                 return;
             }
 
@@ -415,7 +419,7 @@ export function AiAssistantClient() {
                     role: "assistant",
                     content: "이미 연동된 Gmail 스위치가 켜져있어요! 바로 자동 스캔을 시작할게요. 📧",
                 });
-                runEmailScan();
+                runEmailScan(trimmed);
                 return;
             }
 
