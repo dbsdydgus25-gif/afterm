@@ -28,13 +28,13 @@ export function FeatureGrid() {
             title: "AI 채팅",
             description: "스마트한 AI 비서가 디지털 유산 관리와 웰다잉 준비를 도와드립니다.",
             icon: <MessageSquareText className="w-8 h-8" strokeWidth={1.5} />,
-            onClick: () => router.push('/ai-assistant')
+            onClick: () => router.push('/ai-chat')
         },
         {
             title: "고인 유산 찾기",
             description: "가족이 남긴 숨겨진 디지털 유산과 온라인 계정을 찾아드립니다.",
             icon: <Search className="w-8 h-8" strokeWidth={1.5} />,
-            onClick: () => router.push('/vault')
+            onClick: () => router.push('/guardians/open')
         },
         {
             title: "사후 행정 지원금 찾기",

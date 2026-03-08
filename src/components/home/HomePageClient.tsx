@@ -12,6 +12,7 @@ import { Footer } from "@/components/layout/Footer";
 import { RiskAwarenessSection } from "@/components/home/RiskAwarenessSection";
 import { NewsSection } from "@/components/home/NewsSection";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
+import { FeatureSteps } from "@/components/home/FeatureSteps";
 import { FloatingKakaoButton } from "@/components/common/FloatingKakaoButton";
 import { Mail, Send, ArrowRight } from "lucide-react";
 import dynamic from 'next/dynamic';
@@ -340,92 +341,30 @@ export default function HomePageClient() {
                 </section>
 
                 {/* 3. How It Works Section */}
-                <section className="w-full bg-white py-12 md:py-24 border-b border-slate-100 relative z-10">
-                    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                        <div className="text-center mb-10 md:mb-16 space-y-3 md:space-y-4">
-                            <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] md:text-xs font-bold tracking-wide">HOW IT WORKS</span>
-                            <h2 className="text-xl md:text-4xl font-bold text-slate-900 leading-tight">
-                                마음이 전달되는 과정
-                            </h2>
-                            <p className="text-slate-500 text-[11px] md:text-lg leading-normal md:leading-relaxed tracking-tighter w-full">
-                                가장 안전하고 확실하게 당신의 메시지를 전달해드립니다.
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-                            {/* Connecting Line (Desktop) */}
-                            <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-blue-100 via-blue-200 to-blue-100 -z-10"></div>
-
-                            {/* Step 1 */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6 }}
-                                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
-                            >
-                                <div className="w-24 h-24 rounded-3xl bg-blue-50 flex items-center justify-center text-4xl shadow-lg shadow-blue-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
-                                    <span className="relative z-10">✍️</span>
-                                    <div className="absolute inset-0 bg-blue-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 01</div>
-                                    <h3 className="text-xl font-bold text-slate-900">기억 저장</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
-                                        소중한 사람에게 전하고 싶은 이야기,<br />
-                                        사진, 영상을 미리 작성하세요.<br />
-                                        모든 데이터는 암호화되어 안전하게 저장됩니다.
-                                    </p>
-                                </div>
-                            </motion.div>
-
-                            {/* Step 2 */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.2 }}
-                                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
-                            >
-                                <div className="w-24 h-24 rounded-3xl bg-indigo-50 flex items-center justify-center text-4xl shadow-lg shadow-indigo-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
-                                    <span className="relative z-10">🔒</span>
-                                    <div className="absolute inset-0 bg-indigo-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 02</div>
-                                    <h3 className="text-xl font-bold text-slate-900">안전 보관</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
-                                        당신이 지정한 순간이 올 때까지<br />
-                                        메시지는 철저히 비공개로 보관됩니다.<br />
-                                        클라우드 서버에서 영구적으로 관리됩니다.
-                                    </p>
-                                </div>
-                            </motion.div>
-
-                            {/* Step 3 */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.4 }}
-                                className="flex flex-col items-center text-center space-y-6 bg-white p-6 rounded-3xl"
-                            >
-                                <div className="w-24 h-24 rounded-3xl bg-amber-50 flex items-center justify-center text-4xl shadow-lg shadow-amber-100 mb-2 relative group hover:scale-105 transition-transform duration-300">
-                                    <span className="relative z-10">📬</span>
-                                    <div className="absolute inset-0 bg-amber-100 rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity"></div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="inline-block px-3 py-1 bg-slate-100 rounded-full text-xs font-bold text-slate-500 mb-1">STEP 03</div>
-                                    <h3 className="text-xl font-bold text-slate-900">전달 및 열람</h3>
-                                    <p className="text-slate-500 leading-relaxed text-sm">
-                                        지정된 시점에 수신인에게 알림이 전송됩니다.<br />
-                                        수신인은 본인 인증(휴대폰)을 거친 후<br />
-                                        당신의 메시지를 열람할 수 있습니다.
-                                    </p>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </div>
+                <section className="w-full bg-slate-50 py-12 md:py-24 border-b border-slate-100 relative z-10">
+                    <FeatureSteps
+                        title="디지털 유산은 안전하게 보관 전달 됩니다."
+                        features={[
+                            {
+                                step: "Step 1",
+                                title: "나의 데이터 유산을 관리, 보관합니다",
+                                content: "AI 어시스턴트와 함께 간편하게 나의 디지털 자산(구독 계정, 사진, 메시지 등)을 관리, 보관할 수 있습니다",
+                                image: ""
+                            },
+                            {
+                                step: "Step 2",
+                                title: "나의 디지털 유산이 전달 된 가디언즈를 지정하세요",
+                                content: "한사람당 3명의 가디언즈를 지정해서 이후 내 데이터 자산을 이양해보세요",
+                                image: ""
+                            },
+                            {
+                                step: "Step 3",
+                                title: "사망진단서 및 고유 api키로 데이터를 열고 간편하게 처리하세요",
+                                content: "미리 지정한 가디언즈에게 나의 디지털 자산은 안전하게 보관 이양되며 사용자의 뜻대로 행정 처리를 도와줍니다",
+                                image: ""
+                            }
+                        ]}
+                    />
                 </section>
 
                 {/* 4. Unexpected Absence (Risk Awareness) */}

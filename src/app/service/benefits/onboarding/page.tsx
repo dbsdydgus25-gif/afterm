@@ -49,9 +49,12 @@ export default function BenefitsOnboardingPage() {
                             >
                                 <div className="mb-8">
                                     <h2 className="text-2xl font-bold text-slate-900 mb-2">고인 정보 입력</h2>
-                                    <p className="text-sm text-slate-500">
+                                    <p className="text-sm text-slate-500 mb-4">
                                         정확한 지원금 산출을 위해 고인의 정보를 입력해주세요.
                                     </p>
+                                    <div className="p-3 bg-blue-50/80 text-blue-700 text-[13px] rounded-xl font-bold border border-blue-100/50 shadow-sm flex items-start gap-2">
+                                        <span>💡</span> 현재는 서비스 준비중으로 미리보기 형식으로 되어 있습니다.
+                                    </div>
                                 </div>
 
                                 <div className="space-y-6 flex-1">

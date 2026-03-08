@@ -2,6 +2,7 @@
 
 import { useState, Suspense, useLayoutEffect, useEffect, memo, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
     Shield, Key, User, Phone, CheckCircle, Lock, ChevronRight, Eye, EyeOff,
     Copy, Check, FileText, ChevronDown, ChevronUp, CreditCard, Music, Cloud,
@@ -339,6 +340,12 @@ function GuardianOpenContent() {
                 .input-field { background: white; border: 1px solid #e2e8f0; border-radius: 16px; transition: all 0.2s; }
                 .input-field:focus-within { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); }
             `}</style>
+
+            <div className="absolute top-6 left-6 z-50 fade-up">
+                <Link href="/" className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 hover:text-blue-600 transition-colors">
+                    AFTERM
+                </Link>
+            </div>
 
             {/* 랜딩 배경 아이콘 */}
             {step !== "result" && (
