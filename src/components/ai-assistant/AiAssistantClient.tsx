@@ -430,6 +430,16 @@ export function AiAssistantClient() {
             return;
         }
 
+        // 로그인/연동 차단 관련 키워드 감지
+        const isAccessBlockedIntent = /차단|엑세스|액세스|승인 대기|막혔|막힘|권한/.test(trimmed);
+        if (isAccessBlockedIntent) {
+            addMsg({
+                role: "assistant",
+                content: "아앗, Google 권한 승인 창에서 액세스가 차단되었군요! 😢\n\n현재 구글 승인 심사 대기 중이라 사전에 등록된 테스터만 즉시 연동이 가능합니다.\n대신 좌측 하단의 **[플러그 모양 아이콘 🔌]**을 눌러 커넥터 메뉴에서 **'베타 접수하기'**를 신청해주시면, 권한을 열어드리고 무료로 이용하실 수 있도록 안내해 드리겠습니다!",
+            });
+            return;
+        }
+
         // 일반 대화 → /api/ai-chat
         const loadingId = addMsg({ role: "assistant", content: "", isLoading: true });
 
