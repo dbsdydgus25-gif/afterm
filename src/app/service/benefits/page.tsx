@@ -21,8 +21,8 @@ export default function BenefitsLandingPage() {
                         transition={{ duration: 0.5 }}
                         className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/50 border border-blue-200 text-blue-700 text-xs md:text-sm font-bold"
                     >
-                        <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                        사후 맞춤형 행정/지원금 찾기 서비스 출시!
+                        <span>💡</span>
+                        현재는 서비스 준비중으로 미리보기 형식으로 되어 있습니다.
                     </motion.div>
 
                     <motion.h1
