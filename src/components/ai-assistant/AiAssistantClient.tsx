@@ -416,7 +416,7 @@ export function AiAssistantClient() {
         }, 10);
 
         // 대화 중 언제든지 자산/유산/구독 정리 요청 감지 시 Gmail 연동 동의 요청
-        const isLegacyIntent = /유산|자산|구독|결제|계정|클라우드|소셜|ott/i.test(trimmed);
+        const isLegacyIntent = /유산|자산|구독|결제|계정|클라우드|소셜|ott|유료|무료|돈\s*나가는|돈\s*빠져나가는/i.test(trimmed);
 
         if (isLegacyIntent) {
             if (isGoogleLinked) {

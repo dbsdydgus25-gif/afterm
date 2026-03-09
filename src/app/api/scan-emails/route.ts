@@ -262,9 +262,9 @@ async function scanGmailEmails(token: string, userIntent?: string) {
 
     // 메시지 ID 중복 제거용
     const seenIds = new Set<string>();
-    // 발신자 도메인별 수집 카운트 (도메인당 최대 3개로 제한하여 특정 서비스 이메일이 대량으로 넘어가는 것 방지)
+    // 발신자 도메인별 수집 카운트 (도메인당 최대 10개로 제한하여 특정 서비스 이메일이 무한 수집되는 것을 방지하되, 여러 구글 결제 등을 놓치지 않게 여유를 둠)
     const domainCount = new Map<string, number>();
-    const MAX_PER_DOMAIN = 3;
+    const MAX_PER_DOMAIN = 10;
 
     // 발신자에서 도메인 추출
     const extractDomain = (from: string): string => {
@@ -313,14 +313,14 @@ async function scanGmailEmails(token: string, userIntent?: string) {
         ];
     } else if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
         queries = [
-            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 일시불 OR 단건)`,
-            `newer_than:12m (receipt OR 영수증) (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
+            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 단건)`,
+            `newer_than:12m (receipt OR 영수증 OR invoice OR "payment successful" OR 결제 OR "결제 완료") (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
         ];
     } else {
         // 일반적인 "디지털 유산 찾아줘" 요청 시 (전체 스캔)
         queries = [
-            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 일시불 OR 단건)`,
-            `newer_than:12m (receipt OR 영수증) (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
+            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 단건)`,
+            `newer_than:12m (receipt OR 영수증 OR invoice OR "payment successful" OR 결제 OR "결제 완료") (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
             `newer_than:12m ("가입을 환영합니다" OR "welcome to") -label:promotions -("뉴스레터" OR "소식지" OR "광고")`,
         ];
     }
