@@ -264,9 +264,10 @@ export function AiAssistantClient() {
                 }
 
                 if (errData?.requires_auth) {
+                    setIsGoogleLinked(false); // 즉시 스위치를 끄도록 동기화
                     addMsg({
                         role: "assistant",
-                        content: "Gmail 연동이 필요해요! 아래 버튼을 눌러 Google 계정을 연결해주세요.",
+                        content: "Gmail 연동이 필요해요! 아래 버튼을 눌러 Google 계정을 연결해주세요.\n\n⚠️ 주의: Google 로그인 시 반드시 'Gmail 읽기' 권한 체크박스를 선택하셔야 합니다.",
                         actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
                     });
                 } else {

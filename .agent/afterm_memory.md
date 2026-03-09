@@ -47,6 +47,9 @@
    - 해결: `scan-emails` API의 Gemini 프롬프트를 엄격히 제어, `AiAssistantClient`에서 Legacy Intent가 감지되면 GPT 챗 API 호출을 차단하고 스캔 결과만 UI에 표시하도록 분기 처리.
 3. **Space UI 모바일 최적화**:
    - 버튼(FAB) 노출 문제, `MemorialCanvas`의 Facebook 스타일 프로필 컴포넌트화 등 처리.
+4. **Gmail 연동 스위치 상태 불일치 (무한 연동 요구) 해결**:
+   - 원인: 권한 오류(403 등) 발생 시 DB 토큰 상태를 `false`로 지우지 않고 클라이언트도 스위치를 켜둔 상태를 유지하여, 실제로는 권한이 없는데 다시 연동하라는 메시지가 계속 출력됨.
+   - 해결: `scan-emails` API에서 권한/인증 오류 발생 시 해당 유저의 DB 토큰을 즉시 초기화(`gmail_connected: false`)하고, 클라이언트에서도 400 에러 수신 시 `setIsGoogleLinked(false)`를 즉각 적용해 스위치 상태를 동기화.
 
 ---
 **[AI Agent 행동 지침]**
