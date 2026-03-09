@@ -237,9 +237,25 @@ export function AiAssistantClient() {
                 const data = await res.json();
                 if (data.items && data.items.length > 0) {
                     setDashboardResult({ type: "legacyList", items: data.items, scannedAt: new Date().toISOString() });
+                    
+                    let msgContent = `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 유효한 구독/정기결제 내역을 찾았어요.\n해지된 구독은 제외하고 우측 대시보드에 정리해드릴게요!`;
+                    
+                    if (userIntent) {
+                        const intentLower = userIntent.toLowerCase();
+                        if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
+                            msgContent = `스캔 완료! 📊 요청하신 대로 **결제 금액이 있는 유료 서비스**만 ${data.items.length}개 찾았어요.\n\n해지된 내역이나 무료 계정은 제외하고 우측 대시보드에 정리했습니다. 확인해보세요!`;
+                        } else if (intentLower.includes("ott") || intentLower.includes("스트리밍")) {
+                            msgContent = `스캔 완료! 📊 요청하신 **OTT 및 스트리밍 서비스**만 ${data.items.length}개 찾았어요.\n\n우측 대시보드에 정리해두었으니 확인해보세요!`;
+                        } else if (intentLower.includes("클라우드") || intentLower.includes("업무") || intentLower.includes("작업")) {
+                            msgContent = `스캔 완료! 📊 요청하신 **생산성 및 클라우드 관련 서비스**를 ${data.items.length}개 찾았어요.\n\n우측 대시보드에서 확인 후 보관해주세요!`;
+                        } else {
+                            msgContent = `스캔 완료! 📊 사용자님의 요청사항에 맞춰 총 ${data.items.length}개의 내역을 찾았어요.\n\n해지된 구독은 제외하고 현재 유효한 목록만 우측 대시보드에 정리했습니다!`;
+                        }
+                    }
+
                     addMsg({
                         role: "assistant",
-                        content: `스캔 완료! 📊 Gmail에서 총 ${data.items.length}개의 구독/정기결제 내역을 찾았어요.\n우측 대시보드에서 찾은 목록을 정리해드릴게요. 내용을 확인하시고 보관해주세요!`,
+                        content: msgContent,
                     });
                 } else {
                     const debug = data.debug;

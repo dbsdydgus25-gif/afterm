@@ -39,6 +39,10 @@ ${userIntent ? `[✅ 사용자 특별 지시사항 (최우선 적용)]
 - 이메일 수신자 주소나 본문에 명시된 계정 ID/이메일이 있으면 \`account_id\`에 기재
 - 본문에 "임시 비밀번호" 등이 있으면 \`notes\` 필드에 "패스워드: ~~~" 형태로 기록 (없으면 빈 문자열)
 
+★ 규칙 D (해지 및 취소 필터링 - 매우 중요):
+- 이메일 본문이나 제목에 "구독 취소", "해지됨", "취소 완료", "cancelled", "refunded", "이용권 해지" 등 서비스 만료/해지 관련 내용이 명시되어 있다면 해당 서비스는 현재 사용 중이 아니므로 반드시 \`isActive: false\` 로 기재하세요. 
+- 그 외 정상 가입/구독 상태라면 \`isActive: true\` 입니다.
+
 [출력 형식 - 오직 유효한 JSON 배열만 출력, \`\`\`json 등 마크다운 블록 절대 사용 금지]
 [
   {
@@ -46,6 +50,8 @@ ${userIntent ? `[✅ 사용자 특별 지시사항 (최우선 적용)]
     "service": "실제 서비스 이름 (예: Netflix, Notion, 쿠팡 등)",
     "account_id": "발견된 아이디 또는 이메일 (없으면 빈 문자열)",
     "cost": "결제금액 (예: '14,900원') 또는 결제 증거 없으면 반드시 '무료'",
+    "isPaid": true, // 결제 금액이 있는 유료 서비스라면 true, 증거가 없는 0원/무료면 false
+    "isActive": true, // 해지/취소/환불 내역이 있다면 false, 현재 유지 중이면 true
     "date": "다음 갱신/결제 날짜 또는 최근 메일 수신일 (없으면 '기록 없음')",
     "category": "OTT|생산성|소셜/커뮤니티|쇼핑|구독|기타 중 가장 적합한 하나",
     "notes": "패스워드 등 기타 특이사항 (없으면 빈 문자열)"
@@ -207,7 +213,31 @@ export async function POST(req: NextRequest) {
             const jsonEnd = rawText.lastIndexOf("]");
             if (jsonStart === -1 || jsonEnd === -1) throw new Error("JSON 배열을 찾을 수 없음");
 
-            const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+            let parsed: any[] = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+
+            // [2차 큐레이션 필터] AI 결과를 바탕으로 TypeScript 단에서 확실하게 한 번 더 필러링
+            
+            // 1. 해지된 구독 무조건 제외
+            parsed = parsed.filter(item => item.isActive !== false);
+
+            // 2. 사용자 특별 의도 필터링
+            if (userIntent) {
+                const intentLower = userIntent.toLowerCase();
+                
+                // 유료 서비스 필터
+                if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
+                    parsed = parsed.filter(item => item.isPaid === true);
+                }
+                // OTT 필터
+                else if (intentLower.includes("ott") || intentLower.includes("스트리밍")) {
+                    parsed = parsed.filter(item => item.category === "OTT");
+                }
+                // 생산성/클라우드 필터
+                else if (intentLower.includes("클라우드") || intentLower.includes("업무") || intentLower.includes("작업")) {
+                    parsed = parsed.filter(item => item.category === "생산성" || item.category === "클라우드");
+                }
+            }
+
             return NextResponse.json({
                 items: parsed,
                 debug: {
@@ -294,6 +324,9 @@ async function scanGmailEmails(token: string, userIntent?: string) {
             `newer_than:12m ("가입을 환영합니다" OR "welcome to") -label:promotions -("뉴스레터" OR "소식지" OR "광고")`,
         ];
     }
+
+    // 공통 추가: 해지 확인용 쿼리 (가장 중요한 부분)
+    queries.push(`newer_than:12m ("구독 취소" OR 해지 OR 환불 OR cancelled OR refunded OR "subscription canceled" OR "이용권 해지") -label:promotions`);
 
     const emailBodies: string[] = [];
 
