@@ -52,9 +52,14 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        if (norm(resolvedName) !== norm(deceasedName)) {
-            return NextResponse.json({ error: "고인 이름이 일치하지 않습니다. 정확한 이름을 입력해주세요." }, { status: 403 });
-        }
+        // [UX 개선] 고인의 이름(deceasedName)은 구글/카카오 로그인 시 닉네임이나 영어로 설정되는 경우가 많아, 
+        // 실제 유가족(가디언즈)이 실명을 입력했을 때 불일치로 인해 열람하지 못하는 치명적인 문제가 있습니다. 
+        // API 키, 고인 전화번호, 가디언즈 이름 3가지 정보가 정확하다면 고인 이름 검증은 생략합니다.
+        
+        // if (norm(resolvedName) !== norm(deceasedName)) {
+        //     return NextResponse.json({ error: "고인 이름이 일치하지 않습니다. 정확한 이름을 입력해주세요." }, { status: 403 });
+        // }
+        
         if (resolvedPhone !== inputDeceasedPhone) {
             return NextResponse.json({ error: "고인 전화번호가 일치하지 않습니다." }, { status: 403 });
         }
