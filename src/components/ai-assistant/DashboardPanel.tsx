@@ -367,20 +367,27 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                 {/* 통계 카드 (총 구독비 / 계정 수) */}
                 {items.length > 0 && <StatsCards items={items} />}
 
-                {/* 리스트 */}
+                {/* 카테고리별 4개 섹션 */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                    {/* 1. 유료 구독 서비스 */}
-                    {items.filter(item => !item.cost.includes("무료") && !item.cost.includes("알 수 없음")).length > 0 && (
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="w-1 h-4 bg-rose-500 rounded-full" />
-                                <h3 className="text-sm font-bold text-slate-800">유료 구독 서비스</h3>
-                            </div>
-                            <div className="space-y-3">
-                                <AnimatePresence>
-                                    {items
-                                        .filter(item => !item.cost.includes("무료") && !item.cost.includes("알 수 없음"))
-                                        .map((item) => (
+                    {[
+                        { key: "통신", label: "📱 통신", color: "bg-sky-500", desc: "핸드폰·인터넷 요금" },
+                        { key: "유료구독", label: "💳 유료구독", color: "bg-rose-500", desc: "정기 결제 서비스" },
+                        { key: "클라우드", label: "☁️ 클라우드", color: "bg-blue-500", desc: "데이터 저장 서비스" },
+                        { key: "SNS", label: "👤 SNS", color: "bg-pink-500", desc: "소셜 미디어 계정" },
+                    ].map(({ key, label, color, desc }) => {
+                        const catItems = items.filter(item => item.category === key);
+                        if (catItems.length === 0) return null;
+                        return (
+                            <div key={key}>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`w-1 h-4 ${color} rounded-full`} />
+                                    <h3 className="text-sm font-bold text-slate-800">{label}</h3>
+                                    <span className="text-xs text-slate-400 font-medium">{desc}</span>
+                                    <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${color}`}>{catItems.length}개</span>
+                                </div>
+                                <div className="space-y-3">
+                                    <AnimatePresence>
+                                        {catItems.map((item) => (
                                             <EnhancedLegacyCard
                                                 key={item.id}
                                                 item={item}
@@ -393,22 +400,23 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                                                 }}
                                             />
                                         ))}
-                                </AnimatePresence>
+                                    </AnimatePresence>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })}
 
-                    {/* 2. 일반 이용 서비스 */}
-                    {items.filter(item => item.cost.includes("무료") || item.cost.includes("알 수 없음")).length > 0 && (
+                    {/* 분류되지 않은 나머지 */}
+                    {items.filter(item => !["통신", "유료구독", "클라우드", "SNS"].includes(item.category ?? "")).length > 0 && (
                         <div>
                             <div className="flex items-center gap-2 mb-3">
-                                <span className="w-1 h-4 bg-blue-500 rounded-full" />
-                                <h3 className="text-sm font-bold text-slate-800">일반 이용 서비스</h3>
+                                <span className="w-1 h-4 bg-slate-400 rounded-full" />
+                                <h3 className="text-sm font-bold text-slate-800">🗂️ 기타</h3>
                             </div>
                             <div className="space-y-3">
                                 <AnimatePresence>
                                     {items
-                                        .filter(item => item.cost.includes("무료") || item.cost.includes("알 수 없음"))
+                                        .filter(item => !["통신", "유료구독", "클라우드", "SNS"].includes(item.category ?? ""))
                                         .map((item) => (
                                             <EnhancedLegacyCard
                                                 key={item.id}
@@ -432,6 +440,7 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                             모든 항목이 삭제되었습니다.
                         </div>
                     )}
+
 
                     {/* 유산 직접 남기기 유도 */}
                     <div className="mt-4 p-5 bg-blue-50 border border-blue-100 rounded-2xl">

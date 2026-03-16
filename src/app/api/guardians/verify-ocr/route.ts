@@ -32,7 +32,10 @@ function normalizeBirthDate(raw: string): string {
  * @returns 인식된 전체 텍스트
  */
 async function callClovaOcr(base64Image: string, imageFormat: string): Promise<string | null> {
-    if (!CLOVA_OCR_INVOKE_URL || !CLOVA_OCR_SECRET) return null;
+    if (!CLOVA_OCR_INVOKE_URL || !CLOVA_OCR_SECRET) {
+        console.error("[CLOVA OCR] 환경변수 CLOVA_OCR_INVOKE_URL 또는 CLOVA_OCR_SECRET 미설정");
+        return null;
+    }
 
     const requestBody = {
         version: "V2",

@@ -415,14 +415,14 @@ export function AiAssistantClient() {
             setInputValue("");
         }, 10);
 
-        // 대화 중 언제든지 자산/유산/구독 정리 요청 감지 시 Gmail 연동 동의 요청
-        const isLegacyIntent = /유산|자산|구독|결제|계정|클라우드|소셜|ott|유료|무료|돈\s*나가는|돈\s*빠져나가는/i.test(trimmed);
+        // 디지털 유산/구독/계정 정리 의도 — 자연어 모두 포함
+        const isLegacyIntent = /유산|자산|구독|결제|계정|클라우드|소셜|sns|ott|유료|무료|돈\s*나가|돈\s*빠져|통신|통신비|핸드폰\s*요금|핸드폰비|인터넷\s*요금|인터넷비|넷플|왓챠|티빙|멜론|스포티파이|인스타|페이스북|트위터|틱톡|icloud|구글\s*드라이브|원드라이브|드롭박스|매달|월\s*얼마|구독\s*중|쓰고\s*있는|가입된|정리\s*해|해지|서비스\s*찾아|뭐\s*구독|뭐\s*쓰는|어떤\s*서비스|내\s*계정|내가\s*쓰는|내\s*구독|내\s*결제/i.test(trimmed);
 
         if (isLegacyIntent) {
             if (isGoogleLinked) {
                 addMsg({
                     role: "assistant",
-                    content: "이미 연동된 Gmail 스위치가 켜져있어요! 바로 자동 스캔을 시작할게요. 📧",
+                    content: "Gmail을 분석해서 **통신 · 유료구독 · 클라우드 · SNS** 계정을 찾아드릴게요! 📧\n잠깐만 기다려주세요...",
                 });
                 runEmailScan(trimmed);
                 return;
