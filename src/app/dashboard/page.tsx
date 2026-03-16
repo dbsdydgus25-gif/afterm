@@ -11,6 +11,7 @@ import { SecureAvatar } from "@/components/ui/SecureAvatar";
 import { User, LogOut, CreditCard, ChevronDown, Plus, MessageSquare, Lock, Trash2, ShieldCheck, FileKey, Database, CheckSquare, Square, Pencil } from "lucide-react";
 
 import { MessageList } from "@/components/dashboard/MessageList";
+import { VaultIconGrid } from "@/components/dashboard/VaultIconGrid";
 import { VAULT_CATEGORIES, VAULT_REQUEST_TYPES } from "@/lib/vault-constants";
 
 interface Message {
@@ -580,163 +581,34 @@ export default function DashboardPage() {
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
-                                        <div className="space-y-3">
-                                            {/* Vault select mode toggle */}
-                                            <div className="flex justify-end mb-2">
-                                                <button
-                                                    onClick={() => { setVaultSelectMode(!vaultSelectMode); setSelectedVaultIds(new Set()); }}
-                                                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600"
-                                                >
-                                                    <CheckSquare className="w-3.5 h-3.5" />
-                                                    {vaultSelectMode ? '선택 잠금' : '선택 삭제'}
-                                                </button>
-                                            </div>
-                                            {paginatedVaultItems.map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className={`bg-white rounded-2xl border p-5 transition-all relative overflow-hidden group ${vaultSelectMode && selectedVaultIds.has(item.id)
-                                                        ? 'border-red-300 bg-red-50/60'
-                                                        : 'border-slate-200 hover:shadow-md'
-                                                        }`}
-                                                    onClick={vaultSelectMode ? () => toggleVaultSelect(item.id) : undefined}
-                                                    style={vaultSelectMode ? { cursor: 'pointer' } : undefined}
-                                                >
-                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none opacity-50" />
-
-                                                    {editingVaultId === item.id ? (
-                                                        /* --- Edit Mode --- */
-                                                        <div className="relative z-10 space-y-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <select
-                                                                    value={editForm.category}
-                                                                    onChange={e => setEditForm(prev => ({ ...prev, category: e.target.value }))}
-                                                                    className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                                                >
-                                                                    {Object.entries(VAULT_CATEGORIES).map(([key, label]) => (
-                                                                        <option key={key} value={key}>{label}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editForm.platform_name || ""}
-                                                                    onChange={e => setEditForm(prev => ({ ...prev, platform_name: e.target.value }))}
-                                                                    placeholder="플랫폼/사이트명"
-                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-500"
-                                                                />
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <FileKey className="w-4 h-4 text-slate-400" />
-                                                                <input
-                                                                    type="text"
-                                                                    value={editForm.account_id || ""}
-                                                                    onChange={e => setEditForm(prev => ({ ...prev, account_id: e.target.value }))}
-                                                                    placeholder="아이디 또는 이메일"
-                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-emerald-500"
-                                                                />
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editForm.password || ""}
-                                                                    onChange={e => setEditForm(prev => ({ ...prev, password: e.target.value }))}
-                                                                    placeholder="비밀번호 (선택)"
-                                                                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-mono focus:ring-2 focus:ring-emerald-500"
-                                                                />
-                                                            </div>
-                                                            <textarea
-                                                                value={editForm.notes || ""}
-                                                                onChange={e => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
-                                                                placeholder="메모 (선택)"
-                                                                rows={2}
-                                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 resize-none"
-                                                            />
-                                                            <div className="flex justify-end gap-2 pt-2">
-                                                                <Button variant="outline" size="sm" onClick={() => setEditingVaultId(null)} className="h-8 text-xs">취소</Button>
-                                                                <Button size="sm" onClick={() => handleUpdateVault(item.id)} className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700">저장</Button>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        /* --- View Mode --- */
-                                                        <div className="flex items-start justify-between gap-3 relative z-10">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 mb-3">
-                                                                    {vaultSelectMode && (
-                                                                        <div className="flex-shrink-0">
-                                                                            {selectedVaultIds.has(item.id)
-                                                                                ? <CheckSquare className="w-4 h-4 text-red-500" />
-                                                                                : <Square className="w-4 h-4 text-slate-300" />
-                                                                            }
-                                                                        </div>
-                                                                    )}
-                                                                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold ring-1 ring-emerald-200 shadow-sm">
-                                                                        {getCategoryLabel(item.category)}
-                                                                    </span>
-                                                                    <h3 className="text-base md:text-lg font-bold text-slate-900 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
-                                                                        {item.platform_name}
-                                                                    </h3>
-                                                                </div>
-
-                                                                <div className="space-y-2 text-sm max-w-sm mt-4">
-                                                                    <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                                                                        <FileKey className="w-4 h-4 text-slate-400" />
-                                                                        <span className="text-slate-900 font-mono font-bold tracking-tight">{item.account_id}</span>
-                                                                    </div>
-
-                                                                    {item.notes && (
-                                                                        <div className="flex items-start gap-2 pt-3 mt-2 border-t border-slate-100 px-3">
-                                                                            <span className="text-slate-400 w-16 flex-shrink-0 text-xs font-bold">메모</span>
-                                                                            <span className="text-slate-600 flex-1 text-sm bg-slate-50 p-2 rounded-lg border border-slate-100 whitespace-pre-wrap">{item.notes}</span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="mt-4 text-xs text-slate-400 font-medium">
-                                                                    등록일: {new Date(item.created_at).toLocaleDateString('ko-KR')}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex flex-col gap-2">
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); handleEditVaultClick(item); }}
-                                                                    className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100 shadow-sm"
-                                                                    title="수정"
-                                                                >
-                                                                    <Pencil className="w-4 h-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); handleDeleteVault(item.id); }}
-                                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100 shadow-sm"
-                                                                    title="해당 디지털 유산 삭제"
-                                                                >
-                                                                    <Trash2 className="w-5 h-5" />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Vault Pagination */}
-                                        {vaultItems.length > vaultItemsPerPage && (
-                                            <div className="flex justify-center gap-2 pt-4 pb-8">
-                                                {Array.from({ length: Math.ceil(vaultItems.length / vaultItemsPerPage) }, (_, i) => i + 1).map((page) => (
-                                                    <button
-                                                        key={page}
-                                                        onClick={() => setVaultCurrentPage(page)}
-                                                        className={`w-8 h-8 rounded-full text-sm font-bold transition-colors ${vaultCurrentPage === page
-                                                            ? "bg-emerald-600 text-white"
-                                                            : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
-                                                            }`}
-                                                    >
-                                                        {page}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <>
+                                        {/* 카테고리 아이콘 그리드 vault 뷰 (자체 상태 포함) */}
+                                        <VaultIconGrid
+                                            items={vaultItems}
+                                            loading={loading}
+                                            vaultSelectMode={vaultSelectMode}
+                                            selectedVaultIds={selectedVaultIds}
+                                            onToggleSelect={toggleVaultSelect}
+                                            onDelete={handleDeleteVault}
+                                            onUpdate={async (id, updates) => {
+                                                const supabase = createClient();
+                                                let finalNotes = updates.notes || "";
+                                                if (updates.password) {
+                                                    finalNotes = finalNotes.replace(/패스워드:\s*.+/g, "").trim();
+                                                    finalNotes = finalNotes ? `${finalNotes}\n패스워드: ${updates.password}` : `패스워드: ${updates.password}`;
+                                                }
+                                                await supabase.from("vault_items").update({
+                                                    platform_name: updates.platform_name,
+                                                    account_id: updates.account_id,
+                                                    category: updates.category,
+                                                    notes: finalNotes,
+                                                }).eq("id", id);
+                                                setVaultItems(prev => prev.map(v => v.id === id ? { ...v, ...updates, notes: finalNotes } : v));
+                                            }}
+                                            onSelectModeToggle={() => { setVaultSelectMode(!vaultSelectMode); setSelectedVaultIds(new Set()); }}
+                                            onNavigateCreate={() => router.push("/vault/create")}
+                                        />
+                                    </>
                                 )}
                             </motion.div>
                         )}
