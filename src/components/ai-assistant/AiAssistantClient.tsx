@@ -123,10 +123,10 @@ export function AiAssistantClient() {
             setIsLoggedIn(loggedIn);
 
             if (loggedIn && user) {
-                // 플랜 및 기존 연동 여부 확인
+                // 플랜 및 기존 연동 여부 확인 (refresh_token도 함께 조회)
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("plan, gmail_connected")
+                    .select("plan, gmail_connected, gmail_refresh_token")
                     .eq("id", user.id)
                     .single();
 
@@ -136,13 +136,13 @@ export function AiAssistantClient() {
                 const session = sessionData?.session;
                 const provider = session?.user?.app_metadata?.provider;
 
-                let connected = profile?.gmail_connected || false;
+                // DB에 refresh_token이 있으면 연동된 것으로 간주 (세션 만료와 무관)
+                let connected = profile?.gmail_connected || !!profile?.gmail_refresh_token || false;
 
-                // 세션에 리프레시 토큰이 있고, DB에 아직 연동 정보가 없거나 갱신이 필요하다면 저장
                 const isScanRedirect = searchParams.get("scan") === "true";
 
-                // [안정화] scan=true 이거나, 구글 로그인이면서 아직 연동 정보가 없는 경우 토큰을 저장하여 연동 상태 유지
-                if (provider === "google" && session?.provider_refresh_token && (isScanRedirect || !connected)) {
+                // 구글 로그인이고 세션에 provider_refresh_token이 있으면 DB에 저장 (항상 최신화)
+                if (provider === "google" && session?.provider_refresh_token) {
                     await supabase.from("profiles").update({
                         gmail_connected: true,
                         gmail_refresh_token: session.provider_refresh_token
@@ -280,11 +280,12 @@ export function AiAssistantClient() {
                 }
 
                 if (errData?.requires_auth) {
-                    setIsGoogleLinked(false); // 즉시 스위치를 끄도록 동기화
+                    // ⚠️ 연동 상태(isGoogleLinked)는 건드리지 않음 — DB에 refresh_token이 있으면 연동된 것
+                    // Gmail 접근 권한 토큰만 만료된 것이므로 재로그인만 요청
                     addMsg({
                         role: "assistant",
-                        content: "Gmail 연동이 필요해요! 아래 버튼을 눌러 Google 계정을 연결해주세요.\n\n⚠️ 주의: Google 로그인 시 반드시 'Gmail 읽기' 권한 체크박스를 선택하셔야 합니다.",
-                        actionButtons: [{ label: "Gmail 계정 연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
+                        content: "Gmail 접근 토큰이 만료되었어요. 아래 버튼을 눌러 Google 계정으로 다시 로그인해주세요.\n\n⚠️ 로그인 시 반드시 'Gmail 읽기' 권한 체크박스를 선택하셔야 합니다.",
+                        actionButtons: [{ label: "Gmail 계정 재연결하기", icon: "mail", style: "primary", action: "linkGmail" }],
                     });
                 } else {
                     throw new Error(errData?.detail || errData?.error || errText || `서버 오류 (${res.status})`);
