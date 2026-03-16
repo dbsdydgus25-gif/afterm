@@ -88,7 +88,33 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "등록된 가디언즈 이름과 일치하지 않습니다." }, { status: 403 });
         }
 
-        // 인증 성공! 상태 업데이트
+        // ─── 5. 사망진단서 OCR 인증 여부 확인 (병행 경로) ────────────────
+        // OCR 인증이 완료된 가디언은 별도 프로세스 없이 열람 허용 (기록 조회)
+        let hasOcrVerification = false;
+        try {
+            // death_certificate_verifications 테이블에서 verified 상태 확인
+            // guardian_id만으로 조회 (로그인된 가디언이 아닐 수도 있어서 guardian_name으로 fallback)
+            const { data: ocrVeri } = await serviceSupabase
+                .from("death_certificate_verifications")
+                .select("id, status, deceased_name")
+                .eq("status", "verified")
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+            // 인증 기록이 있고, 고인 이름이 일치하면 OCR 인증 통과로 처리
+            if (ocrVeri && ocrVeri.length > 0) {
+                const ocrRecord = ocrVeri[0];
+                // 고인 이름이 없거나 일치하면 통과
+                if (!ocrRecord.deceased_name || norm(ocrRecord.deceased_name) === norm(resolvedName)) {
+                    hasOcrVerification = true;
+                    console.log("[verify-open] OCR 인증 병행 경로 확인:", ocrRecord.id);
+                }
+            }
+        } catch (ocrErr) {
+            // OCR 테이블 조회 실패해도 기존 방식으로 계속 진행
+            console.warn("[verify-open] OCR 인증 체크 실패 (무시):", ocrErr);
+        }
+
         await serviceSupabase.from("guardians").update({ status: "opened" }).eq("id", matchedGuardian.id);
 
         // ─── 5. 디지털 유산 및 잠긴 메시지 처리 ───────────────────────

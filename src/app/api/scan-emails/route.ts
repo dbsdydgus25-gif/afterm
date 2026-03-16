@@ -53,7 +53,7 @@ ${userIntent ? `[✅ 사용자 특별 지시사항 (최우선 적용)]
     "isPaid": true, // 결제 금액이 있는 유료 서비스라면 true, 증거가 없는 0원/무료면 false
     "isActive": true, // 해지/취소/환불 내역이 있다면 false, 현재 유지 중이면 true
     "date": "다음 갱신/결제 날짜 또는 최근 메일 수신일 (없으면 '기록 없음')",
-    "category": "OTT|생산성|소셜/커뮤니티|쇼핑|구독|기타 중 가장 적합한 하나",
+    "category": "OTT|음악|게임|클라우드/생산성|SNS|뉴스/미디어|커머스|기타 중 가장 적합한 하나",
     "notes": "패스워드 등 기타 특이사항 (없으면 빈 문자열)"
   }
 ]
@@ -215,28 +215,57 @@ export async function POST(req: NextRequest) {
 
             let parsed: any[] = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
 
-            // [2차 큐레이션 필터] AI 결과를 바탕으로 TypeScript 단에서 확실하게 한 번 더 필러링
-            
-            // 1. 해지된 구독 무조건 제외
-            parsed = parsed.filter(item => item.isActive !== false);
+            // [2차 큐레이션 필터] AI 결과를 바탕으로 TypeScript 단에서 확실하게 한 번 더 필터링
 
-            // 2. 사용자 특별 의도 필터링
+            // 1. 해지된 구독 무조건 제외
+            parsed = parsed.filter((item: { isActive?: boolean }) => item.isActive !== false);
+
+            // 2. 서비스명 기준 중복 제거 (무료 → 유료 전환 시 유료 데이터 우선 유지)
+            parsed = parsed.reduce((acc: any[], item: any) => {
+                const existing = acc.find((e: any) =>
+                    e.service.toLowerCase().trim() === item.service.toLowerCase().trim()
+                );
+                if (!existing) {
+                    // 새로운 서비스: 추가
+                    acc.push(item);
+                } else if (item.isPaid && !existing.isPaid) {
+                    // 무료보다 유료 데이터 우선 (덮어쓰기)
+                    Object.assign(existing, item);
+                }
+                // 이미 유료이거나 후순위 무료 → 무시
+                return acc;
+            }, []);
+
+            // 3. 사용자 특별 의도 필터링
             if (userIntent) {
                 const intentLower = userIntent.toLowerCase();
-                
-                // 유료 서비스 필터
+
+                // 유료 서비스만
                 if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
-                    parsed = parsed.filter(item => item.isPaid === true);
+                    parsed = parsed.filter((item: { isPaid?: boolean }) => item.isPaid === true);
                 }
-                // OTT 필터
+                // OTT만
                 else if (intentLower.includes("ott") || intentLower.includes("스트리밍")) {
-                    parsed = parsed.filter(item => item.category === "OTT");
+                    parsed = parsed.filter((item: { category?: string }) => item.category === "OTT");
                 }
-                // 생산성/클라우드 필터
+                // 클라우드/생산성만
                 else if (intentLower.includes("클라우드") || intentLower.includes("업무") || intentLower.includes("작업")) {
-                    parsed = parsed.filter(item => item.category === "생산성" || item.category === "클라우드");
+                    parsed = parsed.filter((item: { category?: string }) => item.category === "클라우드/생산성" || item.category === "생산성" || item.category === "클라우드");
+                }
+                // SNS만
+                else if (intentLower.includes("sns") || intentLower.includes("소셜") || intentLower.includes("소셜 계정")) {
+                    parsed = parsed.filter((item: { category?: string }) => item.category === "SNS" || item.category === "소셜/커뮤니티");
+                }
+                // 음악만
+                else if (intentLower.includes("음악")) {
+                    parsed = parsed.filter((item: { category?: string }) => item.category === "음악");
+                }
+                // 게임만
+                else if (intentLower.includes("게임")) {
+                    parsed = parsed.filter((item: { category?: string }) => item.category === "게임");
                 }
             }
+
 
             return NextResponse.json({
                 items: parsed,
@@ -307,9 +336,27 @@ async function scanGmailEmails(token: string, userIntent?: string) {
         queries = [
             `newer_than:12m (netflix OR 넷플릭스 OR 디즈니 OR 티빙 OR tving OR 왓챠 OR 쿠팡플레이 OR wavve OR 웨이브 OR "youtube premium" OR "유튜브 프리미엄") -("1회성" OR "일시불")`
         ];
-    } else if (intentLower.includes("소셜") || intentLower.includes("sns") || intentLower.includes("계정")) {
+    } else if (intentLower.includes("소셜") || intentLower.includes("sns") || intentLower.includes("소셜 계정")) {
+        // SNS 계정 가입 확인 이메일 특화 쿼리
         queries = [
+            `newer_than:12m (instagram OR twitter OR tiktok OR linkedin OR facebook OR threads OR 인스타 OR 트위터 OR 틱톡 OR 링크드인 OR 스레드) (가입 OR welcome OR 로그인 OR 알림 OR 인증)`,
             `newer_than:12m ("가입을 환영합니다" OR "welcome to" OR "계정 생성" OR "새로운 로그인") -label:promotions -("뉴스레터" OR "광고")`
+        ];
+    } else if (intentLower.includes("음악") || intentLower.includes("음악 스트리밍")) {
+        // 음악 스트리밍 서비스 특화 쿼리
+        queries = [
+            `newer_than:12m (spotify OR flo OR melon OR 멜론 OR 바이브 OR 지니뮤직 OR "apple music" OR "youtube music" OR 유튜브뮤직)`
+        ];
+    } else if (intentLower.includes("게임") || intentLower.includes("게임 구독")) {
+        // 게임 구독 서비스 특화 쿼리
+        queries = [
+            `newer_than:12m (steam OR "xbox game pass" OR nintendo OR playstation OR "EA play" OR 넥슨 OR 엔씨소프트 OR 트리군)`
+        ];
+    } else if (intentLower.includes("구독")) {
+        // 모든 구독 서비스 (종합)
+        queries = [
+            `newer_than:12m ("정기 결제" OR 구독 OR subscription OR recurring) -("1회성" OR 단건)`,
+            `newer_than:12m (receipt OR 영수증 OR invoice OR "payment successful" OR 결제 OR "결제 완료") (월간 OR monthly OR renew OR 갱신) -("주문이 완료" OR "배송이 시작" OR "배달")`,
         ];
     } else if (intentLower.includes("돈나가는") || intentLower.includes("유료") || intentLower.includes("결제된")) {
         queries = [

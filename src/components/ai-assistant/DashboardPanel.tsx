@@ -17,10 +17,74 @@ const CATEGORY_COLORS: Record<string, string> = {
     "OTT": "bg-rose-50 text-rose-600 border-rose-100",
     "음악": "bg-purple-50 text-purple-600 border-purple-100",
     "클라우드": "bg-blue-50 text-blue-600 border-blue-100",
+    "클라우드/생산성": "bg-blue-50 text-blue-600 border-blue-100",
+    "생산성": "bg-sky-50 text-sky-600 border-sky-100",
     "게임": "bg-green-50 text-green-600 border-green-100",
     "쇼핑": "bg-amber-50 text-amber-600 border-amber-100",
+    "커머스": "bg-orange-50 text-orange-600 border-orange-100",
+    "SNS": "bg-pink-50 text-pink-600 border-pink-100",
+    "소셜/커뮤니티": "bg-pink-50 text-pink-600 border-pink-100",
+    "뉴스/미디어": "bg-indigo-50 text-indigo-600 border-indigo-100",
+    "구독": "bg-teal-50 text-teal-600 border-teal-100",
     "기타": "bg-slate-50 text-slate-600 border-slate-100",
 };
+
+/**
+ * 비용 문자열에서 숫자 금액을 파싱하는 함수
+ * 예: "14,900원" → 14900, "$9.99" → 9.99
+ */
+function parseCost(costStr: string): number {
+    if (!costStr || costStr.includes("무료") || costStr.includes("알 수 없음")) return 0;
+    const cleaned = costStr.replace(/,/g, "").replace(/[^\d.]/g, "");
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+}
+
+/**
+ * 유산 목록 통계 카드 컴포넌트
+ * 유료 구독비 합산 및 계정 수를 보여줍니다.
+ */
+function StatsCards({ items }: { items: LegacyItem[] }) {
+    // 유료 아이템 필터 ("무료", "알 수 없음" 제외)
+    const paidItems = items.filter(item => !item.cost.includes("무료") && !item.cost.includes("알 수 없음") && parseCost(item.cost) > 0);
+    const freeItems = items.filter(item => item.cost.includes("무료") || item.cost.includes("알 수 없음") || parseCost(item.cost) === 0);
+
+    // 총 월 구독비 계산
+    const totalMonthly = paidItems.reduce((sum, item) => sum + parseCost(item.cost), 0);
+    const formattedTotal = totalMonthly > 0
+        ? totalMonthly.toLocaleString("ko-KR") + "원"
+        : "집계 중";
+
+    return (
+        <div className="grid grid-cols-2 gap-3 px-6 pt-5 pb-2">
+            {/* 총 구독비 카드 */}
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-100 rounded-2xl p-4"
+            >
+                <p className="text-[11px] font-bold text-rose-400 mb-1">💳 이번 달 구독비</p>
+                <p className="text-xl font-black text-rose-700">{formattedTotal}</p>
+                <p className="text-[10px] text-rose-400 mt-0.5">유료 서비스 기준 / 월</p>
+            </motion.div>
+
+            {/* 계정 수 카드 */}
+            <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-2xl p-4"
+            >
+                <p className="text-[11px] font-bold text-blue-400 mb-1">📋 등록된 계정</p>
+                <p className="text-xl font-black text-blue-700">{items.length}개</p>
+                <p className="text-[10px] text-blue-400 mt-0.5">
+                    유료 {paidItems.length}개 · 무료 {freeItems.length}개
+                </p>
+            </motion.div>
+        </div>
+    );
+}
 
 function LoadingIconCycle({ steps }: { steps: { icon: string; msg: string }[] }) {
     const [idx, setIdx] = useState(0);
@@ -299,6 +363,9 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                         </div>
                     </div>
                 )}
+
+                {/* 통계 카드 (총 구독비 / 계정 수) */}
+                {items.length > 0 && <StatsCards items={items} />}
 
                 {/* 리스트 */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
