@@ -24,8 +24,16 @@ export async function GET(request: Request) {
         console.log("Error:", error);
 
         if (!error && session) {
-            // Update last_active_at
-            await supabase.from('profiles').update({ last_active_at: new Date().toISOString() }).eq('id', session.user.id);
+            // Update last_active_at and save provider_refresh_token if Google OAuth
+            const updatePayload: any = { last_active_at: new Date().toISOString() };
+            const provider = session.user.app_metadata?.provider;
+            
+            if (provider === "google" && session.provider_refresh_token) {
+                updatePayload.gmail_connected = true;
+                updatePayload.gmail_refresh_token = session.provider_refresh_token;
+            }
+
+            await supabase.from('profiles').update(updatePayload).eq('id', session.user.id);
 
             // Check if user has completed onboarding
             // Use user_metadata which is available in the session and bypasses RLS latency/issues

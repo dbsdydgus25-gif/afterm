@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckSquare, Square, FileKey, X, Plus, Pencil, Trash2 } from "lucide-react";
+import { 
+    SiNetflix, SiYoutube, SiSpotify, SiApple, SiGoogle, SiNaver, 
+    SiKakaotalk, SiInstagram, SiFacebook, SiX, SiTiktok,
+    SiDiscord, SiNotion, SiSlack, SiGithub
+} from "react-icons/si";
+import { FaMicrosoft, FaAmazon } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { VAULT_CATEGORIES } from "@/lib/vault-constants";
 
@@ -109,6 +115,29 @@ export function VaultIconGrid({
 
     const getInitial = (name: string) => name ? name.slice(0, 2).toUpperCase() : "?";
 
+    const getServiceIcon = (name: string, className = "w-8 h-8 sm:w-10 sm:h-10") => {
+        if (!name) return null;
+        const l = name.toLowerCase().replace(/\s+/g, '');
+        if (l.includes('netflix') || l.includes('넷플릭스')) return <SiNetflix className={className} />;
+        if (l.includes('youtube') || l.includes('유튜브')) return <SiYoutube className={className} />;
+        if (l.includes('spotify') || l.includes('스포티파이')) return <SiSpotify className={className} />;
+        if (l.includes('apple') || l.includes('애플') || l.includes('icloud') || l.includes('아이클라우드')) return <SiApple className={className} />;
+        if (l.includes('google') || l.includes('구글')) return <SiGoogle className={className} />;
+        if (l.includes('naver') || l.includes('네이버')) return <SiNaver className={className} />;
+        if (l.includes('kakao') || l.includes('카카오')) return <SiKakaotalk className={className} />;
+        if (l.includes('insta') || l.includes('인스타')) return <SiInstagram className={className} />;
+        if (l.includes('facebook') || l.includes('페북') || l.includes('페이스북')) return <SiFacebook className={className} />;
+        if (l.includes('twitter') || l.includes('트위터') || l === 'x' || l === '엑스') return <SiX className={className} />;
+        if (l.includes('tiktok') || l.includes('틱톡')) return <SiTiktok className={className} />;
+        if (l.includes('microsoft') || l.includes('마이크로소프트') || l.includes('office') || l.includes('오피스') || l.includes('onedrive') || l.includes('원드라이브')) return <FaMicrosoft className={className} />;
+        if (l.includes('amazon') || l.includes('아마존')) return <FaAmazon className={className} />;
+        if (l.includes('discord') || l.includes('디스코드')) return <SiDiscord className={className} />;
+        if (l.includes('notion') || l.includes('노션')) return <SiNotion className={className} />;
+        if (l.includes('slack') || l.includes('슬랙')) return <SiSlack className={className} />;
+        if (l.includes('github') || l.includes('깃허브')) return <SiGithub className={className} />;
+        return null;
+    };
+
     return (
         <div className="space-y-6">
             {/* Header / Select Mode / Filter */}
@@ -173,7 +202,7 @@ export function VaultIconGrid({
 
                                 {/* App Icon */}
                                 <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[22px] shadow-sm flex items-center justify-center text-white text-xl font-bold bg-gradient-to-br ${catInfo.gradient} group-hover:shadow-md transition-all`}>
-                                    {getInitial(item.platform_name)}
+                                    {getServiceIcon(item.platform_name, "w-8 h-8 sm:w-10 sm:h-10 drop-shadow-sm") || getInitial(item.platform_name)}
                                 </div>
                                 
                                 {/* App Name */}
@@ -231,7 +260,7 @@ export function VaultIconGrid({
                             <div className="px-6 pb-4 pt-2 flex justify-between items-start border-b border-slate-100">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-bold shadow-inner bg-gradient-to-br ${getCatInfo(selectedItem.category).gradient}`}>
-                                        {getInitial(selectedItem.platform_name)}
+                                        {getServiceIcon(selectedItem.platform_name, "w-7 h-7 drop-shadow-sm") || getInitial(selectedItem.platform_name)}
                                     </div>
                                     <div>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${getCatInfo(selectedItem.category).color}`}>

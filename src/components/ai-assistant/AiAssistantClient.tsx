@@ -163,6 +163,29 @@ export function AiAssistantClient() {
                     setShowAuthModal(true);
                 }
             }
+
+            // Restore chat history from sessionStorage
+            const savedMessages = sessionStorage.getItem("afterm_ai_messages");
+            if (savedMessages && !isInitialized.current) {
+                // If there's an active qParam, maybe don't immediately restore everything? 
+                // Wait, it is fine to restore and then pendingMessage will append.
+            }
+
+            if (!isInitialized.current) {
+                isInitialized.current = true;
+                if (savedMessages) {
+                    try {
+                        const parsed = JSON.parse(savedMessages);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setMessages(parsed);
+                            setIsChatMode(true);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse saved chat messages", e);
+                    }
+                }
+            }
+
             setIsCheckingPlan(false);
         };
         init();
@@ -194,6 +217,13 @@ export function AiAssistantClient() {
         const iv = setInterval(() => setPlaceholderIndex(i => (i + 1) % PLACEHOLDER_TEXTS.length), 3000);
         return () => clearInterval(iv);
     }, [isChatMode]);
+
+    // 대화 내역 Session Storage 저장
+    useEffect(() => {
+        if (isChatMode && messages.length > 0) {
+            sessionStorage.setItem("afterm_ai_messages", JSON.stringify(messages));
+        }
+    }, [messages, isChatMode]);
 
     // 자동 스크롤
     useEffect(() => {
