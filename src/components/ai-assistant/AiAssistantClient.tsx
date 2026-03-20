@@ -153,6 +153,23 @@ export function AiAssistantClient() {
                 setIsGoogleLinked(connected);
             }
 
+            // 1. sessionStorage에서 대화 내역 복원 (가장 먼저 처리하여 OAuth 복귀 시 대화 유지)
+            if (!isInitialized.current) {
+                const savedMessages = sessionStorage.getItem("afterm_ai_messages");
+                if (savedMessages) {
+                    try {
+                        const parsed = JSON.parse(savedMessages);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setMessages(parsed);
+                            setIsChatMode(true);
+                        }
+                    } catch (e) {
+                        console.error("[AiAssistant] sessionStorage 대화 복원 실패:", e);
+                    }
+                }
+            }
+
+            // 2. ?q= 파라미터 처리 (랜딩 페이지 질문 자동 전송)
             const qParam = searchParams.get("q");
             if (qParam && !isInitialized.current) {
                 isInitialized.current = true;
@@ -164,26 +181,9 @@ export function AiAssistantClient() {
                 }
             }
 
-            // Restore chat history from sessionStorage
-            const savedMessages = sessionStorage.getItem("afterm_ai_messages");
-            if (savedMessages && !isInitialized.current) {
-                // If there's an active qParam, maybe don't immediately restore everything? 
-                // Wait, it is fine to restore and then pendingMessage will append.
-            }
-
+            // isInitialized.current를 마지막에 설정 (sessionStorage 복원 블록은 위에서 처리)
             if (!isInitialized.current) {
                 isInitialized.current = true;
-                if (savedMessages) {
-                    try {
-                        const parsed = JSON.parse(savedMessages);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setMessages(parsed);
-                            setIsChatMode(true);
-                        }
-                    } catch (e) {
-                        console.error("Failed to parse saved chat messages", e);
-                    }
-                }
             }
 
             setIsCheckingPlan(false);
