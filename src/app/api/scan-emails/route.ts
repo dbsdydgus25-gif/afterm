@@ -54,7 +54,7 @@ ${userIntent ? `[✅ 사용자 요청 (최우선 적용)]
 [
   {
     "id": "고유숫자",
-    "service": "서비스 이름 (예: Netflix, SKT, iCloud)",
+    "service": "서비스 이름",
     "account_id": "발견된 이메일/아이디 (없으면 빈 문자열)",
     "cost": "월 결제금액 (예: 14,900원) 또는 증거 없으면 '무료'",
     "isPaid": true,
@@ -65,7 +65,10 @@ ${userIntent ? `[✅ 사용자 요청 (최우선 적용)]
   }
 ]
 
-최종 출력 전 자가 검토: 사용자의 특정 카테고리 요건(있을 경우)이 아닌 것은 배열에서 반드시 제거하세요. 오직 JSON 배열만 반환하세요.
+최종 출력 전 자가 검토: 
+1. 사용자의 특정 카테고리 요건(있을 경우)이 아닌 것은 배열에서 반드시 제거하세요. 
+2. [!!!할루시네이션 절대 주의!!!]: 위에서 든 **예시(SKT, Netflix, 쿠팡, 구글드라이브 등)를 실제 데이터인 것처럼 꾸며서 출력하지 마세요.** 반드시 하단에 제공된 [이메일 내용] 원문 안에서 실제로 발견된 팩트(Fact) 정보만 추출해야 합니다. 없으면 빈 배열 [] 을 반환하세요.
+오직 JSON 배열만 반환하세요.
 
 이메일 내용:
 ${emailTexts}
@@ -217,10 +220,10 @@ export async function POST(req: NextRequest) {
             const completion = await openai.chat.completions.create({
                 model: "gpt-4o-mini",
                 messages: [
-                    { role: "system", content: "당신은 디지털 유산 큐레이션을 돕는 매우 정확한 JSON 데이터 파싱 AI입니다." },
+                    { role: "system", content: "당신은 제공된 [이메일 내용] 원문 안에서만 팩트를 찾아 JSON으로 추출하는 데이터 파싱 전용 봇입니다. 메일 본문에 없는 내용을 지어내면(할루시네이션) 시스템에 치명적인 오류가 발생합니다." },
                     { role: "user", content: SCAN_PROMPT(scanResult.emailTexts, userIntent) }
                 ],
-                temperature: 0.1, // 매우 보수적이고 규칙에 얽매이도록 세팅
+                temperature: 0, // 완전한 팩트 기반(0.0)
             });
             rawText = completion.choices[0]?.message?.content?.trim() || "";
         } catch (aiErr: any) {
