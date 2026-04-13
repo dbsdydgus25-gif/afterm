@@ -250,8 +250,8 @@ export async function POST(req: NextRequest) {
 
             // [2차 큐레이션 필터] AI 결과를 TypeScript 단에서 재검증
 
-            // 1. 허용 카테고리 외 항목 제거 (4개 핵심 카테고리만)
-            const ALLOWED_CATEGORIES = ["통신", "유료구독", "클라우드", "SNS"];
+            // 1. 허용 카테고리 외 항목 제거 (5개 핵심 카테고리만)
+            const ALLOWED_CATEGORIES = ["통신", "유료구독", "클라우드", "SNS", "기타"];
             parsed = parsed.filter((item: { category?: string; isActive?: boolean }) => {
                 if (item.isActive === false) return false; // 해지된 서비스 제외
                 // category가 허용 목록에 없으면 제외

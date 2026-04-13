@@ -467,9 +467,31 @@ export function AiAssistantClient() {
 
         if (isLegacyIntent) {
             if (isGoogleLinked) {
+                // 사용자의 의도를 분석하여 동적인 답변 생성
+                const il = trimmed.toLowerCase().replace(/\s+/g, "");
+                const reqTelecom = /통신|핸드폰요금|핸드폰비|인터넷요금|통신비|skt|kt|lgu/.test(il);
+                const reqSns = /sns|소셜|인스타|페이스북|트위터|틱톡|링크드인|커뮤니티|계정/.test(il) && !il.includes("은행") && !il.includes("구독");
+                const reqCloud = /클라우드|icloud|구글드라이브|원드라이브|드롭박스|저장소|저장공간/.test(il);
+                const reqSub = /유료|구독|결제|돈나가|돈빠져|ott|스트리밍|넷플|왓챠|티빙|멜론|스포티파이/.test(il);
+                
+                const reqAll = !reqTelecom && !reqSns && !reqCloud && !reqSub; // 범용 단어(유산, 정리 등) 입력 시
+                
+                let targetText = "";
+                const categories = [];
+                if (reqTelecom) categories.push("통신");
+                if (reqSub) categories.push("유료구독");
+                if (reqCloud) categories.push("클라우드");
+                if (reqSns) categories.push("SNS");
+                
+                if (reqAll || categories.length === 0) {
+                    targetText = "**통신 · 유료구독 · 클라우드 · SNS** 전체";
+                } else {
+                    targetText = `**${categories.join(" · ")}**`;
+                }
+
                 addMsg({
                     role: "assistant",
-                    content: "Gmail을 분석해서 **통신 · 유료구독 · 클라우드 · SNS** 계정을 찾아드릴게요! 📧\n잠깐만 기다려주세요...",
+                    content: `Gmail을 분석해서 요청하신 ${targetText} 계정을 찾아드릴게요! 📧\n잠깐만 기다려주세요...`,
                 });
                 runEmailScan(trimmed);
                 return;
