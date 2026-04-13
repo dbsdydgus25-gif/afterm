@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // gemini-2.5-flash는 Preview 단계 → 프로덕션 안정성을 위해 gemini-1.5-flash 사용
-        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // gemini-2.0-flash: v1beta API 호환, 프로덕션 안정 모델
+        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
         const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
         const rawText = result.response.text().trim();
 
