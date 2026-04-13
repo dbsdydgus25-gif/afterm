@@ -45,14 +45,15 @@ export async function POST(req: NextRequest) {
                 // AI 스캔 결과의 account_id 또는 username 을 계정 ID로 저장
                 account_id: item.account_id || item.username || "",
                 // Gemini가 분류한 카테고리를 그대로 저장 (이전: 무조건 "subscription" 하드코딩)
-                // 매핑: 통신->communication, 유료구독->subscription, 클라우드->cloud, SNS->social
+                // 매핑: 통신->communication, 유료구독->subscription, 클라우드->cloud, SNS->social, 기타->other
                 category: (() => {
                     const cat = item.category || "";
                     if (cat === "통신") return "communication";
                     if (cat === "유료구독") return "subscription";
                     if (cat === "클라우드") return "cloud";
                     if (cat === "SNS") return "social";
-                    return "subscription"; // 미매핑 폴백
+                    if (cat === "기타") return "other";
+                    return "other"; // 미매핑 폴백 (기존 subscription 강제 할당 방지)
                 })(),
                 notes: `[AI 스캔] ${item.category} | ${item.cost} | 결제일: ${item.date}${item.password ? ` | 패스워드: ${item.password}` : ""}${item.memo ? ` | 메모: ${item.memo}` : ""}`,
             }));

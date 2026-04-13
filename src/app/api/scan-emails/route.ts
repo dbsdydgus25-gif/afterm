@@ -13,21 +13,24 @@ ${userIntent ? `[✅ 사용자 요청 (최우선 적용)]
 → 이 요청에 맞는 카테고리/조건만 추출하세요.` : ""}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-【추출 대상 — 4개 핵심 카테고리만】
+【추출 대상 — 5개 핵심 카테고리】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. 📱 통신 — 매월 요금이 청구되는 통신/인터넷 서비스
    예: SKT, KT, LG U+, 알뜰폰, 인터넷, KT인터넷, LG인터넷 등
 
 2. 💳 유료구독 — 정기 결제되는 모든 유료 구독 서비스
-   예: Netflix, 티빙, 왓챠, 쿠팡 로켓와우, 멜론, Spotify, Adobe, Microsoft 365,
-       Apple One, YouTube Premium, 네이버플러스, 카카오 이모티콘 구독 등
+   ★주의: 반드시 현실적인 정기 결제액(영수증/결제안내)이 명시된 서비스만 선택하세요. (무료 내역은 절대 금지)
+   예: Netflix, 티빙, 왓챠, 쿠팡 로켓와우, 멜론, Spotify, Adobe
 
 3. ☁️ 클라우드 — 데이터·파일이 저장된 클라우드 서비스 (유료/무료 모두)
    예: iCloud, Google One, 구글 드라이브, 원드라이브, 네이버 MYBOX, 드롭박스, AWS 등
 
 4. 👤 SNS — 계정이 살아있는 소셜/커뮤니티 서비스
    예: Instagram, Facebook, Twitter/X, TikTok, LinkedIn, 카카오스토리, 네이버 밴드 등
+
+5. 💡 기타(무료) — 회원가입은 되어 있으나, 매월 발생되는 요금이 없는 일반 무료 계정들
+   예: 무료 Canva, TestSprite, 그 외 단순 회원가입 알림 등
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【제외 대상 — 절대 추출 금지】
@@ -41,9 +44,9 @@ ${userIntent ? `[✅ 사용자 요청 (최우선 적용)]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 【규칙】
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-★ 중복 절대 금지: 같은 서비스는 반드시 1개만 (최신/유료 정보 우선)
-★ cost: 명확한 금액 증거 있을 때만 기재, 없으면 "무료"
-★ category: 반드시 "통신" | "유료구독" | "클라우드" | "SNS" 중 하나
+★ 카테고리 지정 필수: 반드시 "통신", "유료구독", "클라우드", "SNS", "기타" 중 하나를 골라야 합니다.
+★ 유료구독 금지 룰: '무료' 또는 결제액 정보를 찾을 수 없는 서비스라면, 절대 '유료구독'이라 적지 마세요. '기타' 또는 '클라우드'에 배정하세요.
+★ 사용자 요청 최우선: 위에서 사용자 요청이 들어온 경우, 오직 해당 카테고리에 속하는 서비스 결과물만 배열에 담아 편향되게 반환하세요.
 
 [출력 형식 — JSON 배열만, 마크다운 블록 없이]
 [
@@ -55,13 +58,12 @@ ${userIntent ? `[✅ 사용자 요청 (최우선 적용)]
     "isPaid": true,
     "isActive": true,
     "date": "다음 갱신일 또는 최근 메일 날짜 (없으면 '기록 없음')",
-    "category": "통신 | 유료구독 | 클라우드 | SNS 중 하나",
+    "category": "통신 | 유료구독 | 클라우드 | SNS | 기타 중 하나",
     "notes": "특이사항 (없으면 빈 문자열)"
   }
 ]
 
-최종 출력 전 자가 검토: 위 4개 카테고리 외 항목이 있으면 제거하세요.
-오직 JSON 배열만 반환하세요.
+최종 출력 전 자가 검토: 사용자의 특정 카테고리 요건(있을 경우)이 아닌 것은 배열에서 반드시 제거하세요. 오직 JSON 배열만 반환하세요.
 
 이메일 내용:
 ${emailTexts}
@@ -259,7 +261,19 @@ export async function POST(req: NextRequest) {
                 return acc;
             }, []);
 
-            // 3. 사용자 의도별 필터링
+            // 3. 필터링 전 큐레이션 강제 무결성 보정 (오분류 교정)
+            // 카테고리가 '유료구독'인데 cost에 '무료', '0원'이 있거나 isPaid가 false면 강제로 '기타'로 변경
+            parsed = parsed.map((i: any) => {
+                if (i.category === "유료구독") {
+                    const isFree = String(i.cost).includes("무료") || String(i.cost).includes("0") || i.isPaid === false;
+                    if (isFree) {
+                        i.category = "기타"; // 무료 서비스는 유료구독 금지
+                    }
+                }
+                return i;
+            });
+
+            // 4. 사용자 의도별 엄격한 필터링
             if (userIntent) {
                 const il = userIntent.toLowerCase().replace(/\s+/g, "");
 
@@ -268,16 +282,16 @@ export async function POST(req: NextRequest) {
                     parsed = parsed.filter((i: any) => i.category === "통신");
                 }
                 // SNS 관련
-                else if (/sns|소셜|인스타|페이스북|트위터|틱톡|링크드인/.test(il)) {
+                else if (/sns|소셜|인스타|페이스북|트위터|틱톡|링크드인|커뮤니티|계정/.test(il) && !il.includes("은행") && !il.includes("구독")) {
                     parsed = parsed.filter((i: any) => i.category === "SNS");
                 }
                 // 클라우드 관련
-                else if (/클라우드|icloud|구글드라이브|원드라이브|드롭박스/.test(il)) {
+                else if (/클라우드|icloud|구글드라이브|원드라이브|드롭박스|저장소|저장공간/.test(il)) {
                     parsed = parsed.filter((i: any) => i.category === "클라우드");
                 }
-                // 유료구독 관련
+                // 유료구독 관련 (의도에 부합할 경우 "기타" 등 무료는 다 날아가고 진짜 유료만 남김)
                 else if (/유료|구독|결제|돈나가|돈빠져|ott|스트리밍|넷플|왓챠|티빙|멜론|스포티파이/.test(il)) {
-                    parsed = parsed.filter((i: any) => i.category === "유료구독" || i.isPaid === true);
+                    parsed = parsed.filter((i: any) => i.category === "유료구독");
                 }
             }
 
