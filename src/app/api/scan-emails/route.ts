@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 const SCAN_PROMPT = (emailTexts: string, userIntent?: string) => `
 당신은 사용자의 디지털 유산 정리를 돕는 AI입니다.
@@ -210,26 +212,31 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // 구글 2.5 라인 서버 503 폭주 에러로 인한 우회 경로 (최신 안정화 버전)
-        const model = genai.getGenerativeModel({ model: "gemini-flash-latest" });
-        let result;
+        let rawText = "";
         try {
-            result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
-        } catch (geminiErr: any) {
-            const errMsg = geminiErr?.message || "";
-            // 429 쿼터 초과 시 사용자 친화적 메시지 반환
-            if (errMsg.includes("429") || errMsg.includes("Too Many Requests") || errMsg.includes("quota")) {
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: "당신은 디지털 유산 큐레이션을 돕는 매우 정확한 JSON 데이터 파싱 AI입니다." },
+                    { role: "user", content: SCAN_PROMPT(scanResult.emailTexts, userIntent) }
+                ],
+                temperature: 0.1, // 매우 보수적이고 규칙에 얽매이도록 세팅
+            });
+            rawText = completion.choices[0]?.message?.content?.trim() || "";
+        } catch (aiErr: any) {
+            const errMsg = aiErr?.message || "";
+            // 할당량 초과 핸들링
+            if (errMsg.includes("429") || errMsg.includes("Too Many Requests") || errMsg.includes("quota") || errMsg.includes("insufficient_quota")) {
                 return NextResponse.json({
                     items: [],
                     message: "현재 AI 분석 서버가 잠시 바쁩니다. 1~2분 후 다시 시도해주세요. ⏳",
                     error: "quota_exceeded"
                 });
             }
-            throw geminiErr;
+            throw aiErr;
         }
-        const rawText = result.response.text().trim();
 
-        console.log("[Gemini Raw Text 앞500자]:", rawText.slice(0, 500));
+        console.log("[OpenAI Raw Text 앞500자]:", rawText.slice(0, 500));
 
         try {
             const jsonStart = rawText.indexOf("[");

@@ -192,6 +192,8 @@ export function AiAssistantClient() {
                     setPendingMessage(qParam);
                     setShowAuthModal(true);
                 }
+                // URL에 파라미터가 계속 남아있는 것을 방지 (새로고침 없이 주소줄 초기화)
+                window.history.replaceState(null, "", "/ai-assistant");
             }
 
             // isInitialized.current를 마지막에 설정 (sessionStorage 복원 블록은 위에서 처리)
