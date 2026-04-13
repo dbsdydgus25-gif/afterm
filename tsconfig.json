@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "check.ts", "check2.mjs", "check3.mjs", "test_db.cjs"]
 }

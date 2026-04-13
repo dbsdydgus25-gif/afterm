@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage, getErrorStack } from "@/lib/error";
 
 export async function GET() {
     try {
@@ -30,6 +30,8 @@ export async function GET() {
             messages: data
         });
     } catch (e: unknown) {
-        return NextResponse.json({ error: getErrorMessage(e), stack: e.stack }, { status: 500 });
+        // unknown 타입에서 직접 .stack 접근 불가 - 타입 안전한 유틸리티 함수로 추출
+        return NextResponse.json({ error: getErrorMessage(e), stack: getErrorStack(e) }, { status: 500 });
     }
 }
+

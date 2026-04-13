@@ -212,12 +212,9 @@ export default function LoginPageClient() {
                 setError("가입되지 않은 이메일이거나 비밀번호가 올바르지 않습니다.");
             } else {
                 const params = new URLSearchParams(window.location.search);
-                const returnTo = params.get("returnTo");
-                if (returnTo) {
-                    router.push(returnTo);
-                } else {
-                    router.push("/");
-                }
+                // ?next= 우선, 없으면 ?returnTo=, 없으면 기본 경로
+                const dest = params.get("next") || params.get("returnTo");
+                router.push(dest || "/");
             }
         } catch (err) {
             setError("로그인 중 오류가 발생했습니다.");
@@ -228,7 +225,8 @@ export default function LoginPageClient() {
 
     const handleSocialLogin = async (provider: "google" | "kakao") => {
         const params = new URLSearchParams(window.location.search);
-        const returnTo = params.get("returnTo") || "/";
+        // ?next= 우선, 없으면 ?returnTo=, 없으면 기본 경로
+        const returnTo = params.get("next") || params.get("returnTo") || "/";
         document.cookie = `auth_return_to=${encodeURIComponent(returnTo)}; path=/; max-age=300`;
 
         const isProduction = location.hostname === 'afterm.co.kr' || location.hostname === 'www.afterm.co.kr';

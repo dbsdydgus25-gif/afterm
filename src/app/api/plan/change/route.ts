@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage, getErrorStack } from "@/lib/error";
 
 export async function POST(request: Request) {
     try {
@@ -185,11 +185,13 @@ export async function POST(request: Request) {
 
     } catch (error: unknown) {
         console.error("Plan change error:", error);
-        console.error("Error stack:", error.stack);
+        // unknown 타입에서 안전하게 스택 추출 (타입 가드 적용)
+        console.error("Error stack:", getErrorStack(error));
         return NextResponse.json({
             error: "Internal server error",
             details: getErrorMessage(error),
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            // 개발 환경에서만 스택 정보 노출 (타입 안전하게 추출)
+            stack: process.env.NODE_ENV === 'development' ? getErrorStack(error) : undefined
         }, { status: 500 });
     }
 }

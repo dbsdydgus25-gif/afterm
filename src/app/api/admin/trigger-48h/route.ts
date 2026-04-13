@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { sendMessage } from '@/lib/solapi/client';
-import { getErrorMessage } from "@/lib/error";
+import { getErrorMessage, getErrorStack } from "@/lib/error";
 
 // Admin client to bypass RLS
 const supabaseAdmin = createClient(
@@ -99,7 +99,8 @@ export async function POST(request: Request) {
             } catch (error: unknown) {
                 console.error("[Test] SMS exception:", {
                     message: getErrorMessage(error),
-                    stack: error.stack
+                    // unknown 타입에서 안전하게 스택 추출 (타입 가드 적용)
+                    stack: getErrorStack(error)
                 });
                 smsError = getErrorMessage(error);
             }

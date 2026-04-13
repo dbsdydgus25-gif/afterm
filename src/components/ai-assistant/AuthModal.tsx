@@ -14,20 +14,23 @@ export function AuthModal({ isOpen, onClose, pendingMessage }: AuthModalProps) {
     const supabase = createClient();
 
     const handleGoogleLogin = async () => {
+        // ?q= 파라미터로 통일: AiAssistantClient의 init()에서 ?q=를 읽어 자동 전송하므로,
+        // ?pending= 대신 ?q=를 사용해야 로그인 후 메시지가 소실되지 않음
         await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/ai-assistant?pending=${encodeURIComponent(pendingMessage)}`,
+                redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/ai-assistant?q=${encodeURIComponent(pendingMessage)}`)}`,
                 queryParams: { access_type: 'offline', prompt: 'consent' },
             },
         });
     };
 
     const handleKakaoLogin = async () => {
+        // Kakao 로그인도 동일하게 ?q= 파라미터로 통일
         await supabase.auth.signInWithOAuth({
             provider: "kakao",
             options: {
-                redirectTo: `${window.location.origin}/ai-assistant?pending=${encodeURIComponent(pendingMessage)}`,
+                redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/ai-assistant?q=${encodeURIComponent(pendingMessage)}`)}`,
             },
         });
     };

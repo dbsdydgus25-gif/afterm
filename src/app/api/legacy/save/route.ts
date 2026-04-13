@@ -30,22 +30,31 @@ export async function POST(req: NextRequest) {
 
         // 디지털 유산 리스트 저장
         if (result.type === "legacyList" && Array.isArray(result.items)) {
-            const vaultItems = result.items.map((item: {
+        const vaultItems = result.items.map((item: {
                 service: string;
                 cost: string;
                 date: string;
                 category: string;
+                account_id?: string;
                 username?: string;
                 password?: string;
                 memo?: string;
             }) => ({
                 user_id: user.id,
                 platform_name: item.service,
-                account_id: item.username || "",
-                // PIN이 없으므로 암호화 없이 일시적으로 notes나 별도 처리가 필요할 수 있음
-                // 여기서는 일단 notes에 합쳐서 저장하도록 대응 (기본 vault UI와 호환)
+                // AI 스캔 결과의 account_id 또는 username 을 계정 ID로 저장
+                account_id: item.account_id || item.username || "",
+                // Gemini가 분류한 카테고리를 그대로 저장 (이전: 무조건 "subscription" 하드코딩)
+                // 매핑: 통신->communication, 유료구독->subscription, 클라우드->cloud, SNS->social
+                category: (() => {
+                    const cat = item.category || "";
+                    if (cat === "통신") return "communication";
+                    if (cat === "유료구독") return "subscription";
+                    if (cat === "클라우드") return "cloud";
+                    if (cat === "SNS") return "social";
+                    return "subscription"; // 미매핑 폴백
+                })(),
                 notes: `[AI 스캔] ${item.category} | ${item.cost} | 결제일: ${item.date}${item.password ? ` | 패스워드: ${item.password}` : ""}${item.memo ? ` | 메모: ${item.memo}` : ""}`,
-                category: "subscription" // 기본값
             }));
 
             // upsert: user_id + platform_name 기준 중복이면 최신버전으로 업데이트

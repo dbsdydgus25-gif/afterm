@@ -136,7 +136,8 @@ export async function POST(req: NextRequest) {
             const refreshToken = profile?.gmail_refresh_token;
 
             if (refreshToken) {
-                const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+                // 서버사이드 API route에서는 NEXT_PUBLIC_ 접두어 없는 환경변수를 사용해야 함
+                const clientId = process.env.GOOGLE_CLIENT_ID;
                 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
                 if (clientId && clientSecret) {
@@ -191,7 +192,9 @@ export async function POST(req: NextRequest) {
             }, { status: 400 });
         }
 
-        if (!scanResult.emailTexts || scanResult.emailTexts.length < 30) {
+        // emailTexts 글자 수 대신 수집된 이메일 개수(inboxCount)로 판단
+        // 이유: 이메일 본문이 짧아도(예: 알림 메일) 유의미한 데이터일 수 있음
+        if (!scanResult.emailTexts || scanResult.inboxCount === 0) {
             return NextResponse.json({
                 items: [],
                 message: userIntent
@@ -205,7 +208,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // gemini-2.5-flash는 Preview 단계 → 프로덕션 안정성을 위해 gemini-1.5-flash 사용
+        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
         const rawText = result.response.text().trim();
 

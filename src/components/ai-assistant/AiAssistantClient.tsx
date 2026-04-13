@@ -118,7 +118,22 @@ export function AiAssistantClient() {
     // 로그인 확인 + 플랜/Google 연동 여부 확인 + ?q= 자동 채팅 트리거
     useEffect(() => {
         const init = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            // getUser()가 실패하더라도 getSession()으로 폴백하여 세션 유지
+            // 이유: 네트워크 불안정 또는 Supabase 세션 갱신 중 일시적 실패 시 AuthModal 재출현 방지
+            let user = null;
+            try {
+                const { data } = await supabase.auth.getUser();
+                user = data?.user ?? null;
+            } catch {
+                // getUser 실패 시 getSession으로 폴백
+            }
+
+            // getUser 실패 시 getSession으로 보완
+            if (!user) {
+                const { data: sessionData } = await supabase.auth.getSession();
+                user = sessionData?.session?.user ?? null;
+            }
+
             const loggedIn = !!user;
             setIsLoggedIn(loggedIn);
 
@@ -138,8 +153,6 @@ export function AiAssistantClient() {
 
                 // DB에 refresh_token이 있으면 연동된 것으로 간주 (세션 만료와 무관)
                 let connected = profile?.gmail_connected || !!profile?.gmail_refresh_token || false;
-
-                const isScanRedirect = searchParams.get("scan") === "true";
 
                 // 구글 로그인이고 세션에 provider_refresh_token이 있으면 DB에 저장 (항상 최신화)
                 if (provider === "google" && session?.provider_refresh_token) {
@@ -430,10 +443,11 @@ export function AiAssistantClient() {
         if (trimmed.length === 0) return;
         setInputError("");
 
-        // 로그인 체크
+        // 로그인 체크 — 미로그인 시 /login 페이지로 리다이렉트
+        // ?next= 파라미터로 현재 입력한 메시지를 ?q=로 함께 전달, 로그인 후 바로 자동 실행
         if (!isLoggedIn) {
-            setPendingMessage(trimmed);
-            setShowAuthModal(true);
+            const returnUrl = `/ai-assistant?q=${encodeURIComponent(trimmed)}`;
+            router.push(`/login?next=${encodeURIComponent(returnUrl)}`);
             return;
         }
 
@@ -541,14 +555,27 @@ export function AiAssistantClient() {
     // ── Gmail 연동 스위치 (플러그) 토글 ───────────────────────
     const handleToggleGmail = useCallback(async () => {
         if (!isLoggedIn) {
-            setShowAuthModal(true);
+            // 미로그인 → /login 으로 리다이렉트
+            router.push(`/login?next=${encodeURIComponent("/ai-assistant")}`);
             return;
         }
 
         if (isGoogleLinked) {
-            // 연동 해제 로직
-            const confirmUnlink = window.confirm("Gmail 연동 스위치를 끄시겠습니까?\n저장된 스캔용 토큰이 삭제됩니다.");
-            if (confirmUnlink) {
+            // 연동된 상태에서 플러그 클릭 시: 스캔 시작 vs 연동 해제 선택
+            // 이전: "해제하시겠습니까?" → 혼란 유발 (클릭 의도가 대부분 스캔이므로 개선)
+            const choice = window.confirm(
+                "Gmail이 연동되어 있어요 👍\n\n[확인] Gmail 스캔 시작\n[취소] 연동 해제"
+            );
+            if (choice) {
+                // 확인 → 스캔 시작 (주 목적)
+                if (isChatMode) {
+                    runEmailScan();
+                } else {
+                    setIsChatMode(true);
+                    setTimeout(() => runEmailScan(), 300);
+                }
+            } else {
+                // 취소 → 연동 해제
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     await supabase.from("profiles").update({
@@ -556,17 +583,16 @@ export function AiAssistantClient() {
                         gmail_refresh_token: null
                     }).eq("id", user.id);
                     setIsGoogleLinked(false);
-
                     if (isChatMode) {
-                        addMsg({ role: "assistant", content: "Gmail 연동 스위치가 꺼졌습니다. 🔌" });
+                        addMsg({ role: "assistant", content: "Gmail 연동이 해제되었어요. 🔌" });
                     }
                 }
             }
         } else {
-            // 연동 안 된 상태 -> 베타 테스터 팝업 노출
+            // 연동 안 된 상태 → 베타 테스터 팝업 노출
             setShowBetaModal(true);
         }
-    }, [isLoggedIn, isGoogleLinked, isChatMode, supabase]);
+    }, [isLoggedIn, isGoogleLinked, isChatMode, supabase, runEmailScan]);
 
     // 로그인 후 pending message 처리 (한 번만 실행)
     const pendingHandled = useRef(false);
@@ -581,10 +607,11 @@ export function AiAssistantClient() {
     }, [isLoggedIn, pendingMessage, handleSendMessage]);
 
     // Gmail OAuth 콜백 후 ?scan=true 감지 → 자동 스캔 시작
+    // isGoogleLinked가 의존성에 포함되어야 init() 완료 후 true 세팅 시 재실행됨
     const scanHandled = useRef(false);
     useEffect(() => {
         const shouldScan = searchParams.get("scan") === "true";
-        if (shouldScan && isLoggedIn && !scanHandled.current && !isCheckingPlan) {
+        if (shouldScan && isLoggedIn && isGoogleLinked && !scanHandled.current && !isCheckingPlan) {
             scanHandled.current = true;
             // URL에서 scan 파라미터 제거
             window.history.replaceState({}, "", "/ai-assistant");
@@ -599,7 +626,7 @@ export function AiAssistantClient() {
             }, 300);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoggedIn, isCheckingPlan, searchParams]);
+    }, [isLoggedIn, isCheckingPlan, isGoogleLinked, searchParams]);
 
     const lastSubmitTime = useRef(0);
 
