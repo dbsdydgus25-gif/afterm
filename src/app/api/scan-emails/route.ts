@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // gemini-1.5-flash-8b: 무료 티어 할당량이 가장 높은 안정 모델
-        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+        // gemini-2.0-flash-lite: API 키에서 제공하는 최신 경량화 모델 (가장 높은 무료 한도 제공)
+        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
         let result;
         try {
             result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
