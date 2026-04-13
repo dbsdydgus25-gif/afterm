@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // 본래(오늘 오전) 정상 작동했던 gemini-2.5-flash 모델로 원상 복구
-        const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // 구글 2.5 라인 서버 503 폭주 에러로 인한 우회 경로 (최신 안정화 버전)
+        const model = genai.getGenerativeModel({ model: "gemini-flash-latest" });
         let result;
         try {
             result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
