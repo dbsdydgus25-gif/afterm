@@ -103,8 +103,9 @@ export default function HomePageClient() {
         setInputError("");
 
         if (!user) {
-            // 로그인 페이지로 이동, 돌아온 후 메시지를 복원하기 위해 pending 파라미터 전달
-            router.push(`/login?returnTo=/ai-assistant&pending=${encodeURIComponent(trimmed)}`);
+            // 로그인 후 입력한 메시지를 ?q= 파라미터로 AI 어시스턴트에 전달
+            const aiUrl = `/ai-assistant?q=${encodeURIComponent(trimmed)}`;
+            router.push(`/login?next=${encodeURIComponent(aiUrl)}`);
             return;
         }
         router.push(`/ai-assistant?q=${encodeURIComponent(trimmed)}`);
