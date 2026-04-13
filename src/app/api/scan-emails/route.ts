@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // gemini-2.0-flash-lite: API 키에서 제공하는 최신 경량화 모델 (가장 높은 무료 한도 제공)
-        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+        // 본래(오늘 오전) 정상 작동했던 gemini-2.5-flash 모델로 원상 복구
+        const model = genai.getGenerativeModel({ model: "gemini-2.5-flash" });
         let result;
         try {
             result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
