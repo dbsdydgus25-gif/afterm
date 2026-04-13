@@ -208,9 +208,23 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // gemini-2.0-flash: v1beta API 호환, 프로덕션 안정 모델
-        const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
+        // gemini-1.5-flash-8b: 무료 티어 할당량이 가장 높은 안정 모델
+        const model = genai.getGenerativeModel({ model: "gemini-1.5-flash-8b" });
+        let result;
+        try {
+            result = await model.generateContent(SCAN_PROMPT(scanResult.emailTexts, userIntent));
+        } catch (geminiErr: any) {
+            const errMsg = geminiErr?.message || "";
+            // 429 쿼터 초과 시 사용자 친화적 메시지 반환
+            if (errMsg.includes("429") || errMsg.includes("Too Many Requests") || errMsg.includes("quota")) {
+                return NextResponse.json({
+                    items: [],
+                    message: "현재 AI 분석 서버가 잠시 바쁩니다. 1~2분 후 다시 시도해주세요. ⏳",
+                    error: "quota_exceeded"
+                });
+            }
+            throw geminiErr;
+        }
         const rawText = result.response.text().trim();
 
         console.log("[Gemini Raw Text 앞500자]:", rawText.slice(0, 500));
