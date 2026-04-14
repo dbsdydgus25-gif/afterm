@@ -29,9 +29,23 @@ const CATEGORY_COLORS: Record<string, string> = {
     "기타": "bg-slate-50 text-slate-600 border-slate-100",
 };
 
+let USD_TO_KRW_RATE = 1400; // 실패 대비 기본(Fallback) 환율
+
+// 앱 로드 시 한 번만 실시간 환율을 가져와서 USD_TO_KRW_RATE를 업데이트합니다.
+if (typeof window !== "undefined") {
+    fetch("https://open.er-api.com/v6/latest/USD")
+        .then(res => res.json())
+        .then(data => {
+            if (data?.rates?.KRW) {
+                USD_TO_KRW_RATE = data.rates.KRW;
+            }
+        })
+        .catch(err => console.error("실시간 환율 로드 실패 (기본값 1400원 사용):", err));
+}
+
 /**
  * 비용 문자열에서 숫자 금액을 파싱하는 함수
- * 예: "14,900원" → 14900, "$9.99" → 13986 (환율 1400원 적용)
+ * 예: "14,900원" → 14900, "$9.99" → 13986 (실시간 환율 적용)
  */
 function parseCost(costStr: string): number {
     if (!costStr || costStr.includes("무료") || costStr.includes("알 수 없음")) return 0;
@@ -42,9 +56,9 @@ function parseCost(costStr: string): number {
     
     if (isNaN(num)) return 0;
     
-    // 달러일 경우 대략적인 원화 환산 (보수적으로 1400원 적용 후 소수점 버림)
+    // 달러일 경우 실시간 원화 환산 
     if (isUSD) {
-        num = Math.floor(num * 1400);
+        num = Math.floor(num * USD_TO_KRW_RATE);
     }
     
     return num;
