@@ -275,7 +275,10 @@ export async function POST(req: NextRequest) {
             // 카테고리가 '유료구독'인데 cost에 '무료', '0원'이 있거나 isPaid가 false면 강제로 '기타'로 변경
             parsed = parsed.map((i: any) => {
                 if (i.category === "유료구독") {
-                    const isFree = String(i.cost).includes("무료") || String(i.cost).includes("0") || i.isPaid === false;
+                    const costStr = String(i.cost || "").trim().replace(/,/g, '');
+                    const isZero = costStr === "0" || costStr === "0원";
+                    const isFree = costStr.includes("무료") || isZero || i.isPaid === false;
+                    
                     if (isFree) {
                         i.category = "기타"; // 무료 서비스는 유료구독 금지
                     }
