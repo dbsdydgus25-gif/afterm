@@ -31,13 +31,23 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 /**
  * 비용 문자열에서 숫자 금액을 파싱하는 함수
- * 예: "14,900원" → 14900, "$9.99" → 9.99
+ * 예: "14,900원" → 14900, "$9.99" → 13986 (환율 1400원 적용)
  */
 function parseCost(costStr: string): number {
     if (!costStr || costStr.includes("무료") || costStr.includes("알 수 없음")) return 0;
+    
+    const isUSD = costStr.includes("$") || costStr.includes("달러") || costStr.toUpperCase().includes("USD");
     const cleaned = costStr.replace(/,/g, "").replace(/[^\d.]/g, "");
-    const num = parseFloat(cleaned);
-    return isNaN(num) ? 0 : num;
+    let num = parseFloat(cleaned);
+    
+    if (isNaN(num)) return 0;
+    
+    // 달러일 경우 대략적인 원화 환산 (보수적으로 1400원 적용 후 소수점 버림)
+    if (isUSD) {
+        num = Math.floor(num * 1400);
+    }
+    
+    return num;
 }
 
 /**
