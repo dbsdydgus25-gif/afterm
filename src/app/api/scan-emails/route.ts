@@ -248,20 +248,28 @@ export async function POST(req: NextRequest) {
 
             let parsed: any[] = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
 
-            // [2차 큐레이션 필터] AI 결과를 TypeScript 단에서 재검증
+            // [2차 큐레이션 필터] AI 결과를 단단히 구속하는 Typescript 파이프라인
 
-            // 1. 허용 카테고리 외 항목 제거 (5개 핵심 카테고리만)
-            const ALLOWED_CATEGORIES = ["통신", "유료구독", "클라우드", "SNS", "기타"];
-            parsed = parsed.filter((item: { category?: string; isActive?: boolean }) => {
-                if (item.isActive === false) return false; // 해지된 서비스 제외
-                // category가 허용 목록에 없으면 제외
-                return ALLOWED_CATEGORIES.includes(item.category ?? "");
+            // 1. 서비스 해지 이력 최우선 스캔 (Grouping 기반 블랙리스트)
+            // 특정 서비스에 대해 단 한번이라도 isActive === false 가 발견되면, 과거 영수증 내역이 있어도 모두 삭제
+            const canceledServices = new Set<string>();
+            parsed.forEach((item: any) => {
+                const sName = (item.service || "").toLowerCase().trim();
+                if (item.isActive === false && sName) {
+                    canceledServices.add(sName);
+                }
             });
 
-            // 2. 서비스명 기준 중복 제거 (유료 우선)
+            parsed = parsed.filter((item: any) => {
+                const sName = (item.service || "").toLowerCase().trim();
+                return sName && !canceledServices.has(sName);
+            });
+
+            // 2. 서비스명 기준 중복 제거 (남은 항목들 중에서 최신/유료 우선)
             parsed = parsed.reduce((acc: any[], item: any) => {
+                const sName = (item.service || "").toLowerCase().trim();
                 const existing = acc.find((e: any) =>
-                    e.service.toLowerCase().trim() === item.service.toLowerCase().trim()
+                    (e.service || "").toLowerCase().trim() === sName
                 );
                 if (!existing) {
                     acc.push(item);
@@ -271,19 +279,19 @@ export async function POST(req: NextRequest) {
                 return acc;
             }, []);
 
-            // 3. 필터링 전 큐레이션 강제 무결성 보정 (오분류 교정)
-            // 카테고리가 '유료구독'인데 cost에 '무료', '0원'이 있거나 isPaid가 false면 강제로 '기타'로 변경
-            parsed = parsed.map((i: any) => {
+            // 3. 허용 카테고리(4개) 검열 및 오분류 교정
+            const ALLOWED_CATEGORIES = ["통신", "유료구독", "클라우드", "SNS"];
+            parsed = parsed.filter((i: any) => {
+                // 강제 무결성 보정: '유료구독'인데 실제론 0원/무료면 데이터 삭제
                 if (i.category === "유료구독") {
                     const costStr = String(i.cost || "").trim().replace(/,/g, '');
                     const isZero = costStr === "0" || costStr === "0원";
                     const isFree = costStr.includes("무료") || isZero || i.isPaid === false;
                     
-                    if (isFree) {
-                        i.category = "기타"; // 무료 서비스는 유료구독 금지
-                    }
+                    if (isFree) return false; // 무료 서비스는 유료구독 금지 및 삭제
                 }
-                return i;
+                // 허용 리스트(기타 제외)에 없으면 전부 탈락
+                return ALLOWED_CATEGORIES.includes(i.category ?? "");
             });
 
             // 4. 사용자 의도별 엄격한 필터링

@@ -421,35 +421,6 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                         );
                     })}
 
-                    {/* 분류되지 않은 나머지 */}
-                    {items.filter(item => !["통신", "유료구독", "클라우드", "SNS"].includes(item.category ?? "")).length > 0 && (
-                        <div>
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="w-1 h-4 bg-slate-400 rounded-full" />
-                                <h3 className="text-sm font-bold text-slate-800">🗂️ 기타</h3>
-                            </div>
-                            <div className="space-y-3">
-                                <AnimatePresence>
-                                    {items
-                                        .filter(item => !["통신", "유료구독", "클라우드", "SNS"].includes(item.category ?? ""))
-                                        .map((item) => (
-                                            <EnhancedLegacyCard
-                                                key={item.id}
-                                                item={item}
-                                                onDelete={handleDeleteItem}
-                                                onUpdate={(updated) => {
-                                                    onResultChange({
-                                                        ...result,
-                                                        items: items.map(it => it.id === updated.id ? updated : it)
-                                                    });
-                                                }}
-                                            />
-                                        ))}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                    )}
-
                     {items.length === 0 && (
                         <div className="text-center py-12 text-slate-400 text-sm">
                             모든 항목이 삭제되었습니다.
