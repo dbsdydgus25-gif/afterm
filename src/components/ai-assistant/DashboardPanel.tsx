@@ -376,7 +376,6 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                         { key: "SNS", label: "👤 SNS", color: "bg-pink-500", desc: "소셜 미디어 계정" },
                     ].map(({ key, label, color, desc }) => {
                         const catItems = items.filter(item => item.category === key);
-                        if (catItems.length === 0) return null;
                         return (
                             <div key={key}>
                                 <div className="flex items-center gap-2 mb-3">
@@ -386,21 +385,27 @@ export function DashboardPanel({ result, isAnalyzing, onResultChange }: Dashboar
                                     <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${color}`}>{catItems.length}개</span>
                                 </div>
                                 <div className="space-y-3">
-                                    <AnimatePresence>
-                                        {catItems.map((item) => (
-                                            <EnhancedLegacyCard
-                                                key={item.id}
-                                                item={item}
-                                                onDelete={handleDeleteItem}
-                                                onUpdate={(updated) => {
-                                                    onResultChange({
-                                                        ...result,
-                                                        items: items.map(it => it.id === updated.id ? updated : it)
-                                                    });
-                                                }}
-                                            />
-                                        ))}
-                                    </AnimatePresence>
+                                    {catItems.length === 0 ? (
+                                        <div className="flex items-center justify-center p-4 bg-slate-50 border border-slate-100 border-dashed rounded-xl text-xs text-slate-400">
+                                            발견된 항목이 없습니다.
+                                        </div>
+                                    ) : (
+                                        <AnimatePresence>
+                                            {catItems.map((item) => (
+                                                <EnhancedLegacyCard
+                                                    key={item.id}
+                                                    item={item}
+                                                    onDelete={handleDeleteItem}
+                                                    onUpdate={(updated) => {
+                                                        onResultChange({
+                                                            ...result,
+                                                            items: items.map(it => it.id === updated.id ? updated : it)
+                                                        });
+                                                    }}
+                                                />
+                                            ))}
+                                        </AnimatePresence>
+                                    )}
                                 </div>
                             </div>
                         );
