@@ -3,10 +3,22 @@ import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+import { getRateLimiter } from '@/lib/ratelimit';
+
 export const maxDuration = 60;
+
+// 채팅은 메시지 빈도가 잦으므로 1분에 최대 30회 세팅
+const chatRateLimiter = getRateLimiter({ requests: 30, window: "1 m" });
 
 export async function POST(req: NextRequest) {
     try {
+        // [보안] 채팅 전용 Rate Limit 방어 로직 (무차별 호출 및 요금 폭탄 방지)
+        const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
+        const { success } = await chatRateLimiter.limit(ip);
+        if (!success) {
+            return NextResponse.json({ error: "채팅 전송 한도를 초과했습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+        }
+
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
         // 사용자 인증 확인

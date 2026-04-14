@@ -116,8 +116,17 @@ function extractBody(payload: any): string {
     return "";
 }
 
+import { aiRateLimiter } from "@/lib/ratelimit";
+
 export async function POST(req: NextRequest) {
     try {
+        // [보안] 1시간 10회 Rate Limit 방어 로직 (요금 폭탄 및 악의적 공격 방지)
+        const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1";
+        const { success } = await aiRateLimiter.limit(ip);
+        if (!success) {
+            return NextResponse.json({ error: "호출 한도(시간당 10회)를 초과했습니다. 잠시 후 다시 시도해주세요." }, { status: 429 });
+        }
+
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
