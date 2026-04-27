@@ -66,6 +66,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
+
     --ring: 212.7 26.8% 83.9%;
   }
 }
@@ -77,7 +78,147 @@
 
   body {
     @apply bg-background text-foreground;
+    /* 모바일 앱처럼 텍스트 선택 방지 (필요 시 개별 해제) */
+    -webkit-tap-highlight-color: transparent;
+    /* 모바일 스크롤 관성 */
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* ============================================
+     모바일 앱 스타일 기본 설정
+  ============================================ */
+
+  /* 모든 폰트 최소 14px 보장 (모바일 가독성) */
+  html {
+    font-size: 16px;
+    /* iOS Safari 확대 방지 */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 터치 영역 최소 44px 보장 */
+  button, a, [role="button"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 버튼/링크는 예외 처리 가능하도록 재정의 가능한 값 */
+  .no-min-h {
+    min-height: 0;
+  }
+
+  /* 입력창 iOS 자동 확대 방지 */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  /* ============================================
+     Safe Area 유틸리티 (아이폰 홈버튼/노치 대응)
+  ============================================ */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* 하단 탭바 여백 (BottomNav 60px + safe area) */
+  .pb-nav {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+  }
+
+  /* ============================================
+     모바일 앱 전용 유리 모피즘 카드
+  ============================================ */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  }
+
+  /* ============================================
+     앱스타일 터치 피드백
+  ============================================ */
+  .touch-active {
+    transition: transform 0.1s, opacity 0.1s;
+  }
+
+  .touch-active:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+  }
+
+  /* ============================================
+     모바일 페이지 컨테이너 (BottomNav 여백 자동)
+  ============================================ */
+  .page-container {
+    min-height: 100dvh;
+    padding-bottom: calc(60px + env(safe-area-inset-bottom) + 16px);
+  }
+
+  /* ============================================
+     앱스타일 섹션 헤더
+  ============================================ */
+  .section-header {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ============================================
+     스크롤바 숨기기 (모바일 앱 느낌)
+  ============================================ */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ============================================
+     애니메이션
+  ============================================ */
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease forwards;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes shimmer {

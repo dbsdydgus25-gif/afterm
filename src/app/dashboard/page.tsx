@@ -278,9 +278,9 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans">
-            {/* Header */}
-            <header className="w-full bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-50">
-                <Link href="/" className="text-xl font-black text-blue-600 tracking-tighter">AFTERM</Link>
+            {/* 헤더 - 모바일 앞 마지 안전영역 대응 */}
+            <header className="w-full bg-white border-b border-slate-200 h-14 md:h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 sticky top-0 z-50">
+                <Link href="/" className="text-lg md:text-xl font-black text-blue-600 tracking-tighter">AFTERM</Link>
                 <div className="relative">
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -336,7 +336,8 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10">
+            {/* 대시보드 본문 - pb-nav로 BottomNav 여백 자동 적용 */}
+            <main className="max-w-3xl mx-auto p-3 md:p-6 lg:p-10 space-y-4 md:space-y-10 pb-nav">
                 {/* Profile Section */}
                 <Link
                     href="/settings"
@@ -377,11 +378,11 @@ export default function DashboardPage() {
                     </div>
                 </Link>
 
-                {/* Apple-style Unified Storage Progress Bar */}
-                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                    <div className="flex justify-between items-end mb-4">
-                        <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <Database className="w-5 h-5 text-blue-600" />
+                {/* 스토리지 현황 */}
+                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6">
+                    <div className="flex justify-between items-end mb-3 md:mb-4">
+                        <h3 className="text-base md:text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <Database className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                             내 스토리지 현황
                         </h3>
                     </div>
@@ -405,20 +406,20 @@ export default function DashboardPage() {
                         />
                     </div>
 
-                    {/* Legend */}
-                    <div className="flex flex-wrap items-center justify-between text-sm">
-                        <div className="flex flex-wrap gap-4 sm:gap-6">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-indigo-500" />
-                                <span className="text-slate-500">메시지: <span className="font-bold text-slate-900">{messages.length}</span><span className="text-xs text-slate-400">/{maxMessages}</span></span>
+                    {/* 레전드 */}
+                    <div className="flex flex-wrap items-center justify-between text-xs md:text-sm">
+                        <div className="flex flex-wrap gap-3 md:gap-6">
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-indigo-500" />
+                                <span className="text-slate-500">메시지: <span className="font-bold text-slate-900">{messages.length}</span><span className="text-slate-400">/{maxMessages}</span></span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                                <span className="text-slate-500">디지털 유산: <span className="font-bold text-slate-900">{vaultItems.length}</span><span className="text-xs text-slate-400">/{maxVault}</span></span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-400" />
+                                <span className="text-slate-500">디지털 유산: <span className="font-bold text-slate-900">{vaultItems.length}</span><span className="text-slate-400">/{maxVault}</span></span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-cyan-400" />
-                                <span className="text-slate-500">첨부파일 용량: <span className="font-bold text-slate-900">{formatBytes(storageUsed)}</span></span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-cyan-400" />
+                                <span className="text-slate-500">첨부파일: <span className="font-bold text-slate-900">{formatBytes(storageUsed)}</span></span>
                             </div>
                         </div>
                     </div>
@@ -427,32 +428,34 @@ export default function DashboardPage() {
                 {/* Content Block with Pill Tabs */}
                 <section className="space-y-6 pt-4">
                     {/* Pill Tabs */}
-                    <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-full inline-flex md:mr-auto mx-auto w-full sm:w-auto">
+                    <div className="flex items-center bg-slate-100/80 p-1 md:p-1.5 rounded-full w-full sm:w-auto">
                         <button
                             onClick={() => { setActiveTab("messages"); setCurrentPage(1); }}
-                            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all sm:w-auto w-1/2 ${activeTab === "messages"
-                                ? "bg-white text-blue-600 shadow-sm"
-                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                                }`}
+                            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all w-1/2 sm:w-auto ${
+                                activeTab === "messages"
+                                    ? "bg-white text-blue-600 shadow-sm"
+                                    : "text-slate-500 hover:text-slate-700"
+                            }`}
                         >
-                            <MessageSquare className="w-4 h-4" />
+                            <MessageSquare className="w-3.5 h-3.5" />
                             메시지
-                            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs ${activeTab === "messages" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500"}`}>
-                                {messages.length}
-                            </span>
+                            <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                                activeTab === "messages" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500"
+                            }`}>{messages.length}</span>
                         </button>
                         <button
                             onClick={() => { setActiveTab("vault"); setCurrentPage(1); }}
-                            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all sm:w-auto w-1/2 ${activeTab === "vault"
-                                ? "bg-white text-emerald-600 shadow-sm"
-                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                                }`}
+                            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all w-1/2 sm:w-auto ${
+                                activeTab === "vault"
+                                    ? "bg-white text-emerald-600 shadow-sm"
+                                    : "text-slate-500 hover:text-slate-700"
+                            }`}
                         >
-                            <ShieldCheck className="w-4 h-4" />
+                            <ShieldCheck className="w-3.5 h-3.5" />
                             디지털 유산
-                            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs ${activeTab === "vault" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}>
-                                {vaultItems.length}
-                            </span>
+                            <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                                activeTab === "vault" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
+                            }`}>{vaultItems.length}</span>
                         </button>
                     </div>
 
@@ -615,12 +618,16 @@ export default function DashboardPage() {
                     </AnimatePresence>
                 </section>
 
-                {/* Floating Action Button for New Content based on active tab */}
+                {/* 플로팅 액션 버튼 - BottomNav 위츠 고려 */}
                 <button
                     onClick={() => router.push(activeTab === "messages" ? '/create' : '/vault/create')}
-                    className={`fixed bottom-6 right-6 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 ${activeTab === "messages" ? "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 ring-4 ring-white" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30 ring-4 ring-white"}`}
+                    className={`fixed bottom-[76px] right-4 w-12 h-12 md:w-14 md:h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 md:bottom-6 md:right-6 ${
+                        activeTab === "messages"
+                            ? "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 ring-4 ring-white"
+                            : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30 ring-4 ring-white"
+                    }`}
                 >
-                    <Plus className="w-8 h-8" />
+                    <Plus className="w-6 h-6 md:w-8 md:h-8" />
                 </button>
             </main>
         </div>

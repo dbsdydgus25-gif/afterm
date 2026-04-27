@@ -16,18 +16,17 @@ interface HeaderProps {
     transparentOnTop?: boolean;
 }
 
+// 주요 서비스 서브메뉴
 const serviceSubLinks = [
     { name: "메시지 남기기", href: "/create" },
-    { name: "디지털 유산", href: "/vault/create" },
+    { name: "디지털 유산 남기기", href: "/vault/create" },
     { name: "디지털 추모관", href: "/space" },
-    { name: "AI 추모 채팅", href: "/ai-chat" },
-    { name: "사후 행정/지원금 찾기", href: "/service/benefits" },
+    { name: "AI 추모채팅", href: "/ai-chat" },
 ];
 
+// 센터 네비게이션 링크 (주간트렌드/회사소개 제거)
 const centerNavLinks = [
     { name: "주요 서비스", href: "#", hasDropdown: true },
-    { name: "주간 트렌드", href: "/newsletter", hasDropdown: false },
-    { name: "회사소개", href: "/about", hasDropdown: false },
     { name: "문의하기", href: "/contact", hasDropdown: false },
 ];
 

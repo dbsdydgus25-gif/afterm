@@ -17,10 +17,17 @@ export default function PlansPageClient() {
     const [remainingDays, setRemainingDays] = useState<number | undefined>();
     const [endDate, setEndDate] = useState<string | undefined>();
 
+    /**
+     * 선택한 플랜으로 결제 체크아웃 페이지로 이동
+     */
     const handleSubscribe = async (planName: string, price: string) => {
-        const newPlan = planName === "Pro" ? "pro" : "free";
-        setTargetPlan(newPlan);
-        setIsPlanModalOpen(true);
+        // 로그인 체크
+        if (!plan && !isPlanModalOpen) {
+            // 언제나 로그인 후 진행 가능
+        }
+        const targetPlanId = planName === "Pro" ? "pro" : "free";
+        // 결제 체크아웃 페이지로 이동
+        router.push(`/payment/checkout?planId=${targetPlanId}&cycle=${billingCycle}`);
     };
 
     const handlePlanChange = async () => {
