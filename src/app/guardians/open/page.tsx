@@ -722,7 +722,6 @@ function GuardianOpenContent() {
                         )}
                     </div>
 
-                    </div>
 
                     {/* ── 대행 서비스 배너 ── */}
                     <div className="w-full max-w-3xl mb-12 grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 sm:px-0">
