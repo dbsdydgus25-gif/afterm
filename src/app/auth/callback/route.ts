@@ -35,15 +35,22 @@ export async function GET(request: Request) {
 
             await supabase.from('profiles').update(updatePayload).eq('id', session.user.id);
 
+            // Fetch profile to check if legacy user has already completed setup
+            const { data: profile } = await supabase.from('profiles').select('full_name, phone').eq('id', session.user.id).single();
+
             // Check if user has completed onboarding
             // Use user_metadata which is available in the session and bypasses RLS latency/issues
             const userMetadata = session.user.user_metadata;
 
             // PRIMARY CHECK: onboarding_completed flag (most reliable for existing users)
-            const isOnboardingComplete = userMetadata?.onboarding_completed === true;
+            // [BUG FIX] 기존 사용자(이름과 전화번호가 프로필에 존재하는 경우)는 온보딩 완료로 간주
+            const isOnboardingComplete = 
+                userMetadata?.onboarding_completed === true || 
+                !!(profile && profile.full_name && profile.phone);
 
-            console.log(">>> Profile Status (from metadata):", isOnboardingComplete ? "Complete" : "Incomplete");
+            console.log(">>> Profile Status (from metadata/profile):", isOnboardingComplete ? "Complete" : "Incomplete");
             console.log("Metadata:", userMetadata);
+            console.log("Profile:", profile);
 
             let targetUrl = "/";
 
