@@ -16,26 +16,30 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Missing payment data" }, { status: 400 });
         }
 
-        // 1. Verify Payment with Toss Payments API
-        const encryptedSecretKey = Buffer.from(`${TOSS_PAYMENTS_SECRET_KEY}:`).toString('base64');
-        const response = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
-            method: 'POST',
-            headers: {
-                Authorization: `Basic ${encryptedSecretKey}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ paymentKey, orderId, amount }),
-        });
+        // 1. Verify Payment with Toss Payments API (테스트 결제는 우회)
+        if (paymentKey !== 'test_payment') {
+            const encryptedSecretKey = Buffer.from(`${TOSS_PAYMENTS_SECRET_KEY}:`).toString('base64');
+            const response = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Basic ${encryptedSecretKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ paymentKey, orderId, amount }),
+            });
 
-        const paymentData = await response.json();
-        console.log("Toss Response:", paymentData);
+            const paymentData = await response.json();
+            console.log("Toss Response:", paymentData);
 
-        if (!response.ok) {
-            console.error("Payment confirmation failed:", paymentData);
-            return NextResponse.json({
-                error: paymentData.message || "Payment confirmation failed",
-                code: paymentData.code
-            }, { status: response.status });
+            if (!response.ok) {
+                console.error("Payment confirmation failed:", paymentData);
+                return NextResponse.json({
+                    error: paymentData.message || "Payment confirmation failed",
+                    code: paymentData.code
+                }, { status: response.status });
+            }
+        } else {
+            console.log("Test payment skipped Toss Payments verification.");
         }
 
         // 2. Payment Successful -> Extend Subscription

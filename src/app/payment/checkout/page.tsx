@@ -41,35 +41,17 @@ function CheckoutContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 토스페이먼츠 SDK 초기화
+    // 토스페이먼츠 SDK 초기화 (테스트용으로 우회)
     const initPayment = useCallback(async () => {
         if (!user?.id) {
             router.push("/login?returnTo=/plans");
             return;
         }
 
-        try {
-            setIsLoading(true);
-            // 고객 키: 토스페이먼츠 고객 식별자 (userId 기반)
-            const customerKey = `AFTERM-USER-${user.id.replace(/-/g, "").slice(0, 16)}`;
-
-            const tossPayments = await loadTossPayments(CLIENT_KEY);
-            const widgetInstance = tossPayments.widgets({ customerKey });
-
-            // 결제 금액 설정
-            await widgetInstance.setAmount({
-                currency: "KRW",
-                value: amount,
-            });
-
-            setWidgets(widgetInstance);
-            setIsLoading(false);
-        } catch (err) {
-            console.error("토스페이먼츠 초기화 오류:", err);
-            setError("결제 모듈 로드에 실패했습니다. 잠시 후 다시 시도해주세요.");
-            setIsLoading(false);
-        }
-    }, [user, amount, router]);
+        // 테스트를 위해 결제 모듈 로드 생략하고 바로 준비 완료 상태로 설정
+        setIsReady(true);
+        setIsLoading(false);
+    }, [user, router]);
 
     useEffect(() => {
         initPayment();
@@ -104,28 +86,12 @@ function CheckoutContent() {
     }, [widgets]);
 
     /**
-     * 결제 요청 핸들러
-     * - 토스페이먼츠 결제창을 열고, 성공/실패 URL로 리다이렉트
+     * 결제 요청 핸들러 (테스트용: 토스페이먼츠 우회)
+     * - 결제 위젯을 띄우지 않고 바로 성공 URL로 리다이렉트
      */
     const handlePayment = async () => {
-        if (!widgets || !isReady) return;
-
-        try {
-            await widgets.requestPayment({
-                orderId,
-                orderName: `AFTERM PRO ${cycle === "yearly" ? "연간" : "월간"} 이용권`,
-                successUrl: `${window.location.origin}/payment/success?billingCycle=${cycle}&userId=${user?.id}`,
-                failUrl: `${window.location.origin}/payment/fail`,
-                customerEmail: user?.email || undefined,
-                customerName: user?.name || undefined,
-            });
-        } catch (err: unknown) {
-            const error = err as { code?: string; message?: string };
-            // 사용자가 결제창을 닫은 경우 무시
-            if (error?.code === "USER_CANCEL") return;
-            console.error("결제 요청 오류:", err);
-            setError(error?.message || "결제 요청 중 오류가 발생했습니다.");
-        }
+        // 테스트용: 토스페이먼츠 결제 우회하고 바로 성공 처리
+        router.push(`/payment/success?billingCycle=${cycle}&userId=${user?.id}&orderId=${orderId}&paymentKey=test_payment&amount=${amount}`);
     };
 
     const planLabel = cycle === "yearly" ? "연간" : "월간";
@@ -212,7 +178,7 @@ function CheckoutContent() {
                         disabled={!isReady || isLoading}
                         className="w-full h-14 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold text-base rounded-2xl transition-all duration-200 active:scale-[0.98] shadow-lg shadow-blue-500/20 disabled:shadow-none"
                     >
-                        {isReady ? `${priceLabel}원 결제하기` : "로딩 중..."}
+                        {isReady ? `${priceLabel}원 결제하기 (테스트 패스)` : "로딩 중..."}
                     </button>
                     <p className="text-center text-xs text-slate-400 mt-2">
                         결제 버튼 클릭 시 약관에 동의한 것으로 간주합니다
