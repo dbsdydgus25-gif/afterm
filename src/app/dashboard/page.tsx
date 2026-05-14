@@ -230,26 +230,43 @@ export default function DashboardPage() {
     const handleBulkDeleteMessages = async () => {
         if (selectedMsgIds.size === 0) return;
         if (!confirm(`선택한 ${selectedMsgIds.size}개의 메시지를 삭제하시겠습니까?`)) return;
-        const supabase = createClient();
-        for (const id of Array.from(selectedMsgIds)) {
-            const { data: msg } = await supabase.from('messages').select('file_path, file_size, content').eq('id', id).single();
-            await supabase.from('messages').delete().eq('id', id);
-            if (msg?.file_path) await supabase.storage.from('memories').remove([msg.file_path]);
+        
+        try {
+            const supabase = createClient();
+            for (const id of Array.from(selectedMsgIds)) {
+                const { data: msg } = await supabase.from('messages').select('file_path, file_size, content').eq('id', id).single();
+                const { error } = await supabase.from('messages').delete().eq('id', id);
+                if (error) throw error;
+                if (msg?.file_path) await supabase.storage.from('memories').remove([msg.file_path]);
+            }
+            setMessages(prev => prev.filter(m => !selectedMsgIds.has(m.id)));
+            setSelectedMsgIds(new Set());
+            setMsgSelectMode(false);
+            alert("선택한 메시지가 삭제되었습니다.");
+        } catch (error) {
+            console.error("Message delete error:", error);
+            alert("메시지 삭제 중 오류가 발생했습니다.");
         }
-        setMessages(prev => prev.filter(m => !selectedMsgIds.has(m.id)));
-        setSelectedMsgIds(new Set());
-        setMsgSelectMode(false);
     };
 
     const handleBulkDeleteVaults = async () => {
         if (selectedVaultIds.size === 0) return;
         if (!confirm(`선택한 ${selectedVaultIds.size}개의 디지털 유산을 삭제하시겠습니까?`)) return;
-        const supabase = createClient();
-        const ids = Array.from(selectedVaultIds);
-        await supabase.from('vault_items').delete().in('id', ids);
-        setVaultItems(prev => prev.filter(v => !selectedVaultIds.has(v.id)));
-        setSelectedVaultIds(new Set());
-        setVaultSelectMode(false);
+        
+        try {
+            const supabase = createClient();
+            const ids = Array.from(selectedVaultIds);
+            const { error } = await supabase.from('vault_items').delete().in('id', ids);
+            if (error) throw error;
+            
+            setVaultItems(prev => prev.filter(v => !selectedVaultIds.has(v.id)));
+            setSelectedVaultIds(new Set());
+            setVaultSelectMode(false);
+            alert("선택한 디지털 유산이 삭제되었습니다.");
+        } catch (error) {
+            console.error("Vault delete error:", error);
+            alert("디지털 유산 삭제 중 오류가 발생했습니다.");
+        }
     };
 
     const toggleMsgSelect = (id: string) => {
