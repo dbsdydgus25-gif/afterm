@@ -7,7 +7,7 @@ import {
     Shield, Key, User, Phone, CheckCircle, Lock, ChevronRight, Eye, EyeOff,
     Copy, Check, FileText, ChevronDown, ChevronUp, CreditCard, Music, Cloud,
     Gamepad2, ShoppingBag, Terminal, Users, Info, Globe, LayoutGrid, Box,
-    Upload, Camera, Loader2, XCircle, Calendar, ArrowRight
+    Upload, Camera, Loader2, XCircle, Calendar, ArrowRight, Trash2, Search, CheckCircle2, AlertCircle
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -71,6 +71,20 @@ const CATEGORY_STYLE: Record<string, { icon: any; color: string; border: string;
     SNS: { icon: Users, color: "text-pink-600", border: "border-pink-100", bg: "bg-pink-50" },
     기타: { icon: Info, color: "text-slate-500", border: "border-slate-200", bg: "bg-slate-50" },
 };
+
+// ─── 정적 데이터 (환급금/행정) ───────────────────────────
+const mockBenefits = [
+    { id: 1, title: "장제비 지원금", amount: 800000, type: "정부 지원", status: "수령 가능" },
+    { id: 2, title: "유족 연금 (초기 정착금)", amount: 1200000, type: "국민연금공단", status: "수령 가능" },
+    { id: 3, title: "건강보험료 환급금", amount: 154000, type: "건강보험공단", status: "수령 가능" },
+];
+
+const mockTimeline = [
+    { id: 1, title: "사망신고", deadline: "사망일로부터 1개월 이내", status: "urgent", desc: "시/구/읍/면/동 주민센터 방문 또는 온라인" },
+    { id: 2, title: "안심상속 원스톱 서비스 신청", deadline: "사망일이 속한 달의 말일부터 6개월 이내", status: "pending", desc: "재산, 금융 내역 통보 신청" },
+    { id: 3, title: "상속포기 또는 한정승인", deadline: "상속 개시 있음을 안 날로부터 3개월", status: "pending", desc: "가정법원에 청구" },
+    { id: 4, title: "상속세 신고 및 납부", deadline: "개시일이 속하는 달의 말일부터 6개월 이내", status: "pending", desc: "주소지 관할 세무서" },
+];
 
 // ─── 유산 아코디언 ────────────────────────────────────────
 function VaultAccordion({ items }: { items: VaultItem[] }) {
@@ -245,6 +259,23 @@ function GuardianOpenContent() {
         if (n.length > 3) return `${n.slice(0, 3)}-${n.slice(3)}`;
         return n;
     };
+
+    // 대행 서비스 상태
+    const [activeService, setActiveService] = useState<"none" | "cancel-loading" | "cancel-done" | "benefits-loading1" | "benefits-loading2" | "benefits-result">("none");
+
+    // 대행 서비스 타이머 처리
+    useEffect(() => {
+        if (activeService === "cancel-loading") {
+            const timer = setTimeout(() => setActiveService("cancel-done"), 2500);
+            return () => clearTimeout(timer);
+        } else if (activeService === "benefits-loading1") {
+            const timer = setTimeout(() => setActiveService("benefits-loading2"), 2000);
+            return () => clearTimeout(timer);
+        } else if (activeService === "benefits-loading2") {
+            const timer = setTimeout(() => setActiveService("benefits-result"), 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [activeService]);
 
     // ── API 키 경로 제출 ──────────────────────────────────
     const handleApiKeySubmit = async () => {
@@ -691,6 +722,43 @@ function GuardianOpenContent() {
                         )}
                     </div>
 
+                    </div>
+
+                    {/* ── 대행 서비스 배너 ── */}
+                    <div className="w-full max-w-3xl mb-12 grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 sm:px-0">
+                        {/* 1. 자동 해지 배너 */}
+                        <div 
+                            onClick={() => setActiveService("cancel-loading")}
+                            className="bg-white rounded-[24px] p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-300 transition-all cursor-pointer group flex items-start gap-4"
+                        >
+                            <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center border border-rose-100 flex-shrink-0 group-hover:scale-105 transition-transform">
+                                <Trash2 className="w-6 h-6 text-rose-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                                    구독/계정 자동 해지 대행 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-rose-500 transition-colors" />
+                                </h3>
+                                <p className="text-xs text-slate-500 leading-snug">고인의 유료 결제 및 SNS 계정 탈퇴 처리를 대신 진행해 드립니다.</p>
+                            </div>
+                        </div>
+
+                        {/* 2. 환급금 찾기 배너 */}
+                        <div 
+                            onClick={() => setActiveService("benefits-loading1")}
+                            className="bg-white rounded-[24px] p-5 border border-blue-100 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group flex items-start gap-4"
+                        >
+                            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100 flex-shrink-0 group-hover:scale-105 transition-transform">
+                                <Search className="w-6 h-6 text-blue-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-1.5">
+                                    유가족 숨은 지원금 찾기 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                </h3>
+                                <p className="text-xs text-slate-500 leading-snug">놓치기 쉬운 장제비, 보험 환급금 등 1분 만에 모두 찾아보세요.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex-1 w-full max-w-[1200px] overflow-hidden relative">
                         {result.vaultItems.length > 0 ? (
                             <VaultAccordion items={result.vaultItems} />
@@ -703,6 +771,163 @@ function GuardianOpenContent() {
                     </div>
                 </div>
             )}
+
+            {/* ── 대행 서비스 모달/오버레이 ── */}
+            <AnimatePresence>
+                {/* 1. 자동 해지 모달 */}
+                {(activeService === "cancel-loading" || activeService === "cancel-done") && (
+                    <>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100]" />
+                        <div className="fixed inset-0 flex items-center justify-center z-[101] px-4">
+                            <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                                className="w-full max-w-sm bg-white rounded-[32px] p-8 shadow-2xl flex flex-col items-center text-center">
+                                {activeService === "cancel-loading" ? (
+                                    <>
+                                        <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6 relative">
+                                            <div className="absolute inset-0 border-4 border-rose-100 border-t-rose-500 rounded-full animate-spin" />
+                                            <Trash2 className="w-8 h-8 text-rose-500 animate-pulse" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2">자동 해지 접수 중...</h3>
+                                        <p className="text-sm text-slate-500">해지 가능 계정을 확인하고 있습니다.</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6">
+                                            <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2">해지 접수 완료</h3>
+                                        <p className="text-sm text-slate-500 mb-6 break-keep">신청하신 계정의 해지 처리가 접수되었습니다.<br/>완료 시 가디언즈 연락처로 안내 메시지를 발송해드립니다.</p>
+                                        <button onClick={() => setActiveService("none")} className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold transition-all active:scale-[0.98]">
+                                            확인
+                                        </button>
+                                    </>
+                                )}
+                            </motion.div>
+                        </div>
+                    </>
+                )}
+
+                {/* 2. 환급금 찾기 로딩 */}
+                {(activeService === "benefits-loading1" || activeService === "benefits-loading2") && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center"
+                    >
+                        <div className="relative w-32 h-32 mb-8">
+                            <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-50" />
+                            <div className="absolute inset-2 bg-blue-50 rounded-full flex items-center justify-center">
+                                {activeService === "benefits-loading1" && <span className="text-4xl">📄</span>}
+                                {activeService === "benefits-loading2" && <span className="text-4xl">👨‍👩‍👧‍👦</span>}
+                            </div>
+                            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="48" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                                <motion.circle cx="50" cy="50" r="48" fill="none" stroke="#2563eb" strokeWidth="4" strokeLinecap="round"
+                                    initial={{ strokeDasharray: "0 300" }}
+                                    animate={{ strokeDasharray: activeService === "benefits-loading2" ? "200 300" : "100 300" }}
+                                    transition={{ duration: 1.5, ease: "easeInOut" }} />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">
+                            {activeService === "benefits-loading1" ? "사망진단서 기록 확인 중..." : "수령 가능한 혜택 계산 중..."}
+                        </h3>
+                        <p className="text-slate-500 text-sm">
+                            {activeService === "benefits-loading1" ? "정부 공공 데이터를 조회하고 있습니다." : "가족관계 연동 데이터를 분석하고 있습니다."}
+                        </p>
+                    </motion.div>
+                )}
+
+                {/* 3. 환급금 찾기 결과 (전체 화면 오버레이) */}
+                {activeService === "benefits-result" && result && (
+                    <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="fixed inset-0 bg-slate-50 z-[100] overflow-y-auto"
+                    >
+                        <div className="w-full bg-white border-b border-slate-200 h-14 flex items-center px-4 sticky top-0 z-[101]">
+                            <button onClick={() => setActiveService("none")} className="p-2 -ml-2 rounded-xl text-slate-400 hover:bg-slate-50 transition-colors">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                            <span className="ml-2 font-bold text-slate-900">지원금 조회 결과</span>
+                        </div>
+                        
+                        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24">
+                            <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8 text-center"
+                            >
+                                <p className="text-slate-500 font-medium mb-3">
+                                    <span className="font-bold text-slate-800">{result.deceasedName}</span>님 유가족이 받을 수 있는 총 지원금
+                                </p>
+                                <div className="flex items-center justify-center gap-1 mb-6">
+                                    <span className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight">
+                                        {mockBenefits.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
+                                    </span>
+                                    <span className="text-2xl text-slate-600 font-bold mb-1">원</span>
+                                </div>
+                                <button onClick={() => alert("MVP 버전입니다.")} className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-lg font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]">
+                                    지원금 한 번에 신청하기
+                                </button>
+                            </motion.section>
+
+                            <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        <span className="w-2 h-6 bg-blue-500 rounded-sm"></span> 상세 지원금 내역
+                                    </h2>
+                                    <span className="text-sm font-medium text-slate-500 bg-slate-200/50 px-2 py-1 rounded-md">총 {mockBenefits.length}건</span>
+                                </div>
+                                <div className="space-y-3">
+                                    {mockBenefits.map((item) => (
+                                        <div key={item.id} className="bg-white p-5 rounded-2xl flex items-center justify-between border border-slate-100 shadow-sm">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-sm">{item.type}</span>
+                                                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-sm flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {item.status}</span>
+                                                </div>
+                                                <h3 className="font-bold text-slate-800 text-lg">{item.title}</h3>
+                                            </div>
+                                            <div className="text-xl font-bold text-slate-900">{item.amount.toLocaleString()}원</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.section>
+
+                            <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                                <div className="flex items-center justify-between mb-4 px-2">
+                                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        <span className="w-2 h-6 bg-amber-400 rounded-sm"></span> 필수 행정 처리 기한
+                                    </h2>
+                                </div>
+                                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative">
+                                    <div className="absolute left-10 md:left-12 top-10 bottom-10 w-0.5 bg-slate-100"></div>
+                                    <div className="space-y-8 relative z-10">
+                                        {mockTimeline.map((item) => (
+                                            <div key={item.id} className="flex gap-4 md:gap-6 relative">
+                                                <div className="flex flex-col items-center mt-1">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-white border-2 shadow-sm z-10 ${item.status === 'urgent' ? 'border-red-500 text-red-500' : 'border-slate-300 text-slate-400'}`}>
+                                                        {item.status === 'urgent' ? <AlertCircle className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 pb-2">
+                                                    <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+                                                        {item.title}
+                                                        {item.status === 'urgent' && <span className="text-[10px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-full animate-pulse">기한 임박</span>}
+                                                    </h3>
+                                                    <p className="text-sm font-semibold text-rose-600 mb-1">{item.deadline}</p>
+                                                    <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 mt-1">{item.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.section>
+
+                            <div className="mt-12">
+                                <button onClick={() => setActiveService("none")} className="w-full h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg shadow-xl shadow-slate-900/20 transition-all active:scale-[0.98]">
+                                    디지털 유산 목록으로 돌아가기
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
