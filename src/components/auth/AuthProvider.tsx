@@ -96,7 +96,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             // Check if user has completed onboarding
-            const hasCompletedOnboarding = session.user.user_metadata?.onboarding_completed === true;
+            // [BUG FIX] 기존 가입자(이미 프로필에 전화번호와 이름이 있는 경우)는 온보딩을 완료한 것으로 간주
+            const hasCompletedOnboarding = 
+                session.user.user_metadata?.onboarding_completed === true || 
+                (profile && profile.full_name && profile.phone);
 
             // Whitelist: Auth pages and onboarding itself
             const isAuthOrOnboarding = pathname.startsWith("/auth/") || pathname.startsWith("/onboarding") || pathname.startsWith("/api/") || pathname.startsWith("/_next");
@@ -115,15 +118,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 router.replace(returnTo);
             }
 
-            // [BUG FIX] Removed email fallback which was causing "user" display for unauthenticated state
-            // Name must come from profile or user_metadata only - never from email prefix
-            const finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name || null;
+            // [BUG FIX] Name fallback added to ensure onboarding flow can proceed.
+            // If no name is found (e.g., brand new email signup), use email prefix or default to prevent infinite loading in onboarding.
+            let finalName = profile?.full_name || session.user.user_metadata.full_name || session.user.user_metadata.name;
             const finalAvatar = profile?.avatar_url || session.user.user_metadata.avatar_url;
 
-            // If no name found at all (edge case), don't show ghost name
             if (!finalName) {
-                console.log("[AuthProvider] No name found for user - skipping setUser to avoid ghost session");
-                return;
+                finalName = session.user.email?.split('@')[0] || "사용자";
             }
 
             const finalMetadata = {
