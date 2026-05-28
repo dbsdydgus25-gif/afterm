@@ -1,53 +1,34 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import Logo from '@/components/Logo'
+import { usePathname, useRouter } from 'next/navigation'
+import Topbar from '@/components/ui/Topbar'
+import StepIndicator from '@/components/ui/StepIndicator'
 
 const STEPS = [
-  { label: '고인 정보', path: '/apply' },
-  { label: '서비스 선택', path: '/apply/services' },
-  { label: '서류·서명', path: '/apply/documents' },
-  { label: '최종 확인', path: '/apply/confirm' },
+  { id: 'info', label: '고인 정보', path: '/apply' },
+  { id: 'services', label: '서비스 선택', path: '/apply/services' },
+  { id: 'docs', label: '서류·서명', path: '/apply/documents' },
+  { id: 'confirm', label: '최종 확인', path: '/apply/confirm' },
 ]
 
 export default function ApplyLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const currentIndex = STEPS.findIndex(s => s.path === pathname)
+  const isConfirm = pathname === '/apply/confirm'
+
+  const handleBack = () => {
+    if (currentIndex === 0) router.push('/dashboard')
+    else router.back() // or step back via history
+  }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-      {/* 헤더 */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: '#fff', borderBottom: '1px solid #F0F2F5',
-        padding: '0 20px', height: '56px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <Link href="/dashboard" style={{
-          fontSize: '14px', color: '#9AA3B2', textDecoration: 'none',
-          display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500,
-        }}>
-          ← 취소
-        </Link>
-        <Logo width={96} height={28} />
-        <div style={{ width: '48px', textAlign: 'right', fontSize: '13px', color: '#9AA3B2', fontWeight: 600 }}>
-          {currentIndex + 1}/{STEPS.length}
-        </div>
-      </div>
-
-      {/* 진행 바 */}
-      <div style={{ height: '3px', background: '#F0F2F5' }}>
-        <div style={{
-          height: '100%', background: '#3B6FE8',
-          width: `${((currentIndex + 1) / STEPS.length) * 100}%`,
-          transition: 'width 0.4s ease',
-        }} />
-      </div>
-
+    <div className="screen">
+      {!isConfirm && <Topbar onBack={handleBack} title={STEPS[currentIndex]?.label} brand={false} />}
+      {!isConfirm && <StepIndicator steps={STEPS} current={currentIndex} />}
+      
       {/* 콘텐츠 */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {children}
       </div>
     </div>

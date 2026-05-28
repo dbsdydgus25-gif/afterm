@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
 
 // 서류 정보
 const DOCS = [
@@ -33,8 +34,6 @@ const DOCS = [
   },
 ]
 
-// Step 2: 서류 업로드 + 전자서명
-// 문서 업로드 → 위임 정보 → 서명 단계로 진행
 type Phase = 'docs' | 'delegator' | 'sign'
 
 export default function DocumentsPage() {
@@ -106,7 +105,7 @@ export default function DocumentsPage() {
     ctx.beginPath()
     ctx.moveTo(lastPos.current!.x, lastPos.current!.y)
     ctx.lineTo(pos.x, pos.y)
-    ctx.strokeStyle = '#1A1A2E'; ctx.lineWidth = 2.5
+    ctx.strokeStyle = '#171719'; ctx.lineWidth = 3
     ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke()
     lastPos.current = pos; setHasSig(true)
   }
@@ -149,26 +148,15 @@ export default function DocumentsPage() {
   // ── 서류 업로드 단계 ──
   if (phase === 'docs') {
     return (
-      <div style={{ minHeight: 'calc(100dvh - 59px)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, padding: '40px 24px' }}>
-          {/* 진행 바 */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '40px' }}>
-            {[0,1,2,3].map(i => (
-              <div key={i} style={{
-                height: '4px', flex: 1, borderRadius: '100px',
-                background: i <= 1 ? '#3B6FE8' : '#E2E8F0',
-              }} />
-            ))}
-          </div>
-
-          <h2 style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em', color: '#1A1A2E', marginBottom: '10px', lineHeight: 1.25 }}>
+      <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
+          
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3 }}>
             서류를 업로드해 주세요
           </h2>
-          <p style={{ fontSize: '14px', color: '#9AA3B2', marginBottom: '8px' }}>
-            카메라로 촬영하거나 파일을 선택해 주세요
-          </p>
-          <p style={{ fontSize: '13px', color: '#3B6FE8', fontWeight: 700, marginBottom: '32px' }}>
-            {uploadedCount} / {DOCS.length}개 완료
+          <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '32px' }}>
+            카메라로 촬영하거나 파일을 선택해 주세요<br/>
+            <span style={{ color: 'var(--color-primary-normal)', fontWeight: 700 }}>{uploadedCount} / {DOCS.length}개 완료</span>
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -184,40 +172,39 @@ export default function DocumentsPage() {
                     style={{ display: 'none' }}
                     onChange={e => e.target.files?.[0] && handleFileUpload(doc.type, e.target.files[0])}
                   />
-                  <div style={{
-                    padding: '18px',
-                    border: `2px solid ${uploaded ? '#1A1A2E' : '#E2E8F0'}`,
-                    borderRadius: '14px',
-                    background: uploaded ? '#F7F8FA' : '#fff',
-                    display: 'flex', alignItems: 'center', gap: '14px',
-                    transition: 'all 0.15s',
+                  <div className={uploaded ? 'card-soft' : 'card'} style={{
+                    padding: '20px',
+                    borderColor: uploaded ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)',
+                    background: uploaded ? 'var(--color-blue-99)' : 'var(--color-common-100)',
+                    display: 'flex', alignItems: 'center', gap: '16px',
+                    transition: 'all 0.2s',
                   }}>
                     <div style={{
-                      width: '48px', height: '48px', borderRadius: '12px',
-                      background: uploaded ? '#1A1A2E' : '#F7F8FA',
+                      width: '48px', height: '48px', borderRadius: 'var(--radius-12)',
+                      background: uploaded ? 'var(--color-primary-normal)' : 'var(--color-background-normal-alternative)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '22px', flexShrink: 0,
                     }}>
                       {isUploading ? '⏳' : uploaded ? '✅' : doc.icon}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A2E', marginBottom: '3px' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-label-strong)', letterSpacing: '-0.02em' }}>
                         {doc.title}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#9AA3B2' }}>{doc.desc}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '2px' }}>{doc.desc}</div>
                     </div>
                     {!uploaded && !isUploading && (
                       <span style={{
-                        padding: '7px 14px', borderRadius: '8px',
-                        background: '#1A1A2E', color: '#fff',
-                        fontSize: '12px', fontWeight: 700, flexShrink: 0,
+                        padding: '6px 14px', borderRadius: 'var(--radius-8)',
+                        background: 'var(--color-coolNeutral-96)', color: 'var(--color-label-strong)',
+                        fontSize: '13px', fontWeight: 700, flexShrink: 0,
                       }}>
                         업로드
                       </span>
                     )}
                     {isUploading && (
-                      <span style={{ fontSize: '13px', color: '#3B6FE8', fontWeight: 600, flexShrink: 0 }}>
-                        업로드 중...
+                      <span style={{ fontSize: '13px', color: 'var(--color-primary-normal)', fontWeight: 600, flexShrink: 0 }}>
+                        처리 중...
                       </span>
                     )}
                   </div>
@@ -226,33 +213,18 @@ export default function DocumentsPage() {
             })}
           </div>
 
-          <div style={{
-            marginTop: '20px', padding: '14px 16px',
-            background: '#F7F8FA', borderRadius: '12px',
-            fontSize: '13px', color: '#9AA3B2', lineHeight: 1.6,
+          <div className="card-soft" style={{
+            marginTop: '24px', padding: '16px',
+            fontSize: '13px', color: 'var(--color-label-alternative)', lineHeight: 1.6,
           }}>
             🔒 업로드된 서류는 암호화되어 안전하게 보관되며, 해지 처리 목적 외에는 사용되지 않습니다.
           </div>
         </div>
 
-        <div style={{
-          padding: '16px 24px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-          background: '#fff', borderTop: '1px solid #F0F2F5',
-        }}>
-          <button
-            onClick={() => setPhase('delegator')}
-            disabled={!allDocsUploaded}
-            style={{
-              width: '100%', height: '52px', borderRadius: '12px', border: 'none',
-              background: allDocsUploaded ? '#1A1A2E' : '#E2E8F0',
-              color: allDocsUploaded ? '#fff' : '#9AA3B2',
-              fontSize: '16px', fontWeight: 700,
-              cursor: allDocsUploaded ? 'pointer' : 'not-allowed',
-              fontFamily: 'inherit', transition: 'all 0.15s',
-            }}
-          >
-            {allDocsUploaded ? '다음 단계 →' : `${DOCS.length - uploadedCount}개 더 업로드해 주세요`}
-          </button>
+        <div className="cta-dock">
+          <Button block disabled={!allDocsUploaded} onClick={() => setPhase('delegator')}>
+            {allDocsUploaded ? '다음 단계' : `${DOCS.length - uploadedCount}개 더 업로드해 주세요`}
+          </Button>
         </div>
       </div>
     )
@@ -262,63 +234,54 @@ export default function DocumentsPage() {
   if (phase === 'delegator') {
     const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
     return (
-      <div style={{ minHeight: 'calc(100dvh - 59px)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, padding: '40px 24px' }}>
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '40px' }}>
-            {[0,1,2,3].map(i => (
-              <div key={i} style={{ height: '4px', flex: 1, borderRadius: '100px', background: i <= 1 ? '#3B6FE8' : '#E2E8F0' }} />
-            ))}
-          </div>
-
-          <h2 style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em', color: '#1A1A2E', marginBottom: '10px', lineHeight: 1.25 }}>
+      <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
+          
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3 }}>
             신청인 정보를<br />입력해 주세요
           </h2>
-          <p style={{ fontSize: '14px', color: '#9AA3B2', marginBottom: '36px' }}>
+          <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '32px' }}>
             위임장에 기재될 유족(신청인) 정보입니다
           </p>
 
           {error && (
-            <div style={{ padding: '12px 14px', background: '#FEF2F2', borderRadius: '10px', fontSize: '13px', color: '#DC2626', marginBottom: '20px' }}>
-              ⚠️ {error}
+            <div className="card-soft" style={{ padding: '12px 16px', marginBottom: '24px', color: 'var(--color-status-negative)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{error}</span>
             </div>
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 700, color: '#4A5568', display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '12px' }}>
                 신청인 성함 *
               </label>
               <input
                 type="text"
-                placeholder="홍길동"
+                placeholder="예: 홍길동"
                 value={delegatorName}
                 onChange={e => { setDelegatorName(e.target.value); setError('') }}
                 autoFocus
-                style={{
-                  width: '100%', height: '52px', padding: '0 0',
-                  border: 'none', borderBottom: '2.5px solid #3B6FE8',
-                  fontSize: '22px', fontWeight: 700, fontFamily: 'inherit',
-                  color: '#1A1A2E', background: 'transparent', outline: 'none',
-                }}
+                className="input"
+                style={{ padding: 0 }}
               />
             </div>
 
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 700, color: '#4A5568', display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '16px' }}>
                 고인과의 관계 *
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {RELATIONS.map(r => (
                   <button
                     key={r}
                     onClick={() => { setDelegatorRelation(r); setError('') }}
                     style={{
-                      padding: '10px 18px', borderRadius: '100px',
-                      border: `2px solid ${delegatorRelation === r ? '#1A1A2E' : '#E2E8F0'}`,
-                      background: delegatorRelation === r ? '#1A1A2E' : '#fff',
-                      color: delegatorRelation === r ? '#fff' : '#4A5568',
+                      padding: '10px 18px', borderRadius: 'var(--radius-pill)',
+                      border: `1.5px solid ${delegatorRelation === r ? 'var(--color-label-strong)' : 'var(--color-line-normal-normal)'}`,
+                      background: delegatorRelation === r ? 'var(--color-label-strong)' : 'var(--color-common-100)',
+                      color: delegatorRelation === r ? 'var(--color-common-100)' : 'var(--color-label-alternative)',
                       fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                      fontFamily: 'inherit', transition: 'all 0.15s',
+                      fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
                     }}
                   >{r}</button>
                 ))}
@@ -327,34 +290,17 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        <div style={{
-          padding: '16px 24px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-          background: '#fff', borderTop: '1px solid #F0F2F5',
-          display: 'flex', gap: '12px',
-        }}>
-          <button
-            onClick={() => setPhase('docs')}
-            style={{
-              width: '52px', height: '52px', borderRadius: '12px',
-              border: '1.5px solid #E2E8F0', background: '#fff',
-              fontSize: '18px', cursor: 'pointer', flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >←</button>
-          <button
-            onClick={() => {
-              if (!delegatorName) { setError('신청인 성함을 입력해 주세요'); return }
-              if (!delegatorRelation) { setError('고인과의 관계를 선택해 주세요'); return }
-              setError(''); setPhase('sign')
-            }}
-            style={{
-              flex: 1, height: '52px', borderRadius: '12px', border: 'none',
-              background: '#1A1A2E', color: '#fff', fontSize: '16px', fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            서명하기 →
-          </button>
+        <div className="cta-dock" style={{ display: 'flex', gap: '12px' }}>
+          <Button variant="secondary" onClick={() => setPhase('docs')} style={{ width: '56px', padding: 0 }}>
+            ←
+          </Button>
+          <Button block onClick={() => {
+            if (!delegatorName) { setError('신청인 성함을 입력해 주세요'); return }
+            if (!delegatorRelation) { setError('고인과의 관계를 선택해 주세요'); return }
+            setError(''); setPhase('sign')
+          }} style={{ flex: 1 }}>
+            서명하기
+          </Button>
         </div>
       </div>
     )
@@ -362,27 +308,22 @@ export default function DocumentsPage() {
 
   // ── 전자서명 단계 ──
   return (
-    <div style={{ minHeight: 'calc(100dvh - 59px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1, padding: '40px 24px' }}>
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '40px' }}>
-          {[0,1,2,3].map(i => (
-            <div key={i} style={{ height: '4px', flex: 1, borderRadius: '100px', background: i <= 1 ? '#3B6FE8' : '#E2E8F0' }} />
-          ))}
-        </div>
-
-        <h2 style={{ fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em', color: '#1A1A2E', marginBottom: '10px', lineHeight: 1.25 }}>
+    <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
+        
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3 }}>
           위임장에<br />서명해 주세요
         </h2>
-        <p style={{ fontSize: '14px', color: '#9AA3B2', marginBottom: '8px' }}>
+        <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '8px' }}>
           에프텀에 해지 대행을 위임하는 전자서명입니다
         </p>
-        <p style={{ fontSize: '13px', color: '#3B6FE8', fontWeight: 600, marginBottom: '28px' }}>
-          {delegatorName} ({delegatorRelation})
+        <p style={{ fontSize: '14px', color: 'var(--color-primary-normal)', fontWeight: 700, marginBottom: '28px' }}>
+          위임인: {delegatorName} ({delegatorRelation})
         </p>
 
         {error && (
-          <div style={{ padding: '12px 14px', background: '#FEF2F2', borderRadius: '10px', fontSize: '13px', color: '#DC2626', marginBottom: '16px' }}>
-            ⚠️ {error}
+          <div className="card-soft" style={{ padding: '12px 16px', marginBottom: '24px', color: 'var(--color-status-negative)' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{error}</span>
           </div>
         )}
 
@@ -394,8 +335,8 @@ export default function DocumentsPage() {
             height={200}
             style={{
               width: '100%', height: '200px', touchAction: 'none',
-              border: '2px solid', borderColor: hasSig ? '#1A1A2E' : '#E2E8F0',
-              borderRadius: '16px', background: '#FAFAFA', cursor: 'crosshair',
+              border: '2px solid', borderColor: hasSig ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)',
+              borderRadius: 'var(--radius-16)', background: 'var(--color-coolNeutral-99)', cursor: 'crosshair',
               transition: 'border-color 0.2s',
             }}
             onTouchStart={startSign}
@@ -412,9 +353,9 @@ export default function DocumentsPage() {
               transform: 'translate(-50%, -50%)',
               textAlign: 'center', pointerEvents: 'none',
             }}>
-              <div style={{ fontSize: '28px', marginBottom: '6px' }}>✍️</div>
-              <div style={{ fontSize: '13px', color: '#9AA3B2', fontWeight: 500 }}>
-                손가락으로 서명해 주세요
+              <div style={{ fontSize: '28px', marginBottom: '8px' }}>✍️</div>
+              <div style={{ fontSize: '14px', color: 'var(--color-label-alternative)', fontWeight: 600 }}>
+                가운데 빈 공간에<br/>손가락으로 서명해 주세요
               </div>
             </div>
           )}
@@ -424,52 +365,31 @@ export default function DocumentsPage() {
           <button
             onClick={clearSign}
             style={{
-              marginTop: '12px', background: 'none', border: 'none',
-              color: '#9AA3B2', fontSize: '13px', cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 500, textDecoration: 'underline',
+              marginTop: '16px', background: 'none', border: 'none',
+              color: 'var(--color-label-assistive)', fontSize: '14px', cursor: 'pointer',
+              fontFamily: 'var(--font-sans)', fontWeight: 600, textDecoration: 'underline',
+              padding: 0
             }}
           >
             다시 서명하기
           </button>
         )}
 
-        <div style={{
-          marginTop: '20px', padding: '14px 16px',
-          background: '#F7F8FA', borderRadius: '12px',
-          fontSize: '13px', color: '#9AA3B2', lineHeight: 1.6,
+        <div className="card-soft" style={{
+          marginTop: '24px', padding: '16px',
+          fontSize: '13px', color: 'var(--color-label-alternative)', lineHeight: 1.6,
         }}>
           ⚖️ 위의 서명은 「전자서명법」에 따른 법적 효력을 지닌 전자서명으로 처리됩니다.
         </div>
       </div>
 
-      <div style={{
-        padding: '16px 24px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-        background: '#fff', borderTop: '1px solid #F0F2F5',
-        display: 'flex', gap: '12px',
-      }}>
-        <button
-          onClick={() => { setError(''); setPhase('delegator') }}
-          style={{
-            width: '52px', height: '52px', borderRadius: '12px',
-            border: '1.5px solid #E2E8F0', background: '#fff',
-            fontSize: '18px', cursor: 'pointer', flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >←</button>
-        <button
-          onClick={handleFinish}
-          disabled={!hasSig || loading}
-          style={{
-            flex: 1, height: '52px', borderRadius: '12px', border: 'none',
-            background: hasSig && !loading ? '#1A1A2E' : '#E2E8F0',
-            color: hasSig ? '#fff' : '#9AA3B2',
-            fontSize: '16px', fontWeight: 700,
-            cursor: hasSig && !loading ? 'pointer' : 'not-allowed',
-            fontFamily: 'inherit', transition: 'all 0.15s',
-          }}
-        >
-          {loading ? '저장 중...' : '서명 완료 →'}
-        </button>
+      <div className="cta-dock" style={{ display: 'flex', gap: '12px' }}>
+        <Button variant="secondary" onClick={() => { setError(''); setPhase('delegator') }} style={{ width: '56px', padding: 0 }}>
+          ←
+        </Button>
+        <Button block disabled={!hasSig || loading} onClick={handleFinish} style={{ flex: 1 }}>
+          {loading ? '저장 중...' : '서명 완료'}
+        </Button>
       </div>
     </div>
   )

@@ -1,0 +1,216 @@
+/* ────────────────────────────────────────────────────────────────
+ * Wanted Design System — colors_and_type.css
+ * Faithful reconstruction of the public Wanted Figma library
+ * (CC BY 4.0). Tokens use the same naming convention as the source
+ * file: color-atomic-{family}-{step}, color-semantic-{role}-{state}.
+ * ──────────────────────────────────────────────────────────────── */
+
+/* Pretendard — uploaded by the user as 9 static OTF weights. */
+@font-face { font-family: "Pretendard"; font-weight: 100; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Thin.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 200; font-style: normal; font-display: swap; src: url("fonts/Pretendard-ExtraLight.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 300; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Light.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Regular.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Medium.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; font-style: normal; font-display: swap; src: url("fonts/Pretendard-SemiBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Bold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 800; font-style: normal; font-display: swap; src: url("fonts/Pretendard-ExtraBold.otf") format("opentype"); }
+@font-face { font-family: "Pretendard"; font-weight: 900; font-style: normal; font-display: swap; src: url("fonts/Pretendard-Black.otf") format("opentype"); }
+
+/* Wanted Sans — display face still loaded from the public wanteddev release.
+   Replace with local files when available. */
+@font-face {
+  font-family: "Wanted Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.4/packages/wanted-sans/fonts/webfonts/variable/woff2/WantedSansVariable.woff2") format("woff2-variations");
+}
+
+:root {
+  /* ── Atomic palette ── */
+  --color-common-100: #ffffff;
+  --color-common-0: #000000;
+
+  /* Neutral (16) */
+  --color-neutral-99: #f7f7f7; --color-neutral-96: #dcdcdc; --color-neutral-92: #c4c4c4;
+  --color-neutral-87: #b0b0b0; --color-neutral-82: #9b9b9b; --color-neutral-76: #8a8a8a;
+  --color-neutral-67: #737373; --color-neutral-58: #5c5c5c; --color-neutral-49: #474747;
+  --color-neutral-37: #303030; --color-neutral-32: #2a2a2a; --color-neutral-22: #1c1c1c;
+  --color-neutral-17: #171717; --color-neutral-10: #0f0f0f;
+
+  /* Cool Neutral (the workhorse — 23 steps) */
+  --color-coolNeutral-99: #f7f7f8; --color-coolNeutral-98: #f4f4f5; --color-coolNeutral-96: #eaebec;
+  --color-coolNeutral-94: #e1e2e4; --color-coolNeutral-92: #dbdcdf; --color-coolNeutral-86: #c2c4c8;
+  --color-coolNeutral-78: #aeb0b6; --color-coolNeutral-70: #989ba2; --color-coolNeutral-62: #878a93;
+  --color-coolNeutral-50: #70737c; --color-coolNeutral-42: #5a5c63; --color-coolNeutral-34: #46474c;
+  --color-coolNeutral-30: #37383c; --color-coolNeutral-28: #333438; --color-coolNeutral-25: #2e2f33;
+  --color-coolNeutral-23: #292a2d; --color-coolNeutral-19: #212225; --color-coolNeutral-17: #1b1c1e;
+  --color-coolNeutral-15: #171719; --color-coolNeutral-13: #141415; --color-coolNeutral-10: #0f0f10;
+
+  /* Blue (primary, brand) — primary scale anchor: 45 = #0066FF */
+  --color-blue-99: #f7fbff; --color-blue-95: #eaf2fe; --color-blue-90: #c9defe;
+  --color-blue-80: #9ec5ff; --color-blue-70: #69a5ff; --color-blue-60: #4f95ff;
+  --color-blue-55: #3385ff; --color-blue-50: #1a75ff; --color-blue-45: #0066ff;
+  --color-blue-40: #005eeb; --color-blue-35: #0054d1; --color-blue-25: #003e9c;
+  --color-blue-15: #002966; --color-blue-08: #001536;
+
+  /* Red (negative / critical) */
+  --color-red-99: #fffafa; --color-red-95: #feecec; --color-red-90: #fed5d5;
+  --color-red-80: #ffb5b5; --color-red-70: #ff8c8c; --color-red-60: #ff6363;
+  --color-red-50: #ff4242; --color-red-40: #e52222; --color-red-25: #b20c0c;
+  --color-red-15: #750404; --color-red-08: #3b0101;
+
+  /* Green (positive) */
+  --color-green-99: #f2fff6; --color-green-95: #d9ffe6; --color-green-90: #acfcc7;
+  --color-green-80: #7df5a5; --color-green-65: #49e57d; --color-green-55: #1ed45a;
+  --color-green-45: #00bf40; --color-green-35: #009632; --color-green-25: #006e25;
+  --color-green-15: #004517; --color-green-08: #00240c;
+
+  /* Yellow / Cautionary */
+  --color-yellow-99: #fffcf7; --color-yellow-95: #fef4e6; --color-yellow-90: #fee6c6;
+  --color-yellow-82: #ffd49c; --color-yellow-72: #ffc06e; --color-yellow-62: #ffa938;
+  --color-yellow-55: #ff9200; --color-yellow-50: #d47800; --color-yellow-45: #d17600;
+  --color-yellow-30: #9c5800; --color-yellow-15: #663a00; --color-yellow-08: #361e00;
+
+  /* Orange / Red-Orange */
+  --color-orange-99: #fffaf7; --color-orange-95: #feeee5; --color-orange-90: #fedbc6;
+  --color-orange-82: #ffc09c; --color-orange-72: #ff9c63; --color-orange-62: #ff7b2e;
+  --color-orange-55: #ff5e00; --color-orange-50: #f55a00; --color-orange-40: #cc4b00;
+  --color-orange-25: #943600; --color-orange-15: #5c2200; --color-orange-08: #2e1100;
+
+  /* Lime */
+  --color-lime-99: #f8fff2; --color-lime-95: #e6ffd4; --color-lime-90: #ccfca9;
+  --color-lime-80: #aef779; --color-lime-70: #88f03e; --color-lime-60: #6be016;
+  --color-lime-50: #58cf04; --color-lime-42: #48ad00; --color-lime-37: #429e00;
+  --color-lime-28: #347d00; --color-lime-15: #225200; --color-lime-08: #112900;
+
+  /* Cyan */
+  --color-cyan-99: #f7feff; --color-cyan-95: #defaff; --color-cyan-90: #b5f4ff;
+  --color-cyan-82: #8aedff; --color-cyan-72: #57dff7; --color-cyan-60: #28d0ed;
+  --color-cyan-50: #00bdde; --color-cyan-40: #0098b2; --color-cyan-25: #006f82;
+  --color-cyan-15: #004854; --color-cyan-08: #00252b;
+
+  /* Sky / Light Blue */
+  --color-skyBlue-99: #f7fdff; --color-skyBlue-95: #e5f6fe; --color-skyBlue-90: #c4ecfe;
+  --color-skyBlue-82: #a1e1ff; --color-skyBlue-72: #70d2ff; --color-skyBlue-60: #3dc2ff;
+  --color-skyBlue-50: #00aeff; --color-skyBlue-40: #008dcf; --color-skyBlue-25: #006796;
+  --color-skyBlue-15: #004261; --color-skyBlue-08: #002130;
+
+  /* Violet */
+  --color-violet-99: #fbfaff; --color-violet-95: #f0ecfe; --color-violet-90: #dbd3fe;
+  --color-violet-80: #c0b0ff; --color-violet-70: #9e86fc; --color-violet-60: #7d5ef7;
+  --color-violet-50: #6541f2; --color-violet-45: #5b37ed; --color-violet-40: #4f29e5;
+  --color-violet-30: #3a16c9; --color-violet-15: #23098f; --color-violet-08: #11024d;
+
+  /* Purple */
+  --color-purple-99: #fefbff; --color-purple-95: #f9edff; --color-purple-90: #f2d6ff;
+  --color-purple-82: #e9baff; --color-purple-72: #de96ff; --color-purple-62: #d478ff;
+  --color-purple-50: #cb59ff; --color-purple-40: #ad36e3; --color-purple-30: #861cb8;
+  --color-purple-15: #580a7d; --color-purple-08: #290247;
+
+  /* Pink */
+  --color-pink-99: #fffafe; --color-pink-95: #feecfb; --color-pink-90: #fed3f7;
+  --color-pink-82: #ffb8f3; --color-pink-72: #ff94ed; --color-pink-62: #fa73e3;
+  --color-pink-55: #f553da; --color-pink-46: #e846cd; --color-pink-35: #d331b8;
+  --color-pink-25: #a81690; --color-pink-15: #730560; --color-pink-08: #3d0133;
+
+  /* ── Opacity scale ── */
+  --opacity-5: 0.05; --opacity-8: 0.08; --opacity-12: 0.12; --opacity-16: 0.16;
+  --opacity-22: 0.22; --opacity-28: 0.28; --opacity-35: 0.35; --opacity-43: 0.43;
+  --opacity-52: 0.52; --opacity-61: 0.61; --opacity-74: 0.74; --opacity-88: 0.88;
+  --opacity-97: 0.97;
+
+  /* ── Semantic — Light theme (default) ── */
+  --color-primary-normal: #0066ff;        /* color-atomic-blue-45 */
+  --color-primary-strong: #005eeb;        /* color-atomic-blue-40 */
+  --color-primary-heavy: #0054d1;
+  --color-primary-hover: #1a75ff;
+
+  --color-label-normal: #171719;          /* coolNeutral-15 */
+  --color-label-strong: #000000;          /* common-0 */
+  --color-label-neutral: rgba(46, 47, 51, 0.88);
+  --color-label-alternative: rgba(55, 56, 60, 0.61);
+  --color-label-assistive: rgba(55, 56, 60, 0.28);
+  --color-label-disable: rgba(55, 56, 60, 0.16);
+  --color-label-inverse: #ffffff;
+
+  --color-background-normal-normal: #ffffff;
+  --color-background-normal-alternative: #f7f7f8;
+  --color-background-elevated-normal: #ffffff;
+  --color-background-elevated-alternative: #f4f4f5;
+
+  --color-line-normal-normal: rgba(112, 115, 124, 0.22);
+  --color-line-normal-neutral: rgba(112, 115, 124, 0.16);
+  --color-line-normal-alternative: rgba(112, 115, 124, 0.08);
+  --color-line-solid-normal: #e1e2e4;
+
+  --color-status-positive: #00bf40;       /* green-45 */
+  --color-status-cautionary: #ff9200;     /* yellow-55 */
+  --color-status-negative: #ff4242;       /* red-50 */
+  --color-status-informative: #0066ff;
+
+  --color-interaction-inactive: #989ba2;  /* coolNeutral-70 */
+  --color-interaction-disable: rgba(112, 115, 124, 0.16);
+
+  --color-static-white: #ffffff;
+  --color-static-black: #000000;
+
+  --color-accent-redOrange: #ff5e00;
+  --color-accent-orange: #ff9200;
+  --color-accent-lime: #58cf04;
+  --color-accent-green: #00bf40;
+  --color-accent-cyan: #00bdde;
+  --color-accent-skyBlue: #00aeff;
+  --color-accent-blue: #0066ff;
+  --color-accent-violet: #6541f2;
+  --color-accent-purple: #cb59ff;
+  --color-accent-pink: #e846cd;
+
+  /* ── Type ── */
+  --font-display: "Wanted Sans", "Pretendard", -apple-system, system-ui, sans-serif;
+  --font-sans: "Pretendard", -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "Menlo", monospace;
+
+  /* ── Radii (observed) ── */
+  --radius-2: 2px; --radius-4: 4px; --radius-6: 6px; --radius-8: 8px;
+  --radius-10: 10px; --radius-12: 12px; --radius-16: 16px; --radius-20: 20px;
+  --radius-24: 24px; --radius-32: 32px; --radius-pill: 9999px;
+
+  /* ── Spacing (4px base, observed values) ── */
+  --space-2: 2px; --space-4: 4px; --space-6: 6px; --space-8: 8px;
+  --space-10: 10px; --space-12: 12px; --space-14: 14px; --space-16: 16px;
+  --space-20: 20px; --space-24: 24px; --space-32: 32px; --space-40: 40px;
+  --space-48: 48px; --space-64: 64px; --space-96: 96px; --space-128: 128px;
+
+  /* ── Elevation ── */
+  --shadow-sm: 0 1px 2px rgba(23, 23, 23, 0.06), 0 1px 1px rgba(23, 23, 23, 0.04);
+  --shadow-md: 0 4px 12px rgba(23, 23, 23, 0.07), 0 2px 4px rgba(23, 23, 23, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(23, 23, 23, 0.06);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(23, 23, 23, 0.07);
+  --shadow-popover: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Semantic type styles (matched to the 19-row scale in Figma) ── */
+.type-display-1 { font-family: var(--font-display); font-weight: 700; font-size: 56px; line-height: 72px; letter-spacing: -0.0319em; }
+.type-display-2 { font-family: var(--font-display); font-weight: 700; font-size: 40px; line-height: 52px; letter-spacing: -0.0282em; }
+.type-display-3 { font-family: var(--font-sans);    font-weight: 700; font-size: 36px; line-height: 48px; letter-spacing: -0.027em; }
+.type-title-1   { font-family: var(--font-sans);    font-weight: 700; font-size: 32px; line-height: 44px; letter-spacing: -0.0253em; }
+.type-title-2   { font-family: var(--font-sans);    font-weight: 700; font-size: 28px; line-height: 38px; letter-spacing: -0.0236em; }
+.type-title-3   { font-family: var(--font-sans);    font-weight: 700; font-size: 24px; line-height: 32px; letter-spacing: -0.023em; }
+.type-heading-1 { font-family: var(--font-sans);    font-weight: 600; font-size: 22px; line-height: 30px; letter-spacing: -0.0194em; }
+.type-heading-2 { font-family: var(--font-sans);    font-weight: 600; font-size: 20px; line-height: 28px; letter-spacing: -0.012em; }
+.type-headline-1{ font-family: var(--font-sans);    font-weight: 600; font-size: 18px; line-height: 26px; letter-spacing: -0.002em; }
+.type-headline-2{ font-family: var(--font-sans);    font-weight: 600; font-size: 17px; line-height: 24px; letter-spacing: 0; }
+.type-body-1    { font-family: var(--font-sans);    font-weight: 500; font-size: 16px; line-height: 24px; letter-spacing: 0.0057em; }
+.type-body-1-r  { font-family: var(--font-sans);    font-weight: 500; font-size: 16px; line-height: 26px; letter-spacing: 0.0057em; }
+.type-body-2    { font-family: var(--font-sans);    font-weight: 500; font-size: 15px; line-height: 22px; letter-spacing: 0.0096em; }
+.type-body-2-r  { font-family: var(--font-sans);    font-weight: 500; font-size: 15px; line-height: 24px; letter-spacing: 0.0096em; }
+.type-label-1   { font-family: var(--font-sans);    font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: 0.0145em; }
+.type-label-1-r { font-family: var(--font-sans);    font-weight: 500; font-size: 14px; line-height: 22px; letter-spacing: 0.0145em; }
+.type-label-2   { font-family: var(--font-sans);    font-weight: 500; font-size: 13px; line-height: 18px; letter-spacing: 0.0194em; }
+.type-caption-1 { font-family: var(--font-sans);    font-weight: 500; font-size: 12px; line-height: 16px; letter-spacing: 0.0252em; }
+.type-caption-2 { font-family: var(--font-sans);    font-weight: 500; font-size: 11px; line-height: 14px; letter-spacing: 0.0311em; }
+
+/* ── Default page ── */
+html { font-family: var(--font-sans); color: var(--color-label-normal); background: var(--color-background-normal-normal); }
+body { margin: 0; -webkit-font-smoothing: antialiased; }

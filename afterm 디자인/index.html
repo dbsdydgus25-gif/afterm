@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>afterm — 디지털 유산 행정 대행</title>
+
+  <!-- Pretendard via CDN (the Wanted token CSS @font-face entries point at local
+       fonts/ that aren't copied; the CDN below provides the same family so they
+       resolve.) -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
+  <!-- Wanted design system tokens (color + type + spacing + radius) -->
+  <link rel="stylesheet" href="colors_and_type.css" />
+  <!-- App-level styles on top of the tokens -->
+  <link rel="stylesheet" href="app.css" />
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- iOS frame + tweaks panel host -->
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <!-- App modules (order matters: data → components → screens → app) -->
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="screens.jsx"></script>
+  <script type="text/babel" src="screens-flow.jsx"></script>
+  <script type="text/babel" src="screens-track.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
+
+  <!-- Initial lucide pass after Babel transforms have rendered React -->
+  <script>
+    window.addEventListener('load', () => {
+      // Babel scripts are async — kick lucide a few times to catch each pass.
+      [50, 250, 600, 1200].forEach(d => setTimeout(() => {
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      }, d));
+    });
+  </script>
+</body>
+</html>

@@ -4,7 +4,8 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Logo from '@/components/Logo'
+import Topbar from '@/components/ui/Topbar'
+import Button from '@/components/ui/Button'
 
 function LoginForm() {
   const router = useRouter()
@@ -57,42 +58,40 @@ function LoginForm() {
   }
 
   return (
-    <div>
+    <div className="screen-body" style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{
+          fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 800,
+          color: 'var(--color-label-strong)', marginBottom: '8px', letterSpacing: '-0.02em'
+        }}>
+          다시 오셨네요
+        </h1>
+        <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)' }}>
+          계속하려면 로그인해 주세요
+        </p>
+      </div>
+
       {/* 소셜 로그인 버튼 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-        {/* 카카오 */}
-        <button
-          onClick={handleKakao}
-          disabled={!!socialLoading}
-          style={{
-            height: '52px', borderRadius: '12px', border: 'none',
-            background: '#FEE500', color: '#191919',
-            fontSize: '15px', fontWeight: 700, cursor: 'pointer',
-            fontFamily: 'inherit', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', gap: '8px',
-            opacity: socialLoading && socialLoading !== 'kakao' ? 0.5 : 1,
-            transition: 'opacity 0.15s',
-          }}
-        >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+        <button onClick={handleKakao} disabled={!!socialLoading} style={{
+          height: '52px', borderRadius: 'var(--radius-12)', border: 'none',
+          background: '#FEE500', color: '#191919',
+          fontSize: '15px', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-sans)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          opacity: socialLoading && socialLoading !== 'kakao' ? 0.5 : 1, transition: 'all 0.2s'
+        }}>
           <span style={{ fontSize: '20px' }}>💬</span>
           {socialLoading === 'kakao' ? '연결 중...' : '카카오로 계속하기'}
         </button>
 
-        {/* 구글 */}
-        <button
-          onClick={handleGoogle}
-          disabled={!!socialLoading}
-          style={{
-            height: '52px', borderRadius: '12px',
-            border: '1.5px solid #E2E8F0', background: '#fff',
-            color: '#1A1A2E', fontSize: '15px', fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            opacity: socialLoading && socialLoading !== 'google' ? 0.5 : 1,
-            transition: 'opacity 0.15s',
-          }}
-        >
-          {/* 구글 G 아이콘 */}
+        <button onClick={handleGoogle} disabled={!!socialLoading} style={{
+          height: '52px', borderRadius: 'var(--radius-12)',
+          border: '1px solid var(--color-line-normal-normal)', background: '#fff',
+          color: 'var(--color-label-strong)', fontSize: '15px', fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'var(--font-sans)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          opacity: socialLoading && socialLoading !== 'google' ? 0.5 : 1, transition: 'all 0.2s'
+        }}>
           <svg width="18" height="18" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/>
             <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/>
@@ -104,71 +103,28 @@ function LoginForm() {
       </div>
 
       {/* 구분선 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
-        <span style={{ fontSize: '12px', color: '#9AA3B2', fontWeight: 500 }}>또는 이메일로</span>
-        <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+        <div style={{ flex: 1, height: '1px', background: 'var(--color-line-normal-normal)' }} />
+        <span style={{ fontSize: '13px', color: 'var(--color-label-assistive)', fontWeight: 600 }}>또는 이메일로</span>
+        <div style={{ flex: 1, height: '1px', background: 'var(--color-line-normal-normal)' }} />
       </div>
 
       {/* 이메일/비밀번호 폼 */}
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
         {error && (
-          <div style={{
-            background: '#FEF2F2', borderRadius: '10px', padding: '12px 14px',
-            fontSize: '13px', color: '#DC2626', display: 'flex', gap: '8px',
-          }}>
-            <span>⚠️</span><span>{error}</span>
+          <div className="card-soft" style={{ padding: '12px 16px', display: 'flex', gap: '8px', alignItems: 'center', color: 'var(--color-status-negative)' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{error}</span>
           </div>
         )}
 
-        <input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-          inputMode="email"
-          style={{
-            height: '52px', padding: '0 16px',
-            border: '1.5px solid #E2E8F0', borderRadius: '12px',
-            fontSize: '15px', fontFamily: 'inherit', outline: 'none',
-            color: '#1A1A2E', background: '#fff', transition: 'border-color 0.15s',
-          }}
-          onFocus={e => e.target.style.borderColor = '#3B6FE8'}
-          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-        />
+        <input type="email" placeholder="이메일" className="input" value={email} onChange={e => setEmail(e.target.value)} required />
+        <input type="password" placeholder="비밀번호" className="input" value={password} onChange={e => setPassword(e.target.value)} required />
 
-        <input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-          style={{
-            height: '52px', padding: '0 16px',
-            border: '1.5px solid #E2E8F0', borderRadius: '12px',
-            fontSize: '15px', fontFamily: 'inherit', outline: 'none',
-            color: '#1A1A2E', background: '#fff', transition: 'border-color 0.15s',
-          }}
-          onFocus={e => e.target.style.borderColor = '#3B6FE8'}
-          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            height: '52px', borderRadius: '12px', border: 'none',
-            background: loading ? '#9AA3B2' : '#1A1A2E',
-            color: '#fff', fontSize: '15px', fontWeight: 700,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: 'inherit', transition: 'background 0.15s',
-          }}
-        >
+        <div style={{ flex: 1 }} />
+        
+        <Button type="submit" disabled={loading} block>
           {loading ? '로그인 중...' : '이메일로 로그인'}
-        </button>
+        </Button>
       </form>
     </div>
   )
@@ -176,43 +132,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: '#F7F8FA' }}>
-      {/* 상단 */}
-      <div style={{ padding: '60px 32px 32px', display: 'flex', flexDirection: 'column' }}>
-        <Logo width={110} height={34} />
-        <div style={{ marginTop: '32px' }}>
-          <h1 style={{
-            fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em',
-            color: '#1A1A2E', marginBottom: '6px', lineHeight: 1.2,
-          }}>
-            다시 오셨네요
-          </h1>
-          <p style={{ fontSize: '14px', color: '#9AA3B2' }}>
-            계속하려면 로그인해 주세요
-          </p>
-        </div>
-      </div>
-
-      {/* 폼 카드 */}
-      <div style={{
-        flex: 1, background: '#fff',
-        borderRadius: '24px 24px 0 0',
-        padding: '32px 24px 40px',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
-      }}>
-        <Suspense fallback={<div style={{ height: '260px' }} />}>
-          <LoginForm />
-        </Suspense>
-
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', color: '#9AA3B2' }}>
-            아직 계정이 없으신가요?{' '}
-            <Link href="/signup" style={{ color: '#3B6FE8', fontWeight: 700, textDecoration: 'none' }}>
-              회원가입
-            </Link>
-          </p>
-        </div>
-      </div>
+    <div className="screen">
+      <Topbar brand={true} />
+      <Suspense fallback={<div />}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }
