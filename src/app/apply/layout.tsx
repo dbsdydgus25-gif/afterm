@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Logo from '@/components/Logo'
 
 const STEPS = [
   { label: '고인 정보', path: '/apply' },
@@ -30,7 +31,7 @@ export default function ApplyLayout({ children }: { children: React.ReactNode })
         }}>
           ← 취소
         </Link>
-        <Image src="/logo.jpg" alt="AFTERM" width={96} height={28} style={{ objectFit: 'contain' }} />
+        <Logo width={96} height={28} />
         <div style={{ width: '48px', textAlign: 'right', fontSize: '13px', color: '#9AA3B2', fontWeight: 600 }}>
           {currentIndex + 1}/{STEPS.length}
         </div>

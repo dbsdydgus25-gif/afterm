@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Logo from '@/components/Logo'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -82,7 +83,7 @@ export default function SignupPage() {
         >
           ←
         </button>
-        <Image src="/logo.jpg" alt="AFTERM" width={100} height={30} style={{ objectFit: 'contain' }} />
+        <Logo width={100} height={30} />
         <div style={{ width: '32px' }} />
       </div>
 

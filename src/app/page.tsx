@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useRef } from 'react'
+import Logo from '@/components/Logo'
 
 // 랜딩 페이지 - 에프텀 MVP1
 // 신뢰감 있는 원티드 스타일 디자인
@@ -30,7 +31,7 @@ export default function LandingPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         transition: 'box-shadow 0.2s',
       }}>
-        <Image src="/logo.jpg" alt="AFTERM" width={100} height={30} style={{ objectFit: 'contain' }} />
+        <Logo width={100} height={30} />
         <div style={{ display: 'flex', gap: '8px' }}>
           <Link href="/login" style={{
             padding: '8px 16px', borderRadius: '8px',
@@ -201,7 +202,7 @@ export default function LandingPage() {
 
       {/* ── 푸터 ── */}
       <footer style={{ padding: '32px 24px', background: '#0F0F1A' }}>
-        <Image src="/logo.jpg" alt="AFTERM" width={90} height={27} style={{ objectFit: 'contain', filter: 'brightness(10)' }} />
+        <Logo dark width={88} height={26} />
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
           주식회사 에프텀<br />
           디지털 유산 행정 대행 서비스<br />
