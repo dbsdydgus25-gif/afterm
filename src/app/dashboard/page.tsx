@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 
 // 상태 라벨 & 색상 매핑
@@ -40,7 +41,7 @@ export default async function DashboardPage() {
         padding: '0 20px', height: '56px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span className="logo">after<span>m</span></span>
+        <Image src="/logo.jpg" alt="AFTERM" width={96} height={28} style={{ objectFit: 'contain' }} />
         <LogoutButton />
       </div>
 

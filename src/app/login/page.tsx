@@ -2,10 +2,10 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-// useSearchParams는 Suspense 경계 안에서만 사용 가능
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -22,7 +22,6 @@ function LoginForm() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       setError('이메일 또는 비밀번호가 올바르지 않습니다')
@@ -34,26 +33,71 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {error && (
-        <div className="alert-banner alert-error">
+        <div style={{
+          background: '#FEF2F2', borderRadius: '10px', padding: '14px 16px',
+          fontSize: '14px', color: '#DC2626', display: 'flex', gap: '8px', alignItems: 'center',
+        }}>
           <span>⚠️</span><span>{error}</span>
         </div>
       )}
 
-      <div className="form-group">
-        <label className="form-label">이메일 <span className="required">*</span></label>
-        <input className="form-input" type="email" placeholder="example@email.com"
-          value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" inputMode="email" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{ fontSize: '13px', fontWeight: 600, color: '#4A5568' }}>이메일</label>
+        <input
+          type="email"
+          placeholder="example@email.com"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          inputMode="email"
+          style={{
+            height: '52px', padding: '0 16px',
+            border: '1.5px solid #E2E8F0', borderRadius: '12px',
+            fontSize: '16px', fontFamily: 'inherit', outline: 'none',
+            color: '#1A1A2E', background: '#fff',
+            transition: 'border-color 0.15s',
+          }}
+          onFocus={e => e.target.style.borderColor = '#3B6FE8'}
+          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+        />
       </div>
 
-      <div className="form-group">
-        <label className="form-label">비밀번호 <span className="required">*</span></label>
-        <input className="form-input" type="password" placeholder="비밀번호 입력"
-          value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{ fontSize: '13px', fontWeight: 600, color: '#4A5568' }}>비밀번호</label>
+        <input
+          type="password"
+          placeholder="비밀번호 입력"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+          style={{
+            height: '52px', padding: '0 16px',
+            border: '1.5px solid #E2E8F0', borderRadius: '12px',
+            fontSize: '16px', fontFamily: 'inherit', outline: 'none',
+            color: '#1A1A2E', background: '#fff',
+            transition: 'border-color 0.15s',
+          }}
+          onFocus={e => e.target.style.borderColor = '#3B6FE8'}
+          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+        />
       </div>
 
-      <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '8px' }}>
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          height: '54px', borderRadius: '12px', border: 'none',
+          background: loading ? '#9AA3B2' : '#1A1A2E',
+          color: '#fff', fontSize: '16px', fontWeight: 700,
+          cursor: loading ? 'not-allowed' : 'pointer',
+          fontFamily: 'inherit', marginTop: '8px',
+          transition: 'background 0.15s',
+        }}
+      >
         {loading ? '로그인 중...' : '로그인'}
       </button>
     </form>
@@ -62,29 +106,44 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      minHeight: '100dvh', display: 'flex', flexDirection: 'column',
+      background: '#F7F8FA',
+    }}>
+      {/* 상단 여백 + 로고 */}
       <div style={{
-        padding: '16px 20px', borderBottom: '1px solid var(--color-border)',
-        display: 'flex', alignItems: 'center',
+        padding: '60px 32px 40px',
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
       }}>
-        <Link href="/" className="logo">after<span>m</span></Link>
+        <Image src="/logo.jpg" alt="AFTERM" width={120} height={36} style={{ objectFit: 'contain', objectPosition: 'left' }} />
+        <div style={{ marginTop: '32px' }}>
+          <h1 style={{
+            fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em',
+            color: '#1A1A2E', marginBottom: '8px', lineHeight: 1.2,
+          }}>
+            안녕하세요,<br />다시 오셨네요
+          </h1>
+          <p style={{ fontSize: '15px', color: '#9AA3B2', fontWeight: 400 }}>
+            계속하려면 로그인해 주세요
+          </p>
+        </div>
       </div>
 
-      <div style={{ flex: 1, padding: '40px 24px' }}>
-        <div style={{ marginBottom: '36px' }}>
-          <h1 className="section-title" style={{ marginBottom: '8px' }}>로그인</h1>
-          <p className="section-desc">에프텀 서비스를 이용하시려면 로그인해 주세요</p>
-        </div>
-
-        {/* useSearchParams를 사용하는 컴포넌트를 Suspense로 래핑 */}
+      {/* 폼 카드 */}
+      <div style={{
+        flex: 1, background: '#fff',
+        borderRadius: '24px 24px 0 0',
+        padding: '32px 24px 40px',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
+      }}>
         <Suspense fallback={<div style={{ height: '200px' }} />}>
           <LoginForm />
         </Suspense>
 
-        <div style={{ marginTop: '32px', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
+        <div style={{ marginTop: '28px', textAlign: 'center' }}>
+          <p style={{ fontSize: '14px', color: '#9AA3B2' }}>
             아직 계정이 없으신가요?{' '}
-            <Link href="/signup" style={{ color: 'var(--color-accent)', fontWeight: 700, textDecoration: 'none' }}>
+            <Link href="/signup" style={{ color: '#3B6FE8', fontWeight: 700, textDecoration: 'none' }}>
               회원가입
             </Link>
           </p>
