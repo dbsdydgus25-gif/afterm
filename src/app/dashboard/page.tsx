@@ -1,652 +1,165 @@
-"use client";
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
-import { useRouter } from "next/navigation";
-import { useMemoryStore } from "@/store/useMemoryStore";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { SecureAvatar } from "@/components/ui/SecureAvatar";
-import { User, LogOut, CreditCard, ChevronDown, Plus, MessageSquare, Lock, Trash2, ShieldCheck, FileKey, Database, CheckSquare, Square, Pencil } from "lucide-react";
-
-import { MessageList } from "@/components/dashboard/MessageList";
-import { VaultIconGrid } from "@/components/dashboard/VaultIconGrid";
-import { VAULT_CATEGORIES, VAULT_REQUEST_TYPES } from "@/lib/vault-constants";
-
-interface Message {
-    id: string;
-    content: string;
-    recipient_name: string;
-    recipient_phone: string;
-    recipient_relationship: string;
-    created_at: string;
-    file_path?: string;
-    file_size?: number;
-    type?: "text" | "image" | "voice" | "video";
-    status?: string;
-    is_unlocked?: boolean;
-    message_attachments?: { file_type: string }[];
+// 상태 라벨 & 색상 매핑
+const STATUS_MAP: Record<string, { label: string; badge: string }> = {
+  draft:      { label: '작성 중',   badge: 'badge-pending' },
+  submitted:  { label: '접수 완료', badge: 'badge-dispatched' },
+  processing: { label: '처리 중',   badge: 'badge-received' },
+  completed:  { label: '완료',      badge: 'badge-done' },
+  cancelled:  { label: '취소',      badge: 'badge-failed' },
 }
 
-interface VaultItem {
-    id: string;
-    category: string;
-    platform_name: string;
-    account_id: string;
-    password?: string;
-    notes: string;
-    created_at: string;
-}
+// 대시보드 - 내 신청건 목록
+export default async function DashboardPage() {
+  const supabase = await createClient()
 
-function formatBytes(bytes: number, decimals = 2) {
-    if (!+bytes) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
+  // 인증 확인
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-export default function DashboardPage() {
-    const router = useRouter();
-    const { message, setMessage, setMessageId, recipient, setRecipient, user, setUser, plan } = useMemoryStore();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 내 신청건 + 서비스 목록 조회
+  const { data: cases } = await supabase
+    .from('cases')
+    .select(`
+      id, status, deceased_name, deceased_death, created_at,
+      case_services(id, service_name, service_category, status, icon:service_id)
+    `)
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
 
-    // Data States
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [vaultItems, setVaultItems] = useState<VaultItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [storageUsed, setStorageUsed] = useState(0);
+  const hasCases = cases && cases.length > 0
 
-    // UI States
-    const [currentPage, setCurrentPage] = useState(1);
-    const [vaultCurrentPage, setVaultCurrentPage] = useState(1);
-    const [activeTab, setActiveTab] = useState<"messages" | "vault">("messages");
-    const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
+  return (
+    <div style={{ minHeight: '100dvh', background: 'var(--color-bg)' }}>
+      {/* 헤더 */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)',
+        padding: '0 20px', height: '56px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <span className="logo">after<span>m</span></span>
+        <LogoutButton />
+      </div>
 
-    // Vault Edit States
-    const [editingVaultId, setEditingVaultId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<Partial<VaultItem>>({});
-    const vaultItemsPerPage = 5;
-
-    // Bulk Select States
-    const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
-    const [selectedVaultIds, setSelectedVaultIds] = useState<Set<string>>(new Set());
-    const [msgSelectMode, setMsgSelectMode] = useState(false);
-    const [vaultSelectMode, setVaultSelectMode] = useState(false);
-
-    // Limits based on plan
-    const maxMessages = plan === 'pro' ? 100 : 1;
-    const maxVault = plan === 'pro' ? 100 : 10;
-    const maxStorage = plan === 'pro' ? 1024 * 1024 * 1024 : 10 * 1024 * 1024; // 1GB vs 10MB
-
-    useEffect(() => {
-        // 로그인 체크 - 미로그인 시 로그인 페이지로 리다이렉트
-        const supabase = createClient();
-        supabase.auth.getUser().then(({ data }) => {
-            if (!data.user) {
-                router.replace("/login?returnTo=/dashboard");
-            }
-        });
-    }, [router]);
-
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            if (!user?.id) return;
-            const supabase = createClient();
-
-            // 1. Fetch Messages
-            let msgQuery = supabase.from('messages').select('*, message_attachments(file_type)').eq('user_id', user.id);
-            if (plan !== 'pro') msgQuery = msgQuery.eq('archived', false);
-            const { data: msgData } = await msgQuery.order('created_at', { ascending: false });
-
-            // 2. Fetch Vault Items
-            const { data: vData } = await supabase.from('vault_items').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-
-            // 3. Fetch Storage Profile
-            const { data: pData } = await supabase.from('profiles').select('storage_used').eq('id', user.id).single();
-
-            // Handle Signed URLs for messages
-            const urls: { [key: string]: string } = {};
-            for (const msg of (msgData || [])) {
-                if (msg.file_path) {
-                    const { data: signedData } = await supabase.storage.from('memories').createSignedUrl(msg.file_path, 3600);
-                    if (signedData?.signedUrl) urls[msg.id] = signedData.signedUrl;
-                }
-            }
-
-            setMessages(msgData || []);
-            setVaultItems(vData || []);
-            setStorageUsed(pData?.storage_used || 0);
-            setImageUrls(urls);
-            setLoading(false);
-        };
-
-        fetchDashboardData();
-    }, [user, plan]);
-
-    // Handlers
-    const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        setUser(null);
-        router.push("/");
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleEditMessage = (msg: Message | any) => {
-        setMessage(msg.content);
-        setMessageId(msg.id);
-        let rel = msg.recipient_relationship || '';
-        if (rel === 'family') rel = '가족';
-        else if (rel === 'friend') rel = '친구';
-        else if (rel === 'lover') rel = '연인';
-        else if (rel === 'colleague') rel = '동료';
-        else if (rel === 'other') rel = '기타';
-
-        setRecipient({
-            name: msg.recipient_name,
-            phone: msg.recipient_phone || '',
-            relationship: rel
-        });
-        router.push("/dashboard/edit");
-    };
-
-    const handleDeleteMessage = async (id: string) => {
-        if (!confirm("정말로 삭제하시겠습니까?")) return;
-        const supabase = createClient();
-        const { data: msg } = await supabase.from('messages').select('file_path, file_size, content').eq('id', id).single();
-        const { error } = await supabase.from('messages').delete().eq('id', id);
-        if (error) { alert("삭제 실패"); return; }
-
-        if (msg) {
-            if (msg.file_path) await supabase.storage.from('memories').remove([msg.file_path]);
-            const textBytes = new Blob([msg.content]).size;
-            const totalBytesToRemove = (msg.file_size || 0) + textBytes;
-            const newUsage = Math.max(0, storageUsed - totalBytesToRemove);
-            await supabase.from('profiles').update({ storage_used: newUsage }).eq('id', user?.id);
-            setStorageUsed(newUsage);
-        }
-        setMessages(prev => prev.filter(m => m.id !== id));
-    };
-
-    const handleDeleteVault = async (id: string) => {
-        if (!confirm("정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
-        const supabase = createClient();
-        const { error } = await supabase.from("vault_items").delete().eq("id", id);
-        if (error) { alert("삭제 중 오류가 발생했습니다."); return; }
-        setVaultItems(prev => prev.filter(v => v.id !== id));
-    };
-
-    const handleEditVaultClick = (item: VaultItem) => {
-        setEditingVaultId(item.id);
-        setEditForm({
-            platform_name: item.platform_name,
-            account_id: item.account_id,
-            category: item.category,
-            notes: item.notes,
-            password: item.password || ""
-        });
-    };
-
-    const handleUpdateVault = async (id: string) => {
-        if (!editForm.platform_name || !editForm.account_id) {
-            alert("플랫폼명과 아이디를 입력해주세요.");
-            return;
-        }
-
-        const supabase = createClient();
-        // 비밀번호가 있으면 notes에 "패스워드: xxx" 형태로 포함
-        let finalNotes = editForm.notes || "";
-        if (editForm.password) {
-            // 기존 notes에서 패스워드 라인 제거 후 새로 추가
-            finalNotes = finalNotes.replace(/패스워드:\s*.+/g, "").trim();
-            finalNotes = finalNotes ? `${finalNotes}\n패스워드: ${editForm.password}` : `패스워드: ${editForm.password}`;
-        }
-        const { error } = await supabase
-            .from("vault_items")
-            .update({
-                platform_name: editForm.platform_name,
-                account_id: editForm.account_id,
-                category: editForm.category,
-                notes: finalNotes
-            })
-            .eq("id", id);
-
-        if (error) {
-            alert("수정 중 오류가 발생했습니다.");
-            return;
-        }
-
-        setVaultItems(prev => prev.map(item => item.id === id ? { ...item, ...editForm, notes: finalNotes } as VaultItem : item));
-        setEditingVaultId(null);
-    };
-
-    const getCategoryLabel = (category: string) => VAULT_CATEGORIES[category as keyof typeof VAULT_CATEGORIES] || category;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const getRequestTypeLabel = (type: string) => VAULT_REQUEST_TYPES[type as keyof typeof VAULT_REQUEST_TYPES] || type;
-
-    const handleBulkDeleteMessages = async () => {
-        if (selectedMsgIds.size === 0) return;
-        if (!confirm(`선택한 ${selectedMsgIds.size}개의 메시지를 삭제하시겠습니까?`)) return;
-        
-        try {
-            const supabase = createClient();
-            for (const id of Array.from(selectedMsgIds)) {
-                const { data: msg } = await supabase.from('messages').select('file_path, file_size, content').eq('id', id).single();
-                const { error } = await supabase.from('messages').delete().eq('id', id);
-                if (error) throw error;
-                if (msg?.file_path) await supabase.storage.from('memories').remove([msg.file_path]);
-            }
-            setMessages(prev => prev.filter(m => !selectedMsgIds.has(m.id)));
-            setSelectedMsgIds(new Set());
-            setMsgSelectMode(false);
-            alert("선택한 메시지가 삭제되었습니다.");
-        } catch (error) {
-            console.error("Message delete error:", error);
-            alert("메시지 삭제 중 오류가 발생했습니다.");
-        }
-    };
-
-    const handleBulkDeleteVaults = async () => {
-        if (selectedVaultIds.size === 0) return;
-        if (!confirm(`선택한 ${selectedVaultIds.size}개의 디지털 유산을 삭제하시겠습니까?`)) return;
-        
-        try {
-            const supabase = createClient();
-            const ids = Array.from(selectedVaultIds);
-            const { error } = await supabase.from('vault_items').delete().in('id', ids);
-            if (error) throw error;
-            
-            setVaultItems(prev => prev.filter(v => !selectedVaultIds.has(v.id)));
-            setSelectedVaultIds(new Set());
-            setVaultSelectMode(false);
-            alert("선택한 디지털 유산이 삭제되었습니다.");
-        } catch (error) {
-            console.error("Vault delete error:", error);
-            alert("디지털 유산 삭제 중 오류가 발생했습니다.");
-        }
-    };
-
-    const toggleMsgSelect = (id: string) => {
-        setSelectedMsgIds(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-
-    const toggleVaultSelect = (id: string) => {
-        setSelectedVaultIds(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-
-    // Progress calculations
-    const msgPercent = Math.min((messages.length / maxMessages) * 100, 100);
-    const vaultPercent = Math.min((vaultItems.length / maxVault) * 100, 100);
-    const storagePercent = Math.min((storageUsed / maxStorage) * 100, 100);
-    const freePercent = 100 - msgPercent - vaultPercent - storagePercent; // Simplified just for the combined bar visual
-
-    const paginatedVaultItems = vaultItems.slice((vaultCurrentPage - 1) * vaultItemsPerPage, vaultCurrentPage * vaultItemsPerPage);
-
-    return (
-        <div className="min-h-screen bg-slate-50 font-sans">
-            {/* 헤더 - 모바일 앞 마지 안전영역 대응 */}
-            <header className="w-full bg-white border-b border-slate-200 h-14 md:h-16 flex items-center justify-between px-4 md:px-6 lg:px-8 sticky top-0 z-50">
-                <Link href="/" className="text-lg md:text-xl font-black text-blue-600 tracking-tighter">AFTERM</Link>
-                <div className="relative">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-slate-200"
-                    >
-                        {user?.image || user?.user_metadata?.avatar_url ? (
-                            <SecureAvatar
-                                src={user?.image || user?.user_metadata?.avatar_url}
-                                alt="Profile"
-                                className="w-8 h-8 rounded-full shadow-sm"
-                            />
-                        ) : (
-                            <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                                {user?.name?.[0] || "U"}
-                            </span>
-                        )}
-                        <span className="text-sm font-bold text-slate-700 hidden sm:block">{user?.name || "사용자"}</span>
-                        {plan === 'pro' && (
-                            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">PRO</span>
-                        )}
-                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isMenuOpen ? "rotate-180" : ""}`} />
-                    </button>
-
-                    <AnimatePresence>
-                        {isMenuOpen && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50"
-                            >
-                                <div className="p-3 border-b border-slate-50">
-                                    <p className="text-sm font-bold text-slate-900">{user?.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                                </div>
-                                <div className="p-1">
-                                    <Link href="/settings" className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
-                                        <User className="w-4 h-4" /> 내 정보
-                                    </Link>
-                                    <Link href="/plans" className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
-                                        <CreditCard className="w-4 h-4" /> 플랜 관리
-                                        {plan === 'pro' && <span className="ml-auto text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded font-bold">PRO</span>}
-                                    </Link>
-                                </div>
-                                <div className="p-1 border-t border-slate-50">
-                                    <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg flex items-center gap-2 transition-colors">
-                                        <LogOut className="w-4 h-4" /> 로그아웃
-                                    </button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </header>
-
-            {/* 대시보드 본문 - pb-nav로 BottomNav 여백 자동 적용 */}
-            <main className="max-w-3xl mx-auto p-3 md:p-6 lg:p-10 space-y-4 md:space-y-10 pb-nav">
-                {/* Profile Section */}
-                <Link
-                    href="/settings"
-                    className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 pb-6 sm:pb-8 border-b border-slate-200 hover:bg-slate-50/80 p-6 rounded-2xl transition-colors cursor-pointer block"
-                >
-                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-sm font-medium text-slate-400 hover:text-blue-600">설정 ›</span>
-                    </div>
-
-                    <div className="relative">
-                        {user?.image || user?.user_metadata?.avatar_url ? (
-                            <SecureAvatar
-                                src={user?.image || user?.user_metadata?.avatar_url}
-                                alt="Profile"
-                                className="w-20 h-20 rounded-full shadow-sm ring-4 ring-white object-cover"
-                            />
-                        ) : (
-                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-3xl shadow-inner ring-4 ring-white">
-                                {user?.name?.[0] || "U"}
-                            </div>
-                        )}
-                        {plan === 'pro' && (
-                            <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-amber-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center shadow-md">
-                                <span className="text-white font-bold text-xs">PRO</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="text-center sm:text-left">
-                        <h1 className="text-2xl font-bold text-slate-900 mb-0.5 flex flex-col sm:block">
-                            <span>{user?.name || "사용자"}</span>
-                        </h1>
-                        {user?.user_metadata?.username && (
-                            <p className="text-sm font-medium text-slate-400">
-                                @{user.user_metadata.username}
-                            </p>
-                        )}
-                    </div>
-                </Link>
-
-                {/* 스토리지 현황 */}
-                <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6">
-                    <div className="flex justify-between items-end mb-3 md:mb-4">
-                        <h3 className="text-base md:text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <Database className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-                            내 스토리지 현황
-                        </h3>
-                    </div>
-
-                    {/* Unified Multi-color Progress Bar */}
-                    <div className="h-4 sm:h-6 w-full flex rounded-full overflow-hidden bg-slate-100 shadow-inner mb-6 space-x-0.5">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max(2, msgPercent)}%` }}
-                            className="bg-indigo-500 h-full transition-all duration-1000 ease-out flex-shrink-0"
-                            title="메시지 점유율"
-                        />
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max(2, vaultPercent)}%` }}
-                            className="bg-emerald-400 h-full transition-all duration-1000 delay-150 ease-out flex-shrink-0"
-                            title="디지털 유산 점유율"
-                        />
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.max(2, storagePercent)}%` }}
-                            className="bg-cyan-400 h-full transition-all duration-1000 delay-300 ease-out flex-shrink-0"
-                            title="첨부파일 점유율"
-                        />
-                        <motion.div initial={{ flex: 1 }} animate={{ flex: 1 }}
-                            className="bg-slate-100 h-full transition-all duration-1000"
-                        />
-                    </div>
-
-                    {/* 레전드 */}
-                    <div className="flex flex-wrap items-center justify-between text-xs md:text-sm">
-                        <div className="flex flex-wrap gap-3 md:gap-6">
-                            <div className="flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-indigo-500" />
-                                <span className="text-slate-500">메시지: <span className="font-bold text-slate-900">{messages.length}</span><span className="text-slate-400">/{maxMessages}</span></span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-400" />
-                                <span className="text-slate-500">디지털 유산: <span className="font-bold text-slate-900">{vaultItems.length}</span><span className="text-slate-400">/{maxVault}</span></span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-cyan-400" />
-                                <span className="text-slate-500">첨부파일: <span className="font-bold text-slate-900">{formatBytes(storageUsed)}</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Content Block with Pill Tabs */}
-                <section className="space-y-6 pt-4">
-                    {/* Pill Tabs */}
-                    <div className="flex items-center bg-slate-100/80 p-1 md:p-1.5 rounded-full w-full sm:w-auto">
-                        <button
-                            onClick={() => { setActiveTab("messages"); setCurrentPage(1); }}
-                            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all w-1/2 sm:w-auto ${
-                                activeTab === "messages"
-                                    ? "bg-white text-blue-600 shadow-sm"
-                                    : "text-slate-500 hover:text-slate-700"
-                            }`}
-                        >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            메시지
-                            <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                                activeTab === "messages" ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500"
-                            }`}>{messages.length}</span>
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab("vault"); setCurrentPage(1); }}
-                            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all w-1/2 sm:w-auto ${
-                                activeTab === "vault"
-                                    ? "bg-white text-emerald-600 shadow-sm"
-                                    : "text-slate-500 hover:text-slate-700"
-                            }`}
-                        >
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            디지털 유산
-                            <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                                activeTab === "vault" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
-                            }`}>{vaultItems.length}</span>
-                        </button>
-                    </div>
-
-                    {/* Bulk Action Toolbar */}
-                    {activeTab === "messages" && msgSelectMode && (
-                        <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
-                            <span className="text-sm font-medium text-red-600">{selectedMsgIds.size}개 선택됨</span>
-                            <button onClick={() => { setMessages(prev => { const ids = new Set(prev.map(m => m.id)); setSelectedMsgIds(ids); return prev; }); setSelectedMsgIds(new Set(messages.map(m => m.id))); }} className="text-xs text-slate-500 hover:text-slate-700 underline">전체 선택</button>
-                            <button onClick={() => { setMsgSelectMode(false); setSelectedMsgIds(new Set()); }} className="ml-auto text-xs text-slate-400 hover:text-slate-600">취소</button>
-                            <Button onClick={handleBulkDeleteMessages} size="sm" className="h-7 bg-red-600 hover:bg-red-700 text-xs">
-                                <Trash2 className="w-3.5 h-3.5 mr-1" />선택 삭제
-                            </Button>
-                        </div>
-                    )}
-                    {activeTab === "vault" && vaultSelectMode && (
-                        <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
-                            <span className="text-sm font-medium text-red-600">{selectedVaultIds.size}개 선택됨</span>
-                            <button onClick={() => setSelectedVaultIds(new Set(vaultItems.map(v => v.id)))} className="text-xs text-slate-500 hover:text-slate-700 underline">전체 선택</button>
-                            <button onClick={() => { setVaultSelectMode(false); setSelectedVaultIds(new Set()); }} className="ml-auto text-xs text-slate-400 hover:text-slate-600">취소</button>
-                            <Button onClick={handleBulkDeleteVaults} size="sm" className="h-7 bg-red-600 hover:bg-red-700 text-xs">
-                                <Trash2 className="w-3.5 h-3.5 mr-1" />선택 삭제
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Content Area */}
-                    <AnimatePresence mode="wait">
-                        {activeTab === "messages" ? (
-                            <motion.div
-                                key="messages"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-4"
-                            >
-                                {/* Bulk select toggle for messages */}
-                                <div className="flex justify-end mb-2">
-                                    <button
-                                        onClick={() => { setMsgSelectMode(!msgSelectMode); setSelectedMsgIds(new Set()); }}
-                                        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600"
-                                    >
-                                        <CheckSquare className="w-3.5 h-3.5" />
-                                        {msgSelectMode ? '선택 잠금' : '선택 삭제'}
-                                    </button>
-                                </div>
-                                {msgSelectMode && (
-                                    <div className="space-y-2 mb-4">
-                                        {messages.slice((currentPage - 1) * 3, currentPage * 3).map(msg => (
-                                            <button
-                                                key={msg.id}
-                                                onClick={() => toggleMsgSelect(msg.id)}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left text-sm transition-all ${selectedMsgIds.has(msg.id) ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
-                                            >
-                                                {selectedMsgIds.has(msg.id)
-                                                    ? <CheckSquare className="w-4 h-4 text-red-500 flex-shrink-0" />
-                                                    : <Square className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                                                }
-                                                <span className="font-medium text-slate-700 truncate">{msg.recipient_name}님에게</span>
-                                                <span className="text-slate-400 text-xs ml-auto">{new Date(msg.created_at).toLocaleDateString('ko-KR')}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                                {!msgSelectMode && (
-                                    <MessageList
-                                        messages={messages.slice((currentPage - 1) * 3, currentPage * 3)}
-                                        loading={loading}
-                                        imageUrls={imageUrls}
-                                        onEdit={handleEditMessage}
-                                        onDelete={handleDeleteMessage}
-                                        onCreateNew={() => {
-                                            setMessage('');
-                                            setMessageId(null);
-                                            setRecipient({ name: '', phone: '', relationship: '' });
-                                            router.push('/create');
-                                        }}
-                                    />
-                                )}
-
-                                {/* Pagination */}
-                                {messages.length > 3 && (
-                                    <div className="flex justify-center gap-2 pt-4 pb-8">
-                                        {Array.from({ length: Math.ceil(messages.length / 3) }, (_, i) => i + 1).map((page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => setCurrentPage(page)}
-                                                className={`w-8 h-8 rounded-full text-sm font-bold transition-colors ${currentPage === page
-                                                    ? "bg-slate-900 text-white"
-                                                    : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-200"
-                                                    }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="vault"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-4"
-                            >
-                                {loading ? (
-                                    <div className="text-center text-slate-500 py-10">로딩 중...</div>
-                                ) : vaultItems.length === 0 ? (
-                                    <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 mb-4">
-                                            <Lock className="w-8 h-8 text-emerald-600" />
-                                        </div>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-2">
-                                            등록된 디지털 유산이 없습니다
-                                        </h3>
-                                        <p className="text-slate-500 mb-6 text-sm">
-                                            계정 정보를 안전하게 보관하고 사후에 전달하세요
-                                        </p>
-                                        <Button
-                                            onClick={() => router.push("/vault/create")}
-                                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                                        >
-                                            첫 번째 유산 등록하기
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* 카테고리 아이콘 그리드 vault 뷰 (자체 상태 포함) */}
-                                        <VaultIconGrid
-                                            items={vaultItems}
-                                            loading={loading}
-                                            vaultSelectMode={vaultSelectMode}
-                                            selectedVaultIds={selectedVaultIds}
-                                            onToggleSelect={toggleVaultSelect}
-                                            onDelete={handleDeleteVault}
-                                            onUpdate={async (id, updates) => {
-                                                const supabase = createClient();
-                                                let finalNotes = updates.notes || "";
-                                                if (updates.password) {
-                                                    finalNotes = finalNotes.replace(/패스워드:\s*.+/g, "").trim();
-                                                    finalNotes = finalNotes ? `${finalNotes}\n패스워드: ${updates.password}` : `패스워드: ${updates.password}`;
-                                                }
-                                                await supabase.from("vault_items").update({
-                                                    platform_name: updates.platform_name,
-                                                    account_id: updates.account_id,
-                                                    category: updates.category,
-                                                    notes: finalNotes,
-                                                }).eq("id", id);
-                                                setVaultItems(prev => prev.map(v => v.id === id ? { ...v, ...updates, notes: finalNotes } : v));
-                                            }}
-                                            onSelectModeToggle={() => { setVaultSelectMode(!vaultSelectMode); setSelectedVaultIds(new Set()); }}
-                                            onNavigateCreate={() => router.push("/vault/create")}
-                                        />
-                                    </>
-                                )}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </section>
-
-                {/* 플로팅 액션 버튼 - BottomNav 위츠 고려 */}
-                <button
-                    onClick={() => router.push(activeTab === "messages" ? '/create' : '/vault/create')}
-                    className={`fixed bottom-[76px] right-4 w-12 h-12 md:w-14 md:h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40 md:bottom-6 md:right-6 ${
-                        activeTab === "messages"
-                            ? "bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 ring-4 ring-white"
-                            : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30 ring-4 ring-white"
-                    }`}
-                >
-                    <Plus className="w-6 h-6 md:w-8 md:h-8" />
-                </button>
-            </main>
+      {/* 본문 */}
+      <div style={{ padding: '24px 20px' }}>
+        {/* 환영 메시지 */}
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '4px' }}>
+            내 신청 현황
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
+            {hasCases ? `총 ${cases!.length}건의 신청이 있습니다` : '아직 신청 내역이 없습니다'}
+          </p>
         </div>
-    );
+
+        {/* 신청하기 버튼 */}
+        <Link href="/apply" className="btn btn-primary" style={{
+          display: 'flex', marginBottom: '28px',
+        }}>
+          + 새 신청 시작하기
+        </Link>
+
+        {/* 신청 목록 */}
+        {!hasCases ? (
+          <div style={{
+            padding: '60px 24px', textAlign: 'center',
+            background: 'var(--color-surface)', borderRadius: '16px',
+            border: '1px solid var(--color-border)',
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>📋</div>
+            <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>
+              신청 내역이 없습니다
+            </p>
+            <p style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
+              고인의 디지털 구독 해지를 신청해 보세요
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {cases!.map((c: any) => {
+              const statusInfo = STATUS_MAP[c.status] || { label: c.status, badge: 'badge-pending' }
+              const services = c.case_services || []
+              const doneCount = services.filter((s: any) => s.status === 'done').length
+
+              return (
+                <Link
+                  key={c.id}
+                  href={`/dashboard/${c.id}`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="card" style={{ cursor: 'pointer', transition: 'box-shadow 0.15s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                      <div>
+                        <div style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '4px' }}>
+                          고인: {c.deceased_name}
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--color-text-3)' }}>
+                          사망일: {c.deceased_death} · 신청: {new Date(c.created_at).toLocaleDateString('ko-KR')}
+                        </div>
+                      </div>
+                      <span className={`badge ${statusInfo.badge}`}>{statusInfo.label}</span>
+                    </div>
+
+                    {/* 서비스 진행률 */}
+                    {services.length > 0 && (
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--color-text-3)', marginBottom: '6px' }}>
+                          <span>처리 현황</span>
+                          <span>{doneCount} / {services.length}개 완료</span>
+                        </div>
+                        <div style={{ height: '4px', background: 'var(--color-bg)', borderRadius: '100px', overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', borderRadius: '100px', background: 'var(--color-accent)',
+                            width: `${services.length > 0 ? (doneCount / services.length) * 100 : 0}%`,
+                            transition: 'width 0.3s',
+                          }} />
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+                          {services.slice(0, 5).map((s: any) => (
+                            <span key={s.id} style={{
+                              padding: '3px 8px', borderRadius: '100px',
+                              background: 'var(--color-bg)', border: '1px solid var(--color-border)',
+                              fontSize: '11px', fontWeight: 600, color: 'var(--color-text-2)',
+                            }}>{s.service_name}</span>
+                          ))}
+                          {services.length > 5 && (
+                            <span style={{ padding: '3px 8px', fontSize: '11px', color: 'var(--color-text-3)' }}>
+                              +{services.length - 5}개 더
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ textAlign: 'right', marginTop: '12px', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600 }}>
+                      상세 보기 →
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// 로그아웃 버튼 (클라이언트 컴포넌트)
+function LogoutButton() {
+  return (
+    <form action="/auth/signout" method="POST">
+      <button type="submit" style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        fontSize: '14px', color: 'var(--color-text-3)', fontFamily: 'var(--font-base)',
+        fontWeight: 600,
+      }}>
+        로그아웃
+      </button>
+    </form>
+  )
 }

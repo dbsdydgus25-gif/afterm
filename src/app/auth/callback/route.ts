@@ -1,87 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
+// Supabase Auth 콜백 처리 라우트
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url);
-    const code = searchParams.get("code");
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/dashboard'
 
-    // 1. Determine Redirect Target (Priority: Cookie > Query Param > Default)
-    // Read from cookies() for server-side consistent access
-    const cookieStore = await cookies();
-    const cookieReturnTo = cookieStore.get('auth_return_to')?.value;
-    let next = decodeURIComponent(cookieReturnTo || searchParams.get("next") || "/");
-
-    // Ensure next starts with / to prevent open redirect vulnerabilities (basic check)
-    if (!next.startsWith("/")) next = "/";
-
-    if (code) {
-        const supabase = await createClient();
-        const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
-
-        console.log("=== AUTH CALLBACK ===");
-        console.log("Session:", session?.user?.id);
-        console.log("Error:", error);
-
-        if (!error && session) {
-            // Update last_active_at and save provider_refresh_token if Google OAuth
-            const updatePayload: any = { last_active_at: new Date().toISOString() };
-            const provider = session.user.app_metadata?.provider;
-            
-            if (provider === "google" && session.provider_refresh_token) {
-                updatePayload.gmail_connected = true;
-                updatePayload.gmail_refresh_token = session.provider_refresh_token;
-            }
-
-            await supabase.from('profiles').update(updatePayload).eq('id', session.user.id);
-
-            // Fetch profile to check if legacy user has already completed setup
-            const { data: profile } = await supabase.from('profiles').select('full_name, phone').eq('id', session.user.id).single();
-
-            // Check if user has completed onboarding
-            // Use user_metadata which is available in the session and bypasses RLS latency/issues
-            const userMetadata = session.user.user_metadata;
-
-            // PRIMARY CHECK: onboarding_completed flag (most reliable for existing users)
-            // [BUG FIX] 기존 사용자(이름과 전화번호가 프로필에 존재하는 경우)는 온보딩 완료로 간주
-            const isOnboardingComplete = 
-                userMetadata?.onboarding_completed === true || 
-                !!(profile && profile.full_name && profile.phone);
-
-            console.log(">>> Profile Status (from metadata/profile):", isOnboardingComplete ? "Complete" : "Incomplete");
-            console.log("Metadata:", userMetadata);
-            console.log("Profile:", profile);
-
-            let targetUrl = "/";
-
-            if (!isOnboardingComplete) {
-                // If new user (incomplete), redirect to SIGNUP page to set password & complete profile
-                // Pass email and verification flag
-                // 소셜 로그인 정보는 onboarding 페이지에서 직접 조회하므로 여기서는 사용하지 않음
-
-                targetUrl = `/onboarding`;
-            } else {
-                // Existing user
-                targetUrl = next;
-
-                // Safety: Avoid onboarding loop for complete users
-                if (targetUrl.includes("/onboarding")) {
-                    targetUrl = "/";
-                }
-            }
-
-            console.log(">>> Redirecting to:", targetUrl);
-            const response = NextResponse.redirect(`${origin}${targetUrl}`);
-
-            // Cleanup Cookie
-            if (cookieReturnTo) {
-                response.cookies.delete('auth_return_to');
-            }
-
-            return response;
-        }
+  if (code) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`)
     }
+  }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  return NextResponse.redirect(`${origin}/login?error=auth`)
 }
