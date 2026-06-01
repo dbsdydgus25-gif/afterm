@@ -4,29 +4,60 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
-import {
-  SERVICE_CATALOG, CATEGORY_ORDER,
-  SERVICE_BY_CATEGORY, type ServiceItem
-} from '@/lib/services-catalog'
+import { SERVICE_CATALOG } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
-import ServiceLogo from '@/components/ui/ServiceLogo'
+
+// 서비스 아이콘 SVG 컴포넌트 (브랜드 컬러 적용)
+function ServiceIcon({ id, size = 48 }: { id: string; size?: number }) {
+  const icons: Record<string, React.ReactNode> = {
+    instagram: (
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig)" />
+        <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none" />
+        <circle cx="17.2" cy="6.8" r="1.2" fill="white" />
+        <defs>
+          <linearGradient id="ig" x1="2" y1="22" x2="22" y2="2">
+            <stop stopColor="#FFDC80" /><stop offset="0.3" stopColor="#FCAF45" />
+            <stop offset="0.6" stopColor="#F77737" /><stop offset="0.8" stopColor="#C13584" />
+            <stop offset="1" stopColor="#833AB4" />
+          </linearGradient>
+        </defs>
+      </svg>
+    ),
+    facebook: (
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="#1877F2">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+      </svg>
+    ),
+    kakaotalk: (
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="#3A1D1D">
+        <ellipse cx="12" cy="10.5" rx="10" ry="8" fill="#FEE500" />
+        <path d="M7.5 13.5c-.8-1.2-.8-2.8 0-4M16.5 13.5c.8-1.2.8-2.8 0-4M12 7.5v3" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+        <path d="M8 17l1.5-2.5" stroke="#FEE500" strokeWidth="1.5" fill="none" />
+      </svg>
+    ),
+    google: (
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+    ),
+    twitter: (
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="black">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    ),
+  }
+  return <>{icons[id] || <span style={{ fontSize: size * 0.5 }}>🔍</span>}</>
+}
 
 export default function ServicesPage() {
   const router = useRouter()
-  const { selectedServices, toggleService, setStep, caseId, updateServiceAccount } = useApplyStore()
+  const { selectedServices, toggleService, setStep, caseId } = useApplyStore()
   const supabase = createClient()
-
   const [loading, setLoading] = useState(false)
-  const [accountModal, setAccountModal] = useState<ServiceItem | null>(null)
-  const [accountInput, setAccountInput] = useState('')
-  const [accountUnknown, setAccountUnknown] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<string>('전체')
-  const [phase, setPhase] = useState<'intro' | 'select'>('intro')
-
-  const categories = ['전체', ...CATEGORY_ORDER]
-  const filtered = activeCategory === '전체'
-    ? SERVICE_CATALOG
-    : (SERVICE_BY_CATEGORY[activeCategory as keyof typeof SERVICE_BY_CATEGORY] || [])
 
   const isSelected = (id: string) => selectedServices.some(s => s.id === id)
 
@@ -35,6 +66,8 @@ export default function ServicesPage() {
     setLoading(true)
     try {
       if (!caseId) { router.push('/apply'); return }
+
+      // 기존 서비스 삭제 후 새로 저장
       await supabase.from('case_services').delete().eq('case_id', caseId)
       const rows = selectedServices.map(s => ({
         case_id: caseId,
@@ -57,200 +90,112 @@ export default function ServicesPage() {
     }
   }
 
-  const handleAccountSave = () => {
-    if (!accountModal) return
-    updateServiceAccount(accountModal.id, accountInput, accountUnknown)
-    setAccountModal(null)
-    setAccountInput('')
-    setAccountUnknown(false)
-  }
-
-  if (phase === 'intro') {
-    return (
-      <div className="screen-body" style={{ display: 'flex', flexDirection: 'column', padding: '32px 24px' }}>
-        <div style={{ flex: 1 }} className="animate-slide-up">
-          <h2 style={{
-            fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 800,
-            letterSpacing: '-0.02em', color: 'var(--color-label-strong)',
-            marginBottom: '16px', lineHeight: 1.3,
-          }}>
-            이용하셨던 서비스를<br />모두 선택해 주세요
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', lineHeight: 1.6, marginBottom: '40px' }}>
-            확실하지 않아도, 아이디를 몰라도 괜찮아요.<br />
-            생각나는 것 모두 선택해 주세요.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[
-              { icon: '🎬', label: 'OTT · 동영상', desc: '넷플릭스, 티빙, 웨이브 등' },
-              { icon: '🎵', label: '음악 스트리밍', desc: '멜론, 지니뮤직, 플로 등' },
-              { icon: '📱', label: '포털 · 통신 · SNS', desc: '네이버, 카카오, SKT, 인스타그램 등' },
-              { icon: '💳', label: '금융 · 결제', desc: '토스, 카카오페이 등' },
-            ].map(item => (
-              <div key={item.label} className="card-soft" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '28px' }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-label-strong)', letterSpacing: '-0.02em' }}>{item.label}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '4px' }}>{item.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="cta-dock">
-          <Button block onClick={() => setPhase('select')}>서비스 선택하기</Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
-      
-      <div style={{ padding: '24px 24px 0' }} className="animate-slide-up">
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 800, color: 'var(--color-label-strong)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-          해지할 서비스를 선택하세요
+
+      {/* 헤더 영역 */}
+      <div className="animate-slide-up" style={{ padding: '32px 24px 24px' }}>
+        <h2 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '26px', fontWeight: 800,
+          letterSpacing: '-0.02em', color: 'var(--color-label-strong)',
+          marginBottom: '8px', lineHeight: 1.3,
+        }}>
+          해지할 서비스를<br />선택해 주세요
         </h2>
-        <p style={{ fontSize: '14px', color: 'var(--color-label-alternative)' }}>
+        <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', lineHeight: 1.6 }}>
+          확실하지 않아도, 아이디를 몰라도 괜찮아요.<br />
           {selectedServices.length > 0
-            ? <><strong style={{ color: 'var(--color-primary-normal)' }}>{selectedServices.length}개</strong> 선택됨 · 계정 정보는 선택된 타일을 다시 누르세요</>
-            : '목록에서 해당하는 아이콘을 탭하세요'
+            ? <><strong style={{ color: 'var(--color-primary-normal)' }}>{selectedServices.length}개 선택됨</strong></>
+            : '생각나는 서비스 모두 선택해 주세요.'
           }
         </p>
       </div>
 
-      {/* 카테고리 탭 */}
-      <div style={{
-        display: 'flex', gap: '8px', overflowX: 'auto',
-        padding: '24px 24px 16px', scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-      }}>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            style={{
-              flexShrink: 0, padding: '8px 18px',
-              borderRadius: 'var(--radius-pill)',
-              border: `1.5px solid ${activeCategory === cat ? 'var(--color-label-strong)' : 'var(--color-line-normal-normal)'}`,
-              background: activeCategory === cat ? 'var(--color-label-strong)' : 'var(--color-background-normal-normal)',
-              color: activeCategory === cat ? 'var(--color-background-normal-normal)' : 'var(--color-label-alternative)',
-              fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
-            }}
-          >{cat}</button>
-        ))}
-      </div>
-
-      {/* 서비스 그리드 */}
-      <div style={{ flex: 1, padding: '0 24px', overflowY: 'auto' }} className="animate-slide-up">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-          {filtered.map(service => {
+      {/* 서비스 선택 카드 목록 */}
+      <div style={{ flex: 1, padding: '0 24px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {SERVICE_CATALOG.map(service => {
             const selected = isSelected(service.id)
-            const sel = selectedServices.find(s => s.id === service.id)
-
             return (
-              <div key={service.id} style={{ position: 'relative' }}>
-                <div
-                  className={`service-tile ${selected ? 'is-selected' : ''}`}
-                  onClick={() => toggleService(service)}
-                  style={{ padding: '16px 8px 24px' }}
-                >
-                  <ServiceLogo serviceId={service.id} name={service.name} size={44} radius={12} />
-                  <span className="name">{service.name}</span>
+              <div
+                key={service.id}
+                onClick={() => toggleService(service)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '16px',
+                  padding: '20px',
+                  borderRadius: 'var(--radius-16)',
+                  border: `2px solid ${selected ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)'}`,
+                  background: selected ? 'var(--color-blue-99)' : 'var(--color-background-normal-normal)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {/* 브랜드 아이콘 */}
+                <div style={{
+                  width: '52px', height: '52px',
+                  borderRadius: 'var(--radius-12)',
+                  background: 'var(--color-coolNeutral-98)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  overflow: 'hidden',
+                }}>
+                  <ServiceIcon id={service.id} size={52} />
                 </div>
 
-                {selected && (
-                  <button
-                    onClick={() => {
-                      setAccountModal(service)
-                      setAccountInput(sel?.accountId || '')
-                      setAccountUnknown(sel?.accountUnknown || false)
-                    }}
-                    style={{
-                      position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%)',
-                      background: sel?.accountId || sel?.accountUnknown ? 'var(--color-primary-normal)' : 'var(--color-coolNeutral-94)',
-                      color: sel?.accountId || sel?.accountUnknown ? '#fff' : 'var(--color-label-strong)',
-                      border: 'none', borderRadius: 'var(--radius-pill)',
-                      padding: '4px 12px', fontSize: '11px', fontWeight: 700,
-                      cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)',
-                      zIndex: 10, boxShadow: 'var(--shadow-sm)'
-                    }}
-                  >
-                    {sel?.accountUnknown ? '모름 ✓' : sel?.accountId ? '입력됨 ✓' : '+ 아이디'}
-                  </button>
-                )}
+                {/* 서비스 정보 */}
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontSize: '17px', fontWeight: 700,
+                    color: 'var(--color-label-strong)',
+                    letterSpacing: '-0.02em',
+                    marginBottom: '3px',
+                  }}>
+                    {service.name}
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    color: 'var(--color-label-alternative)',
+                  }}>
+                    {service.description}
+                  </div>
+                </div>
+
+                {/* 선택 체크박스 */}
+                <div style={{
+                  width: '24px', height: '24px',
+                  borderRadius: '50%',
+                  border: `2px solid ${selected ? 'var(--color-primary-normal)' : 'var(--color-line-solid-normal)'}`,
+                  background: selected ? 'var(--color-primary-normal)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.15s ease',
+                }}>
+                  {selected && (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
               </div>
             )
           })}
         </div>
+
+        <div style={{ height: '100px' }} /> {/* 하단 버튼 공간 */}
       </div>
 
-      {/* 계정 정보 모달 */}
-      {accountModal && (
-        <div
-          onClick={() => setAccountModal(null)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'flex-end',
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: 'var(--color-background-normal-normal)', borderRadius: '24px 24px 0 0',
-              padding: '24px 24px max(24px, env(safe-area-inset-bottom))',
-              width: '100%', maxWidth: 'var(--max-w-mobile)', margin: '0 auto',
-              animation: 'slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div style={{ width: '40px', height: '4px', background: 'var(--color-line-solid-normal)', borderRadius: 'var(--radius-pill)', margin: '0 auto 24px' }} />
-
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px' }}>
-              <ServiceLogo serviceId={accountModal.id} name={accountModal.name} size={48} radius={14} />
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)' }}>{accountModal.name}</div>
-                <div style={{ fontSize: '14px', color: 'var(--color-label-alternative)', marginTop: '2px' }}>아이디를 입력해주세요 (선택)</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <input
-                type="text"
-                placeholder="아이디 또는 이메일"
-                value={accountInput}
-                onChange={e => setAccountInput(e.target.value)}
-                disabled={accountUnknown}
-                className="input"
-              />
-
-              <div className="card-soft" onClick={() => setAccountUnknown(!accountUnknown)} style={{
-                padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
-                borderColor: accountUnknown ? 'var(--color-primary-normal)' : 'var(--color-line-normal-alternative)',
-                background: accountUnknown ? 'var(--color-blue-99)' : 'var(--color-coolNeutral-99)'
-              }}>
-                <div className={`checkbox ${accountUnknown ? 'checked' : ''}`}>
-                  {accountUnknown && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-label-strong)' }}>아이디를 모릅니다</div>
-                  <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '2px' }}>기업 CS가 전화번호로 조회합니다</div>
-                </div>
-              </div>
-
-              <Button block onClick={handleAccountSave} style={{ marginTop: '8px' }}>
-                확인
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* 하단 CTA */}
       <div className="cta-dock">
-        <Button block disabled={selectedServices.length === 0 || loading} onClick={handleNext}>
-          {loading ? '저장 중...' : selectedServices.length > 0 ? `${selectedServices.length}개 선택 완료` : '서비스를 선택해 주세요'}
+        <Button
+          block
+          disabled={selectedServices.length === 0 || loading}
+          onClick={handleNext}
+        >
+          {loading ? '저장 중...' : selectedServices.length > 0
+            ? `${selectedServices.length}개 선택 완료 · 다음`
+            : '서비스를 선택해 주세요'
+          }
         </Button>
       </div>
     </div>

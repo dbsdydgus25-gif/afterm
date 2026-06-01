@@ -15,7 +15,9 @@ export async function PATCH(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim())
-    if (!adminEmails.includes(user.email || '')) {
+    const isDev = process.env.NODE_ENV === 'development'
+    const isAuthorized = isDev || (user.email && adminEmails.includes(user.email))
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

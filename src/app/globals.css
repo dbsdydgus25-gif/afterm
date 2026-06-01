@@ -302,3 +302,66 @@ body {
     box-shadow: var(--shadow-xl);
   }
 }
+
+/* ================================================
+   어드민 PC 최적화 레이아웃 (Mobile Container 해제 및 스타일링)
+   ================================================ */
+.mobile-container:has(.admin-layout) {
+  max-width: 100% !important;
+  width: 100% !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-coolNeutral-99);
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.admin-sidebar {
+  width: 260px;
+  background-color: #0f0f10;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 0;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.admin-content {
+  flex: 1;
+  padding: 40px 48px;
+  overflow-y: auto;
+  background-color: var(--color-coolNeutral-99);
+}
+
+.stat-card {
+  background: var(--color-common-100);
+  border-radius: var(--radius-16);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-line-normal-normal);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--color-label-alternative);
+  margin-top: 4px;
+}

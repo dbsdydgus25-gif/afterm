@@ -3,7 +3,15 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// 관리자 대시보드 - 핵심 통계 + 전체 신청 현황
+// 상태 라벨 정의
+const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
+  draft:      { label: '작성 중',   color: '#6B7280', bg: '#F3F4F6' },
+  submitted:  { label: '접수 완료', color: '#2563EB', bg: '#EFF6FF' },
+  processing: { label: '처리 중',   color: '#7C3AED', bg: '#F5F3FF' },
+  completed:  { label: '완료됨',    color: '#059669', bg: '#ECFDF5' },
+  cancelled:  { label: '취소됨',    color: '#DC2626', bg: '#FEF2F2' },
+}
+
 export default async function AdminPage() {
   const supabase = await createClient()
   const adminClient = createAdminClient()
@@ -11,8 +19,11 @@ export default async function AdminPage() {
   // 관리자 권한 확인
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
   const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim())
-  if (adminEmails.length > 0 && !adminEmails.includes(user.email || '')) redirect('/')
+  const isDev = process.env.NODE_ENV === 'development'
+  const isAuthorized = isDev || (user.email && adminEmails.includes(user.email))
+  if (!isAuthorized) redirect('/')
 
   // 전체 통계 쿼리
   const [
@@ -57,184 +68,315 @@ export default async function AdminPage() {
 
   const completionRate = totalServices ? Math.round(((doneServices || 0) / totalServices) * 100) : 0
 
-  const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-    draft:      { label: '작성 중',   color: '#9AA3B2' },
-    submitted:  { label: '접수 완료', color: '#3B6FE8' },
-    processing: { label: '처리 중',   color: '#8B5CF6' },
-    completed:  { label: '완료',      color: '#22C55E' },
-    cancelled:  { label: '취소',      color: '#EF4444' },
-  }
-
   return (
-    <div className="admin-layout">
-      {/* 사이드바 */}
-      <aside className="admin-sidebar">
-        <div style={{ padding: '0 24px 24px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.04em' }}>
-            after<span style={{ color: '#3B6FE8' }}>m</span>
-          </span>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>ADMIN</div>
+    <div className="admin-layout" style={{ width: '100vw' }}>
+      {/* ── 사이드바 ── */}
+      <aside className="admin-sidebar" style={{
+        position: 'sticky', top: 0, height: '100vh',
+        justifyContent: 'space-between', boxSizing: 'border-box'
+      }}>
+        <div>
+          <div style={{ padding: '8px 24px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.04em', color: '#fff' }}>
+              after<span style={{ color: '#0066ff' }}>m</span>
+            </span>
+            <div style={{
+              display: 'inline-block', background: 'rgba(0,102,255,0.15)', color: '#3385ff',
+              fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
+              marginLeft: '8px', verticalAlign: 'middle', letterSpacing: '0.05em'
+            }}>CONSOLE</div>
+          </div>
+
+          <nav style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <Link href="/admin" style={{
+              display: 'flex', gap: '12px', alignItems: 'center',
+              padding: '14px 24px', textDecoration: 'none',
+              color: '#fff', background: 'rgba(0,102,255,0.15)',
+              fontSize: '14px', fontWeight: 700,
+              borderLeft: '4px solid #0066ff'
+            }}>
+              <span style={{ fontSize: '18px' }}>📊</span>
+              <span>대시보드 홈</span>
+            </Link>
+
+            <Link href="/admin/cases" style={{
+              display: 'flex', gap: '12px', alignItems: 'center',
+              padding: '14px 24px', textDecoration: 'none',
+              color: 'rgba(255,255,255,0.65)', fontSize: '14px', fontWeight: 600,
+              borderLeft: '4px solid transparent', transition: 'all 0.2s'
+            }}>
+              <span style={{ fontSize: '18px' }}>📋</span>
+              <span>신청 관리 목록</span>
+            </Link>
+          </nav>
         </div>
 
-        <nav style={{ padding: '20px 0', flex: 1 }}>
-          {[
-            { href: '/admin', icon: '📊', label: '대시보드' },
-            { href: '/admin/cases', icon: '📋', label: '신청 관리' },
-            { href: '/admin/services', icon: '⚙️', label: '서비스 현황' },
-          ].map(item => (
-            <Link key={item.href} href={item.href} style={{
-              display: 'flex', gap: '12px', alignItems: 'center',
-              padding: '12px 24px', textDecoration: 'none',
-              color: 'rgba(255,255,255,0.8)', fontSize: '14px', fontWeight: 600,
-              transition: 'background 0.15s',
+        <div style={{
+          padding: '20px 24px', borderTop: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex', flexDirection: 'column', gap: '12px'
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>접속 계정</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
+              {user.email}
+            </div>
+          </div>
+          <form action="/auth/signout" method="POST">
+            <button type="submit" style={{
+              width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
+              background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'all 0.2s'
             }}>
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div style={{ padding: '20px 24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{user.email}</div>
+              로그아웃
+            </button>
+          </form>
         </div>
       </aside>
 
-      {/* 메인 콘텐츠 */}
-      <main className="admin-content">
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '4px' }}>
-            관리자 대시보드
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-3)' }}>
-            {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} 기준
-          </p>
+      {/* ── 메인 콘텐츠 ── */}
+      <main className="admin-content" style={{ boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '36px' }}>
+          <div>
+            <h1 style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--color-label-strong)', margin: 0 }}>
+              종합 운영 현황
+            </h1>
+            <p style={{ fontSize: '14px', color: 'var(--color-label-alternative)', marginTop: '6px', margin: 0 }}>
+              실시간 디지털 유산 해지 대행 현황을 모니터링합니다.
+            </p>
+          </div>
+          <div style={{
+            background: 'var(--color-common-100)', padding: '10px 18px', borderRadius: '12px',
+            boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-line-normal-normal)',
+            fontSize: '14px', fontWeight: 600, color: 'var(--color-label-neutral)'
+          }}>
+            📅 {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+          </div>
         </div>
 
-        {/* 핵심 지표 카드 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
+        {/* ── 핵심 지표 그리드 (그라데이션 & 마이크로 호버) ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
           {[
-            { label: '전체 신청', value: totalCases || 0, sub: '누적 신청 건수', color: 'var(--color-primary)' },
-            { label: '접수 완료', value: submittedCases || 0, sub: '처리 대기 중', color: '#3B6FE8' },
-            { label: '처리 중', value: processingCases || 0, sub: '진행 중인 케이스', color: '#8B5CF6' },
-            { label: '처리 완료', value: completedCases || 0, sub: '완전 완료', color: '#22C55E' },
+            { label: '누적 대행 신청', value: totalCases || 0, desc: '전체 유족 신청 건수', color: '#0066ff', bg: 'linear-gradient(135deg, #EBF3FF 0%, #D8E7FF 100%)' },
+            { label: '접수 완료 (대기)', value: submittedCases || 0, desc: '서류 검토 필요', color: '#D97706', bg: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)' },
+            { label: '행정 처리 중', value: processingCases || 0, desc: '요청 발송 완료', color: '#7C3AED', bg: 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)' },
+            { label: '완료된 케이스', value: completedCases || 0, desc: '해지 처리 최종 완료', color: '#059669', bg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)' },
           ].map(stat => (
-            <div key={stat.label} className="stat-card">
-              <div className="stat-number" style={{ color: stat.color }}>{stat.value}</div>
-              <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '4px' }}>{stat.label}</div>
-              <div className="stat-label">{stat.sub}</div>
+            <div key={stat.label} className="stat-card" style={{
+              background: stat.bg, border: 'none', display: 'flex', flexDirection: 'column', justifyBetween: 'space-between',
+              minHeight: '140px', padding: '24px', position: 'relative', overflow: 'hidden'
+            }}>
+              <div style={{ zIndex: 2 }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-neutral)' }}>{stat.label}</div>
+                <div className="stat-number" style={{ color: stat.color, fontSize: '38px', marginTop: '12px' }}>{stat.value}</div>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--color-label-alternative)', marginTop: '8px', zIndex: 2, fontWeight: 500 }}>
+                {stat.desc}
+              </div>
+              <div style={{
+                position: 'absolute', right: '-10px', bottom: '-15px', fontSize: '72px', opacity: 0.1, pointerEvents: 'none'
+              }}>📋</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
-          {/* 서비스 처리 현황 */}
-          <div className="stat-card">
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px' }}>서비스 처리 현황</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-              <div>
-                <div className="stat-number" style={{ fontSize: '40px', color: 'var(--color-accent)' }}>{completionRate}%</div>
-                <div className="stat-label">전체 완료율</div>
+        {/* ── 실무 분석 그래프 및 카테고리 분포 그리드 ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+          {/* 전체 처리 현황 */}
+          <div className="stat-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-label-strong)', margin: '0 0 8px' }}>
+                서비스 해지 완료율
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--color-label-alternative)', margin: '0 0 24px' }}>
+                개별 기업 요청서 기준 누적 완료 처리 현황
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '16px 0' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '44px', fontWeight: 900, color: 'var(--color-primary-normal)', letterSpacing: '-0.02em' }}>
+                  {completionRate}%
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-label-alternative)', marginTop: '4px' }}>누적 완료율</div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ height: '8px', background: 'var(--color-bg)', borderRadius: '100px', overflow: 'hidden', marginBottom: '8px' }}>
-                  <div style={{ height: '100%', width: `${completionRate}%`, background: 'var(--color-accent)', borderRadius: '100px' }} />
+                <div style={{ height: '12px', background: 'var(--color-coolNeutral-96)', borderRadius: '100px', overflow: 'hidden', marginBottom: '10px' }}>
+                  <div style={{ height: '100%', width: `${completionRate}%`, background: 'var(--color-primary-normal)', borderRadius: '100px', transition: 'width 0.8s ease' }} />
                 </div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-3)' }}>
-                  {doneServices || 0}개 완료 / {totalServices || 0}개 전체
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--color-label-neutral)', fontWeight: 600 }}>
+                  <span>완료: {doneServices || 0}개</span>
+                  <span>전체 요청: {totalServices || 0}개</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 카테고리별 분포 */}
+          {/* 카테고리 분포 */}
           <div className="stat-card">
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px' }}>카테고리별 신청 현황</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {Object.entries(categoryStats)
-                .sort(([, a], [, b]) => b - a)
-                .slice(0, 6)
-                .map(([cat, count]) => (
-                  <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: 'var(--color-text-2)' }}>{cat}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '80px', height: '4px', background: 'var(--color-bg)', borderRadius: '100px', overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100%', background: 'var(--color-accent)', borderRadius: '100px',
-                          width: `${Math.round((count / (totalServices || 1)) * 100)}%`,
-                        }} />
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-label-strong)', margin: '0 0 8px' }}>
+              카테고리별 대행 청구 분포
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-label-alternative)', margin: '0 0 20px' }}>
+              신청 건에서 유족들이 해지 요청한 분야별 비중
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Object.entries(categoryStats).length > 0 ? (
+                Object.entries(categoryStats)
+                  .sort(([, a], [, b]) => b - a)
+                  .slice(0, 5)
+                  .map(([cat, count]) => {
+                    const pct = totalServices ? Math.round((count / totalServices) * 100) : 0
+                    return (
+                      <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-label-neutral)', width: '90px' }}>{cat}</span>
+                        <div style={{ flex: 1, height: '6px', background: 'var(--color-coolNeutral-96)', borderRadius: '100px', overflow: 'hidden', margin: '0 16px' }}>
+                          <div style={{ height: '100%', background: 'var(--color-label-neutral)', width: `${pct}%`, borderRadius: '100px' }} />
+                        </div>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-label-strong)', minWidth: '45px', textAlign: 'right' }}>
+                          {count}건 ({pct}%)
+                        </span>
                       </div>
-                      <span style={{ fontSize: '13px', fontWeight: 700, minWidth: '24px', textAlign: 'right' }}>{count}</span>
-                    </div>
-                  </div>
-                ))}
+                    )
+                  })
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-label-alternative)', fontSize: '13px' }}>
+                  등록된 데이터가 없습니다.
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* 인기 서비스 TOP 10 */}
-        <div className="stat-card" style={{ marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px' }}>인기 서비스 TOP 10</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
-            {topServices.map(([name, count], i) => (
-              <div key={name} style={{
-                padding: '12px', background: 'var(--color-bg)', borderRadius: '10px',
-                display: 'flex', flexDirection: 'column', gap: '4px',
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--color-text-3)' }}>#{i + 1}</div>
-                <div style={{ fontSize: '14px', fontWeight: 700 }}>{name}</div>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--color-accent)' }}>{count}</div>
-              </div>
-            ))}
-          </div>
+        {/* ── 인기 대행 서비스 TOP 10 그리드 ── */}
+        <div className="stat-card" style={{ marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-label-strong)', margin: '0 0 6px' }}>
+            해지 대행 신청 순위 TOP 10
+          </h3>
+          <p style={{ fontSize: '13px', color: 'var(--color-label-alternative)', margin: '0 0 20px' }}>
+            가장 빈번하게 해지가 요청되는 인기 기업 순위
+          </p>
+          {topServices.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+              {topServices.map(([name, count], i) => (
+                <div key={name} style={{
+                  padding: '16px', background: 'var(--color-coolNeutral-99)', borderRadius: '12px',
+                  border: '1px solid var(--color-line-normal-alternative)', display: 'flex', flexDirection: 'column', gap: '6px'
+                }}>
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--color-primary-normal)', letterSpacing: '0.05em' }}>
+                    RANK {i + 1}
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-strong)' }}>{name}</div>
+                  <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--color-label-neutral)', marginTop: '4px' }}>
+                    {count} <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-label-alternative)' }}>건</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--color-label-alternative)', fontSize: '14px' }}>
+              수집된 서비스 통계가 없습니다.
+            </div>
+          )}
         </div>
 
-        {/* 최근 신청 목록 */}
+        {/* ── 최근 대행 신청 목록 테이블 ── */}
         <div className="stat-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>최근 신청 목록</h3>
-            <Link href="/admin/cases" style={{ fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none' }}>
-              전체 보기 →
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-label-strong)', margin: 0 }}>
+                최근 신청 건 요약 (최대 20건)
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '4px', margin: 0 }}>
+                가장 최근 접수된 서류와 해지 요청 목록입니다.
+              </p>
+            </div>
+            <Link href="/admin/cases" style={{
+              fontSize: '13px', color: 'var(--color-primary-normal)', fontWeight: 700, textDecoration: 'none',
+              padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--color-primary-normal)', transition: 'all 0.2s'
+            }}>
+              전체 목록 보기 →
             </Link>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
-                {['고인 성함', '사망일', '신청일', '서비스 수', '상태', '관리'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-3)', letterSpacing: '0.02em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {(recentCases || []).map((c: any) => {
-                const statusInfo = STATUS_LABEL[c.status] || { label: c.status, color: '#999' }
-                const services = c.case_services || []
-                const done = services.filter((s: any) => s.status === 'done').length
-                return (
-                  <tr key={c.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: '12px', fontWeight: 600 }}>{c.deceased_name}</td>
-                    <td style={{ padding: '12px', fontSize: '13px', color: 'var(--color-text-2)' }}>{c.deceased_death}</td>
-                    <td style={{ padding: '12px', fontSize: '13px', color: 'var(--color-text-2)' }}>
-                      {new Date(c.created_at).toLocaleDateString('ko-KR')}
-                    </td>
-                    <td style={{ padding: '12px', fontSize: '13px' }}>
-                      {done}/{services.length}개
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{
-                        padding: '3px 10px', borderRadius: '100px', fontSize: '12px', fontWeight: 700,
-                        background: `${statusInfo.color}18`, color: statusInfo.color,
-                      }}>{statusInfo.label}</span>
-                    </td>
-                    <td style={{ padding: '12px' }}>
-                      <Link href={`/admin/cases/${c.id}`} style={{
-                        fontSize: '13px', color: 'var(--color-accent)', fontWeight: 600, textDecoration: 'none',
-                      }}>상세</Link>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--color-line-solid-normal)' }}>
+                  {['고인 성명', '사망일', '대행 신청일', '해지 요청 서비스', '전체 진행도', '단계 상태', '작업'].map(h => (
+                    <th key={h} style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--color-label-neutral)' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {recentCases && recentCases.length > 0 ? (
+                  recentCases.map((c: any) => {
+                    const statusInfo = STATUS_LABEL[c.status] || { label: c.status, color: '#999', bg: '#f3f4f6' }
+                    const services = c.case_services || []
+                    const done = services.filter((s: any) => s.status === 'done').length
+                    const pct = services.length ? Math.round((done / services.length) * 100) : 0
+
+                    return (
+                      <tr key={c.id} style={{ borderBottom: '1px solid var(--color-line-normal-alternative)', transition: 'background 0.2s' }}
+                          className="hover-row">
+                        <td style={{ padding: '16px', fontWeight: 700, color: 'var(--color-label-strong)' }}>
+                          {c.deceased_name}
+                        </td>
+                        <td style={{ padding: '16px', fontSize: '13px', color: 'var(--color-label-neutral)' }}>
+                          {c.deceased_death}
+                        </td>
+                        <td style={{ padding: '16px', fontSize: '13px', color: 'var(--color-label-neutral)' }}>
+                          {new Date(c.created_at).toLocaleDateString('ko-KR')}
+                        </td>
+                        <td style={{ padding: '16px', fontSize: '13px', color: 'var(--color-label-strong)' }}>
+                          {services.length > 0 ? (
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {services.slice(0, 3).map((s: any) => (
+                                <span key={s.id} style={{
+                                  padding: '2px 8px', borderRadius: '4px', background: 'var(--color-coolNeutral-96)',
+                                  fontSize: '11px', fontWeight: 600, color: 'var(--color-label-neutral)'
+                                }}>{s.service_name}</span>
+                              ))}
+                              {services.length > 3 && <span style={{ fontSize: '11px', color: 'var(--color-label-alternative)', fontWeight: 600 }}>외 {services.length - 3}개</span>}
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--color-label-assistive)' }}>신청 서비스 없음</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '80px', height: '6px', background: 'var(--color-coolNeutral-96)', borderRadius: '100px', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', background: '#10B981', width: `${pct}%`, borderRadius: '100px' }} />
+                            </div>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-label-neutral)' }}>{pct}% ({done}/{services.length})</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            padding: '4px 10px', borderRadius: '100px', fontSize: '12px', fontWeight: 700,
+                            background: statusInfo.bg, color: statusInfo.color
+                          }}>{statusInfo.label}</span>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <Link href={`/admin/cases/${c.id}`} style={{
+                            fontSize: '13px', color: 'var(--color-primary-normal)', fontWeight: 700, textDecoration: 'none'
+                          }}>
+                            관리 →
+                          </Link>
+                        </td>
+                      </tr>
+                    )
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-label-alternative)', fontSize: '14px' }}>
+                      접수된 신청 건이 존재하지 않습니다.
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </div>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
+import { Suspense } from 'react'
 
 // 신청 플로우 Step 0: 고인 기본 정보 (Toss UX: 1 Question 1 Screen)
 type Field = 'name' | 'birth' | 'death' | 'phone'
@@ -41,14 +42,23 @@ const FIELDS: { key: Field; question: string; sub: string; placeholder: string; 
   },
 ]
 
-export default function ApplyPage() {
+function ApplyForm() {
   const router = useRouter()
-  const { deceasedInfo, setDeceasedInfo, setCaseId, setStep } = useApplyStore()
+  const searchParams = useSearchParams()
+  const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, resetStore } = useApplyStore()
   const supabase = createClient()
 
   const [currentField, setCurrentField] = useState<number>(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    // ?reset=true 파라미터가 있으면 이전 신청 데이터를 초기화
+    // 대시보드 "새 신청하기"에서 넘어올 때 사용
+    if (searchParams.get('reset') === 'true') {
+      resetStore()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const field = FIELDS[currentField]
   const isLast = currentField === FIELDS.length - 1
@@ -204,5 +214,13 @@ export default function ApplyPage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function ApplyPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <ApplyForm />
+    </Suspense>
   )
 }

@@ -25,12 +25,15 @@ function LoginForm() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    console.log('로그인 시도:', email)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError('이메일 또는 비밀번호가 올바르지 않습니다')
+      console.error('로그인 에러:', error)
+      setError(`로그인 실패: ${error.message || '이메일 또는 비밀번호가 올바르지 않습니다'}`)
       setLoading(false)
       return
     }
+    console.log('로그인 성공:', data)
     router.push(next)
     router.refresh()
   }
@@ -110,7 +113,7 @@ function LoginForm() {
       </div>
 
       {/* 이메일/비밀번호 폼 */}
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {error && (
           <div className="card-soft" style={{ padding: '12px 16px', display: 'flex', gap: '8px', alignItems: 'center', color: 'var(--color-status-negative)' }}>
             <span style={{ fontSize: '13px', fontWeight: 600 }}>{error}</span>
@@ -120,12 +123,20 @@ function LoginForm() {
         <input type="email" placeholder="이메일" className="input" value={email} onChange={e => setEmail(e.target.value)} required />
         <input type="password" placeholder="비밀번호" className="input" value={password} onChange={e => setPassword(e.target.value)} required />
 
-        <div style={{ flex: 1 }} />
-        
-        <Button type="submit" disabled={loading} block>
+        <Button type="submit" disabled={loading} block style={{ marginTop: '16px' }}>
           {loading ? '로그인 중...' : '이메일로 로그인'}
         </Button>
       </form>
+
+      {/* 회원가입 유도 */}
+      <div style={{ marginTop: '32px', textAlign: 'center', paddingBottom: '16px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-label-alternative)', margin: 0 }}>
+          아직 계정이 없으신가요?{' '}
+          <Link href="/signup" style={{ color: 'var(--color-primary-normal)', fontWeight: 700, textDecoration: 'none' }}>
+            회원가입
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
@@ -133,7 +144,15 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="screen">
-      <Topbar brand={true} />
+      <Topbar title="로그인" onBack={() => {
+        // router.back() 대신 홈으로 명시 이동
+        // 소셜 로그인 OAuth 리다이렉트 후 히스토리 스택이 없어 back()이 에러 발생하는 버그 방지
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+          window.history.back()
+        } else {
+          window.location.href = '/'
+        }
+      }} />
       <Suspense fallback={<div />}>
         <LoginForm />
       </Suspense>

@@ -25,10 +25,10 @@ export default function Logo({ dark = false, width = 100, height = 30 }: LogoPro
         style={{
           objectFit: 'contain',
           objectPosition: 'left center',
-          // 밝은 배경: multiply로 흰 배경 제거
-          // 어두운 배경: invert + brightness로 흰색으로 변환
-          mixBlendMode: dark ? undefined : 'multiply',
-          filter: dark ? 'brightness(0) invert(1)' : undefined,
+          // 밝은 배경: multiply로 흰 배경(jpg) 투명화
+          // 어두운 배경: brightness(0) invert(1)로 로고를 흰색으로 변환 후 multiply
+          mixBlendMode: 'multiply',
+          filter: dark ? 'brightness(0) invert(1)' : 'none',
         }}
       />
     </Link>
