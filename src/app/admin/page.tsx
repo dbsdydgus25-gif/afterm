@@ -4,7 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
   draft:      { label: '작성 중',   color: '#6B7280', bg: '#F3F4F6' },
   submitted:  { label: '접수 완료', color: '#2563EB', bg: '#EFF6FF' },
-  processing: { label: '처리 중',   color: '#7C3AED', bg: '#F5F3FF' },
+  reviewing:  { label: '서류 확인', color: '#7C3AED', bg: '#F5F3FF' },
+  processing: { label: '처리 중',   color: '#D97706', bg: '#FFFBEB' },
   completed:  { label: '완료됨',    color: '#059669', bg: '#ECFDF5' },
   cancelled:  { label: '취소됨',    color: '#DC2626', bg: '#FEF2F2' },
 }
@@ -15,6 +16,7 @@ export default async function AdminPage() {
   const [
     { count: totalCases },
     { count: submittedCases },
+    { count: reviewingCases },
     { count: processingCases },
     { count: completedCases },
     { count: totalServices },
@@ -22,14 +24,16 @@ export default async function AdminPage() {
     { data: recentCases },
     { data: serviceStats },
   ] = await Promise.all([
-    adminClient.from('cases').select('*', { count: 'exact', head: true }),
+    adminClient.from('cases').select('*', { count: 'exact', head: true }).neq('status', 'draft'),
     adminClient.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'submitted'),
+    adminClient.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'reviewing'),
     adminClient.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'processing'),
     adminClient.from('cases').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
     adminClient.from('case_services').select('*', { count: 'exact', head: true }),
     adminClient.from('case_services').select('*', { count: 'exact', head: true }).eq('status', 'done'),
     adminClient.from('cases')
       .select(`id, deceased_name, deceased_death, status, created_at, case_services(id, status)`)
+      .neq('status', 'draft')
       .order('created_at', { ascending: false })
       .limit(20),
     adminClient.from('case_services')
@@ -50,32 +54,25 @@ export default async function AdminPage() {
   const completionRate = totalServices ? Math.round(((doneServices || 0) / totalServices) * 100) : 0
 
   const STATS = [
-    { label: '전체 신청',    value: totalCases || 0,      desc: '누적 대행 신청 건수', color: '#163272', bg: '#EBF3FF', emoji: '📋' },
-    { label: '접수 완료',    value: submittedCases || 0,  desc: '서류 검토 대기 중',   color: '#D97706', bg: '#FEF3C7', emoji: '📬' },
-    { label: '처리 중',      value: processingCases || 0, desc: '행정 처리 진행 중',   color: '#7C3AED', bg: '#F5F3FF', emoji: '⚙️' },
-    { label: '처리 완료',    value: completedCases || 0,  desc: '최종 완료 케이스',    color: '#059669', bg: '#ECFDF5', emoji: '✅' },
+    { label: '전체 신청',  value: totalCases || 0,      desc: '누적 대행 신청 건수', color: '#163272', bg: '#EBF3FF', emoji: '📋' },
+    { label: '접수 완료',  value: submittedCases || 0,  desc: '서류 검토 대기 중',   color: '#2563EB', bg: '#EFF6FF', emoji: '📬' },
+    { label: '서류 확인',  value: reviewingCases || 0,  desc: '서류 확인 진행 중',   color: '#7C3AED', bg: '#F5F3FF', emoji: '🔍' },
+    { label: '처리 중',    value: processingCases || 0, desc: '행정 처리 진행 중',   color: '#D97706', bg: '#FFFBEB', emoji: '⚙️' },
+    { label: '처리 완료',  value: completedCases || 0,  desc: '최종 완료 케이스',    color: '#059669', bg: '#ECFDF5', emoji: '✅' },
   ]
 
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
       {/* 페이지 헤더 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>대시보드</h1>
-          <p style={{ fontSize: 13, color: '#9ca3af', margin: '4px 0 0' }}>
-            {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })} 기준 실시간 현황
-          </p>
-        </div>
-        <Link href="/admin/cases" style={{
-          background: '#163272', color: '#fff', fontSize: 13, fontWeight: 700,
-          padding: '9px 18px', borderRadius: 8, textDecoration: 'none',
-        }}>
-          + 신청 관리
-        </Link>
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>대시보드</h1>
+        <p style={{ fontSize: 13, color: '#9ca3af', margin: '4px 0 0' }}>
+          {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })} 기준 실시간 현황
+        </p>
       </div>
 
       {/* 지표 카드 4개 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 24 }}>
         {STATS.map(s => (
           <div key={s.label} style={{
             background: '#fff', borderRadius: 12, padding: '20px 22px',
