@@ -34,8 +34,7 @@ function LoginForm() {
       return
     }
     console.log('로그인 성공:', data)
-    router.push(next)
-    router.refresh()
+    window.location.href = next
   }
 
   // 구글 로그인

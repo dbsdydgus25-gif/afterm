@@ -1,4 +1,5 @@
 import HomeTabBar from './HomeTabBar'
+import FloatingChat from '@/components/ui/FloatingChat'
 
 // 인증 체크는 middleware.ts에서 처리
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       background: '#f8f9fb', paddingBottom: 72,
     }}>
       {children}
+      <FloatingChat />
       <HomeTabBar />
     </div>
   )

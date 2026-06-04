@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import AdminServiceRow from './AdminServiceRow'
 import DocViewer from './DocViewer'
 import CaseStatusBar from './CaseStatusBar'
+import AdminChatPanel from './AdminChatPanel'
 
 interface PageProps {
   params: Promise<{ caseId: string }>
@@ -41,10 +42,10 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
   const doneCount = services.filter((s: any) => s.status === 'done').length
   const progressPct = services.length ? Math.round((doneCount / services.length) * 100) : 0
 
-  const documentsWithUrl = (caseData.case_documents || []).map((doc: any) => {
-    const { data } = adminClient.storage.from('case-documents').getPublicUrl(doc.storage_path)
-    return { doc_type: doc.doc_type, file_name: doc.file_name, storage_path: doc.storage_path, public_url: data.publicUrl }
-  })
+  const documentsWithUrl = await Promise.all((caseData.case_documents || []).map(async (doc: any) => {
+    const { data } = await adminClient.storage.from('case-documents').createSignedUrl(doc.storage_path, 60 * 60)
+    return { doc_type: doc.doc_type, file_name: doc.file_name, storage_path: doc.storage_path, public_url: data?.signedUrl || '' }
+  }))
 
   const delegationInfo = caseData.delegations?.[0] || null
   const statusMeta = STATUS_LABEL[caseData.status] || STATUS_LABEL['submitted']
@@ -178,6 +179,9 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
               <p style={{ fontSize: 13, color: '#78350F', margin: 0, lineHeight: 1.6 }}>{caseData.notes}</p>
             </div>
           )}
+
+          {/* 1:1 채팅 관리 패널 */}
+          <AdminChatPanel userId={caseData.user_id} deceasedName={caseData.deceased_name} />
         </div>
       </div>
     </div>

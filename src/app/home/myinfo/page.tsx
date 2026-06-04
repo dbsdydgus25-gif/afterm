@@ -1,253 +1,160 @@
-'use client'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import MyInfoClient from './MyInfoClient'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+export default async function MyInfoPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-export default function MyInfoPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [editMode, setEditMode] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '회원'
+  const phone = user.phone || '010-0000-0000'
+  const email = user.email || ''
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      setNewName(data.user?.user_metadata?.full_name || data.user?.user_metadata?.name || '')
-      setLoading(false)
-    })
-  }, [])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  const handleSaveName = async () => {
-    setSaving(true)
-    await supabase.auth.updateUser({ data: { full_name: newName } })
-    setUser((u: any) => ({ ...u, user_metadata: { ...u?.user_metadata, full_name: newName } }))
-    setEditMode(false)
-    setSaving(false)
-    setMsg('이름이 변경되었습니다.')
-    setTimeout(() => setMsg(''), 2000)
-  }
-
-  const handleDeleteAccount = async () => {
-    // 실제 삭제는 서버사이드에서 admin API로 처리 필요
-    alert('계정 삭제는 고객센터(카카오톡 채널)를 통해 요청해주세요.')
-    setShowDeleteConfirm(false)
-  }
-
-  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || '회원'
-  const provider = user?.app_metadata?.provider || 'email'
-
-  const MENU_SECTIONS = [
-    {
-      title: '서비스 이용',
-      items: [
-        { label: '결제 내역', icon: '💳', onClick: () => router.push('/home/orders') },
-        { label: '담당자 채팅', icon: '💬', onClick: () => router.push('/home/chat') },
-      ],
-    },
-    {
-      title: '계정 설정',
-      items: [
-        {
-          label: '이름 변경',
-          icon: '✏️',
-          onClick: () => setEditMode(true),
-          value: displayName,
-        },
-        {
-          label: '로그인 방식',
-          icon: '🔐',
-          value: provider === 'google' ? 'Google' : provider === 'kakao' ? '카카오' : '이메일',
-          readonly: true,
-        },
-      ],
-    },
-    {
-      title: '알림',
-      items: [
-        { label: '서비스 진행 알림', icon: '🔔', toggle: true },
-        { label: '마케팅 정보 수신', icon: '📣', toggle: true },
-      ],
-    },
-    {
-      title: '고객지원',
-      items: [
-        { label: '자주 묻는 질문', icon: '❓', onClick: () => {} },
-        { label: '이용약관', icon: '📜', onClick: () => {} },
-        { label: '개인정보처리방침', icon: '🔒', onClick: () => {} },
-      ],
-    },
-  ]
-
-  if (loading) return null
+  // 최근 신청 내역 2개만 조회
+  const { data: cases } = await supabase
+    .from('cases')
+    .select('id, deceased_name, status, created_at')
+    .eq('user_id', user.id)
+    .neq('status', 'draft')
+    .order('created_at', { ascending: false })
+    .limit(2)
 
   return (
-    <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
-      {/* 프로필 헤더 */}
-      <div style={{ background: '#fff', padding: '24px 24px 20px', borderBottom: '8px solid #f8f9fb' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#111', margin: '0 0 20px' }}>내정보</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%', background: '#163272',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 22, color: '#fff', fontWeight: 800, flexShrink: 0,
-          }}>
-            {displayName.charAt(0)}
-          </div>
-          <div>
-            <p style={{ fontSize: 18, fontWeight: 800, color: '#111', margin: '0 0 3px' }}>
-              {displayName}님
-            </p>
-            <p style={{ fontSize: 13, color: '#888', margin: 0 }}>{user?.email || user?.phone}</p>
-          </div>
-        </div>
+    <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#F4F6F9', minHeight: '100vh', paddingBottom: 100 }}>
+      {/* 헤더 */}
+      <div style={{ background: '#fff', padding: '16px 20px', borderBottom: '1px solid #F0F0F0', position: 'sticky', top: 0, zIndex: 10 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: 0, textAlign: 'center' }}>내 정보</h1>
       </div>
 
-      {/* 이름 편집 모달 */}
-      {editMode && (
+      <div style={{ padding: '20px' }}>
+        
+        {/* ── 프로필 박스 ── */}
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 200,
-        }}
-          onClick={() => setEditMode(false)}
-        >
-          <div style={{ background: '#fff', borderRadius: '20px 20px 0 0', padding: '28px 24px 48px', width: '100%', maxWidth: 480 }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111', margin: '0 0 20px' }}>이름 변경</h3>
-            <input
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              placeholder="이름을 입력해주세요"
-              style={{
-                width: '100%', padding: '14px 16px', borderRadius: 12,
-                border: '2px solid #163272', fontSize: 16, outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-            <button
-              onClick={handleSaveName}
-              disabled={saving || !newName.trim()}
-              style={{
-                width: '100%', marginTop: 16, padding: '16px', background: '#163272',
-                border: 'none', borderRadius: 12, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-              }}
-            >
-              {saving ? '저장 중...' : '저장'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {msg && (
-        <div style={{
-          position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)',
-          background: '#111', color: '#fff', padding: '12px 20px', borderRadius: 100,
-          fontSize: 14, fontWeight: 600, zIndex: 300, whiteSpace: 'nowrap',
-        }}>{msg}</div>
-      )}
-
-      {/* 메뉴 섹션들 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 0' }}>
-        {MENU_SECTIONS.map(section => (
-          <div key={section.title} style={{ background: '#fff', padding: '4px 0' }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#aaa', padding: '14px 24px 8px', margin: 0, letterSpacing: '0.05em' }}>
-              {section.title.toUpperCase()}
-            </p>
-            {section.items.map((item: any) => (
-              <button
-                key={item.label}
-                onClick={item.onClick}
-                disabled={item.readonly}
-                style={{
-                  width: '100%', background: 'none', border: 'none', cursor: item.readonly ? 'default' : 'pointer',
-                  padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{item.icon}</span>
-                <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: '#111' }}>{item.label}</span>
-                {item.value && (
-                  <span style={{ fontSize: 13, color: '#999' }}>{item.value}</span>
-                )}
-                {item.toggle && (
-                  <div style={{ width: 44, height: 24, borderRadius: 12, background: '#e0e0e0', position: 'relative' }}>
-                    <div style={{ width: 20, height: 20, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: 2, transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-                  </div>
-                )}
-                {!item.toggle && !item.readonly && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                )}
-              </button>
-            ))}
-          </div>
-        ))}
-
-        {/* 로그아웃 / 탈퇴 */}
-        <div style={{ background: '#fff', padding: '4px 0 16px' }}>
-          <button
-            onClick={handleLogout}
-            style={{
-              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
-            }}
-          >
-            <span style={{ fontSize: 20 }}>🚪</span>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>로그아웃</span>
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            style={{
-              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-              padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
-            }}
-          >
-            <span style={{ fontSize: 20 }}>🗑️</span>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>회원 탈퇴</span>
-          </button>
-        </div>
-
-        <p style={{ textAlign: 'center', fontSize: 12, color: '#ccc', padding: '8px 0 16px' }}>
-          AFTERM v1.0 · afterm.co.kr
-        </p>
-      </div>
-
-      {/* 탈퇴 확인 모달 */}
-      {showDeleteConfirm && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 24,
-        }}
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div style={{ background: '#fff', borderRadius: 20, padding: '28px 24px', width: '100%', maxWidth: 360 }}
-            onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111', margin: '0 0 10px' }}>정말 탈퇴하시겠어요?</h3>
-            <p style={{ fontSize: 14, color: '#666', lineHeight: 1.7, margin: '0 0 24px' }}>
-              탈퇴하면 모든 신청 내역과<br />데이터가 삭제됩니다.
-            </p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowDeleteConfirm(false)} style={{
-                flex: 1, padding: '14px', background: '#f3f4f6', border: 'none', borderRadius: 12,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer', color: '#555',
-              }}>취소</button>
-              <button onClick={handleDeleteAccount} style={{
-                flex: 1, padding: '14px', background: '#ef4444', border: 'none', borderRadius: 12,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer', color: '#fff',
-              }}>탈퇴하기</button>
+          background: '#fff', borderRadius: 20, padding: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: '1px solid #E8EAF0', boxShadow: '0 1px 4px rgba(0,0,0,0.02)', marginBottom: 32
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%', background: '#F3F4F6',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, fontWeight: 800, color: '#111827', flexShrink: 0
+            }}>
+              {displayName.charAt(0)}
+            </div>
+            <div>
+              <p style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+                {displayName} 님
+              </p>
+              <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, fontWeight: 500 }}>
+                {phone} · 본인인증 완료
+              </p>
             </div>
           </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
         </div>
-      )}
+
+        {/* ── 신청 내역 ── */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>신청 내역</h2>
+            <Link href="/home/orders" style={{ fontSize: 13, color: '#6B7280', textDecoration: 'none', fontWeight: 600 }}>
+              전체 보기 &gt;
+            </Link>
+          </div>
+          <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
+            {cases && cases.length > 0 ? (
+              cases.map((c, idx) => {
+                const isLast = idx === cases.length - 1
+                const isCompleted = c.status === 'completed'
+                return (
+                  <Link href={`/dashboard/${c.id}`} key={c.id} style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      borderBottom: isLast ? 'none' : '1px solid #F3F4F6',
+                      background: '#fff'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{
+                          width: 40, height: 40, borderRadius: 12, background: isCompleted ? '#F3F4F6' : '#EFF6FF',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {isCompleted ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          ) : (
+                            <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #2563EB', borderTopColor: 'transparent', transform: 'rotate(45deg)' }} />
+                          )}
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>
+                            {c.deceased_name} 님
+                          </p>
+                          <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>
+                            {isCompleted ? '완료' : '진행 중'} · {new Date(c.created_at).toLocaleDateString('ko-KR')} 신청
+                          </p>
+                        </div>
+                      </div>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </div>
+                  </Link>
+                )
+              })
+            ) : (
+              <div style={{ padding: '30px', textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
+                진행 중인 신청 내역이 없습니다.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── 도움 받기 ── */}
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>도움 받기</h2>
+          <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
+            {[
+              { icon: '💬', title: '1:1 상담', desc: '평일 10:00 - 18:00' },
+              { icon: '❓', title: '자주 묻는 질문', desc: '비용·서류·처리 기간' },
+              { icon: '📖', title: '상속 절차 안내서', desc: '' },
+              { icon: '📞', title: '긴급 연락처 등록', desc: '' },
+              { icon: '💳', title: '결제 내역', desc: '결제 및 환불 내역 확인' },
+            ].map((item, idx, arr) => (
+              <div key={item.title} style={{
+                padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #F3F4F6', cursor: 'pointer', background: '#fff'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: item.desc ? '0 0 2px' : 0 }}>
+                      {item.title}
+                    </p>
+                    {item.desc && (
+                      <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{item.desc}</p>
+                    )}
+                  </div>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 설정 ── */}
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>설정</h2>
+          <MyInfoClient />
+        </div>
+      </div>
     </div>
   )
 }

@@ -148,6 +148,41 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* ── 이런 것도 도와드려요 (신규 배너) ── */}
+      <div style={{ padding: '32px 20px 24px' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', letterSpacing: '-0.01em' }}>
+          이런 것도 도와드려요
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: '20px 16px',
+            border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+            cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+              💬
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>전문 상담사와 1:1</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>평일 10-18시</p>
+            </div>
+          </div>
+          <div style={{
+            background: '#fff', borderRadius: 16, padding: '20px 16px',
+            border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+            cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+              📖
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>에프텀 서비스 안내</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>가이드 보기</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── 채팅 배너 ── */}
       <div style={{ padding: '20px 20px 8px' }}>
         <HomeChatButton kakaoToken={kakaoToken} />

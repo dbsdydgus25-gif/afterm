@@ -37,14 +37,14 @@ export default function HomeTabBar() {
     },
     {
       href: '/home/myinfo',
-      label: '내정보',
+      label: '마이',
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4"
+          <circle cx="12" cy="8" r="4.5"
             fill={active ? '#163272' : 'none'}
             stroke={active ? '#163272' : '#9CA3AF'}
             strokeWidth="1.8" />
-          <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6"
+          <path d="M5 20c0-3.5 3.5-6 7-6s7 2.5 7 6"
             stroke={active ? '#163272' : '#9CA3AF'}
             strokeWidth="1.8" strokeLinecap="round" />
         </svg>
