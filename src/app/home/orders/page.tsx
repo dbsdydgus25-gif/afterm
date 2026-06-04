@@ -195,17 +195,18 @@ export default async function OrdersPage() {
                           flexShrink: 0,
                           width: 'calc(100vw - 56px)',
                           scrollSnapAlign: 'center',
-                          background: '#F0F2F5',
+                          background: '#ffffff',
                           borderRadius: 24,
                           padding: '22px 20px',
-                          boxShadow: '8px 8px 20px rgba(0,0,0,0.10), -8px -8px 20px rgba(255,255,255,0.90)',
+                          boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+                          border: '1px solid #f0f0f0',
                         }}>
                           {/* 상단: 아이콘 + 서비스명 + 상태 뱃지 */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
                             <div style={{
                               width: 56, height: 56, borderRadius: 18, flexShrink: 0,
-                              background: '#F0F2F5',
-                              boxShadow: 'inset 4px 4px 10px rgba(0,0,0,0.10), inset -4px -4px 10px rgba(255,255,255,0.95)',
+                              background: '#F4F6F9',
+                              border: '1px solid #eee',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               fontSize: 26,
                             }}>
@@ -265,8 +266,7 @@ export default async function OrdersPage() {
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                   <div style={{
                                     width: 22, height: 22, borderRadius: 7, flexShrink: 0,
-                                    background: '#F0F2F5',
-                                    boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.10), inset -2px -2px 5px rgba(255,255,255,0.9)',
+                                    background: '#EBF3FF',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 11, color: '#163272', fontWeight: 800,
                                   }}>
@@ -280,9 +280,9 @@ export default async function OrdersPage() {
 
                           {/* 안내 메모 */}
                           <div style={{
-                            background: '#F0F2F5',
-                            boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.08), inset -3px -3px 6px rgba(255,255,255,0.9)',
+                            background: '#F4F6F9',
                             borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+                            border: '1px solid #e8eaf0',
                           }}>
                             <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.7 }}>
                               💡 {docInfo.note}

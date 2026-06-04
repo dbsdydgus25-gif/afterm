@@ -21,7 +21,8 @@ export default function AdminLoginPage() {
     })
 
     if (res.ok) {
-      router.push('/admin')
+      // 쿠키가 확실히 적용되도록 전체 페이지 이동
+      window.location.href = '/admin'
     } else {
       setError('비밀번호가 올바르지 않습니다.')
       setLoading(false)
