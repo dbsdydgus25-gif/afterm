@@ -89,7 +89,7 @@ const FLOAT_CONFIGS = [
 ]
 
 /* ─── 신청자 수 카운터 ─── */
-function useApplicants(base = 1247) {
+function useApplicants(base = 12) {
   const [count, setCount] = useState(base)
   useEffect(() => {
     const id = setInterval(() => {
@@ -157,7 +157,7 @@ export default function LandingPage() {
             alignItems: 'center',
           }}>
             <Image src="/logo.jpg" alt="AFTERM" width={88} height={26}
-              style={{ objectFit:'contain', objectPosition:'left', filter:'brightness(0) invert(1)' }} />
+              style={{ objectFit:'contain', objectPosition:'left', filter:'invert(1) brightness(10)', mixBlendMode:'screen' }} />
             <Link href="/login" style={{
               fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
               textDecoration: 'none', padding: '7px 16px',
@@ -290,22 +290,14 @@ export default function LandingPage() {
             </p>
           </Fade>
 
-          {/* 악수 일러스트 자리 — 실제 3D 이미지로 교체 */}
           <Fade delay={150}>
-            <div style={{
-              width:'100%', maxWidth:320, margin:'0 auto',
-              aspectRatio:'1/1',
-              borderRadius:28,
-              background:'linear-gradient(135deg,#eef3ff,#dae6ff)',
-              display:'flex', flexDirection:'column',
-              alignItems:'center', justifyContent:'center',
-              position:'relative', overflow:'hidden',
-            }}>
-              {/* 임시 아이콘 — 실제 3D 핸드쉐이크 이미지로 교체하세요 */}
-              <div style={{ fontSize:100, lineHeight:1, userSelect:'none' }}>🤝</div>
-              <p style={{ color:'#163272', fontSize:12, fontWeight:600, marginTop:12, opacity:0.5 }}>
-                [실제 3D 악수 이미지 교체 예정]
-              </p>
+            <div style={{ width:'100%', borderRadius:24, overflow:'hidden', aspectRatio:'4/3', position:'relative' }}>
+              <Image
+                src="/handshake.jpg"
+                alt="에프텀 대행 서비스"
+                fill
+                style={{ objectFit:'cover', objectPosition:'center' }}
+              />
             </div>
           </Fade>
         </section>
@@ -372,39 +364,28 @@ export default function LandingPage() {
             </p>
           </Fade>
 
-          {/* 실제 사무실/상담 사진 자리 */}
           <Fade delay={100}>
-            <div style={{
-              width:'100%', borderRadius:24,
-              overflow:'hidden',
-              aspectRatio:'4/3',
-              background:'linear-gradient(135deg,#1a2744,#2d4a8a)',
-              display:'flex', flexDirection:'column',
-              alignItems:'center', justifyContent:'center',
-              position:'relative',
-            }}>
-              {/* 실제 상담/사무실 사진으로 교체하세요 */}
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" style={{ marginBottom:12 }}>
-                <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-              </svg>
-              <p style={{ color:'rgba(255,255,255,0.4)', fontSize:12, fontWeight:500, textAlign:'center', lineHeight:1.6, margin:0 }}>
-                실제 상담/사무실 사진<br />교체 예정
-              </p>
-
+            <div style={{ width:'100%', borderRadius:24, overflow:'hidden', aspectRatio:'4/3', position:'relative' }}>
+              <Image
+                src="/office.jpg"
+                alt="에프텀 행정 대행 업무"
+                fill
+                style={{ objectFit:'cover', objectPosition:'center' }}
+              />
               {/* 신뢰 배지 오버레이 */}
               <div style={{
                 position:'absolute', bottom:16, left:16, right:16,
-                background:'rgba(255,255,255,0.12)',
-                backdropFilter:'blur(12px)',
+                background:'rgba(255,255,255,0.15)',
+                backdropFilter:'blur(14px)',
                 borderRadius:14, padding:'14px 18px',
                 display:'flex', alignItems:'center', gap:12,
               }}>
-                <div style={{ width:40, height:40, borderRadius:10, background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <div style={{ width:40, height:40, borderRadius:10, background:'rgba(255,255,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                  <p style={{ color:'#fff', fontWeight:700, fontSize:13, margin:0 }}>전담 매니저 1:1 대행</p>
-                  <p style={{ color:'rgba(255,255,255,0.65)', fontSize:11, margin:0 }}>접수부터 완료까지 직접 처리합니다</p>
+                  <p style={{ color:'#fff', fontWeight:700, fontSize:13, margin:0, textShadow:'0 1px 4px rgba(0,0,0,0.4)' }}>전담 매니저 1:1 대행</p>
+                  <p style={{ color:'rgba(255,255,255,0.85)', fontSize:11, margin:0, textShadow:'0 1px 4px rgba(0,0,0,0.3)' }}>접수부터 완료까지 직접 처리합니다</p>
                 </div>
               </div>
             </div>
@@ -465,10 +446,10 @@ export default function LandingPage() {
         </section>
 
         {/* ── 푸터 ── */}
-        <footer style={{ background:'#f6f7f9', padding:'32px 24px 52px', borderTop:'1px solid #e8eaed' }}>
+        <footer style={{ background:'#fff', padding:'32px 24px 52px', borderTop:'1px solid #e8eaed' }}>
           <Image src="/logo.jpg" alt="AFTERM" width={72} height={22}
-            style={{ objectFit:'contain', objectPosition:'left', opacity:0.4, marginBottom:18 }} />
-          <div style={{ color:'#bbb', fontSize:11, lineHeight:2.1 }}>
+            style={{ objectFit:'contain', objectPosition:'left', opacity:0.7, marginBottom:18 }} />
+          <div style={{ color:'#555', fontSize:11, lineHeight:2.1 }}>
             <p style={{ margin:0 }}>상호명: 에프텀</p>
             <p style={{ margin:0 }}>대표자: 윤용현</p>
             <p style={{ margin:0 }}>사업자번호: 221-20-19292</p>
@@ -476,10 +457,10 @@ export default function LandingPage() {
             <p style={{ margin:0 }}>이메일: afterm001@gmail.com</p>
           </div>
           <div style={{ display:'flex', gap:16, marginTop:20 }}>
-            <Link href="/terms" style={{ color:'#ccc', fontSize:11, textDecoration:'none' }}>이용약관</Link>
-            <Link href="/privacy" style={{ color:'#ccc', fontSize:11, textDecoration:'none' }}>개인정보처리방침</Link>
+            <Link href="/terms" style={{ color:'#888', fontSize:11, textDecoration:'none' }}>이용약관</Link>
+            <Link href="/privacy" style={{ color:'#888', fontSize:11, textDecoration:'none' }}>개인정보처리방침</Link>
           </div>
-          <p style={{ color:'#ddd', fontSize:10, margin:'16px 0 0' }}>© 2026 Afterm. All rights reserved.</p>
+          <p style={{ color:'#bbb', fontSize:10, margin:'16px 0 0' }}>© 2026 Afterm. All rights reserved.</p>
         </footer>
       </div>
     </>
