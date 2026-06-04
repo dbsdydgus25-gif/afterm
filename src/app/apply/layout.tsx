@@ -18,7 +18,7 @@ export default function ApplyLayout({ children }: { children: React.ReactNode })
   const isConfirm = pathname === '/apply/confirm'
 
   const handleBack = () => {
-    if (currentIndex === 0) router.push('/dashboard')
+    if (currentIndex === 0) router.push('/home')
     else router.back() // or step back via history
   }
 

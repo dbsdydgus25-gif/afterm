@@ -92,8 +92,8 @@ export default function ConfirmPage() {
         </div>
 
         <div className="cta-dock" style={{ position: 'static', padding: 0, width: '100%' }}>
-          <Button block onClick={() => router.push('/dashboard')}>
-            대시보드에서 확인하기 →
+          <Button block onClick={() => router.push('/home')}>
+            홈에서 확인하기 →
           </Button>
         </div>
       </div>
