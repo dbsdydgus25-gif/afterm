@@ -1,8 +1,172 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+
+/* ─── 로그인 바텀시트 ─── */
+function LoginBottomSheet({ open, onClose, onSuccess }: {
+  open: boolean
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const [mode, setMode] = useState<'main' | 'email'>('main')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const supabase = createClient()
+
+  const handleGoogle = async () => {
+    setLoading('google')
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/apply` },
+    })
+  }
+
+  const handleKakao = async () => {
+    setLoading('kakao')
+    await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/apply` },
+    })
+  }
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading('email'); setError('')
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    setLoading(null)
+    if (err) { setError('이메일 또는 비밀번호가 올바르지 않습니다'); return }
+    onSuccess()
+  }
+
+  // 배경 클릭 닫기
+  useEffect(() => {
+    if (!open) { setMode('main'); setError('') }
+  }, [open])
+
+  return (
+    <>
+      {/* 딤 배경 */}
+      <div onClick={onClose} style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+        zIndex: 200,
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? 'auto' : 'none',
+        transition: 'opacity .3s ease',
+      }} />
+
+      {/* 바텀시트 */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: '50%',
+        transform: open ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
+        transition: 'transform .35s cubic-bezier(.32,0,.24,1)',
+        width: '100%', maxWidth: 480,
+        background: '#fff',
+        borderRadius: '24px 24px 0 0',
+        padding: '0 24px 40px',
+        zIndex: 201,
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+      }}>
+        {/* 핸들 */}
+        <div style={{ display:'flex', justifyContent:'center', padding:'12px 0 20px' }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:'#e0e0e0' }} />
+        </div>
+
+        {mode === 'main' && (
+          <>
+            <h2 style={{ fontSize:20, fontWeight:800, color:'#111', margin:'0 0 6px' }}>
+              에프텀 시작하기
+            </h2>
+            <p style={{ color:'#888', fontSize:13, margin:'0 0 28px' }}>
+              소셜 계정으로 간편하게 시작하세요
+            </p>
+
+            {/* 카카오 */}
+            <button onClick={handleKakao} disabled={!!loading} style={{
+              width:'100%', padding:'15px', borderRadius:14,
+              background:'#FEE500', border:'none', cursor:'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+              marginBottom:12, fontSize:15, fontWeight:700, color:'#3C1E1E',
+              opacity: loading ? 0.7 : 1,
+            }}>
+              {loading === 'kakao' ? '연결 중...' : (
+                <>
+                  <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#3C1E1E" d="M12 3C6.477 3 2 6.582 2 11c0 2.89 1.815 5.44 4.584 6.965L5.5 21l4.326-2.876A11.91 11.91 0 0012 18.2c5.523 0 10-3.582 10-8.2S17.523 3 12 3z"/></svg>
+                  카카오로 시작하기
+                </>
+              )}
+            </button>
+
+            {/* 구글 */}
+            <button onClick={handleGoogle} disabled={!!loading} style={{
+              width:'100%', padding:'15px', borderRadius:14,
+              background:'#fff', border:'1.5px solid #e0e0e0', cursor:'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+              marginBottom:12, fontSize:15, fontWeight:600, color:'#333',
+              opacity: loading ? 0.7 : 1,
+            }}>
+              {loading === 'google' ? '연결 중...' : (
+                <>
+                  <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                  Google로 시작하기
+                </>
+              )}
+            </button>
+
+            <div style={{ display:'flex', alignItems:'center', gap:12, margin:'16px 0' }}>
+              <div style={{ flex:1, height:1, background:'#eee' }} />
+              <span style={{ color:'#ccc', fontSize:12 }}>또는</span>
+              <div style={{ flex:1, height:1, background:'#eee' }} />
+            </div>
+
+            <button onClick={() => setMode('email')} style={{
+              width:'100%', padding:'15px', borderRadius:14,
+              background:'#f7f7f7', border:'none', cursor:'pointer',
+              fontSize:14, fontWeight:600, color:'#555',
+            }}>
+              이메일로 로그인
+            </button>
+          </>
+        )}
+
+        {mode === 'email' && (
+          <>
+            <button onClick={() => setMode('main')} style={{ background:'none', border:'none', cursor:'pointer', padding:'0 0 16px', color:'#888', fontSize:13, display:'flex', alignItems:'center', gap:4 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+              뒤로
+            </button>
+            <h2 style={{ fontSize:20, fontWeight:800, color:'#111', margin:'0 0 24px' }}>이메일 로그인</h2>
+            <form onSubmit={handleEmailLogin}>
+              <input
+                type="email" placeholder="이메일" value={email}
+                onChange={e => setEmail(e.target.value)} required
+                style={{ width:'100%', padding:'14px 16px', borderRadius:12, border:'1.5px solid #e0e0e0', fontSize:14, marginBottom:12, boxSizing:'border-box', outline:'none' }}
+              />
+              <input
+                type="password" placeholder="비밀번호" value={password}
+                onChange={e => setPassword(e.target.value)} required
+                style={{ width:'100%', padding:'14px 16px', borderRadius:12, border:'1.5px solid #e0e0e0', fontSize:14, marginBottom:8, boxSizing:'border-box', outline:'none' }}
+              />
+              {error && <p style={{ color:'#e53e3e', fontSize:12, margin:'0 0 12px' }}>{error}</p>}
+              <button type="submit" disabled={!!loading} style={{
+                width:'100%', padding:'15px', borderRadius:14,
+                background:'#163272', border:'none', cursor:'pointer',
+                fontSize:15, fontWeight:700, color:'#fff', marginTop:8,
+                opacity: loading ? 0.7 : 1,
+              }}>
+                {loading === 'email' ? '로그인 중...' : '로그인'}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </>
+  )
+}
 
 /* ─── 스크롤 FadeIn ─── */
 function useFadeIn(threshold = 0.12) {
@@ -88,20 +252,30 @@ const FLOAT_CONFIGS = [
   { left: 40, top: 88, size: 36, delay: 300,  dur: 3.0 },
 ]
 
-/* ─── 신청자 수 카운터 ─── */
-function useApplicants(base = 12) {
-  const [count, setCount] = useState(base)
+/* ─── 신청자 수 (Supabase cases 테이블 기준, 로드 전엔 12 표시) ─── */
+function useApplicants() {
+  const [count, setCount] = useState(12)
   useEffect(() => {
-    const id = setInterval(() => {
-      if (Math.random() < 0.3) setCount(c => c + 1)
-    }, 4000)
-    return () => clearInterval(id)
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const sb = createClient()
+      sb.from('cases').select('id', { count: 'exact', head: true }).then(({ count: c }) => {
+        if (c && c > 12) setCount(c)
+      })
+    })
   }, [])
   return count.toLocaleString()
 }
 
 export default function LandingPage() {
   const applicants = useApplicants()
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  const openSheet = useCallback(() => setSheetOpen(true), [])
+  const closeSheet = useCallback(() => setSheetOpen(false), [])
+  const handleAuthSuccess = useCallback(() => {
+    setSheetOpen(false)
+    window.location.href = '/apply'
+  }, [])
 
   /* 섹션2 트리거 */
   const sec2Ref = useRef<HTMLDivElement>(null)
@@ -115,6 +289,8 @@ export default function LandingPage() {
 
   return (
     <>
+      <LoginBottomSheet open={sheetOpen} onClose={closeSheet} onSuccess={handleAuthSuccess} />
+
       {/* ── 글로벌 keyframes ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
@@ -158,13 +334,13 @@ export default function LandingPage() {
           }}>
             <Image src="/logo-dark.png" alt="AFTERM" width={110} height={32}
               style={{ objectFit:'contain', objectPosition:'left', filter:'brightness(0) invert(1)' }} />
-            <Link href="/login" style={{
+            <button onClick={openSheet} style={{
               fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
-              textDecoration: 'none', padding: '7px 16px',
-              border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 8,
+              background: 'none', padding: '7px 16px',
+              border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
             }}>
               로그인
-            </Link>
+            </button>
           </header>
 
           {/* 히어로 텍스트 */}
@@ -214,18 +390,17 @@ export default function LandingPage() {
                 에프텀이 전부 대신 처리해드립니다.
               </p>
 
-              <Link href="/apply" style={{
+              <button onClick={openSheet} style={{
                 display:'inline-flex', alignItems:'center', gap:8,
                 background:'#fff', color:'#0b1d47',
                 borderRadius:14, padding:'15px 28px',
-                fontWeight:800, fontSize:15,
-                textDecoration:'none',
+                fontWeight:800, fontSize:15, border:'none', cursor:'pointer',
                 boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
                 letterSpacing:'-0.2px',
               }}>
                 무료로 신청하기
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -438,19 +613,17 @@ export default function LandingPage() {
                 선착순 한정 혜택입니다
               </p>
 
-              <Link href="/apply" style={{
+              <button onClick={openSheet} style={{
                 display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                 background:'#fff', color:'#0b1d47',
-                borderRadius:14, padding:'18px 0',
-                fontWeight:800, fontSize:17,
-                textDecoration:'none',
+                borderRadius:14, padding:'18px 0', width:'100%',
+                fontWeight:800, fontSize:17, border:'none', cursor:'pointer',
                 boxShadow:'0 6px 24px rgba(0,0,0,0.3)',
                 letterSpacing:'-0.3px',
-                position:'relative',
               }}>
                 신청하기
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </Link>
+              </button>
 
               <p style={{ color:'rgba(255,255,255,0.3)', fontSize:11, marginTop:14, textAlign:'center' }}>
                 신용카드 없이 · 약정 없이 · 지금 바로
