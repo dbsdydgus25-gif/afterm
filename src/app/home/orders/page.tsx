@@ -22,13 +22,14 @@ const CASE_STATUS: Record<string, { label: string; color: string }> = {
 
 // 서비스별 필요 서류 정보
 const SVC_DOCS: Record<string, { docs: string[]; note: string }> = {
-  '구글':    { docs: ['사망진단서 사본', '신청인 신분증'], note: '계정 삭제 또는 메모리얼화 선택 가능' },
-  '카카오':  { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '카카오 고객센터 접수 후 영업일 5~10일 소요' },
-  '네이버':  { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '네이버 회원 탈퇴 또는 계정 삭제 처리' },
-  '인스타그램': { docs: ['사망진단서 사본', '신청인 신분증'], note: '추모 계정 전환 또는 삭제 선택 가능' },
-  '페이스북': { docs: ['사망진단서 사본', '신청인 신분증'], note: '추모 계정 전환 또는 삭제 선택 가능' },
-  '애플':    { docs: ['사망진단서 사본', '법원 명령서 또는 위임장'], note: '애플 법무팀 직접 처리, 4~8주 소요' },
-  '기본':    { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '담당자가 서류 접수 후 안내드립니다' },
+  '구글':       { docs: ['사망진단서 사본', '신청인 신분증'], note: '계정 삭제 또는 추모화 선택 가능. 영업일 7~14일 소요' },
+  '카카오':     { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '카카오 고객센터 접수 후 영업일 5~10일 소요' },
+  '카카오톡':   { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '카카오 고객센터 접수 후 영업일 5~10일 소요' },
+  '네이버':     { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '네이버 회원 탈퇴 또는 계정 삭제 처리' },
+  '인스타그램': { docs: ['사망진단서 사본', '신청인 신분증'], note: '추모 계정 전환 또는 삭제 선택 가능. 영업일 14일 내 처리' },
+  '페이스북':   { docs: ['사망진단서 사본', '신청인 신분증'], note: '추모 계정 전환 또는 삭제 선택 가능' },
+  '애플':       { docs: ['사망진단서 사본', '법원 명령서 또는 위임장'], note: '애플 법무팀 직접 처리, 4~8주 소요' },
+  '기본':       { docs: ['사망진단서 사본', '가족관계증명서', '신청인 신분증'], note: '담당자가 서류 접수 후 처리 안내드립니다' },
 }
 
 // 서비스 진행 단계
@@ -36,7 +37,7 @@ const SVC_STEPS = ['대기 중', '발송 완료', '기업 접수', '처리 완�
 
 const SERVICE_ICONS: Record<string, string> = {
   '통신': '📱', '금융': '🏦', '보험': '📄', '포털': '💻',
-  '이메일': '✉️', 'SNS': '📸', '구독': '💳', '기타': '📋',
+  '이메일': '✉️', 'SNS': '📸', '구독': '💳', '메신저': '💬', '기타': '📋',
 }
 
 function shortId(id: string) {
@@ -82,7 +83,6 @@ export default async function OrdersPage() {
         <Link href="/apply?reset=true" style={{
           background: '#163272', color: '#fff', padding: '10px 18px',
           borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: 'none',
-          display: 'flex', alignItems: 'center', gap: 6,
         }}>
           + 새 신청
         </Link>
@@ -121,9 +121,7 @@ export default async function OrdersPage() {
                 <div style={{ padding: '0 20px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
                     <div>
-                      <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 3px', fontWeight: 700, letterSpacing: '0.05em' }}>
-                        고인
-                      </p>
+                      <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 3px', fontWeight: 700, letterSpacing: '0.05em' }}>고인</p>
                       <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>
                         {c.deceased_name}님
                       </h2>
@@ -135,9 +133,7 @@ export default async function OrdersPage() {
                       }}>
                         {cMeta.label}
                       </span>
-                      <p style={{ fontSize: 10, color: '#bbb', margin: '4px 0 0', fontWeight: 600 }}>
-                        신청 {createdAt}
-                      </p>
+                      <p style={{ fontSize: 10, color: '#bbb', margin: '4px 0 0', fontWeight: 600 }}>신청 {createdAt}</p>
                     </div>
                   </div>
 
@@ -175,11 +171,18 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                {/* 서비스 카드 목록 (세로, 전체 너비) */}
+                {/* 서비스 카드 — 가로 스크롤, 거의 전체 너비 */}
                 {services.length === 0 ? (
                   <p style={{ padding: '0 20px', fontSize: 13, color: '#bbb' }}>선택된 서비스 없음</p>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '0 16px 20px' }}>
+                  <div style={{
+                    display: 'flex', gap: 14, overflowX: 'auto',
+                    padding: '4px 20px 20px',
+                    scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch',
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                  }}>
                     {services.map((svc: any) => {
                       const sMeta = SVC_STATUS[svc.status] || SVC_STATUS['pending']
                       const icon = SERVICE_ICONS[svc.service_category] || '📋'
@@ -189,12 +192,15 @@ export default async function OrdersPage() {
 
                       return (
                         <div key={svc.id} style={{
+                          flexShrink: 0,
+                          width: 'calc(100vw - 56px)',
+                          scrollSnapAlign: 'center',
                           background: '#F0F2F5',
                           borderRadius: 24,
                           padding: '22px 20px',
                           boxShadow: '8px 8px 20px rgba(0,0,0,0.10), -8px -8px 20px rgba(255,255,255,0.90)',
                         }}>
-                          {/* 상단: 아이콘 + 서비스명 + 상태 */}
+                          {/* 상단: 아이콘 + 서비스명 + 상태 뱃지 */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
                             <div style={{
                               width: 56, height: 56, borderRadius: 18, flexShrink: 0,
@@ -209,7 +215,7 @@ export default async function OrdersPage() {
                               <p style={{ fontSize: 12, color: '#aaa', margin: '0 0 3px', fontWeight: 700 }}>
                                 {svc.service_category}
                               </p>
-                              <p style={{ fontSize: 18, fontWeight: 900, color: '#1a1a2e', margin: 0, letterSpacing: '-0.01em' }}>
+                              <p style={{ fontSize: 20, fontWeight: 900, color: '#1a1a2e', margin: 0, letterSpacing: '-0.01em' }}>
                                 {svc.service_name}
                               </p>
                             </div>
@@ -223,29 +229,27 @@ export default async function OrdersPage() {
                           </div>
 
                           {/* 진행 스텝 바 */}
-                          <div style={{ marginBottom: 18 }}>
-                            <div style={{ display: 'flex', gap: 0, position: 'relative' }}>
-                              {SVC_STEPS.map((step, i) => {
-                                const isActive = i + 1 === currentStep
-                                const isPastStep = i + 1 < currentStep
-                                return (
-                                  <div key={step} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                                    <div style={{
-                                      width: '100%', height: 4, borderRadius: 2,
-                                      background: isPastStep ? '#163272' : isActive ? '#163272' : 'rgba(0,0,0,0.12)',
-                                      opacity: isPastStep ? 0.4 : 1,
-                                    }} />
-                                    <span style={{
-                                      fontSize: 10, fontWeight: isActive ? 800 : 500,
-                                      color: isActive ? '#163272' : isPastStep ? '#999' : '#bbb',
-                                      whiteSpace: 'nowrap',
-                                    }}>
-                                      {isActive ? `● ${step}` : step}
-                                    </span>
-                                  </div>
-                                )
-                              })}
-                            </div>
+                          <div style={{ display: 'flex', gap: 0, marginBottom: 18 }}>
+                            {SVC_STEPS.map((step, i) => {
+                              const isActive = i + 1 === currentStep
+                              const isPastStep = i + 1 < currentStep
+                              return (
+                                <div key={step} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+                                  <div style={{
+                                    width: '100%', height: 4, borderRadius: 2,
+                                    background: isPastStep || isActive ? '#163272' : 'rgba(0,0,0,0.12)',
+                                    opacity: isPastStep ? 0.35 : 1,
+                                  }} />
+                                  <span style={{
+                                    fontSize: 10, fontWeight: isActive ? 800 : 500,
+                                    color: isActive ? '#163272' : isPastStep ? '#aaa' : '#ccc',
+                                    whiteSpace: 'nowrap',
+                                  }}>
+                                    {isActive ? `● ${step}` : step}
+                                  </span>
+                                </div>
+                              )
+                            })}
                           </div>
 
                           {/* 구분선 */}
@@ -253,22 +257,22 @@ export default async function OrdersPage() {
 
                           {/* 필요 서류 */}
                           <div style={{ marginBottom: 14 }}>
-                            <p style={{ fontSize: 12, fontWeight: 800, color: '#555', margin: '0 0 8px', letterSpacing: '0.02em' }}>
+                            <p style={{ fontSize: 12, fontWeight: 800, color: '#555', margin: '0 0 10px' }}>
                               📎 제출 서류
                             </p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                               {docInfo.docs.map((doc, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                   <div style={{
-                                    width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                                    width: 22, height: 22, borderRadius: 7, flexShrink: 0,
                                     background: '#F0F2F5',
-                                    boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.1), inset -2px -2px 4px rgba(255,255,255,0.9)',
+                                    boxShadow: 'inset 2px 2px 5px rgba(0,0,0,0.10), inset -2px -2px 5px rgba(255,255,255,0.9)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 10, color: '#163272', fontWeight: 800,
+                                    fontSize: 11, color: '#163272', fontWeight: 800,
                                   }}>
                                     {i + 1}
                                   </div>
-                                  <span style={{ fontSize: 13, color: '#444', fontWeight: 500 }}>{doc}</span>
+                                  <span style={{ fontSize: 14, color: '#333', fontWeight: 500 }}>{doc}</span>
                                 </div>
                               ))}
                             </div>
@@ -280,12 +284,12 @@ export default async function OrdersPage() {
                             boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.08), inset -3px -3px 6px rgba(255,255,255,0.9)',
                             borderRadius: 12, padding: '10px 14px', marginBottom: 14,
                           }}>
-                            <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.6 }}>
+                            <p style={{ fontSize: 12, color: '#666', margin: 0, lineHeight: 1.7 }}>
                               💡 {docInfo.note}
                             </p>
                           </div>
 
-                          {/* 상태 메모 (있을 때만) */}
+                          {/* 담당자 메모 (있을 때만) */}
                           {svc.status_note && (
                             <div style={{
                               background: '#FFF9E6', borderRadius: 10, padding: '10px 14px', marginBottom: 14,
@@ -300,8 +304,7 @@ export default async function OrdersPage() {
                           {/* 정산 상태 */}
                           <div style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            paddingTop: 12,
-                            borderTop: '1px solid rgba(0,0,0,0.06)',
+                            paddingTop: 12, borderTop: '1px solid rgba(0,0,0,0.06)',
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <div style={{
@@ -324,7 +327,7 @@ export default async function OrdersPage() {
                 )}
 
                 {/* 구분선 */}
-                <div style={{ height: 8, background: '#E8EAF0', margin: '0 0 0' }} />
+                <div style={{ height: 8, background: '#E8EAF0' }} />
               </div>
             )
           })}

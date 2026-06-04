@@ -104,9 +104,7 @@ export async function POST(
       }
     }
 
-    // 케이스 상태를 processing으로 업데이트
-    await adminClient.from('cases').update({ status: 'processing' }).eq('id', caseId)
-
+    // 케이스 상태는 어드민에서 수동 관리 (submitted 유지)
     return NextResponse.json({ success: true, results })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
