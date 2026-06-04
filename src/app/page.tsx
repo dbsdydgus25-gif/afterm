@@ -156,8 +156,13 @@ export default function LandingPage() {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            <Image src="/logo.jpg" alt="AFTERM" width={88} height={26}
-              style={{ objectFit:'contain', objectPosition:'left', filter:'invert(1) brightness(10)', mixBlendMode:'screen' }} />
+            <span style={{
+              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+              fontWeight: 900,
+              fontSize: 22,
+              color: '#fff',
+              letterSpacing: '0.06em',
+            }}>AFTERM</span>
             <Link href="/login" style={{
               fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
               textDecoration: 'none', padding: '7px 16px',
@@ -169,25 +174,37 @@ export default function LandingPage() {
 
           {/* 히어로 텍스트 */}
           <div style={{ padding: '40px 24px 0' }}>
-            <p style={{
-              color: 'rgba(255,255,255,0.55)',
-              fontSize: 12, fontWeight: 600,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              margin: '0 0 28px',
-              animation: 'heroFadeUp .5s ease .1s both',
-            }}>
-              디지털 유산 행정 대행 서비스
-            </p>
+            {/* 손글씨 서브타이틀 */}
+            <div style={{ animation: 'heroFadeUp .5s ease .1s both', marginBottom: 8 }}>
+              <p style={{
+                fontFamily: "'Nanum Pen Script', cursive",
+                color: 'rgba(255,255,255,0.75)',
+                fontSize: 20,
+                margin: 0,
+                lineHeight: 1.5,
+              }}>
+                디지털 유산 행정 대행 서비스, AFTERM
+              </p>
+            </div>
+            <div style={{ animation: 'heroFadeUp .5s ease .35s both', marginBottom: 28 }}>
+              <p style={{
+                fontFamily: "'Nanum Pen Script', cursive",
+                color: 'rgba(255,255,255,0.5)',
+                fontSize: 17,
+                margin: 0,
+              }}>
+                (이제 장례 끝났는데..)
+              </p>
+            </div>
 
             <h1 style={{
-              color: '#fff', fontSize: 40, fontWeight: 800,
+              color: '#fff', fontSize: 42, fontWeight: 800,
               lineHeight: 1.2, margin: '0 0 22px',
               wordBreak: 'keep-all', letterSpacing: '-0.5px',
             }}>
-              <HeroLine delay={200}>아직도</HeroLine>
-              <HeroLine delay={420}><span style={{ color:'#89bfff' }}>정리할 게</span></HeroLine>
-              <HeroLine delay={640}>남았다고요?</HeroLine>
+              <HeroLine delay={500}>아직도</HeroLine>
+              <HeroLine delay={700}><span style={{ color:'#89bfff' }}>정리할게</span></HeroLine>
+              <HeroLine delay={900}>남았다고요?</HeroLine>
             </h1>
 
             <div style={{ animation:'heroFadeUp .6s ease .9s both', opacity:0 }}>
