@@ -53,10 +53,20 @@ function ApplyForm() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // ?reset=true 파라미터가 있으면 이전 신청 데이터를 초기화
-    // 대시보드 "새 신청하기"에서 넘어올 때 사용
+    // ?reset=true 또는 이전 케이스가 draft가 아니면 초기화 (새 신청)
+    const { caseId } = useApplyStore.getState()
     if (searchParams.get('reset') === 'true') {
       resetStore()
+      return
+    }
+    // draft가 아닌 케이스(submitted/processing 등)가 남아있으면 새 신청으로 간주 초기화
+    if (caseId) {
+      supabase.from('cases').select('status').eq('id', caseId).single()
+        .then(({ data }) => {
+          if (!data || data.status !== 'draft') {
+            resetStore()
+          }
+        })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
