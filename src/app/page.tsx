@@ -169,9 +169,9 @@ export default function LandingPage() {
           </header>
 
           {/* 히어로 텍스트 */}
-          <div style={{ padding: '40px 24px 0' }}>
+          <div style={{ padding: '16px 24px 0' }}>
             {/* 일반 폰트 서브타이틀 */}
-            <div style={{ animation: 'heroFadeUp .5s ease .1s both', marginBottom: 14 }}>
+            <div style={{ animation: 'heroFadeUp .5s ease .1s both', marginBottom: 10 }}>
               <p style={{
                 color: 'rgba(255,255,255,0.55)',
                 fontSize: 13,
@@ -183,13 +183,13 @@ export default function LandingPage() {
               </p>
             </div>
             {/* 손글씨 크게 */}
-            <div style={{ animation: 'heroFadeUp .5s ease .35s both', marginBottom: 28 }}>
+            <div style={{ animation: 'heroFadeUp .5s ease .35s both', marginBottom: 24 }}>
               <p style={{
                 fontFamily: "'Nanum Pen Script', cursive",
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: 30,
+                color: 'rgba(255,255,255,0.88)',
+                fontSize: 40,
                 margin: 0,
-                lineHeight: 1.4,
+                lineHeight: 1.3,
               }}>
                 이제 장례 끝났는데..
               </p>
