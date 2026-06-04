@@ -156,13 +156,9 @@ export default function LandingPage() {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            <span style={{
-              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-              fontWeight: 900,
-              fontSize: 22,
-              color: '#fff',
-              letterSpacing: '0.06em',
-            }}>AFTERM</span>
+            {/* dark 배경: 검정 로고 invert → 흰색, multiply로 흰배경 제거 */}
+            <Image src="/logo-dark.png" alt="AFTERM" width={110} height={32}
+              style={{ objectFit:'contain', objectPosition:'left', filter:'invert(1)', mixBlendMode:'screen' }} />
             <Link href="/login" style={{
               fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
               textDecoration: 'none', padding: '7px 16px',
@@ -464,8 +460,8 @@ export default function LandingPage() {
 
         {/* ── 푸터 ── */}
         <footer style={{ background:'#fff', padding:'32px 24px 52px', borderTop:'1px solid #e8eaed' }}>
-          <Image src="/logo.jpg" alt="AFTERM" width={72} height={22}
-            style={{ objectFit:'contain', objectPosition:'left', opacity:0.7, marginBottom:18 }} />
+          <Image src="/logo-blue.png" alt="AFTERM" width={90} height={26}
+            style={{ objectFit:'contain', objectPosition:'left', mixBlendMode:'multiply', marginBottom:18 }} />
           <div style={{ color:'#555', fontSize:11, lineHeight:2.1 }}>
             <p style={{ margin:0 }}>상호명: 에프텀</p>
             <p style={{ margin:0 }}>대표자: 윤용현</p>
