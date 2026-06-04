@@ -21,14 +21,17 @@ export default function HomeTabBar() {
       ),
     },
     {
-      href: '/home/chat',
-      label: '채팅',
+      href: '/home/orders',
+      label: '신청내역',
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
+          <rect x="5" y="3" width="14" height="18" rx="2"
             fill={active ? '#163272' : 'none'}
             stroke={active ? '#163272' : '#9CA3AF'}
-            strokeWidth="1.8" strokeLinejoin="round" />
+            strokeWidth="1.8" />
+          <path d="M9 8h6M9 12h6M9 16h4"
+            stroke={active ? '#fff' : '#9CA3AF'}
+            strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       ),
     },

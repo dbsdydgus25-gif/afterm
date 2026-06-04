@@ -75,23 +75,35 @@ export default async function HomePage() {
                   <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, margin: '0 0 2px', fontWeight: 600 }}>고인</p>
                   <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, margin: 0 }}>{caseData.deceased_name}님</p>
                 </div>
-                <span style={{ background: '#22c55e', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100 }}>
-                  처리 중
+                <span style={{
+                  fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100,
+                  background: caseData.status === 'completed' ? '#22c55e' : caseData.status === 'processing' ? '#f59e0b' : caseData.status === 'reviewing' ? '#8b5cf6' : '#3b82f6',
+                  color: '#fff',
+                }}>
+                  {caseData.status === 'completed' ? '처리 완료' : caseData.status === 'processing' ? '처리 중' : caseData.status === 'reviewing' ? '서류 확인' : '접수 완료'}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
-                {STEPS.map((s, i) => (
-                  <div key={s.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-                    <div style={{
-                      width: '100%', height: 4, borderRadius: 2,
-                      background: i <= stepIndex ? '#fff' : 'rgba(255,255,255,0.2)',
-                      transition: 'background .3s',
-                    }} />
-                    <span style={{ fontSize: 10, color: i <= stepIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)', fontWeight: i === stepIndex ? 800 : 600, textAlign: 'center' }}>
-                      {i === stepIndex ? `● ${s.label}` : s.label}
-                    </span>
-                  </div>
-                ))}
+                {STEPS.map((s, i) => {
+                  const isCurrent = i === stepIndex
+                  const isPast = i < stepIndex
+                  return (
+                    <div key={s.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+                      <div style={{
+                        width: '100%', height: 4, borderRadius: 2,
+                        background: isCurrent ? '#fff' : isPast ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
+                        transition: 'background .3s',
+                      }} />
+                      <span style={{
+                        fontSize: 10, textAlign: 'center',
+                        color: isCurrent ? '#fff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)',
+                        fontWeight: isCurrent ? 800 : 500,
+                      }}>
+                        {isCurrent ? `● ${s.label}` : s.label}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ) : (

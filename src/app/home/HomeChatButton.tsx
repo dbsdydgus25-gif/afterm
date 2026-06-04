@@ -59,15 +59,11 @@ export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | nu
     }
   }
 
-  // ── 4) 채널 추가 (NONE 상태) ──
+  // ── 4) 채널 추가 (NONE 상태) — addChannel로 브릿지 페이지 열기 ──
   const addChannel = () => {
     if (sdkReady && window.Kakao?.Channel) {
-      window.Kakao.Channel.followChannel({ channelPublicId: CHANNEL_PUBLIC_ID })
-        .then(() => setRelation('ADDED'))
-        .catch(() => {
-          // followChannel 실패시 addChannel fallback
-          window.Kakao.Channel.addChannel({ channelPublicId: CHANNEL_PUBLIC_ID })
-        })
+      // addChannel: 브릿지 페이지 열기 (로그인 필요 없음, PC/모바일 모두 동작)
+      window.Kakao.Channel.addChannel({ channelPublicId: CHANNEL_PUBLIC_ID })
     } else {
       window.open(`https://pf.kakao.com/${CHANNEL_PUBLIC_ID}`, '_blank')
     }
