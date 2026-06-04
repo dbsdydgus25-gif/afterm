@@ -5,9 +5,8 @@ import AdminNav from './AdminNav'
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
   const session = cookieStore.get('admin_session')
-  const isDev = process.env.NODE_ENV === 'development'
 
-  if (!isDev && session?.value !== 'authorized') {
+  if (session?.value !== 'authorized') {
     redirect('/admin-login')
   }
 
