@@ -21,6 +21,9 @@ const STEPS = [
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  // Kakao 액세스 토큰 (provider_token) — JS SDK & REST API 인증용
+  const { data: { session } } = await supabase.auth.getSession()
+  const kakaoToken = session?.provider_token ?? null
 
   const userName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.user_metadata?.name?.split(' ')[0]
@@ -163,7 +166,7 @@ export default async function HomePage() {
 
       {/* 채팅 배너 */}
       <div style={{ padding: '24px 24px 8px' }}>
-        <HomeChatButton />
+        <HomeChatButton kakaoToken={kakaoToken} />
       </div>
     </div>
   )
