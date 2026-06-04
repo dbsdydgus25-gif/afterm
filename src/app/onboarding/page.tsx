@@ -29,7 +29,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 /* ─── STEP 1: 휴대폰 인증 ─── */
-function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
+function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; kakaoToken: string | null }) {
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
   const [sent, setSent] = useState(false)
@@ -37,6 +37,7 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
   const [verified, setVerified] = useState(false)
   const [error, setError] = useState('')
   const [timer, setTimer] = useState(0)
+  const [sendChannel, setSendChannel] = useState<'kakao' | 'sms'>('sms')
 
   useEffect(() => {
     if (timer <= 0) return
@@ -48,12 +49,17 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
     if (phone.replace(/\D/g, '').length < 10) { setError('올바른 휴대폰 번호를 입력해주세요'); return }
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/sms/send', {
+      const res = await fetch('/api/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.replace(/\D/g, '') }),
+        body: JSON.stringify({
+          phone: phone.replace(/\D/g, ''),
+          kakaoToken: kakaoToken || undefined,
+        }),
       })
       if (!res.ok) throw new Error()
+      const data = await res.json()
+      setSendChannel(data.channel || 'sms')
       setSent(true); setTimer(180)
     } catch {
       setError('인증번호 발송에 실패했습니다. 다시 시도해주세요.')
@@ -65,7 +71,7 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
     if (code.length < 4) { setError('인증번호를 입력해주세요'); return }
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/sms/verify', {
+      const res = await fetch('/api/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phone.replace(/\D/g, ''), code }),
@@ -117,6 +123,13 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
         </button>
       </div>
 
+      {sent && !verified && (
+        <p style={{ fontSize: 12, color: '#888', margin: '-8px 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {sendChannel === 'kakao'
+            ? '💬 카카오톡으로 인증번호를 보냈어요'
+            : '📱 문자(SMS)로 인증번호를 보냈어요'}
+        </p>
+      )}
       {sent && !verified && (
         <div style={{ position: 'relative', marginBottom: 8 }}>
           <input
@@ -295,11 +308,14 @@ function OnboardingContent() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [userName, setUserName] = useState('')
+  const [kakaoToken, setKakaoToken] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/'); return }
-      const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || '회원'
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) { router.push('/'); return }
+      // 카카오 provider_token 저장 (나에게 보내기 API용)
+      if (session.provider_token) setKakaoToken(session.provider_token)
+      const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '회원'
       setUserName(name.split(' ')[0])
     })
   }, [])
@@ -351,7 +367,7 @@ function OnboardingContent() {
       <div style={{ padding: '28px 24px 0' }}>
         {step < 3 && <StepBar current={step} total={2} />}
 
-        {step === 1 && <StepPhone onNext={handlePhoneDone} />}
+        {step === 1 && <StepPhone onNext={handlePhoneDone} kakaoToken={kakaoToken} />}
         {step === 2 && <StepPassword onNext={handlePasswordDone} />}
         {step === 3 && <StepDone next={next} userName={userName} />}
       </div>
