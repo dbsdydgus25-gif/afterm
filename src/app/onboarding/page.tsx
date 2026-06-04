@@ -65,7 +65,7 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
     if (code.length < 4) { setError('인증번호를 입력해주세요'); return }
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/verify/confirm', {
+      const res = await fetch('/api/sms/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phone.replace(/\D/g, ''), code }),
