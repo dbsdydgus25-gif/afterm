@@ -170,26 +170,28 @@ export default function LandingPage() {
 
           {/* 히어로 텍스트 */}
           <div style={{ padding: '40px 24px 0' }}>
-            {/* 손글씨 서브타이틀 */}
-            <div style={{ animation: 'heroFadeUp .5s ease .1s both', marginBottom: 8 }}>
+            {/* 일반 폰트 서브타이틀 */}
+            <div style={{ animation: 'heroFadeUp .5s ease .1s both', marginBottom: 14 }}>
               <p style={{
-                fontFamily: "'Nanum Pen Script', cursive",
-                color: 'rgba(255,255,255,0.75)',
-                fontSize: 20,
+                color: 'rgba(255,255,255,0.55)',
+                fontSize: 13,
+                fontWeight: 500,
                 margin: 0,
-                lineHeight: 1.5,
+                letterSpacing: '0.02em',
               }}>
                 디지털 유산 행정 대행 서비스, AFTERM
               </p>
             </div>
+            {/* 손글씨 크게 */}
             <div style={{ animation: 'heroFadeUp .5s ease .35s both', marginBottom: 28 }}>
               <p style={{
                 fontFamily: "'Nanum Pen Script', cursive",
-                color: 'rgba(255,255,255,0.5)',
-                fontSize: 17,
+                color: 'rgba(255,255,255,0.85)',
+                fontSize: 30,
                 margin: 0,
+                lineHeight: 1.4,
               }}>
-                (이제 장례 끝났는데..)
+                이제 장례 끝났는데..
               </p>
             </div>
 
