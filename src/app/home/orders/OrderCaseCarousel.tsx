@@ -1,6 +1,6 @@
 'use client'
-// 서비스 카드 가로 스와이프 캐러셀 (케이스 내 서비스들)
-// 하나씩 보여주고 도트 인디케이터로 위치 표시
+// 서비스 카드 가로 스와이프 캐러셀
+// ★ 핵심: 스크롤 컨테이너에 padding 없음 → 각 슬롯에 padding → 카드가 하나씩 딱 맞게 보임
 
 import { useState, useRef, useCallback } from 'react'
 import ServiceCard from './ServiceCard'
@@ -26,9 +26,8 @@ export default function OrderCaseCarousel({ services, caseId, userId }: Props) {
   const handleScroll = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
-    // 카드 너비는 뷰포트 - 패딩 - 다음 카드 피크(24px)
-    const cardWidth = el.clientWidth
-    const idx = Math.round(el.scrollLeft / cardWidth)
+    // 각 슬롯이 스크롤 컨테이너 전체 너비(clientWidth)를 차지
+    const idx = Math.round(el.scrollLeft / el.clientWidth)
     setCurrentIdx(Math.min(idx, services.length - 1))
   }, [services.length])
 
@@ -41,7 +40,7 @@ export default function OrderCaseCarousel({ services, caseId, userId }: Props) {
 
   return (
     <div>
-      {/* 가로 스크롤 */}
+      {/* ★ 스크롤 컨테이너: padding 없음, overflow hidden으로 옆 카드 안 보임 */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -52,17 +51,18 @@ export default function OrderCaseCarousel({ services, caseId, userId }: Props) {
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
-          padding: '4px 16px 8px',
-          gap: 0,
+          // ★ 패딩은 여기에 없음 — 슬롯에 줌
         }}
       >
-        {services.map((svc, i) => (
+        {services.map((svc) => (
           <div
             key={svc.id}
             style={{
-              flex: '0 0 calc(100% - 0px)',
+              // ★ 슬롯이 스크롤 컨테이너 너비와 동일 → 하나씩 딱 맞게
+              flex: '0 0 100%',
               scrollSnapAlign: 'start',
-              paddingRight: i < services.length - 1 ? 10 : 0,
+              // ★ 카드 좌우 여백은 슬롯 내부 padding으로
+              padding: '4px 16px 8px',
               boxSizing: 'border-box',
             }}
           >
