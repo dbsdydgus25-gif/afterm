@@ -1,7 +1,10 @@
+// 홈 대시보드 — 서버 컴포넌트
+// 여러 케이스(고인)를 조회해 CaseCarousel에 전달
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import HomeChatButton from './HomeChatButton'
+import CaseCarousel from './CaseCarousel'
 
 const GUIDES = [
   { tag: '안심상속', title: '안심상속 원스톱 서비스', desc: '금융·부동산·세금 정보를 한 번에 조회하는 방법', color: '#EBF3FF', accent: '#163272', icon: '🏛️' },
@@ -11,17 +14,9 @@ const GUIDES = [
   { tag: '보험',    title: '생명보험 사망 보험금',   desc: '사망 보험금 청구 서류와 처리 기간 안내',         color: '#FFF1F2', accent: '#BE123C', icon: '📄' },
 ]
 
-const STEPS = [
-  { key: 'submitted',  label: '접수 완료', color: '#2563EB' },
-  { key: 'reviewing',  label: '서류 확인', color: '#7C3AED' },
-  { key: 'processing', label: '처리 중',   color: '#D97706' },
-  { key: 'completed',  label: '완료',      color: '#059669' },
-]
-
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  // Kakao 액세스 토큰 (provider_token) — JS SDK & REST API 인증용
   const { data: { session } } = await supabase.auth.getSession()
   const kakaoToken = session?.provider_token ?? null
 
@@ -30,27 +25,30 @@ export default async function HomePage() {
     || user?.email?.split('@')[0]
     || '고객'
 
-  // 케이스 조회
-  const { data: caseData } = await supabase
+  // 모든 활성 케이스 조회 (draft 제외, 최신순)
+  const { data: cases } = await supabase
     .from('cases')
-    .select('*, case_services(*)')
+    .select('id, deceased_name, status, created_at, case_services(id, status, service_name)')
     .eq('user_id', user!.id)
+    .neq('status', 'draft')
     .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
 
-  const stepIndex = caseData ? STEPS.findIndex(s => s.key === caseData.status) : -1
+  const activeCases = cases || []
 
   return (
-    <div>
-      {/* 헤더 블루 카드 */}
-      <div style={{ background: '#163272', padding: '20px 24px 32px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
+      {/* ── 헤더 블루 영역 ── */}
+      <div style={{ background: '#163272', padding: '20px 0 24px', position: 'relative', overflow: 'hidden' }}>
+        {/* 배경 원 장식 */}
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
         <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, position: 'relative' }}>
-          <Image src="/logo-blue.png" alt="AFTERM" width={90} height={26}
-            style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }} />
+        {/* 상단 로고 + 아이콘 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, padding: '0 20px', position: 'relative' }}>
+          <Image
+            src="/logo-blue.png" alt="AFTERM" width={90} height={26}
+            style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }}
+          />
           <Link href="/home/myinfo" style={{
             background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
@@ -62,113 +60,55 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div style={{ position: 'relative' }}>
+        {/* 인사말 */}
+        <div style={{ padding: '0 20px', marginBottom: 16, position: 'relative' }}>
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: '0 0 4px' }}>안녕하세요 👋</p>
-          <h1 style={{ color: '#fff', fontSize: 24, fontWeight: 800, margin: '0 0 20px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ color: '#fff', fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
             {userName}님의 행정 현황
           </h1>
-
-          {caseData ? (
-            <div>
-            <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '20px', backdropFilter: 'blur(8px)', marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <div>
-                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, margin: '0 0 2px', fontWeight: 600 }}>고인</p>
-                  <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, margin: 0 }}>{caseData.deceased_name}님</p>
-                </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 100,
-                  background: caseData.status === 'completed' ? '#22c55e' : caseData.status === 'processing' ? '#f59e0b' : caseData.status === 'reviewing' ? '#8b5cf6' : '#3b82f6',
-                  color: '#fff',
-                }}>
-                  {caseData.status === 'completed' ? '처리 완료' : caseData.status === 'processing' ? '처리 중' : caseData.status === 'reviewing' ? '서류 확인' : '접수 완료'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {STEPS.map((s, i) => {
-                  const isCurrent = i === stepIndex
-                  const isPast = i < stepIndex
-                  return (
-                    <div key={s.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-                      <div style={{
-                        width: '100%', height: 4, borderRadius: 2,
-                        background: isCurrent ? '#fff' : isPast ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.2)',
-                        transition: 'background .3s',
-                      }} />
-                      <span style={{
-                        fontSize: 10, textAlign: 'center',
-                        color: isCurrent ? '#fff' : isPast ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.3)',
-                        fontWeight: isCurrent ? 800 : 500,
-                      }}>
-                        {isCurrent ? `● ${s.label}` : s.label}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-            <Link href="/apply?reset=true" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '12px',
-              fontSize: 14, fontWeight: 700, color: '#fff', textDecoration: 'none',
-              border: '1px solid rgba(255,255,255,0.25)',
-            }}>
-              + 새 신청하기
-            </Link>
-            </div>
-          ) : (
-            <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '20px' }}>
-              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: '0 0 12px' }}>
-                아직 신청이 없어요.<br />지금 바로 디지털 유산 정리를 시작해보세요.
-              </p>
-              <Link href="/apply" style={{
-                display: 'inline-block', background: '#fff', color: '#163272',
-                fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10, textDecoration: 'none',
-              }}>
-                신청하기 →
-              </Link>
-            </div>
-          )}
         </div>
+
+        {/* 케이스 캐러셀 (클라이언트 컴포넌트) */}
+        <CaseCarousel cases={activeCases} />
       </div>
 
-      {/* 서비스 진행 현황 — 가로 스크롤 카드 */}
-      {caseData && (caseData.case_services?.length ?? 0) > 0 && (
+      {/* ── 서비스 진행 현황 (가장 최근 케이스) ── */}
+      {activeCases.length > 0 && (activeCases[0].case_services?.length ?? 0) > 0 && (
         <div style={{ padding: '24px 0 0' }}>
-          <h2 style={{ fontSize: 17, fontWeight: 800, color: '#111', margin: '0 0 14px', padding: '0 24px' }}>서비스 진행 현황</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', padding: '0 20px', letterSpacing: '-0.01em' }}>
+            서비스 진행 현황
+          </h2>
           <div style={{
-            display: 'flex', gap: 12, overflowX: 'auto', padding: '4px 24px 8px',
+            display: 'flex', gap: 10, overflowX: 'auto', padding: '2px 20px 8px',
             scrollSnapType: 'x mandatory',
             WebkitOverflowScrolling: 'touch',
             msOverflowStyle: 'none', scrollbarWidth: 'none',
           }}>
-            {(caseData.case_services || []).map((svc: any) => {
+            {(activeCases[0].case_services || []).map((svc: any) => {
               const isDone = svc.status === 'done'
-              const isProc = svc.status === 'processing' || svc.status === 'dispatched' || svc.status === 'received'
-              const statusLabel = isDone ? '완료' : isProc ? '처리중' : '대기'
-              const statusBg = isDone ? '#DCFCE7' : isProc ? '#EFF6FF' : '#F3F4F6'
-              const statusColor = isDone ? '#15803D' : isProc ? '#1D4ED8' : '#6B7280'
+              const isProc = svc.status === 'dispatched' || svc.status === 'received'
+              const isFailed = svc.status === 'failed'
+              const statusLabel = isDone ? '완료' : isFailed ? '조치 필요' : isProc ? '진행 중' : '대기'
+              const statusBg = isDone ? '#ECFDF5' : isFailed ? '#FEF2F2' : isProc ? '#EFF6FF' : '#F3F4F6'
+              const statusColor = isDone ? '#059669' : isFailed ? '#DC2626' : isProc ? '#2563EB' : '#6B7280'
+              const catIcon: Record<string, string> = { '통신': '📱', '금융': '🏦', '보험': '📄', '포털': '💻', 'SNS': '📸', '메신저': '💬', '구독': '💳' }
               return (
                 <div key={svc.id} style={{
-                  flexShrink: 0, width: 148, background: '#fff',
-                  borderRadius: 18, padding: '18px 16px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                  flexShrink: 0, width: 130, background: '#fff',
+                  borderRadius: 16, padding: '14px 14px',
+                  boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
                   scrollSnapAlign: 'start',
-                  display: 'flex', flexDirection: 'column', gap: 10,
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                  border: '1px solid #F0F0F0',
                 }}>
-                  <span style={{ fontSize: 28 }}>
-                    {svc.service_category === '통신' ? '📱' :
-                     svc.service_category === '금융' ? '🏦' :
-                     svc.service_category === '보험' ? '📄' :
-                     svc.service_category === '포털' ? '💻' : '📋'}
-                  </span>
+                  <span style={{ fontSize: 24 }}>{catIcon[svc.service_category] || '📋'}</span>
                   <div>
-                    <p style={{ fontSize: 11, color: '#999', margin: '0 0 3px', fontWeight: 600 }}>{svc.service_category}</p>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#111', margin: 0, wordBreak: 'keep-all', lineHeight: 1.3 }}>{svc.service_name}</p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px', fontWeight: 600 }}>{svc.service_category}</p>
+                    <p style={{ fontSize: 13, fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.3 }}>{svc.service_name}</p>
                   </div>
                   <span style={{
-                    alignSelf: 'flex-start', fontSize: 11, fontWeight: 700,
-                    padding: '4px 10px', borderRadius: 100,
+                    alignSelf: 'flex-start', fontSize: 10, fontWeight: 700,
+                    padding: '3px 8px', borderRadius: 100,
                     background: statusBg, color: statusColor,
                   }}>
                     {statusLabel}
@@ -180,35 +120,36 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* 행정 가이드 */}
-      <div style={{ padding: '28px 24px 0' }}>
-        <h2 style={{ fontSize: 17, fontWeight: 800, color: '#111', margin: '0 0 14px' }}>
+      {/* ── 행정 가이드 ── */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', letterSpacing: '-0.01em' }}>
           {userName}님을 위한 행정 가이드
         </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {GUIDES.map(g => (
             <div key={g.tag} style={{
-              background: '#fff', borderRadius: 16, padding: '16px 18px',
-              display: 'flex', gap: 14, alignItems: 'center',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer',
+              background: '#fff', borderRadius: 14, padding: '14px 16px',
+              display: 'flex', gap: 12, alignItems: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer',
+              border: '1px solid #F0F0F0',
             }}>
               <div style={{
-                width: 48, height: 48, borderRadius: 14, background: g.color,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0,
+                width: 44, height: 44, borderRadius: 12, background: g.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0,
               }}>{g.icon}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: g.accent, background: g.color, padding: '2px 8px', borderRadius: 100 }}>{g.tag}</span>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: '5px 0 3px' }}>{g.title}</p>
-                <p style={{ fontSize: 13, color: '#888', margin: 0, lineHeight: 1.5 }}>{g.desc}</p>
+                <span style={{ fontSize: 10, fontWeight: 700, color: g.accent, background: g.color, padding: '2px 7px', borderRadius: 100 }}>{g.tag}</span>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '4px 0 2px' }}>{g.title}</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, lineHeight: 1.4 }}>{g.desc}</p>
               </div>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 채팅 배너 */}
-      <div style={{ padding: '24px 24px 8px' }}>
+      {/* ── 채팅 배너 ── */}
+      <div style={{ padding: '20px 20px 8px' }}>
         <HomeChatButton kakaoToken={kakaoToken} />
       </div>
     </div>
