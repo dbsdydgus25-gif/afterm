@@ -69,7 +69,8 @@ export default async function HomePage() {
           </h1>
 
           {caseData ? (
-            <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '20px', backdropFilter: 'blur(8px)' }}>
+            <div>
+            <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '20px', backdropFilter: 'blur(8px)', marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
                   <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, margin: '0 0 2px', fontWeight: 600 }}>고인</p>
@@ -105,6 +106,15 @@ export default async function HomePage() {
                   )
                 })}
               </div>
+            </div>
+            <Link href="/apply?reset=true" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '12px',
+              fontSize: 14, fontWeight: 700, color: '#fff', textDecoration: 'none',
+              border: '1px solid rgba(255,255,255,0.25)',
+            }}>
+              + 새 신청하기
+            </Link>
             </div>
           ) : (
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: '20px' }}>
