@@ -91,7 +91,7 @@ function StepPhone({ onNext }: { onNext: (phone: string) => void }) {
         휴대폰 번호를<br />인증해주세요
       </h1>
       <p style={{ color: '#888', fontSize: 14, margin: '0 0 36px' }}>
-        본인 확인을 위해 한 번만 인증합니다
+        카카오톡으로 인증번호를 보내드려요
       </p>
 
       <div style={{ position: 'relative', marginBottom: 16 }}>

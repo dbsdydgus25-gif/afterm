@@ -4,8 +4,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-// 인증이 필요한 경로 (비로그인 → /login 리다이렉트)
-const PROTECTED_PATHS = ['/apply', '/dashboard']
+// 인증이 필요한 경로 (비로그인 → / 리다이렉트)
+const PROTECTED_PATHS = ['/apply', '/dashboard', '/home']
 // 관리자 전용 경로
 const ADMIN_PATHS = ['/admin']
 
@@ -48,13 +48,18 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // ── 보호된 경로: 비로그인 → 로그인 페이지로 ──
-  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p))
+  // ── /home: 비로그인 → 랜딩, 온보딩 미완료 → 온보딩 ──
+  if (pathname.startsWith('/home')) {
+    if (!user) return NextResponse.redirect(new URL('/', request.url))
+    if (!user.user_metadata?.onboarding_done) {
+      return NextResponse.redirect(new URL('/onboarding?next=/home', request.url))
+    }
+  }
+
+  // ── 보호된 경로: 비로그인 → 랜딩으로 ──
+  const isProtected = ['/apply', '/dashboard'].some((p) => pathname.startsWith(p))
   if (isProtected && !user) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   // ── 관리자 경로: 비로그인 → 로그인, 비관리자 → 홈 ──
@@ -77,7 +82,7 @@ export async function proxy(request: NextRequest) {
 
   // ── 이미 로그인 상태에서 로그인/회원가입 접근 → 대시보드로 ──
   if ((pathname === '/login' || pathname === '/signup') && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/home', request.url))
   }
 
   return response

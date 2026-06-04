@@ -17,23 +17,44 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.SOLAPI_API_KEY
     const apiSecret = process.env.SOLAPI_API_SECRET
     const senderPhone = process.env.SOLAPI_SENDER_NUMBER
+    const kakaoPfId = process.env.SOLAPI_KAKAO_PFID
+    const kakaoTemplateId = process.env.SOLAPI_KAKAO_OTP_TEMPLATE_ID
 
     if (!apiKey || !apiSecret || !senderPhone) {
       return NextResponse.json({ error: 'SMS 설정이 없습니다' }, { status: 500 })
     }
 
     const code = generateCode()
-    // 3분 유효
     otpStore.set(phone, { code, expiresAt: Date.now() + 3 * 60 * 1000 })
 
     const messageService = new SolapiMessageService(apiKey, apiSecret)
+
+    // 카카오 알림톡 설정이 있으면 카카오로 발송, 없으면 SMS
+    if (kakaoPfId && kakaoTemplateId) {
+      try {
+        await (messageService as any).sendOne({
+          to: phone,
+          from: senderPhone,
+          kakaoOptions: {
+            pfId: kakaoPfId,
+            templateId: kakaoTemplateId,
+            variables: { '#{인증번호}': code },
+          },
+        })
+        return NextResponse.json({ ok: true, channel: 'kakao' })
+      } catch (kakaoErr) {
+        console.warn('카카오 알림톡 실패, SMS fallback:', kakaoErr)
+      }
+    }
+
+    // SMS (기본 or fallback)
     await messageService.sendOne({
       to: phone,
       from: senderPhone,
       text: `[에프텀] 인증번호는 ${code}입니다. 3분 내에 입력해주세요.`,
     })
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, channel: 'sms' })
   } catch (e) {
     console.error('SMS 발송 오류:', e)
     return NextResponse.json({ error: '발송 실패' }, { status: 500 })

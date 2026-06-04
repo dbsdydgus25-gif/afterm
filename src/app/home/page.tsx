@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import HomeChatButton from './HomeChatButton'
 
 const GUIDES = [
@@ -45,9 +46,8 @@ export default async function HomePage() {
         <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, position: 'relative' }}>
-          <span style={{ fontSize: 18, fontWeight: 900, color: '#fff', letterSpacing: '-0.04em' }}>
-            after<span style={{ color: '#60a5fa' }}>m</span>
-          </span>
+          <Image src="/logo-blue.png" alt="AFTERM" width={90} height={26}
+            style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }} />
           <Link href="/home/myinfo" style={{
             background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
