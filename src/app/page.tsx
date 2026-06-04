@@ -293,7 +293,7 @@ export default function LandingPage() {
           <Fade delay={150}>
             <div style={{ width:'100%', borderRadius:24, overflow:'hidden', aspectRatio:'4/3', position:'relative' }}>
               <Image
-                src="/handshake.jpg"
+                src="/handshake.png"
                 alt="에프텀 대행 서비스"
                 fill
                 style={{ objectFit:'cover', objectPosition:'center' }}
@@ -367,7 +367,7 @@ export default function LandingPage() {
           <Fade delay={100}>
             <div style={{ width:'100%', borderRadius:24, overflow:'hidden', aspectRatio:'4/3', position:'relative' }}>
               <Image
-                src="/office.jpg"
+                src="/office.png"
                 alt="에프텀 행정 대행 업무"
                 fill
                 style={{ objectFit:'cover', objectPosition:'center' }}
