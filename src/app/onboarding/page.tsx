@@ -314,11 +314,20 @@ function OnboardingContent() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // 비밀번호 업데이트 + 폰 메타데이터 저장
+    // 1) auth user_metadata 업데이트 (비밀번호 + 온보딩 완료 플래그)
     await supabase.auth.updateUser({
       password: pw,
       data: { phone, onboarding_done: true },
     })
+
+    // 2) profiles 테이블에 전화번호 + 온보딩 완료 저장
+    await supabase.from('profiles').upsert({
+      id: user.id,
+      phone,
+      phone_verified: true,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' })
+
     setLoading(false)
     setStep(3)
   }
