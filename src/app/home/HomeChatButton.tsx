@@ -1,9 +1,45 @@
 'use client'
 
+import { useEffect } from 'react'
+
+declare global {
+  interface Window {
+    Kakao: any
+  }
+}
+
+const CHANNEL_PUBLIC_ID = '_cxfNAX'
+
 export default function HomeChatButton() {
+  useEffect(() => {
+    // Kakao SDK 로드
+    const script = document.createElement('script')
+    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js'
+    script.crossOrigin = 'anonymous'
+    script.onload = () => {
+      const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+      if (jsKey && window.Kakao && !window.Kakao.isInitialized()) {
+        window.Kakao.init(jsKey)
+      }
+    }
+    document.head.appendChild(script)
+    return () => {
+      document.head.removeChild(script)
+    }
+  }, [])
+
+  const openChat = () => {
+    if (window.Kakao?.isInitialized()) {
+      window.Kakao.Channel.chat({ channelPublicId: CHANNEL_PUBLIC_ID })
+    } else {
+      // SDK 초기화 전 fallback
+      window.open(`https://pf.kakao.com/${CHANNEL_PUBLIC_ID}/chat`, '_blank')
+    }
+  }
+
   return (
     <button
-      onClick={() => window.open('http://pf.kakao.com/_cxfNAX/chat', '_blank')}
+      onClick={openChat}
       style={{
         width: '100%', background: 'linear-gradient(135deg, #163272 0%, #1e4db7 100%)',
         border: 'none', borderRadius: 16, padding: '18px 20px',
