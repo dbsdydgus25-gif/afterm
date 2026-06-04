@@ -4,13 +4,13 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-// 인증이 필요한 경로 (비로그인 → / 리다이렉트)
-const PROTECTED_PATHS = ['/apply', '/dashboard', '/home']
-// 관리자 전용 경로
-const ADMIN_PATHS = ['/admin']
-
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // ── 어드민 경로는 layout.tsx에서 쿠키 인증 처리 — 여기서는 패스 ──
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next({ request: { headers: request.headers } })
+  }
 
   // 응답 객체 초기화 — 세션 쿠키 갱신을 위해 반드시 필요
   let response = NextResponse.next({
@@ -27,11 +27,9 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          // 요청 쿠키 업데이트
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          // 응답 쿠키 업데이트 (세션 갱신)
           response = NextResponse.next({
             request: { headers: request.headers },
           })
@@ -43,10 +41,11 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  // 세션 갱신 + 현재 유저 확인 (getUser가 getSession보다 안전)
+  // 세션 확인 — getSession()은 로컬 쿠키만 읽어 네트워크 호출 없음 (빠름)
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   // ── /home: 비로그인 → 랜딩, 온보딩 미완료 → 온보딩 ──
   if (pathname.startsWith('/home')) {
@@ -62,25 +61,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // ── 관리자 경로: 비로그인 → 로그인, 비관리자 → 홈 ──
-  const isAdmin = ADMIN_PATHS.some((p) => pathname.startsWith(p))
-  if (isAdmin) {
-    if (!user) {
-      const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/login'
-      loginUrl.searchParams.set('next', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-    const adminEmails = (process.env.ADMIN_EMAILS || '')
-      .split(',')
-      .map((e) => e.trim())
-      .filter(Boolean)
-    if (adminEmails.length > 0 && !adminEmails.includes(user.email || '')) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-  }
-
-  // ── 이미 로그인 상태에서 로그인/회원가입 접근 → 대시보드로 ──
+  // ── 이미 로그인 상태에서 로그인/회원가입 접근 → 홈으로 ──
   if ((pathname === '/login' || pathname === '/signup') && user) {
     return NextResponse.redirect(new URL('/home', request.url))
   }
@@ -88,9 +69,7 @@ export async function proxy(request: NextRequest) {
   return response
 }
 
-// 미들웨어 적용 경로 (정적 파일, 이미지 제외)
+// 인증 체크가 필요한 경로만 매칭 (불필요한 요청에 세션 확인 안 함)
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
-  ],
+  matcher: ['/home/:path*', '/apply/:path*', '/admin/:path*', '/login', '/signup', '/onboarding'],
 }

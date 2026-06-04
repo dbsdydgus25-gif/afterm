@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const isDev = process.env.NODE_ENV === 'development'
 
   if (!isDev && session?.value !== 'authorized') {
-    redirect('/admin-login')
+    redirect('/admin/login')
   }
 
   return (
