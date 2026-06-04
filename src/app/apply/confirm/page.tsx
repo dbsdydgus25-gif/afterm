@@ -46,56 +46,55 @@ export default function ConfirmPage() {
   // ── 제출 완료 화면 ──
   if (done) {
     return (
-      <div className="screen-body" style={{
+      <div style={{
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', padding: '60px 24px', gap: '24px',
+        minHeight: '80vh', textAlign: 'center', padding: '60px 24px', gap: '24px',
+        fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
       }}>
         <div style={{
           width: '80px', height: '80px', borderRadius: '50%',
-          background: 'var(--color-blue-95)',
+          background: '#EBF3FF',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '36px',
         }}>✅</div>
 
         <div>
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '24px', fontWeight: 900,
-            letterSpacing: '-0.03em', marginBottom: '12px',
-            color: 'var(--color-label-strong)',
-          }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '12px', color: '#111' }}>
             신청이 완료되었습니다
           </h2>
-          <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', lineHeight: 1.7 }}>
-            에프텀이 각 기업에 해지 요청서를<br />
-            발송했습니다. 진행 상황은<br />
-            대시보드에서 확인하실 수 있어요.
+          <p style={{ fontSize: '15px', color: '#666', lineHeight: 1.7, margin: 0 }}>
+            에프텀이 접수를 확인 후<br />
+            순서대로 처리해드립니다.<br />
+            진행 상황은 홈에서 확인하세요.
           </p>
         </div>
 
         <div style={{
-          background: 'var(--color-blue-99)',
-          border: '1px solid var(--color-blue-90)',
-          borderRadius: 'var(--radius-12)',
+          background: '#F0F7FF', border: '1px solid #C7DEFF', borderRadius: '16px',
           padding: '16px', width: '100%',
           display: 'flex', gap: '12px', alignItems: 'flex-start', textAlign: 'left',
         }}>
           <span style={{ fontSize: '20px', flexShrink: 0 }}>📨</span>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--color-label-strong)', marginBottom: '4px' }}>처리 기간 안내</div>
-            <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 700, fontSize: '14px', color: '#111', marginBottom: '4px' }}>처리 기간 안내</div>
+            <div style={{ fontSize: '13px', color: '#555', lineHeight: 1.6 }}>
               대부분의 서비스는 <strong>5~7 영업일</strong> 내에 처리됩니다.<br />
               진행 상황이 업데이트되면 알려드릴게요.
             </div>
           </div>
         </div>
 
-        <div className="cta-dock" style={{ position: 'static', padding: 0, width: '100%' }}>
-          <Button block onClick={() => router.push('/home')}>
-            홈에서 확인하기 →
-          </Button>
-        </div>
+        <button
+          onClick={() => router.push('/home')}
+          style={{
+            width: '100%', padding: '18px', background: '#163272',
+            border: 'none', borderRadius: '16px', color: '#fff',
+            fontSize: '16px', fontWeight: 700, cursor: 'pointer',
+          }}
+        >
+          홈에서 확인하기 →
+        </button>
       </div>
     )
   }

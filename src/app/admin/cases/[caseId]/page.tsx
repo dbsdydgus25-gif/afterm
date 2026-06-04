@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import AdminServiceRow from './AdminServiceRow'
 import DocViewer from './DocViewer'
+import CaseStatusBar from './CaseStatusBar'
 
 interface PageProps {
   params: Promise<{ caseId: string }>
@@ -142,6 +143,9 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
             </span>
           </div>
         </div>
+
+        {/* ── 케이스 상태 변경 바 ── */}
+        <CaseStatusBar caseId={caseId} currentStatus={caseData.status} />
 
         {/* ── PC 전용 2컬럼 레이아웃 ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '500px 1fr', gap: '24px', alignItems: 'start' }}>

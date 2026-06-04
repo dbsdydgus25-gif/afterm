@@ -12,10 +12,10 @@ const GUIDES = [
 ]
 
 const STEPS = [
-  { key: 'submitted',  label: '접수 완료' },
-  { key: 'reviewing',  label: '서류 확인' },
-  { key: 'processing', label: '처리 중' },
-  { key: 'completed',  label: '완료' },
+  { key: 'submitted',  label: '접수 완료', color: '#2563EB' },
+  { key: 'reviewing',  label: '서류 확인', color: '#7C3AED' },
+  { key: 'processing', label: '처리 중',   color: '#D97706' },
+  { key: 'completed',  label: '완료',      color: '#059669' },
 ]
 
 export default async function HomePage() {
@@ -84,10 +84,11 @@ export default async function HomePage() {
                   <div key={s.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                     <div style={{
                       width: '100%', height: 4, borderRadius: 2,
-                      background: i <= stepIndex ? '#22c55e' : 'rgba(255,255,255,0.2)',
+                      background: i <= stepIndex ? '#fff' : 'rgba(255,255,255,0.2)',
+                      transition: 'background .3s',
                     }} />
-                    <span style={{ fontSize: 10, color: i <= stepIndex ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)', fontWeight: 600, textAlign: 'center' }}>
-                      {s.label}
+                    <span style={{ fontSize: 10, color: i <= stepIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.35)', fontWeight: i === stepIndex ? 800 : 600, textAlign: 'center' }}>
+                      {i === stepIndex ? `● ${s.label}` : s.label}
                     </span>
                   </div>
                 ))}
@@ -109,30 +110,50 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* 서비스 진행 현황 */}
+      {/* 서비스 진행 현황 — 가로 스크롤 카드 */}
       {caseData && (caseData.case_services?.length ?? 0) > 0 && (
-        <div style={{ padding: '24px 24px 0' }}>
-          <h2 style={{ fontSize: 17, fontWeight: 800, color: '#111', margin: '0 0 14px' }}>서비스 진행 현황</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(caseData.case_services || []).slice(0, 4).map((svc: any) => (
-              <div key={svc.id} style={{
-                background: '#fff', borderRadius: 14, padding: '14px 16px',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              }}>
-                <div>
-                  <p style={{ fontSize: 13, color: '#888', margin: '0 0 2px', fontWeight: 600 }}>{svc.service_category}</p>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: 0 }}>{svc.service_name}</p>
-                </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 100,
-                  background: svc.status === 'done' ? '#DCFCE7' : svc.status === 'processing' ? '#EFF6FF' : '#F3F4F6',
-                  color: svc.status === 'done' ? '#15803D' : svc.status === 'processing' ? '#1D4ED8' : '#6B7280',
+        <div style={{ padding: '24px 0 0' }}>
+          <h2 style={{ fontSize: 17, fontWeight: 800, color: '#111', margin: '0 0 14px', padding: '0 24px' }}>서비스 진행 현황</h2>
+          <div style={{
+            display: 'flex', gap: 12, overflowX: 'auto', padding: '4px 24px 8px',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            msOverflowStyle: 'none', scrollbarWidth: 'none',
+          }}>
+            {(caseData.case_services || []).map((svc: any) => {
+              const isDone = svc.status === 'done'
+              const isProc = svc.status === 'processing' || svc.status === 'dispatched' || svc.status === 'received'
+              const statusLabel = isDone ? '완료' : isProc ? '처리중' : '대기'
+              const statusBg = isDone ? '#DCFCE7' : isProc ? '#EFF6FF' : '#F3F4F6'
+              const statusColor = isDone ? '#15803D' : isProc ? '#1D4ED8' : '#6B7280'
+              return (
+                <div key={svc.id} style={{
+                  flexShrink: 0, width: 148, background: '#fff',
+                  borderRadius: 18, padding: '18px 16px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                  scrollSnapAlign: 'start',
+                  display: 'flex', flexDirection: 'column', gap: 10,
                 }}>
-                  {svc.status === 'done' ? '완료' : svc.status === 'processing' ? '처리중' : '대기'}
-                </span>
-              </div>
-            ))}
+                  <span style={{ fontSize: 28 }}>
+                    {svc.service_category === '통신' ? '📱' :
+                     svc.service_category === '금융' ? '🏦' :
+                     svc.service_category === '보험' ? '📄' :
+                     svc.service_category === '포털' ? '💻' : '📋'}
+                  </span>
+                  <div>
+                    <p style={{ fontSize: 11, color: '#999', margin: '0 0 3px', fontWeight: 600 }}>{svc.service_category}</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#111', margin: 0, wordBreak: 'keep-all', lineHeight: 1.3 }}>{svc.service_name}</p>
+                  </div>
+                  <span style={{
+                    alignSelf: 'flex-start', fontSize: 11, fontWeight: 700,
+                    padding: '4px 10px', borderRadius: 100,
+                    background: statusBg, color: statusColor,
+                  }}>
+                    {statusLabel}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

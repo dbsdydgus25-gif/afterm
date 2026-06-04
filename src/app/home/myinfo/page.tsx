@@ -51,7 +51,7 @@ export default function MyInfoPage() {
     {
       title: '서비스 이용',
       items: [
-        { label: '신청 내역', icon: '📋', onClick: () => router.push('/home') },
+        { label: '신청 내역', icon: '📋', onClick: () => router.push('/home/myinfo/orders') },
         { label: '담당자 채팅', icon: '💬', onClick: () => router.push('/home/chat') },
       ],
     },
