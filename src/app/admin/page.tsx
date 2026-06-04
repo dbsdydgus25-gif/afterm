@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 // 상태 라벨 정의
@@ -13,17 +13,15 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
 }
 
 export default async function AdminPage() {
-  const supabase = await createClient()
   const adminClient = createAdminClient()
 
-  // 관리자 권한 확인
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim())
+  // 관리자 쿠키 확인
+  const cookieStore = await cookies()
+  const adminSession = cookieStore.get('admin_session')
   const isDev = process.env.NODE_ENV === 'development'
-  const isAuthorized = isDev || (user.email && adminEmails.includes(user.email))
-  if (!isAuthorized) redirect('/')
+  if (!isDev && adminSession?.value !== 'authorized') {
+    redirect('/admin/login')
+  }
 
   // 전체 통계 쿼리
   const [
@@ -118,10 +116,10 @@ export default async function AdminPage() {
           <div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>접속 계정</div>
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
-              {user.email}
+              관리자
             </div>
           </div>
-          <form action="/auth/signout" method="POST">
+          <form action="/api/admin/logout" method="POST">
             <button type="submit" style={{
               width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)',
               background: 'transparent', color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600,
@@ -162,7 +160,7 @@ export default async function AdminPage() {
             { label: '완료된 케이스', value: completedCases || 0, desc: '해지 처리 최종 완료', color: '#059669', bg: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)' },
           ].map(stat => (
             <div key={stat.label} className="stat-card" style={{
-              background: stat.bg, border: 'none', display: 'flex', flexDirection: 'column', justifyBetween: 'space-between',
+              background: stat.bg, border: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
               minHeight: '140px', padding: '24px', position: 'relative', overflow: 'hidden'
             }}>
               <div style={{ zIndex: 2 }}>

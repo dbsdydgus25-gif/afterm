@@ -288,7 +288,7 @@ function StepDone({ next, userName }: { next: string; userName: string }) {
 function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') || '/apply'
+  const next = searchParams.get('next') || '/home'
   const supabase = createClient()
 
   const [step, setStep] = useState(1)

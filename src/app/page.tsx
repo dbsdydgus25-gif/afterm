@@ -22,7 +22,7 @@ function LoginBottomSheet({ open, onClose, onSuccess }: {
     setLoading('google')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/apply` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/home` },
     })
   }
 
@@ -30,7 +30,7 @@ function LoginBottomSheet({ open, onClose, onSuccess }: {
     setLoading('kakao')
     await supabase.auth.signInWithOAuth({
       provider: 'kakao',
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/apply` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/home` },
     })
   }
 
