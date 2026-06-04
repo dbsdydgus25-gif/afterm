@@ -79,13 +79,13 @@ const PLATFORMS = [
   { id: 'twitter', label: 'X', bg: '#000', icon: <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
 ]
 
-/* 아이콘 floating 위치 (left%, top%, 크기, 딜레이) */
+/* 아이콘 floating 위치 — 텍스트 가리지 않게 상단/하단 가장자리 배치 */
 const FLOAT_CONFIGS = [
-  { left: 8,  top: 10, size: 52, delay: 0,    dur: 3.2 },
-  { left: 72, top: 5,  size: 44, delay: 200,  dur: 2.8 },
-  { left: 80, top: 55, size: 48, delay: 400,  dur: 3.5 },
-  { left: 5,  top: 65, size: 44, delay: 100,  dur: 2.6 },
-  { left: 42, top: 80, size: 40, delay: 300,  dur: 3.0 },
+  { left: 4,  top: 4,  size: 46, delay: 0,    dur: 3.2 },
+  { left: 74, top: 2,  size: 40, delay: 200,  dur: 2.8 },
+  { left: 80, top: 82, size: 44, delay: 400,  dur: 3.5 },
+  { left: 2,  top: 80, size: 40, delay: 100,  dur: 2.6 },
+  { left: 40, top: 88, size: 36, delay: 300,  dur: 3.0 },
 ]
 
 /* ─── 신청자 수 카운터 ─── */
@@ -156,9 +156,8 @@ export default function LandingPage() {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            {/* dark 배경: 검정 로고 → invert(1)로 흰색 변환 */}
             <Image src="/logo-dark.png" alt="AFTERM" width={110} height={32}
-              style={{ objectFit:'contain', objectPosition:'left', filter:'invert(1)' }} />
+              style={{ objectFit:'contain', objectPosition:'left', filter:'brightness(0) invert(1)' }} />
             <Link href="/login" style={{
               fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
               textDecoration: 'none', padding: '7px 16px',
@@ -462,8 +461,11 @@ export default function LandingPage() {
 
         {/* ── 푸터 ── */}
         <footer style={{ background:'#fff', padding:'32px 24px 52px', borderTop:'1px solid #e8eaed' }}>
-          <Image src="/logo-blue.png" alt="AFTERM" width={90} height={26}
-            style={{ objectFit:'contain', objectPosition:'left', marginBottom:18 }} />
+          {/* 파란 로고 — PNG 내부 여백 상쇄용 음수 마진 */}
+          <div style={{ marginBottom: 10, marginLeft: -12 }}>
+            <Image src="/logo-blue.png" alt="AFTERM" width={130} height={38}
+              style={{ objectFit:'contain', objectPosition:'left center', display:'block' }} />
+          </div>
           <div style={{ color:'#555', fontSize:11, lineHeight:2.1 }}>
             <p style={{ margin:0 }}>상호명: 에프텀</p>
             <p style={{ margin:0 }}>대표자: 윤용현</p>
