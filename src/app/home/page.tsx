@@ -49,15 +49,26 @@ export default async function HomePage() {
             src="/logo-blue.png" alt="AFTERM" width={90} height={26}
             style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }}
           />
-          <Link href="/home/myinfo" style={{
-            background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
-            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="2" />
-              <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </Link>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Link href="/home/notifications" style={{
+              background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
+              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </Link>
+            <Link href="/home/myinfo" style={{
+              background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
+              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="#fff" strokeWidth="2" />
+                <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
         {/* 인사말 */}
@@ -154,32 +165,36 @@ export default async function HomePage() {
           이런 것도 도와드려요
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {/* 변경됨: 카카오톡 친구하기 (왼쪽) */}
           <div style={{
             background: '#fff', borderRadius: 16, padding: '20px 16px',
             border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
             cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12
           }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FBE850', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
               💬
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>전문 상담사와 1:1</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>평일 10-18시</p>
+              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>에프텀 카카오톡 친구하기</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>채널 추가하기</p>
             </div>
           </div>
-          <div style={{
-            background: '#fff', borderRadius: 16, padding: '20px 16px',
-            border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-            cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12
-          }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-              📖
+          {/* 변경됨: 전문 상담사와 1:1 (오른쪽) */}
+          <Link href="/home/chat" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', borderRadius: 16, padding: '20px 16px',
+              border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+              cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12, height: '100%'
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                🎧
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>전문가와 상담하기</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>평일 10-18시</p>
+              </div>
             </div>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>에프텀 서비스 안내</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>가이드 보기</p>
-            </div>
-          </div>
+          </Link>
         </div>
       </div>
 
