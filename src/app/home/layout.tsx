@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import HomeTabBar from './HomeTabBar'
 
 // 인증 체크는 middleware.ts에서 처리
@@ -9,7 +10,9 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       background: '#f8f9fb', paddingBottom: 72,
     }}>
       {children}
-      <HomeTabBar />
+      <Suspense fallback={null}>
+        <HomeTabBar />
+      </Suspense>
     </div>
   )
 }

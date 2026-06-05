@@ -46,7 +46,7 @@ export default async function HomePage() {
             style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }}
           />
           <div style={{ display: 'flex', gap: 12 }}>
-            <Link href="/home/notifications" style={{
+            <Link href="/home?chat=1" style={{
               background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
             }}>
@@ -114,7 +114,7 @@ export default async function HomePage() {
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {/* 왼쪽: 전문가와 상담하기 */}
-          <Link href="/home/chat" style={{ textDecoration: 'none' }}>
+          <Link href="/home?chat=1" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', borderRadius: 16, padding: '20px 16px',
               border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
