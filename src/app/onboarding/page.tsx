@@ -28,6 +28,115 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box', transition: 'border-color .2s',
 }
 
+/* ─── STEP 0: 이름 확인 ─── */
+function StepName({ kakaoName, onNext }: { kakaoName: string; onNext: (name: string) => void }) {
+  const [name, setName] = useState(kakaoName)
+  const [confirmed, setConfirmed] = useState<boolean | null>(kakaoName ? null : false)
+  const [error, setError] = useState('')
+
+  const handleConfirm = (yes: boolean) => {
+    if (yes) {
+      // 카카오 이름 그대로 사용
+      onNext(kakaoName)
+    } else {
+      setConfirmed(false)
+      setName('')
+    }
+  }
+
+  const handleSubmit = () => {
+    const trimmed = name.trim()
+    if (!trimmed || trimmed.length < 2) { setError('본명을 2글자 이상 입력해주세요'); return }
+    onNext(trimmed)
+  }
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.3 }}>
+        본인 이름을<br />확인해주세요
+      </h2>
+      <p style={{ fontSize: 15, color: '#6B7280', marginBottom: 36, lineHeight: 1.6 }}>
+        신청 접수 처리에 사용됩니다.<br />반드시 본명으로 기재해주세요.
+      </p>
+
+      {/* 카카오 이름이 있고 아직 확인 전 */}
+      {kakaoName && confirmed === null && (
+        <div>
+          <div style={{
+            background: '#FFF9E6', border: '1.5px solid #FEE500',
+            borderRadius: 14, padding: '20px 20px',
+            marginBottom: 24, textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6, fontWeight: 600 }}>카카오에 저장된 이름</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#111', letterSpacing: '-0.02em' }}>{kakaoName}</div>
+          </div>
+          <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 16, textAlign: 'center' }}>
+            이 이름이 본명이 맞습니까?
+          </p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => handleConfirm(false)}
+              style={{
+                flex: 1, padding: '16px', borderRadius: 14, border: '1.5px solid #E8EAF0',
+                background: '#F9FAFB', fontSize: 15, fontWeight: 700, color: '#6B7280', cursor: 'pointer',
+              }}
+            >
+              아니오, 수정할게요
+            </button>
+            <button
+              onClick={() => handleConfirm(true)}
+              style={{
+                flex: 1, padding: '16px', borderRadius: 14, border: 'none',
+                background: '#163272', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer',
+              }}
+            >
+              네, 맞습니다
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 직접 입력 (카카오 이름 없거나, "아니오" 선택) */}
+      {confirmed === false && (
+        <div>
+          {kakaoName && (
+            <div style={{
+              background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10,
+              padding: '10px 14px', marginBottom: 20, fontSize: 13, color: '#DC2626', fontWeight: 600,
+            }}>
+              ⚠️ 본명으로 기재해주세요. 허위 기재 시 서비스 이용이 제한됩니다.
+            </div>
+          )}
+          <label style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 700, letterSpacing: '0.04em', display: 'block', marginBottom: 8 }}>
+            본명
+          </label>
+          <input
+            value={name}
+            onChange={e => { setName(e.target.value); setError('') }}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            placeholder="홍길동"
+            autoFocus
+            style={{ ...inputStyle, marginBottom: 6 }}
+            onFocus={e => { e.target.style.borderBottomColor = '#163272' }}
+            onBlur={e => { e.target.style.borderBottomColor = '#e0e0e0' }}
+          />
+          {error && <p style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, margin: '4px 0 0' }}>{error}</p>}
+          <button
+            onClick={handleSubmit}
+            style={{
+              width: '100%', marginTop: 32, padding: '17px', borderRadius: 14,
+              border: 'none', background: '#163272', color: '#fff',
+              fontSize: 16, fontWeight: 800, cursor: 'pointer',
+            }}
+          >
+            확인 →
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ─── STEP 1: 휴대폰 인증 ─── */
 function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; kakaoToken: string | null }) {
   const [phone, setPhone] = useState('')
@@ -304,21 +413,26 @@ function OnboardingContent() {
   const next = searchParams.get('next') || '/home'
   const supabase = createClient()
 
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0)       // 0=이름확인, 1=휴대폰, 2=비밀번호, 3=완료
+  const [confirmedName, setConfirmedName] = useState('')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
-  const [userName, setUserName] = useState('')
+  const [userName, setUserName] = useState('')   // 카카오 이름 (pre-fill용)
   const [kakaoToken, setKakaoToken] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user) { router.push('/'); return }
-      // 카카오 provider_token 저장 (나에게 보내기 API용)
       if (session.provider_token) setKakaoToken(session.provider_token)
-      const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '회원'
-      setUserName(name.split(' ')[0])
+      const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || ''
+      setUserName(name)
     })
   }, [])
+
+  const handleNameDone = (name: string) => {
+    setConfirmedName(name)
+    setStep(1)
+  }
 
   const handlePhoneDone = (ph: string) => {
     setPhone(ph)
@@ -330,15 +444,16 @@ function OnboardingContent() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // 1) auth user_metadata 업데이트 (비밀번호 + 온보딩 완료 플래그)
+    // 1) auth user_metadata 업데이트
     await supabase.auth.updateUser({
       password: pw,
-      data: { phone, onboarding_done: true },
+      data: { phone, onboarding_done: true, full_name: confirmedName },
     })
 
-    // 2) profiles 테이블에 전화번호 + 온보딩 완료 저장
+    // 2) profiles 테이블에 이름 + 전화번호 저장
     await supabase.from('profiles').upsert({
       id: user.id,
+      name: confirmedName,
       phone,
       phone_verified: true,
       updated_at: new Date().toISOString(),
@@ -356,7 +471,7 @@ function OnboardingContent() {
     }}>
       {/* 헤더 */}
       <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-        {step > 1 && step < 3 && (
+        {step > 0 && step < 3 && (
           <button onClick={() => setStep(s => s - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           </button>
@@ -365,11 +480,12 @@ function OnboardingContent() {
       </div>
 
       <div style={{ padding: '28px 24px 0' }}>
-        {step < 3 && <StepBar current={step} total={2} />}
+        {step < 3 && <StepBar current={step} total={3} />}
 
+        {step === 0 && <StepName kakaoName={userName} onNext={handleNameDone} />}
         {step === 1 && <StepPhone onNext={handlePhoneDone} kakaoToken={kakaoToken} />}
         {step === 2 && <StepPassword onNext={handlePasswordDone} />}
-        {step === 3 && <StepDone next={next} userName={userName} />}
+        {step === 3 && <StepDone next={next} userName={confirmedName || userName} />}
       </div>
     </div>
   )
