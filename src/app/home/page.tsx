@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
+import NotificationBell from './NotificationBell'
 import CaseCarousel from './CaseCarousel'
 
 const GUIDES = [
@@ -46,15 +47,7 @@ export default async function HomePage() {
             style={{ objectFit: 'contain', objectPosition: 'left', filter: 'brightness(0) invert(1)' }}
           />
           <div style={{ display: 'flex', gap: 12 }}>
-            <Link href="/home?chat=1" style={{
-              background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
-              width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </Link>
+            <NotificationBell />
             <Link href="/home/myinfo" style={{
               background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
@@ -114,7 +107,7 @@ export default async function HomePage() {
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {/* 왼쪽: 전문가와 상담하기 */}
-          <Link href="/home?chat=1" style={{ textDecoration: 'none' }}>
+          <button onClick={() => typeof window !== 'undefined' && window.dispatchEvent(new CustomEvent('afterm-open-chat'))} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', width: '100%' }}>
             <div style={{
               background: '#fff', borderRadius: 16, padding: '20px 16px',
               border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
@@ -128,7 +121,7 @@ export default async function HomePage() {
                 <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>평일 10-18시</p>
               </div>
             </div>
-          </Link>
+          </button>
           {/* 오른쪽: 에프텀 소개 */}
           <Link href="/about" style={{ textDecoration: 'none' }}>
             <div style={{

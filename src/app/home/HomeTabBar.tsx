@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
@@ -31,20 +31,16 @@ function ColorOrb({ size = 26 }: { size?: number }) {
 
 export default function HomeTabBar() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const router = useRouter()
   const supabase = createClient()
 
   const [open, setOpen] = useState(false)
 
-  // ?chat=1 파라미터 감지 → 채팅 패널 자동 열기
+  // 커스텀 이벤트로 채팅 패널 열기 (URL 변경 없음)
   useEffect(() => {
-    if (searchParams.get('chat') === '1') {
-      setOpen(true)
-      // URL에서 파라미터 제거 (뒤로가기 시 다시 열리지 않도록)
-      router.replace(pathname)
-    }
-  }, [searchParams])
+    const handler = () => setOpen(true)
+    window.addEventListener('afterm-open-chat', handler)
+    return () => window.removeEventListener('afterm-open-chat', handler)
+  }, [])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
