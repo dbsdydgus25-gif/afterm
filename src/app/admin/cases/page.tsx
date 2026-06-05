@@ -45,8 +45,21 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
   const { data: cases, error } = await query.order('created_at', { ascending: false })
   if (error) console.error('Error fetching cases:', error)
 
-  // 요약 통계
   const allCases = cases || []
+
+  // 유저 ID 목록 수집 후 profiles 한번에 조회
+  const userIds = [...new Set(allCases.map((c: any) => c.user_id).filter(Boolean))]
+  const { data: profiles } = await adminClient
+    .from('profiles')
+    .select('id, name, email, phone')
+    .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000'])
+
+  const profileMap: Record<string, { name: string; email: string; phone: string }> = {}
+  for (const p of profiles || []) {
+    profileMap[p.id] = { name: p.name || '', email: p.email || '', phone: p.phone || '' }
+  }
+
+  // 요약 통계
   const stats = {
     total: allCases.length,
     submitted: allCases.filter(c => c.status === 'submitted').length,
@@ -56,14 +69,15 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
 
   // 유저별 그룹핑
   type CaseWithExtras = (typeof allCases)[number]
-  const userGroups: Record<string, { delegatorName: string; delegatorRelation: string; cases: CaseWithExtras[] }> = {}
+  const userGroups: Record<string, { userName: string; userEmail: string; userPhone: string; cases: CaseWithExtras[] }> = {}
   for (const c of allCases) {
     const uid = (c as any).user_id || 'unknown'
-    const delegator = (c as any).delegations?.[0]
+    const profile = profileMap[uid]
     if (!userGroups[uid]) {
       userGroups[uid] = {
-        delegatorName: delegator?.delegator_name || '신청인 미확인',
-        delegatorRelation: delegator?.delegator_relation || '',
+        userName: profile?.name || profile?.email?.split('@')[0] || '이름 미입력',
+        userEmail: profile?.email || '',
+        userPhone: profile?.phone || '',
         cases: [],
       }
     }
@@ -119,18 +133,19 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 16, fontWeight: 800, color: '#fff',
                 }}>
-                  {group.delegatorName.charAt(0)}
+                  {group.userName.charAt(0)}
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{group.delegatorName}</span>
-                    {group.delegatorRelation && (
+                    <span style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{group.userName}</span>
+                    {group.userPhone && (
                       <span style={{ fontSize: 12, color: '#6B7280', background: '#E8EAF0', padding: '2px 8px', borderRadius: 100, fontWeight: 600 }}>
-                        {group.delegatorRelation}
+                        {group.userPhone}
                       </span>
                     )}
                   </div>
                   <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
+                    {group.userEmail && <span style={{ marginRight: 8 }}>{group.userEmail}</span>}
                     신청 {group.cases.length}건
                   </p>
                 </div>
