@@ -113,79 +113,8 @@ export default async function MyInfoPage() {
           </div>
         </div>
 
-        {/* ── 결제 ── */}
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>결제</h2>
-          <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
-            {[
-              { icon: '💳', title: '결제 정보', desc: '서비스 완료 후 청구됩니다' },
-              { icon: '🧾', title: '결제 내역', desc: '처리 완료 건 확인' },
-            ].map((item, idx, arr) => (
-              <div key={item.title} style={{
-                padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #F3F4F6', cursor: 'pointer', background: '#fff'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: item.desc ? '0 0 2px' : 0 }}>
-                      {item.title}
-                    </p>
-                    {item.desc && (
-                      <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{item.desc}</p>
-                    )}
-                  </div>
-                </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── 도움 받기 ── */}
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>도움 받기</h2>
-          <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
-            {[
-              { icon: '💬', title: '1:1 상담', desc: '평일 10:00 - 18:00' },
-              { icon: '❓', title: '자주 묻는 질문', desc: '비용·서류·처리 기간' },
-              { icon: '📖', title: '상속 절차 안내서', desc: '' },
-              { icon: '📞', title: '긴급 연락처 등록', desc: '' },
-            ].map((item, idx, arr) => (
-              <div key={item.title} style={{
-                padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #F3F4F6', cursor: 'pointer', background: '#fff'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: item.desc ? '0 0 2px' : 0 }}>
-                      {item.title}
-                    </p>
-                    {item.desc && (
-                      <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{item.desc}</p>
-                    )}
-                  </div>
-                </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── 설정 ── */}
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>설정</h2>
-          <MyInfoClient />
-        </div>
+        {/* 결제/도움받기/설정 — 클라이언트 컴포넌트에서 처리 */}
+        <MyInfoClient />
       </div>
     </div>
   )
