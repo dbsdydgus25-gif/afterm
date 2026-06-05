@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  // 어드민용 파라미터가 있으면 해당 유저 조회, 아니면 본인 조회
-  const targetUserId = searchParams.get('userId') || user.id
-
   const { data: messages, error } = await supabase
     .from('chat_messages')
-    .select('*')
-    .eq('user_id', targetUserId)
+    .select('id, message, is_admin, created_at')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -25,22 +21,14 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { message, targetUserId, isAdmin } = await req.json()
-  
-  // 관리자가 보내는 경우 isAdmin=true, targetUserId=상대방
-  // 사용자가 보내는 경우 isAdmin=false, targetUserId=user.id
-  const insertUserId = isAdmin ? targetUserId : user.id
+  const { message } = await req.json()
+  if (!message?.trim()) return NextResponse.json({ error: 'Empty message' }, { status: 400 })
 
+  // 일반 사용자는 항상 is_admin=false — 클라이언트에서 조작 불가
   const { data, error } = await supabase
     .from('chat_messages')
-    .insert([
-      {
-        user_id: insertUserId,
-        message,
-        is_admin: isAdmin || false
-      }
-    ])
-    .select()
+    .insert([{ user_id: user.id, message: message.trim(), is_admin: false }])
+    .select('id, message, is_admin, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

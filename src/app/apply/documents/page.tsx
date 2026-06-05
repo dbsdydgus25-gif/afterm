@@ -4,42 +4,24 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
+import { getRequiredDocs } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
 
-// 서류 정보
-const DOCS = [
-  {
-    type: 'death_cert' as const,
-    icon: '📋',
-    title: '사망진단서',
-    desc: '의료기관에서 발급한 사망진단서',
-    tip: '스마트폰 카메라로 촬영하셔도 됩니다',
-    required: true,
-  },
-  {
-    type: 'family_cert' as const,
-    icon: '👨‍👩‍👧',
-    title: '가족관계증명서',
-    desc: '정부24 또는 주민센터에서 발급',
-    tip: '고인과의 관계를 확인하기 위해 필요합니다',
-    required: true,
-  },
-  {
-    type: 'id_card' as const,
-    icon: '🪪',
-    title: '신청인 신분증',
-    desc: '주민등록증 또는 운전면허증 앞면',
-    tip: '신청인(유족) 본인의 신분증입니다',
-    required: true,
-  },
-]
+const DOC_META: Record<string, { icon: string; tip: string }> = {
+  death_cert:  { icon: '📋', tip: '스마트폰 카메라로 촬영하셔도 됩니다' },
+  family_cert: { icon: '👨‍👩‍👧', tip: '정부24 앱에서 발급 가능합니다' },
+  id_card:     { icon: '🪪', tip: '신청인(유족) 본인의 신분증입니다' },
+}
 
 type Phase = 'docs' | 'delegator' | 'sign'
 
 export default function DocumentsPage() {
   const router = useRouter()
   const supabase = createClient()
-  const { caseId, documentsUploaded, setDocumentUploaded, setDelegation, setStep } = useApplyStore()
+  const { caseId, selectedServices, documentsUploaded, setDocumentUploaded, setDelegation, setStep } = useApplyStore()
+
+  // 선택된 서비스 기반 동적 서류 목록
+  const DOCS = getRequiredDocs(selectedServices.map(s => s.id))
 
   const [phase, setPhase] = useState<Phase>('docs')
   const [uploading, setUploading] = useState<string | null>(null)
@@ -56,11 +38,11 @@ export default function DocumentsPage() {
   const [hasSig, setHasSig] = useState(false)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
 
-  const allDocsUploaded = DOCS.every(d => documentsUploaded[d.type])
-  const uploadedCount = DOCS.filter(d => documentsUploaded[d.type]).length
+  const allDocsUploaded = DOCS.every(d => documentsUploaded[d.type as keyof typeof documentsUploaded])
+  const uploadedCount = DOCS.filter(d => documentsUploaded[d.type as keyof typeof documentsUploaded]).length
 
   // 파일 업로드
-  const handleFileUpload = async (docType: typeof DOCS[0]['type'], file: File) => {
+  const handleFileUpload = async (docType: string, file: File) => {
     if (!caseId) return
     setUploading(docType)
     try {
@@ -72,7 +54,7 @@ export default function DocumentsPage() {
         case_id: caseId, doc_type: docType, storage_path: path,
         file_name: file.name, file_size: file.size, mime_type: file.type,
       }, { onConflict: 'case_id,doc_type' })
-      setDocumentUploaded(docType, true)
+      setDocumentUploaded(docType as keyof typeof documentsUploaded, true)
     } catch {
       alert('업로드 오류. 다시 시도해 주세요')
     } finally {
@@ -161,8 +143,9 @@ export default function DocumentsPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {DOCS.map(doc => {
-              const uploaded = documentsUploaded[doc.type]
+              const uploaded = documentsUploaded[doc.type as keyof typeof documentsUploaded]
               const isUploading = uploading === doc.type
+              const meta = DOC_META[doc.type] || { icon: '📄', tip: '' }
               return (
                 <label key={doc.type} style={{ cursor: 'pointer', display: 'block' }}>
                   <input
@@ -185,7 +168,7 @@ export default function DocumentsPage() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '22px', flexShrink: 0,
                     }}>
-                      {isUploading ? '⏳' : uploaded ? '✅' : doc.icon}
+                      {isUploading ? '⏳' : uploaded ? '✅' : meta.icon}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-label-strong)', letterSpacing: '-0.02em' }}>

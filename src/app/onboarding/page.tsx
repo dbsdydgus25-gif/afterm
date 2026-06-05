@@ -273,7 +273,7 @@ function StepDone({ next, userName }: { next: string; userName: string }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <button
-          onClick={() => router.push(next)}
+          onClick={() => { window.location.href = next }}
           style={{
             width: '100%', padding: '18px',
             background: '#163272', border: 'none', borderRadius: 14,
@@ -283,7 +283,7 @@ function StepDone({ next, userName }: { next: string; userName: string }) {
           바로 신청하기 →
         </button>
         <button
-          onClick={() => router.push('/home')}
+          onClick={() => { window.location.href = '/home' }}
           style={{
             width: '100%', padding: '18px',
             background: '#f5f5f5', border: 'none', borderRadius: 14,

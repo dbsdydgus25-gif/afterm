@@ -56,7 +56,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // ── 보호된 경로: 비로그인 → 랜딩으로 ──
-  const isProtected = ['/apply', '/dashboard'].some((p) => pathname.startsWith(p))
+  const isProtected = ['/apply'].some((p) => pathname.startsWith(p))
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/', request.url))
   }

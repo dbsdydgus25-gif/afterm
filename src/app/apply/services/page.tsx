@@ -67,7 +67,7 @@ export default function ServicesPage() {
     try {
       if (!caseId) { router.push('/apply'); return }
 
-      // 기존 서비스 삭제 후 새로 저장
+      // 기존 서비스 삭제 후 임시 저장 (계정 정보는 service-info 단계에서 확정)
       await supabase.from('case_services').delete().eq('case_id', caseId)
       const rows = selectedServices.map(s => ({
         case_id: caseId,
@@ -76,13 +76,11 @@ export default function ServicesPage() {
         service_category: s.category,
         dispatch_type: s.dispatchType,
         contact_info: s.contactInfo,
-        account_id: s.accountId || null,
-        account_unknown: s.accountUnknown,
         status: 'pending',
       }))
       await supabase.from('case_services').insert(rows)
-      setStep(2)
-      router.push('/apply/documents')
+      setStep(1)
+      router.push('/apply/service-info')
     } catch {
       alert('저장 중 오류가 발생했습니다')
     } finally {

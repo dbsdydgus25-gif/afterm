@@ -72,7 +72,7 @@ export default async function MyInfoPage() {
                 const isLast = idx === cases.length - 1
                 const isCompleted = c.status === 'completed'
                 return (
-                  <Link href={`/dashboard/${c.id}`} key={c.id} style={{ textDecoration: 'none' }}>
+                  <Link href="/home/orders" key={c.id} style={{ textDecoration: 'none' }}>
                     <div style={{
                       padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       borderBottom: isLast ? 'none' : '1px solid #F3F4F6',
@@ -118,8 +118,8 @@ export default async function MyInfoPage() {
           <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>결제</h2>
           <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
             {[
-              { icon: '💳', title: '결제 정보', desc: '카드 및 계좌 등록/관리' },
-              { icon: '🧾', title: '결제 내역', desc: '결제 및 환불 내역 확인' },
+              { icon: '💳', title: '결제 정보', desc: '서비스 완료 후 청구됩니다' },
+              { icon: '🧾', title: '결제 내역', desc: '처리 완료 건 확인' },
             ].map((item, idx, arr) => (
               <div key={item.title} style={{
                 padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',

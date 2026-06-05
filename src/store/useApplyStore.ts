@@ -12,6 +12,8 @@ export type ApplyStep = 0 | 1 | 2 | 3
 export interface SelectedService extends ServiceItem {
   accountId?: string       // 고인 아이디 (모르면 undefined)
   accountUnknown: boolean  // '모름' 체크 여부
+  fieldValues: Record<string, string>  // 서비스별 추가 입력값
+  selectedAction?: string              // 처리 방식 (삭제/추모계정 등)
 }
 
 // 고인 기본 정보
@@ -42,12 +44,8 @@ interface ApplyStore {
   // 선택된 서비스 목록
   selectedServices: SelectedService[]
 
-  // 서류 업로드 완료 여부
-  documentsUploaded: {
-    death_cert: boolean
-    family_cert: boolean
-    id_card: boolean
-  }
+  // 서류 업로드 완료 여부 (동적 키)
+  documentsUploaded: Record<string, boolean>
 
   // 위임장 정보
   delegation: DelegationInfo | null
@@ -58,7 +56,9 @@ interface ApplyStore {
   setDeceasedInfo: (info: Partial<DeceasedInfo>) => void
   toggleService: (service: ServiceItem) => void
   updateServiceAccount: (serviceId: string, accountId: string, unknown: boolean) => void
-  setDocumentUploaded: (type: keyof ApplyStore['documentsUploaded'], value: boolean) => void
+  updateServiceField: (serviceId: string, key: string, value: string) => void
+  updateServiceAction: (serviceId: string, action: string) => void
+  setDocumentUploaded: (type: string, value: boolean) => void
   setDelegation: (delegation: DelegationInfo) => void
   resetStore: () => void
 }
@@ -68,7 +68,7 @@ const initialState = {
   caseId: null,
   deceasedInfo: { name: '', birthDate: '', deathDate: '', phone: '' },
   selectedServices: [],
-  documentsUploaded: { death_cert: false, family_cert: false, id_card: false },
+  documentsUploaded: {},
   delegation: null,
 }
 
@@ -95,7 +95,7 @@ export const useApplyStore = create<ApplyStore>()(
             return {
               selectedServices: [
                 ...state.selectedServices,
-                { ...service, accountUnknown: false }
+                { ...service, accountUnknown: false, fieldValues: {}, selectedAction: service.actionOptions?.[0] }
               ]
             }
           }
@@ -107,6 +107,22 @@ export const useApplyStore = create<ApplyStore>()(
             s.id === serviceId
               ? { ...s, accountId: unknown ? undefined : accountId, accountUnknown: unknown }
               : s
+          )
+        })),
+
+      updateServiceField: (serviceId, key, value) =>
+        set((state) => ({
+          selectedServices: state.selectedServices.map(s =>
+            s.id === serviceId
+              ? { ...s, fieldValues: { ...s.fieldValues, [key]: value } }
+              : s
+          )
+        })),
+
+      updateServiceAction: (serviceId, action) =>
+        set((state) => ({
+          selectedServices: state.selectedServices.map(s =>
+            s.id === serviceId ? { ...s, selectedAction: action } : s
           )
         })),
 

@@ -7,35 +7,34 @@ declare global {
 }
 
 const CHANNEL_PUBLIC_ID = '_cxfNAX'
-type Relation = 'ADDED' | 'BLOCKED' | 'NONE' | 'unknown'
+const CHANNEL_URL = `https://pf.kakao.com/${CHANNEL_PUBLIC_ID}`
+const CHAT_URL = `https://pf.kakao.com/${CHANNEL_PUBLIC_ID}/chat`
 
 export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | null }) {
-  const [relation, setRelation] = useState<Relation>('unknown')
   const [sdkReady, setSdkReady] = useState(false)
+  const [isAdded, setIsAdded] = useState(false)
 
-  // ── 1) Kakao JS SDK 로드 & 초기화 ──
+  // SDK 로드 & 초기화
   useEffect(() => {
     const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
     if (!jsKey) return
 
-    if (window.Kakao?.isInitialized()) {
+    const init = () => {
+      if (!window.Kakao.isInitialized()) window.Kakao.init(jsKey)
       if (kakaoToken) window.Kakao.Auth.setAccessToken(kakaoToken)
       setSdkReady(true)
-      return
     }
+
+    if (window.Kakao?.isInitialized()) { init(); return }
 
     const script = document.createElement('script')
     script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js'
     script.crossOrigin = 'anonymous'
-    script.onload = () => {
-      window.Kakao.init(jsKey)
-      if (kakaoToken) window.Kakao.Auth.setAccessToken(kakaoToken)
-      setSdkReady(true)
-    }
+    script.onload = init
     document.head.appendChild(script)
   }, [kakaoToken])
 
-  // ── 2) REST API로 채널 관계 조회 ──
+  // 채널 관계 조회 (토큰 있을 때만)
   useEffect(() => {
     if (!kakaoToken) return
     fetch(
@@ -45,32 +44,31 @@ export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | nu
       .then(r => r.json())
       .then(data => {
         const ch = data?.channels?.find((c: any) => c.channel_public_id === CHANNEL_PUBLIC_ID)
-        setRelation((ch?.relation as Relation) ?? 'NONE')
+        setIsAdded(ch?.relation === 'ADDED')
       })
-      .catch(() => setRelation('NONE'))
+      .catch(() => { /* 조회 실패해도 기본 채팅 버튼 표시 */ })
   }, [kakaoToken])
 
-  // ── 3) 채팅 열기 ──
   const openChat = () => {
     if (sdkReady && window.Kakao?.Channel) {
-      window.Kakao.Channel.chat({ channelPublicId: CHANNEL_PUBLIC_ID })
+      try { window.Kakao.Channel.chat({ channelPublicId: CHANNEL_PUBLIC_ID }) }
+      catch { window.open(CHAT_URL, '_blank') }
     } else {
-      window.open(`https://pf.kakao.com/${CHANNEL_PUBLIC_ID}/chat`, '_blank')
+      window.open(CHAT_URL, '_blank')
     }
   }
 
-  // ── 4) 채널 추가 (NONE 상태) — addChannel로 브릿지 페이지 열기 ──
   const addChannel = () => {
     if (sdkReady && window.Kakao?.Channel) {
-      // addChannel: 브릿지 페이지 열기 (로그인 필요 없음, PC/모바일 모두 동작)
-      window.Kakao.Channel.addChannel({ channelPublicId: CHANNEL_PUBLIC_ID })
+      try { window.Kakao.Channel.addChannel({ channelPublicId: CHANNEL_PUBLIC_ID }) }
+      catch { window.open(CHANNEL_URL, '_blank') }
     } else {
-      window.open(`https://pf.kakao.com/${CHANNEL_PUBLIC_ID}`, '_blank')
+      window.open(CHANNEL_URL, '_blank')
     }
   }
 
-  // NONE 또는 BLOCKED → 채널 추가 유도
-  if (relation === 'NONE' || relation === 'BLOCKED') {
+  // 채널 미추가 & 토큰 있음 → 추가 유도 배너
+  if (kakaoToken && !isAdded) {
     return (
       <div style={{
         background: '#FFF9E6', border: '1.5px solid #FEE500',
@@ -84,14 +82,11 @@ export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | nu
             <p style={{ fontSize: 13, color: '#888', margin: 0 }}>채널 추가 후 담당자와 바로 채팅할 수 있어요</p>
           </div>
         </div>
-        <button
-          onClick={addChannel}
-          style={{
-            width: '100%', background: '#FEE500', border: 'none', borderRadius: 12,
-            padding: '14px', fontSize: 15, fontWeight: 800, color: '#111', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}
-        >
+        <button onClick={addChannel} style={{
+          width: '100%', background: '#FEE500', border: 'none', borderRadius: 12,
+          padding: '14px', fontSize: 15, fontWeight: 800, color: '#111', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="#111">
             <path d="M12 3C6.477 3 2 6.582 2 11c0 2.742 1.55 5.17 3.938 6.672-.133.447-.855 2.837-.886 3.015-.04.22.08.437.29.437.115 0 .22-.058.305-.138l3.558-2.37C10.345 18.87 11.16 19 12 19c5.523 0 10-3.582 10-8S17.523 3 12 3z"/>
           </svg>
@@ -101,22 +96,19 @@ export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | nu
     )
   }
 
-  // ADDED 또는 unknown → 채팅 버튼
+  // 기본: 채팅 버튼 (채널 추가 완료 or 토큰 없음 — 항상 동작)
   return (
-    <button
-      onClick={openChat}
-      style={{
-        width: '100%', background: 'linear-gradient(135deg, #163272 0%, #1e4db7 100%)',
-        border: 'none', borderRadius: 16, padding: '18px 20px',
-        display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', textAlign: 'left',
-      }}
-    >
+    <button onClick={openChat} style={{
+      width: '100%', background: 'linear-gradient(135deg, #163272 0%, #1e4db7 100%)',
+      border: 'none', borderRadius: 16, padding: '18px 20px',
+      display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', textAlign: 'left',
+    }}>
       <div style={{ fontSize: 28 }}>💬</div>
       <div>
-        <p style={{ color: '#fff', fontSize: 16, fontWeight: 800, margin: '0 0 3px' }}>에프텀 담당자에게 문의하기</p>
+        <p style={{ color: '#fff', fontSize: 16, fontWeight: 800, margin: '0 0 3px' }}>에프텀 상담팀에 문의하기</p>
         <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, margin: 0 }}>카카오톡으로 편하게 연락하세요</p>
       </div>
-      <svg style={{ marginLeft: 'auto' }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2">
+      <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2">
         <path d="M9 18l6-6-6-6" />
       </svg>
     </button>
