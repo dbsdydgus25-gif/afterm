@@ -1,20 +1,14 @@
 'use client'
 
-const CHANNEL_PUBLIC_ID = '_cxfNAX'
-const CHANNEL_URL = `https://pf.kakao.com/${CHANNEL_PUBLIC_ID}`
+const CHANNEL_URL = 'https://pf.kakao.com/_cxfNAX'
 
 export default function ChatOpenButton() {
-  const handleClick = () => {
-    window.open(CHANNEL_URL, '_blank')
-  }
-
   return (
-    <button
-      onClick={handleClick}
-      style={{
-        background: 'none', border: 'none', padding: 0,
-        textAlign: 'left', cursor: 'pointer', width: '100%',
-      }}
+    <a
+      href={CHANNEL_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', display: 'block', width: '100%' }}
     >
       <div style={{
         background: '#FEE500', borderRadius: 16, padding: '20px 16px',
@@ -33,6 +27,6 @@ export default function ChatOpenButton() {
           <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', margin: 0 }}>에프텀 공식 채널</p>
         </div>
       </div>
-    </button>
+    </a>
   )
 }
