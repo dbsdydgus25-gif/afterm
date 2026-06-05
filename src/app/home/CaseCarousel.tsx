@@ -37,10 +37,10 @@ function ProgressRing({ pct, size = 96, stroke = 8 }: { pct: number; size?: numb
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none" stroke="rgba(255,255,255,0.2)" />
+        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none" stroke="#E5E7EB" />
         <circle
           cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none"
-          stroke={pct === 100 ? '#4ADE80' : '#fff'}
+          stroke={pct === 100 ? '#10B981' : '#163272'}
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={off}
@@ -51,10 +51,10 @@ function ProgressRing({ pct, size = 96, stroke = 8 }: { pct: number; size?: numb
         position: 'absolute', inset: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ fontSize: size * 0.22, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-0.02em' }}>
+        <div style={{ fontSize: size * 0.22, fontWeight: 800, color: '#111827', lineHeight: 1, letterSpacing: '-0.02em' }}>
           {pct}%
         </div>
-        <div style={{ fontSize: size * 0.11, color: 'rgba(255,255,255,0.6)', marginTop: 2, fontWeight: 500 }}>
+        <div style={{ fontSize: size * 0.11, color: '#9CA3AF', marginTop: 2, fontWeight: 500 }}>
           처리 완료
         </div>
       </div>
@@ -159,20 +159,20 @@ export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
               }}
             >
               <div style={{
-                background: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: '18px 18px',
-                border: '1px solid rgba(255,255,255,0.18)',
-                backdropFilter: 'blur(8px)',
+                background: '#fff', borderRadius: 20, padding: '18px 18px',
+                border: '1px solid #E8EDF5',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
               }}>
                 {/* 상단: 고인 + 상태 뱃지 */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                   <div>
-                    <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.04em' }}>
+                    <p style={{ color: '#9CA3AF', fontSize: 11, margin: '0 0 3px', fontWeight: 600, letterSpacing: '0.04em' }}>
                       {cIdx === 0 ? '진행 중인 신청' : `신청 ${cIdx + 1}`}
                     </p>
-                    <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.02em' }}>
+                    <h2 style={{ color: '#111827', fontSize: 20, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-0.02em' }}>
                       {c.deceased_name} 님
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, margin: 0 }}>
+                    <p style={{ color: '#9CA3AF', fontSize: 12, margin: 0 }}>
                       {createdAt} 신청 · {total}건 처리 중
                     </p>
                   </div>
@@ -186,23 +186,23 @@ export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
                   </span>
                 </div>
 
-                {/* 원형 진행률 + 통계 (흰 배경 카드) */}
+                {/* 원형 진행률 + 통계 */}
                 <div style={{
-                  background: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: '14px 16px',
+                  background: '#F4F6FA', borderRadius: 14, padding: '14px 16px',
                   display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14,
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid #E8EDF5',
                 }}>
                   <ProgressRing pct={pct} size={88} stroke={7} />
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {[
-                      { label: '완료', value: completedCount, color: '#4ADE80' },
-                      { label: '진행 중', value: inProgressCount, color: '#FBBF24' },
-                      { label: '조치 필요', value: actionCount, color: '#F87171' },
+                      { label: '완료', value: completedCount, color: '#10B981' },
+                      { label: '진행 중', value: inProgressCount, color: '#F59E0B' },
+                      { label: '조치 필요', value: actionCount, color: '#EF4444' },
                     ].map(({ label, value, color }) => (
                       <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>{label}</span>
-                        <span style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>{value}</span>
+                        <span style={{ flex: 1, fontSize: 13, color: '#6B7280', fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: '#111827' }}>{value}</span>
                       </div>
                     ))}
                   </div>
@@ -217,12 +217,12 @@ export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
                       <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div style={{
                           height: 3, borderRadius: 2,
-                          background: isActive ? '#fff' : isPast ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.18)',
+                          background: isActive ? '#163272' : isPast ? '#93A8D8' : '#E5E7EB',
                           transition: 'background .3s',
                         }} />
                         <span style={{
                           fontSize: 9, textAlign: 'center', fontWeight: isActive ? 800 : 500,
-                          color: isActive ? '#fff' : isPast ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.28)',
+                          color: isActive ? '#163272' : isPast ? '#6B7280' : '#D1D5DB',
                         }}>
                           {isActive ? `● ${label}` : label}
                         </span>
@@ -234,9 +234,9 @@ export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
                 {/* 상세 보기 버튼 */}
                 <Link href="/home/orders" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.16)', borderRadius: 10, padding: '10px',
-                  fontSize: 13, fontWeight: 700, color: '#fff', textDecoration: 'none',
-                  border: '1px solid rgba(255,255,255,0.22)',
+                  background: '#EFF6FF', borderRadius: 10, padding: '10px',
+                  fontSize: 13, fontWeight: 700, color: '#163272', textDecoration: 'none',
+                  border: '1px solid #DBEAFE',
                 }}>
                   진행 현황 상세 보기 →
                 </Link>

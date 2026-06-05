@@ -78,6 +78,24 @@ export default function DocViewer({ documents, signatureData, delegatorName, del
         height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden', position: 'relative'
       }}>
+        {/* 다운로드 버튼 */}
+        {activeTab !== 'signature' && activeDoc && (
+          <a
+            href={activeDoc.public_url}
+            download={activeDoc.file_name || `${DOC_NAMES[activeTab]}.jpg`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              position: 'absolute', top: 12, right: 12, zIndex: 10,
+              background: '#163272', color: '#fff', borderRadius: 8,
+              padding: '7px 14px', fontSize: 12, fontWeight: 700,
+              textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            ⬇ 다운로드
+          </a>
+        )}
+
         {activeTab === 'signature' ? (
           signatureData ? (
             <div style={{ textAlign: 'center', padding: '24px' }}>

@@ -61,11 +61,11 @@ export const SERVICE_CATALOG: ServiceItem[] = [
       },
       {
         key: 'account_url',
-        label: '프로필 URL (선택)',
+        label: '프로필 URL',
         placeholder: 'https://www.instagram.com/username',
         type: 'text',
-        required: false,
-        tip: '있으면 입력해주세요',
+        required: true,
+        tip: '인스타그램 프로필 주소를 입력해주세요',
       },
     ],
     requiredDocs: [
@@ -121,10 +121,11 @@ export const SERVICE_CATALOG: ServiceItem[] = [
       },
       {
         key: 'account_email',
-        label: '카카오 계정 이메일 (선택)',
+        label: '카카오 계정 이메일',
         placeholder: 'example@kakao.com',
         type: 'email',
-        required: false,
+        required: true,
+        tip: '카카오 계정에 등록된 이메일을 입력해주세요',
       },
     ],
     requiredDocs: [

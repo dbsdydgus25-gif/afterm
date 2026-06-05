@@ -7,7 +7,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: messages, error } = await supabase
-    .from('chat_messages')
+    .from('support_messages')
     .select('id, message, is_admin, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: true })
@@ -24,9 +24,8 @@ export async function POST(req: NextRequest) {
   const { message } = await req.json()
   if (!message?.trim()) return NextResponse.json({ error: 'Empty message' }, { status: 400 })
 
-  // 일반 사용자는 항상 is_admin=false — 클라이언트에서 조작 불가
   const { data, error } = await supabase
-    .from('chat_messages')
+    .from('support_messages')
     .insert([{ user_id: user.id, message: message.trim(), is_admin: false }])
     .select('id, message, is_admin, created_at')
     .single()

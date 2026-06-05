@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
-import HomeChatButton from './HomeChatButton'
 import CaseCarousel from './CaseCarousel'
 
 const GUIDES = [
@@ -17,9 +16,6 @@ const GUIDES = [
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: { session } } = await supabase.auth.getSession()
-  const kakaoToken = session?.provider_token ?? null
-
   const userName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.user_metadata?.name?.split(' ')[0]
     || user?.email?.split('@')[0]
@@ -83,54 +79,6 @@ export default async function HomePage() {
         <CaseCarousel cases={activeCases} />
       </div>
 
-      {/* ── 서비스 진행 현황 (가장 최근 케이스) ── */}
-      {activeCases.length > 0 && (activeCases[0].case_services?.length ?? 0) > 0 && (
-        <div style={{ padding: '24px 0 0' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', padding: '0 20px', letterSpacing: '-0.01em' }}>
-            서비스 진행 현황
-          </h2>
-          <div style={{
-            display: 'flex', gap: 10, overflowX: 'auto', padding: '2px 20px 8px',
-            scrollSnapType: 'x mandatory',
-            WebkitOverflowScrolling: 'touch',
-            msOverflowStyle: 'none', scrollbarWidth: 'none',
-          }}>
-            {(activeCases[0].case_services || []).map((svc: any) => {
-              const isDone = svc.status === 'done'
-              const isProc = svc.status === 'dispatched' || svc.status === 'received'
-              const isFailed = svc.status === 'failed'
-              const statusLabel = isDone ? '완료' : isFailed ? '조치 필요' : isProc ? '진행 중' : '대기'
-              const statusBg = isDone ? '#ECFDF5' : isFailed ? '#FEF2F2' : isProc ? '#EFF6FF' : '#F3F4F6'
-              const statusColor = isDone ? '#059669' : isFailed ? '#DC2626' : isProc ? '#2563EB' : '#6B7280'
-              const catIcon: Record<string, string> = { '통신': '📱', '금융': '🏦', '보험': '📄', '포털': '💻', 'SNS': '📸', '메신저': '💬', '구독': '💳' }
-              return (
-                <div key={svc.id} style={{
-                  flexShrink: 0, width: 130, background: '#fff',
-                  borderRadius: 16, padding: '14px 14px',
-                  boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
-                  scrollSnapAlign: 'start',
-                  display: 'flex', flexDirection: 'column', gap: 8,
-                  border: '1px solid #F0F0F0',
-                }}>
-                  <span style={{ fontSize: 24 }}>{catIcon[svc.service_category] || '📋'}</span>
-                  <div>
-                    <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 2px', fontWeight: 600 }}>{svc.service_category}</p>
-                    <p style={{ fontSize: 13, fontWeight: 800, color: '#111827', margin: 0, lineHeight: 1.3 }}>{svc.service_name}</p>
-                  </div>
-                  <span style={{
-                    alignSelf: 'flex-start', fontSize: 10, fontWeight: 700,
-                    padding: '3px 8px', borderRadius: 100,
-                    background: statusBg, color: statusColor,
-                  }}>
-                    {statusLabel}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* ── 행정 가이드 ── */}
       <div style={{ padding: '24px 20px 0' }}>
         <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', letterSpacing: '-0.01em' }}>
@@ -165,28 +113,14 @@ export default async function HomePage() {
           이런 것도 도와드려요
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {/* 변경됨: 카카오톡 친구하기 (왼쪽) */}
-          <div style={{
-            background: '#fff', borderRadius: 16, padding: '20px 16px',
-            border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-            cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12
-          }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FBE850', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
-              💬
-            </div>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>에프텀 카카오톡 친구하기</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>채널 추가하기</p>
-            </div>
-          </div>
-          {/* 변경됨: 전문 상담사와 1:1 (오른쪽) */}
+          {/* 왼쪽: 전문가와 상담하기 */}
           <Link href="/home/chat" style={{ textDecoration: 'none' }}>
             <div style={{
               background: '#fff', borderRadius: 16, padding: '20px 16px',
               border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-              cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12, height: '100%'
+              cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12,
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                 🎧
               </div>
               <div>
@@ -195,13 +129,26 @@ export default async function HomePage() {
               </div>
             </div>
           </Link>
+          {/* 오른쪽: 에프텀 소개 */}
+          <Link href="/about" style={{ textDecoration: 'none' }}>
+            <div style={{
+              background: '#fff', borderRadius: 16, padding: '20px 16px',
+              border: '1px solid #F0F0F0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+              cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 12,
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                🌿
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>에프텀 소개</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>서비스 알아보기</p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
 
-      {/* ── 채팅 배너 ── */}
-      <div style={{ padding: '20px 20px 8px' }}>
-        <HomeChatButton kakaoToken={kakaoToken} />
-      </div>
+      <div style={{ height: 20 }} />
     </div>
   )
 }

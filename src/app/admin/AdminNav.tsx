@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { href: '/admin', icon: '📊', label: '대시보드', exact: true },
   { href: '/admin/cases', icon: '📋', label: '신청 관리' },
+  { href: '/admin/chat', icon: '💬', label: '채팅 내역' },
 ]
 
 export default function AdminNav() {

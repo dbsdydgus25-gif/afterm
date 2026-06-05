@@ -366,17 +366,35 @@ export default function LandingPage() {
                 에프텀이 전부 대신 처리해드립니다.
               </p>
 
-              <button onClick={openSheet} style={{
-                display:'inline-flex', alignItems:'center', gap:8,
-                background:'#fff', color:'#0b1d47',
-                borderRadius:14, padding:'15px 28px',
-                fontWeight:800, fontSize:15, border:'none', cursor:'pointer',
-                boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
-                letterSpacing:'-0.2px',
-              }}>
-                무료로 신청하기
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </button>
+              <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                <button onClick={openSheet} style={{
+                  display:'inline-flex', alignItems:'center', gap:8,
+                  background:'#fff', color:'#0b1d47',
+                  borderRadius:14, padding:'15px 32px',
+                  fontWeight:800, fontSize:15, border:'none', cursor:'pointer',
+                  boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
+                  letterSpacing:'-0.2px', flex:1, justifyContent:'center',
+                  minWidth: 160,
+                }}>
+                  무료로 신청하기
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+
+                <a href="/home" style={{
+                  display:'inline-flex', alignItems:'center', gap:8,
+                  background:'rgba(137,191,255,0.18)', color:'#89bfff',
+                  borderRadius:14, padding:'15px 24px',
+                  fontWeight:700, fontSize:15,
+                  border:'1.5px solid rgba(137,191,255,0.35)',
+                  cursor:'pointer', textDecoration:'none',
+                  backdropFilter:'blur(4px)',
+                  letterSpacing:'-0.2px',
+                  flexShrink: 0,
+                }}>
+                  서비스 보기
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -384,7 +402,7 @@ export default function LandingPage() {
         {/* ════════════════════════════════
             SECTION 2: 감정 공감 + 플로팅 아이콘
         ════════════════════════════════ */}
-        <section ref={sec2Ref} style={{ padding:'72px 24px 80px', textAlign:'center', position:'relative' }}>
+        <section id="services" ref={sec2Ref} style={{ padding:'72px 24px 80px', textAlign:'center', position:'relative' }}>
 
           {/* 플로팅 아이콘들 */}
           {PLATFORMS.map((p, i) => {
