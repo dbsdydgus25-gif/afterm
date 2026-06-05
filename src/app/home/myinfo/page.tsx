@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import MyInfoClient from './MyInfoClient'
+import ProfileEditClient from './ProfileEditClient'
 
 export default async function MyInfoPage() {
   const supabase = await createClient()
@@ -30,32 +31,24 @@ export default async function MyInfoPage() {
 
       <div style={{ padding: '20px' }}>
         
-        {/* ── 프로필 박스 ── */}
-        <div style={{
-          background: '#fff', borderRadius: 20, padding: '20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          border: '1px solid #E8EAF0', boxShadow: '0 1px 4px rgba(0,0,0,0.02)', marginBottom: 32
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        {/* ── 프로필 편집 (클라이언트 컴포넌트) ── */}
+        <div style={{ marginBottom: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
             <div style={{
-              width: 56, height: 56, borderRadius: '50%', background: '#F3F4F6',
+              width: 60, height: 60, borderRadius: '50%', background: '#163272',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 22, fontWeight: 800, color: '#111827', flexShrink: 0
+              fontSize: 24, fontWeight: 800, color: '#fff', flexShrink: 0
             }}>
               {displayName.charAt(0)}
             </div>
             <div>
-              <p style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
+              <p style={{ fontSize: 20, fontWeight: 800, color: '#111827', margin: '0 0 2px', letterSpacing: '-0.02em' }}>
                 {displayName} 님
               </p>
-              <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, fontWeight: 500 }}>
-                {phone} · 본인인증 완료
-              </p>
+              <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{email}</p>
             </div>
           </div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
+          <ProfileEditClient initialName={displayName} initialPhone={phone} initialEmail={email} />
         </div>
 
         {/* ── 신청 내역 ── */}
