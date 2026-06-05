@@ -10,12 +10,26 @@ interface SupportMessage {
   created_at: string
 }
 
+interface UserProfile {
+  id: string
+  name: string | null
+  email: string | null
+  phone: string | null
+}
+
 interface UserThread {
   userId: string
+  profile: UserProfile | null
   messages: SupportMessage[]
   lastMessage: string
   lastTime: string
-  unread: number
+}
+
+function displayName(thread: UserThread) {
+  const p = thread.profile
+  if (p?.name) return p.name
+  if (p?.email) return p.email.split('@')[0]
+  return 'User ' + thread.userId.slice(0, 8).toUpperCase()
 }
 
 export default function AdminChatPage() {
@@ -27,9 +41,16 @@ export default function AdminChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const fetchMessages = async () => {
-    const res = await fetch('/api/admin/chat')
-    if (!res.ok) return
-    const msgs: SupportMessage[] = await res.json()
+    const [msgRes, profileRes] = await Promise.all([
+      fetch('/api/admin/chat'),
+      fetch('/api/admin/users'),
+    ])
+    if (!msgRes.ok) return
+    const msgs: SupportMessage[] = await msgRes.json()
+    const profiles: UserProfile[] = profileRes.ok ? await profileRes.json() : []
+
+    const profileMap: Record<string, UserProfile> = {}
+    for (const p of profiles) profileMap[p.id] = p
 
     // 유저별 그룹핑
     const grouped: Record<string, SupportMessage[]> = {}
@@ -42,10 +63,10 @@ export default function AdminChatPage() {
       const last = messages[messages.length - 1]
       return {
         userId,
+        profile: profileMap[userId] || null,
         messages,
         lastMessage: last.message,
         lastTime: last.created_at,
-        unread: messages.filter(m => !m.is_admin).length,
       }
     }).sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime())
 
@@ -83,8 +104,6 @@ export default function AdminChatPage() {
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-  const shortUserId = (id: string) => id.slice(0, 8).toUpperCase()
-
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", height: 'calc(100vh - 40px)', display: 'flex', gap: 20 }}>
       {/* 왼쪽: 유저 목록 */}
@@ -119,7 +138,7 @@ export default function AdminChatPage() {
                   fontSize: 13, fontWeight: 800,
                   color: selectedUserId === t.userId ? '#163272' : '#111827',
                 }}>
-                  User {shortUserId(t.userId)}
+                  {displayName(t)}
                 </span>
                 <span style={{ fontSize: 10, color: '#9CA3AF' }}>
                   {formatTime(t.lastTime)}
@@ -158,14 +177,14 @@ export default function AdminChatPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 14, fontWeight: 800, color: '#fff',
               }}>
-                {shortUserId(selectedThread.userId).charAt(0)}
+                {displayName(selectedThread).charAt(0)}
               </div>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 800, color: '#fff', margin: 0 }}>
-                  User {shortUserId(selectedThread.userId)}
+                  {displayName(selectedThread)}
                 </p>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-                  {selectedThread.userId}
+                  {selectedThread.profile?.phone || selectedThread.profile?.email || selectedThread.userId}
                 </p>
               </div>
             </div>
