@@ -147,28 +147,18 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
             <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>{doneCount}개 완료 / 전체 {services.length}개</p>
           </div>
 
-          {/* 개별 서비스 관리 테이블 */}
+          {/* 개별 서비스 처리 관리 — 카드형 */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: 14, fontWeight: 800, color: '#374151', margin: 0 }}>⚙️ 개별 서비스 처리 관리</h3>
+              <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>저장 시 유저에게 채팅 알림 전송</span>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ background: '#f9fafb' }}>
-                    {['서비스사', '분야', '현재 상태', '상태 변경', '메모'].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', fontSize: 12, fontWeight: 700, color: '#6b7280', whiteSpace: 'nowrap' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.length > 0 ? (
-                    services.map((s: any) => <AdminServiceRow key={s.id} service={s} caseId={caseId} />)
-                  ) : (
-                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: '#9ca3af', fontSize: 13 }}>서비스 없음</td></tr>
-                  )}
-                </tbody>
-              </table>
+            <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {services.length > 0 ? (
+                services.map((s: any) => <AdminServiceRow key={s.id} service={s} caseId={caseId} />)
+              ) : (
+                <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13, padding: '20px 0' }}>서비스 없음</p>
+              )}
             </div>
           </div>
 

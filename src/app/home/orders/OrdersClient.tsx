@@ -3,7 +3,8 @@
 // ① 바깥(가로): 고인별 케이스 스와이프
 // ② 안쪽(가로): 각 케이스 내 서비스 카드 스와이프
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import ServiceCard from './ServiceCard'
 
 const CASE_STATUS: Record<string, { label: string; color: string; bg: string }> = {
@@ -34,7 +35,36 @@ type CaseItem = {
 
 type Props = { cases: CaseItem[]; userId: string }
 
-export default function OrdersClient({ cases, userId }: Props) {
+export default function OrdersClient({ cases: initialCases, userId }: Props) {
+  const [cases, setCases] = useState(initialCases)
+  const supabase = createClient()
+
+  // case_services 변경 실시간 구독
+  useEffect(() => {
+    const caseIds = initialCases.map(c => c.id)
+    if (caseIds.length === 0) return
+
+    const channel = supabase
+      .channel('orders_svc')
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'case_services' },
+        (payload) => {
+          const updated = payload.new as any
+          setCases(prev => prev.map(c => ({
+            ...c,
+            case_services: c.case_services.map(s =>
+              s.id === updated.id
+                ? { ...s, status: updated.status, status_note: updated.status_note }
+                : s
+            ),
+          })))
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
   // 현재 케이스 인덱스
   const [caseIdx, setCaseIdx] = useState(0)
   // 서비스 인덱스 (케이스별)
