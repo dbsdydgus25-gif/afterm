@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { extractTextFromImage } from '@/lib/clova-ocr'
-import { GoogleGenerativeAI, Schema, Type } from '@google/generative-ai'
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai'
 
 // POST /api/agents/verify
 export async function POST(req: NextRequest) {
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-            is_valid: { type: Type.BOOLEAN, description: '서류가 유효하고 적합한지 여부' },
-            doc_type: { type: Type.STRING, description: '실제 문서 종류 (예: 사망진단서, 가족관계증명서, 주민등록증 등)' },
-            name_match: { type: Type.BOOLEAN, description: '고인 이름 또는 신청인 이름이 포함되어 있는지 여부' },
-            rejection_reason: { type: Type.STRING, description: 'is_valid가 false인 경우의 구체적이고 친절한 거절/반려 사유 (한국어). 통과면 null' }
+            is_valid: { type: SchemaType.BOOLEAN, description: '서류가 유효하고 적합한지 여부' },
+            doc_type: { type: SchemaType.STRING, description: '실제 문서 종류 (예: 사망진단서, 가족관계증명서, 주민등록증 등)' },
+            name_match: { type: SchemaType.BOOLEAN, description: '고인 이름 또는 신청인 이름이 포함되어 있는지 여부' },
+            rejection_reason: { type: SchemaType.STRING, description: 'is_valid가 false인 경우의 구체적이고 친절한 거절/반려 사유 (한국어). 통과면 null' }
           },
           required: ['is_valid', 'doc_type', 'name_match']
         }
