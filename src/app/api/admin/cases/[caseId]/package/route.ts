@@ -65,6 +65,14 @@ export async function POST(
       }
     }
 
+    // 위임장 서명 추가
+    const signatureData = caseData.delegations?.[0]?.signature_data
+    if (signatureData) {
+      // base64 데이터 URI 포맷 지원 (data:image/png;base64,...)
+      const base64Content = signatureData.split(',')[1] || signatureData
+      docsFolder.file('위임장_전자서명.png', base64Content, { base64: true })
+    }
+
     // ── 폴더 2: 신청서 초안 ──
     const draftsFolder = zip.folder('02_신청서_초안')!
     const services = caseData.case_services || []
@@ -175,7 +183,7 @@ function generateDraft(platform: string, svc: any, caseData: any, delegatorName:
   const deceasedDeath = caseData.deceased_death || '____-__-__'
   const accountId = svc.contact_info || svc.account_id || '계정정보 미기재'
 
-  if (platform.includes('facebook')) {
+  if (platform.includes('facebook') || platform.includes('페이스북')) {
     return `[Facebook 신청서]
 ━━━━━━━━━━━━━━━━━━━━━━━━
 처리 방식: ${svc.dispatch_type === 'memorialize' ? '추모 계정 전환' : '계정 삭제'}
@@ -193,7 +201,7 @@ function generateDraft(platform: string, svc: any, caseData: any, delegatorName:
 ■ 첨부 파일: 01_첨부서류 폴더의 사망진단서, 신분증, 가족관계증명서 3종 첨부`
   }
 
-  if (platform.includes('instagram')) {
+  if (platform.includes('instagram') || platform.includes('인스타그램')) {
     return `[Instagram 신청서]
 ━━━━━━━━━━━━━━━━━━━━━━━━
 처리 방식: ${svc.dispatch_type === 'memorialize' ? '추모 계정 전환' : '계정 삭제'}
@@ -210,7 +218,7 @@ function generateDraft(platform: string, svc: any, caseData: any, delegatorName:
 ⚠️ 주의: Meta 심사 중 추가 서류 요청 가능성 있음`
   }
 
-  if (platform.includes('kakao')) {
+  if (platform.includes('kakao') || platform.includes('카카오')) {
     return `[카카오톡 요청서]
 ━━━━━━━━━━━━━━━━━━━━━━━━
 처리 방식: ${svc.dispatch_type === 'memorialize' ? '추모 계정 전환' : '계정 해지'}
@@ -233,7 +241,7 @@ ${svc.dispatch_type === 'memorialize' ? '추모 계정 전환' : '계정 해지'
 ■ 첨부 파일: 01_첨부서류 폴더의 3종 첨부`
   }
 
-  if (platform.includes('google')) {
+  if (platform.includes('google') || platform.includes('구글')) {
     return `[Google 신청서]
 ━━━━━━━━━━━━━━━━━━━━━━━━
 처리 방식: 계정 삭제
@@ -249,7 +257,7 @@ ${svc.dispatch_type === 'memorialize' ? '추모 계정 전환' : '계정 해지'
 📌 참고: Google 검토 기간 2~6주 소요될 수 있음`
   }
 
-  if (platform.includes('twitter') || platform.includes('x')) {
+  if (platform.includes('twitter') || platform.includes('x') || platform.includes('트위터')) {
     return `[Twitter/X 이메일 초안]
 ━━━━━━━━━━━━━━━━━━━━━━━━
 수신: privacy@x.com

@@ -54,18 +54,10 @@ export const SERVICE_CATALOG: ServiceItem[] = [
       {
         key: 'account_username',
         label: '인스타그램 아이디',
-        placeholder: '@username',
+        placeholder: '@username 또는 아이디',
         type: 'text',
         required: true,
-        tip: '@ 포함하여 입력해주세요',
-      },
-      {
-        key: 'account_url',
-        label: '프로필 URL',
-        placeholder: 'https://www.instagram.com/username',
-        type: 'text',
-        required: true,
-        tip: '인스타그램 프로필 주소를 입력해주세요',
+        tip: '인스타그램 아이디를 입력해주세요 (URL은 몰라도 됩니다)',
       },
     ],
     requiredDocs: [
@@ -87,8 +79,8 @@ export const SERVICE_CATALOG: ServiceItem[] = [
     fields: [
       {
         key: 'account_username',
-        label: '페이스북 프로필 이름 또는 URL',
-        placeholder: '홍길동 또는 facebook.com/xxx',
+        label: '페이스북 프로필 이름',
+        placeholder: '홍길동',
         type: 'text',
         required: true,
         tip: '고인의 페이스북 프로필 이름을 입력해주세요',
@@ -112,20 +104,12 @@ export const SERVICE_CATALOG: ServiceItem[] = [
     actionOptions: ['계정 삭제'],
     fields: [
       {
-        key: 'account_phone',
-        label: '카카오 계정 전화번호',
-        placeholder: '010-0000-0000',
-        type: 'tel',
-        required: true,
-        tip: '카카오톡은 전화번호가 계정 ID입니다',
-      },
-      {
         key: 'account_email',
         label: '카카오 계정 이메일',
         placeholder: 'example@kakao.com',
         type: 'email',
-        required: true,
-        tip: '카카오 계정에 등록된 이메일을 입력해주세요',
+        required: false,
+        tip: '카카오 계정에 등록된 이메일 (모르시면 비워두셔도 됩니다)',
       },
     ],
     requiredDocs: [

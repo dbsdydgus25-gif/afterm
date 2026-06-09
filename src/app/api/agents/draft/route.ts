@@ -36,13 +36,14 @@ export async function POST(req: NextRequest) {
     if (!apiKey) throw new Error('GEMINI_API_KEY missing')
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.5-pro',
       generationConfig: { responseMimeType: 'application/json' }
     })
 
     const deceasedName = caseData.deceased_name
     const deceasedBirth = caseData.deceased_birth || '미기재'
     const deceasedDeath = caseData.deceased_death || '미기재'
+    const deceasedPhone = caseData.deceased_phone || '미기재'
     const delegatorName = caseData.delegations?.[0]?.delegator_name || '신청인'
     const delegatorRelation = caseData.delegations?.[0]?.delegator_relation || '유족'
 
@@ -61,10 +62,11 @@ export async function POST(req: NextRequest) {
 [입력 정보]
 - 플랫폼: ${platform}
 - 요청 작업: ${action}
-- 대상 계정(URL/ID/Phone): ${accountId}
+- 유저가 입력한 추가 계정 정보: ${accountId}
 - 고인 성명: ${deceasedName}
 - 고인 생년월일: ${deceasedBirth}
 - 고인 사망일: ${deceasedDeath}
+- 고인 전화번호: ${deceasedPhone}
 - 신청인 성명: ${delegatorName}
 - 고인과의 관계: ${delegatorRelation}
 

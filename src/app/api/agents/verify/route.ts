@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { extractTextFromImage } from '@/lib/clova-ocr'
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai'
 
 // POST /api/agents/verify
@@ -41,31 +40,26 @@ export async function POST(req: NextRequest) {
     const deceasedName = doc.cases?.deceased_name || '고인'
     const delegatorName = doc.cases?.delegations?.[0]?.delegator_name || '신청인'
 
-    // 3. 파일 다운로드 및 Public URL 발급 (1시간)
-    const { data: signedUrlData } = await adminClient.storage
+    // 3. 파일 다운로드 및 Buffer 변환 (Gemini Vision 전달용)
+    const { data: fileData, error: fileErr } = await adminClient.storage
       .from('case-documents')
-      .createSignedUrl(doc.storage_path, 60 * 60)
+      .download(doc.storage_path)
 
-    if (!signedUrlData?.signedUrl) {
-      throw new Error('Failed to create signed URL')
+    if (fileErr || !fileData) {
+      throw new Error('Failed to download file from storage')
     }
 
-    const fileExt = doc.file_name?.split('.').pop() || 'jpg'
+    const arrayBuffer = await fileData.arrayBuffer()
+    const base64Data = Buffer.from(arrayBuffer).toString('base64')
+    const mimeType = doc.mime_type || 'image/jpeg'
 
-    // 4. CLOVA OCR 호출 (텍스트 추출)
-    const ocrResult = await extractTextFromImage(signedUrlData.signedUrl, fileExt)
-    if (!ocrResult.success || !ocrResult.text) {
-      await updateLog(logId, 'failed', null, `OCR 실패: ${ocrResult.error}`)
-      return NextResponse.json({ error: 'OCR failed' }, { status: 500 })
-    }
-
-    // 5. Gemini API 호출 (논리 검증)
+    // 4. Gemini API 호출 (Vision 모델 - 이미지 직접 인식)
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) throw new Error('GEMINI_API_KEY missing')
 
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash', // 가볍고 빠른 모델 사용
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -83,27 +77,29 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
 당신은 한국 행정 문서 검증 전문가(AI 에이전트)입니다.
-아래는 네이버 CLOVA OCR을 통해 추출된 문서의 텍스트입니다.
-이 텍스트를 바탕으로 제출된 서류가 올바른지 논리적으로 판단하세요.
+첨부된 문서 이미지를 확인하여 제출된 서류가 올바른지 논리적으로 판단하세요.
 
 [케이스 정보]
 - 고인 성명: ${deceasedName}
 - 신청인 성명: ${delegatorName}
 - 유저가 선택한 서류 유형: ${doc.doc_type === 'death_cert' ? '사망진단서' : doc.doc_type === 'family_cert' ? '가족관계증명서' : '신분증'}
 
-[OCR 추출 텍스트]
-"""
-${ocrResult.text}
-"""
-
 [검증 가이드라인]
-1. 유저가 선택한 서류 유형과 내용이 일치하는가?
+1. 이미지 내 텍스트를 파악하여, 유저가 선택한 서류 유형과 내용이 일치하는가?
 2. 문서 내에 고인 성명(${deceasedName}) 또는 신청인 성명(${delegatorName})이 존재하는가?
 3. (가족관계증명서의 경우) 발급일이 명시되어 있다면 너무 오래되지 않았는가?
 이 사항들을 종합하여 최종 is_valid 값을 도출하세요.
 `
 
-    const result = await model.generateContent(prompt)
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType
+        }
+      }
+    ])
     const responseText = result.response.text()
     const verificationData = JSON.parse(responseText)
 
