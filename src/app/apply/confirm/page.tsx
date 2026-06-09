@@ -52,7 +52,12 @@ export default function ConfirmPage() {
             .update({ status: 'submitted' })
             .eq('id', caseId)
           if (updateErr) throw updateErr
-          await fetch(`/api/dispatch/${caseId}`, { method: 'POST' })
+          // 어드민에게 이메일 알림 발송 (Solapi 대신 Gmail 사용)
+          await fetch(`/api/admin/cases/${caseId}/notify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'new_case' }),
+          })
         })(),
         minDelay,
       ])

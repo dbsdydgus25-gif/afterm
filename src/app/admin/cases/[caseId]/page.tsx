@@ -7,6 +7,7 @@ import AdminServiceRow from './AdminServiceRow'
 import DocViewer from './DocViewer'
 import CaseStatusBar from './CaseStatusBar'
 import AdminChatPanel from './AdminChatPanel'
+import PackageActions from './PackageActions'
 
 interface PageProps {
   params: Promise<{ caseId: string }>
@@ -135,6 +136,9 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
 
         {/* 우측: 서비스 관리 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* 📦 발송 패키지 다운로드 */}
+          <PackageActions caseId={caseId} deceasedName={caseData.deceased_name} />
+
           {/* 진행률 요약 */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
