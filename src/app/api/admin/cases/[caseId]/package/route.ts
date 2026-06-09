@@ -69,21 +69,45 @@ export async function POST(
     const draftsFolder = zip.folder('02_신청서_초안')!
     const services = caseData.case_services || []
 
-    // 서비스별 신청서 텍스트 생성
-    const SERVICE_PLATFORM_MAP: Record<string, string> = {
-      facebook: 'Facebook',
-      instagram: 'Instagram',
-      kakaotalk: '카카오톡',
-      google: 'Google',
-      twitter: 'Twitter(X)',
-    }
+    // AI 초안 가져오기
+    const { data: drafts } = await adminClient.from('case_drafts').select('*').eq('case_id', caseId)
 
-    for (const svc of services) {
-      const platform = svc.service_category?.toLowerCase() || svc.service_name?.toLowerCase() || ''
-      const draft = generateDraft(platform, svc, caseData, delegatorName, delegatorRelation)
-      if (draft) {
-        const platformLabel = SERVICE_PLATFORM_MAP[platform] || svc.service_name || platform
-        draftsFolder.file(`${platformLabel}_신청서.txt`, draft)
+    if (drafts && drafts.length > 0) {
+      // AI가 작성한 초안 사용
+      for (const draft of drafts) {
+        const platformLabel = draft.platform.toUpperCase()
+        let draftText = `[${platformLabel} 신청서 초안 (AI 작성)]\n━━━━━━━━━━━━━━━━━━━━━━━━\n`
+        
+        if (draft.content.submit_url) draftText += `신청 URL: ${draft.content.submit_url}\n\n`
+        
+        if (draft.content.form_fields && Object.keys(draft.content.form_fields).length > 0) {
+          draftText += `■ 양식 입력값\n`
+          for (const [key, val] of Object.entries(draft.content.form_fields)) {
+            draftText += `- ${key}: ${val}\n`
+          }
+          draftText += '\n'
+        }
+
+        if (draft.content.email_body) {
+          draftText += `■ 요청서 본문 (복사 후 붙여넣기)\n──────────────────────────────\n${draft.content.email_body}\n──────────────────────────────\n\n`
+        }
+
+        if (draft.content.notes) draftText += `📌 어드민 참고: ${draft.content.notes}\n`
+
+        draftsFolder.file(`${platformLabel}_신청서.txt`, draftText)
+      }
+    } else {
+      // AI 초안이 아직 없는 경우 기존 로직 사용 (Fallback)
+      const SERVICE_PLATFORM_MAP: Record<string, string> = {
+        facebook: 'Facebook', instagram: 'Instagram', kakaotalk: '카카오톡', google: 'Google', twitter: 'Twitter(X)',
+      }
+      for (const svc of services) {
+        const platform = svc.service_category?.toLowerCase() || svc.service_name?.toLowerCase() || ''
+        const draft = generateDraft(platform, svc, caseData, delegatorName, delegatorRelation)
+        if (draft) {
+          const platformLabel = SERVICE_PLATFORM_MAP[platform] || svc.service_name || platform
+          draftsFolder.file(`${platformLabel}_신청서.txt`, draft)
+        }
       }
     }
 

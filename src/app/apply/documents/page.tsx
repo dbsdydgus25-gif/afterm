@@ -50,11 +50,22 @@ export default function DocumentsPage() {
       const path = `cases/${caseId}/${docType}_${Date.now()}.${ext}`
       const { error: uploadErr } = await supabase.storage.from('case-documents').upload(path, file, { upsert: true })
       if (uploadErr) throw uploadErr
-      await supabase.from('case_documents').upsert({
+      const { data: dbData, error: dbErr } = await supabase.from('case_documents').upsert({
         case_id: caseId, doc_type: docType, storage_path: path,
         file_name: file.name, file_size: file.size, mime_type: file.type,
-      }, { onConflict: 'case_id,doc_type' })
+      }, { onConflict: 'case_id,doc_type' }).select().single()
+      if (dbErr) throw dbErr
+      
       setDocumentUploaded(docType as keyof typeof documentsUploaded, true)
+
+      // 🤖 서류 검증 에이전트 자동 트리거 (비동기)
+      if (dbData?.id) {
+        fetch('/api/agents/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentId: dbData.id })
+        }).catch(err => console.error('Verification Trigger Failed:', err))
+      }
     } catch {
       alert('업로드 오류. 다시 시도해 주세요')
     } finally {
