@@ -170,7 +170,7 @@ export async function runInstagramDraftAgent(
   }
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`
+const isMain = (() => { try { return import.meta.url === `file://${process.argv?.[1]}`; } catch { return false; } })()
 if (isMain) {
   console.log('✅ Instagram Draft Agent 모듈 로드 완료')
 }

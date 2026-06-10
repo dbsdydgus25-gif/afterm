@@ -201,7 +201,7 @@ export async function runFinalReviewAgent(
   }
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`
+const isMain = (() => { try { return import.meta.url === `file://${process.argv?.[1]}`; } catch { return false; } })()
 if (isMain) {
   console.log('✅ Final Review Agent 모듈 로드 완료')
   console.log('실제 테스트는 orchestrator.ts에서 실행하세요.')

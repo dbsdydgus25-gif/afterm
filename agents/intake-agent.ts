@@ -270,7 +270,7 @@ export async function runIntakeAgent(formData: IntakeFormData): Promise<AgentRes
 // ============================================================
 // 직접 실행 테스트
 // ============================================================
-const isMain = import.meta.url === `file://${process.argv[1]}`
+const isMain = (() => { try { return import.meta.url === `file://${process.argv?.[1]}`; } catch { return false; } })()
 if (isMain) {
   const testForm: IntakeFormData = {
     requester_name: '홍길순',

@@ -4,8 +4,8 @@
 // ============================================================
 
 import { NextRequest } from 'next/server'
-import { runOrchestrator } from '@agents/orchestrator'
-import type { AgentEvent } from '@agents/orchestrator'
+import { runOrchestrator } from '../../../../../agents/orchestrator'
+import type { AgentEvent } from '../../../../../agents/orchestrator'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300 // Vercel Pro: 5분

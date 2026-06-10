@@ -257,7 +257,7 @@ export async function runGapAnalysisAgent(
 // ============================================================
 // 직접 실행 테스트
 // ============================================================
-const isMain = import.meta.url === `file://${process.argv[1]}`
+const isMain = (() => { try { return import.meta.url === `file://${process.argv?.[1]}`; } catch { return false; } })()
 if (isMain) {
   const testCase: CaseObject = {
     case_id: 'CASE-2024-0001',

@@ -165,7 +165,7 @@ export async function runTwitterDraftAgent(
   }
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`
+const isMain = (() => { try { return import.meta.url === `file://${process.argv?.[1]}`; } catch { return false; } })()
 if (isMain) {
   console.log('✅ Twitter Draft Agent 모듈 로드 완료')
 }
