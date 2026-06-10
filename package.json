@@ -15,6 +15,7 @@
     "cron:dev": "node scripts/run-cron.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
