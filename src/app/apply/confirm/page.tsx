@@ -52,12 +52,21 @@ export default function ConfirmPage() {
             .update({ status: 'submitted' })
             .eq('id', caseId)
           if (updateErr) throw updateErr
-          // 어드민에게 이메일 알림 발송 (Solapi 대신 Gmail 사용)
-          await fetch(`/api/admin/cases/${caseId}/notify`, {
+
+          // 어드민에게 이메일 알림 발송
+          fetch(`/api/admin/cases/${caseId}/notify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'new_case' }),
-          })
+          }).catch(() => {}) // 알림 실패해도 진행
+
+          // 🤖 AI 에이전트 파이프라인 자동 시작 (fire-and-forget)
+          // 응답을 기다리지 않고 백그라운드에서 실행됨
+          fetch('/api/agents/trigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ caseId }),
+          }).catch(() => {}) // 에이전트 실패해도 제출은 완료
         })(),
         minDelay,
       ])
