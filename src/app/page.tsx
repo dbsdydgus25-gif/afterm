@@ -391,7 +391,7 @@ export default function LandingPage() {
                   letterSpacing:'-0.2px',
                   flexShrink: 0,
                 }}>
-                  서비스 보기
+                  서비스로 이동
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
               </div>

@@ -1,10 +1,9 @@
 'use client'
 // 홈 화면 케이스 캐러셀
-// ★ 스크롤 컨테이너에 padding 없음 → 각 슬롯에 padding: '0 20px' → 케이스 카드 왼쪽 선 일치
-// ★ 새 신청 박스도 padding: '12px 20px 0' → 케이스 카드와 왼쪽 선 정렬
 
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
 const CASE_STEP_LABELS = ['접수 완료', '서류 확인', '처리 중', '완료']
 const CASE_STATUS_TO_STEP: Record<string, number> = {
@@ -62,8 +61,9 @@ function ProgressRing({ pct, size = 96, stroke = 8 }: { pct: number; size?: numb
   )
 }
 
-export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
+export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseItem[]; isGuest?: boolean }) {
   const [currentIdx, setCurrentIdx] = useState(0)
+  const [loginOpen, setLoginOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const handleScroll = useCallback(() => {
@@ -80,41 +80,87 @@ export default function CaseCarousel({ cases }: { cases: CaseItem[] }) {
     setCurrentIdx(idx)
   }
 
+  const handleApplyClick = (e: React.MouseEvent) => {
+    if (isGuest) { e.preventDefault(); setLoginOpen(true) }
+  }
+
+  if (isGuest) {
+    return (
+      <>
+        <LoginBottomSheet open={loginOpen} onClose={() => setLoginOpen(false)} redirectTo="/home" />
+        <div style={{ padding: '0 20px' }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: '24px 20px',
+            border: '1px solid rgba(255,255,255,0.18)',
+          }}>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16, fontWeight: 700, margin: '0 0 6px' }}>
+              로그인 후 이용해주세요
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, margin: '0 0 16px', lineHeight: 1.6 }}>
+              신청 현황 확인 및 서비스 이용을 위해<br />로그인이 필요합니다.
+            </p>
+            <button onClick={() => setLoginOpen(true)} style={{
+              display: 'inline-block', background: '#fff', color: '#163272',
+              fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10,
+              border: 'none', cursor: 'pointer',
+            }}>
+              로그인하기 →
+            </button>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <div onClick={() => setLoginOpen(true)} style={{
+              display: 'block', background: '#111827', borderRadius: 16, padding: '18px 20px', cursor: 'pointer',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>New Request</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>새 가족분의 정리를 시작해요</p>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>평균 5–7영업일 처리 · 무료</p>
+                </div>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#0066FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff', flexShrink: 0 }}>→</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   if (cases.length === 0) {
     return (
-      <div style={{ padding: '0 20px' }}>
-        <div style={{
-          background: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: '24px 20px',
-          border: '1px solid rgba(255,255,255,0.18)',
-        }}>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: '0 0 14px', lineHeight: 1.6 }}>
-            아직 신청이 없어요.<br />지금 바로 디지털 유산 정리를 시작해보세요.
-          </p>
-          <Link href="/apply" style={{
-            display: 'inline-block', background: '#fff', color: '#163272',
-            fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10, textDecoration: 'none',
+      <>
+        <LoginBottomSheet open={loginOpen} onClose={() => setLoginOpen(false)} redirectTo="/home" />
+        <div style={{ padding: '0 20px' }}>
+          <div style={{
+            background: 'rgba(255,255,255,0.12)', borderRadius: 20, padding: '24px 20px',
+            border: '1px solid rgba(255,255,255,0.18)',
           }}>
-            신청하기 →
-          </Link>
-        </div>
-
-        {/* 새 신청 박스 */}
-        <div style={{ marginTop: 12 }}>
-          <Link href="/apply" style={{
-            display: 'block', background: '#111827', borderRadius: 16, padding: '18px 20px',
-            textDecoration: 'none',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>New Request</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>새 가족분의 정리를 시작해요</p>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>평균 5–7영업일 처리 · 무료</p>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, margin: '0 0 14px', lineHeight: 1.6 }}>
+              아직 신청이 없어요.<br />지금 바로 디지털 유산 정리를 시작해보세요.
+            </p>
+            <Link href="/apply" onClick={handleApplyClick} style={{
+              display: 'inline-block', background: '#fff', color: '#163272',
+              fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10, textDecoration: 'none',
+            }}>
+              신청하기 →
+            </Link>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <Link href="/apply" onClick={handleApplyClick} style={{
+              display: 'block', background: '#111827', borderRadius: 16, padding: '18px 20px', textDecoration: 'none',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>New Request</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#fff', margin: '0 0 4px' }}>새 가족분의 정리를 시작해요</p>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0 }}>평균 5–7영업일 처리 · 무료</p>
+                </div>
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: '#0066FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff', flexShrink: 0 }}>→</div>
               </div>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#0066FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff', flexShrink: 0 }}>→</div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 

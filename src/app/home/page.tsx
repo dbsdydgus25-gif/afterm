@@ -18,20 +18,23 @@ const GUIDES = [
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const isGuest = !user
   const userName = user?.user_metadata?.full_name?.split(' ')[0]
     || user?.user_metadata?.name?.split(' ')[0]
     || user?.email?.split('@')[0]
     || '고객'
 
-  // 모든 활성 케이스 조회 (draft 제외, 최신순)
-  const { data: cases } = await supabase
-    .from('cases')
-    .select('id, deceased_name, status, created_at, case_services(id, status, service_name)')
-    .eq('user_id', user!.id)
-    .neq('status', 'draft')
-    .order('created_at', { ascending: false })
-
-  const activeCases = cases || []
+  // 로그인한 경우에만 케이스 조회
+  let activeCases: {id: string; deceased_name: string; status: string; created_at: string; case_services: {id: string; status: string; service_name: string}[]}[] = []
+  if (user) {
+    const { data: cases } = await supabase
+      .from('cases')
+      .select('id, deceased_name, status, created_at, case_services(id, status, service_name)')
+      .eq('user_id', user.id)
+      .neq('status', 'draft')
+      .order('created_at', { ascending: false })
+    activeCases = cases || []
+  }
 
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
@@ -70,7 +73,7 @@ export default async function HomePage() {
         </div>
 
         {/* 케이스 캐러셀 (클라이언트 컴포넌트) */}
-        <CaseCarousel cases={activeCases} />
+        <CaseCarousel cases={activeCases} isGuest={isGuest} />
       </div>
 
       {/* ── 서비스 준비 가이드 ── */}

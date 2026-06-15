@@ -2,14 +2,21 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
 type ModalType = 'notification' | 'privacy' | 'terms' | null
 
-export default function MyInfoClient() {
+export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean }) {
   const supabase = createClient()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [activeModal, setActiveModal] = useState<ModalType>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [loginOpen, setLoginOpen] = useState(false)
+
+  const requireLogin = (fn: () => void) => {
+    if (isGuest) { setLoginOpen(true); return }
+    fn()
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -46,6 +53,8 @@ export default function MyInfoClient() {
 
   return (
     <>
+      <LoginBottomSheet open={loginOpen} onClose={() => setLoginOpen(false)} redirectTo="/home/myinfo" />
+
       {/* 토스트 */}
       {toast && (
         <div style={{
@@ -129,9 +138,9 @@ export default function MyInfoClient() {
       <div style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>결제</h2>
         <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
-          <MenuItem icon="💳" title="결제 정보" desc="서비스 완료 후 청구됩니다" onClick={() => showToast('서비스 준비 중입니다')} />
+          <MenuItem icon="💳" title="결제 정보" desc="서비스 완료 후 청구됩니다" onClick={() => requireLogin(() => showToast('서비스 준비 중입니다'))} />
           <div style={{ borderBottom: 'none' }}>
-            <MenuItem icon="🧾" title="결제 내역" desc="처리 완료 건 확인" onClick={() => showToast('서비스 준비 중입니다')} />
+            <MenuItem icon="🧾" title="결제 내역" desc="처리 완료 건 확인" onClick={() => requireLogin(() => showToast('서비스 준비 중입니다'))} />
           </div>
         </div>
       </div>
@@ -142,10 +151,10 @@ export default function MyInfoClient() {
         <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
           <MenuItem icon="💬" title="1:1 상담" desc="카카오 채널로 문의하기" bgColor="#FEE500"
             onClick={() => window.open('https://pf.kakao.com/_cxfNAX', '_blank')} />
-          <MenuItem icon="❓" title="자주 묻는 질문" desc="비용·서류·처리 기간" onClick={() => showToast('서비스 준비 중입니다')} />
-          <MenuItem icon="📖" title="상속 절차 안내서" onClick={() => showToast('서비스 준비 중입니다')} />
+          <MenuItem icon="❓" title="자주 묻는 질문" desc="비용·서류·처리 기간" onClick={() => requireLogin(() => showToast('서비스 준비 중입니다'))} />
+          <MenuItem icon="📖" title="상속 절차 안내서" onClick={() => requireLogin(() => showToast('서비스 준비 중입니다'))} />
           <div style={{ borderBottom: 'none' }}>
-            <MenuItem icon="📞" title="긴급 연락처 등록" onClick={() => showToast('서비스 준비 중입니다')} />
+            <MenuItem icon="📞" title="긴급 연락처 등록" onClick={() => requireLogin(() => showToast('서비스 준비 중입니다'))} />
           </div>
         </div>
       </div>
@@ -157,18 +166,34 @@ export default function MyInfoClient() {
           <MenuItem icon="🔔" title="알림 설정" onClick={() => setActiveModal('notification')} />
           <MenuItem icon="🔒" title="개인정보 보호" onClick={() => setActiveModal('privacy')} />
           <MenuItem icon="📄" title="이용약관 및 정책" onClick={() => setActiveModal('terms')} />
-          <div onClick={() => setShowLogoutConfirm(true)} style={{
-            padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
-          }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
+          {!isGuest && (
+            <div onClick={() => setShowLogoutConfirm(true)} style={{
+              padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#EF4444', margin: 0 }}>로그아웃</p>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#EF4444', margin: 0 }}>로그아웃</p>
-          </div>
+          )}
+          {isGuest && (
+            <div onClick={() => setLoginOpen(true)} style={{
+              padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
+            }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#163272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                  <polyline points="10 17 15 12 10 7"></polyline>
+                  <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#163272', margin: 0 }}>로그인하기</p>
+            </div>
+          )}
         </div>
       </div>
 
