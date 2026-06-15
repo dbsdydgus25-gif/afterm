@@ -47,10 +47,10 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getSession()
   const user = session?.user ?? null
 
-  // ── /home: 비로그인 → 랜딩, 온보딩 미완료 → 온보딩 ──
+  // ── /home: 비로그인도 접근 허용 (페이지에서 로그인 팝업 처리)
+  // 단, 로그인한 경우 온보딩 미완료 → 온보딩으로 ──
   if (pathname.startsWith('/home')) {
-    if (!user) return NextResponse.redirect(new URL('/', request.url))
-    if (!user.user_metadata?.onboarding_done) {
+    if (user && !user.user_metadata?.onboarding_done) {
       return NextResponse.redirect(new URL('/onboarding?next=/home', request.url))
     }
   }
