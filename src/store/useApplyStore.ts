@@ -34,26 +34,16 @@ export interface DelegationInfo {
 }
 
 interface ApplyStore {
-  // 현재 스텝
   currentStep: ApplyStep
-
-  // 생성된 case ID (DB에 저장 후)
   caseId: string | null
-
-  // 고인 정보
+  selectedTrack: TrackType | null   // 'delete' | 'memorial' — 먼저 선택
   deceasedInfo: DeceasedInfo
-
-  // 선택된 서비스 목록
   selectedServices: SelectedService[]
-
-  // 서류 업로드 완료 여부 (동적 키)
   documentsUploaded: Record<string, boolean>
-
-  // 위임장 정보
   delegation: DelegationInfo | null
 
-  // 액션
   setStep: (step: ApplyStep) => void
+  setSelectedTrack: (track: TrackType) => void
   setCaseId: (id: string) => void
   setDeceasedInfo: (info: Partial<DeceasedInfo>) => void
   toggleService: (service: ServiceItem, track: TrackType) => void
@@ -69,6 +59,7 @@ interface ApplyStore {
 const initialState = {
   currentStep: 0 as ApplyStep,
   caseId: null,
+  selectedTrack: null as TrackType | null,
   deceasedInfo: { name: '', birthDate: '', deathDate: '', phone: '' },
   selectedServices: [],
   documentsUploaded: {},
@@ -81,7 +72,7 @@ export const useApplyStore = create<ApplyStore>()(
       ...initialState,
 
       setStep: (step) => set({ currentStep: step }),
-
+      setSelectedTrack: (track) => set({ selectedTrack: track, selectedServices: [] }),
       setCaseId: (id) => set({ caseId: id }),
 
       setDeceasedInfo: (info) =>
@@ -149,6 +140,7 @@ export const useApplyStore = create<ApplyStore>()(
       partialize: (state) => ({
         currentStep: state.currentStep,
         caseId: state.caseId,
+        selectedTrack: state.selectedTrack,
         deceasedInfo: state.deceasedInfo,
         selectedServices: state.selectedServices,
         documentsUploaded: state.documentsUploaded,
