@@ -3,257 +3,175 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
+import { getTrackConfig } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
-
-// 서비스별 질문 스텝 구성
-// 처리 방식 → 각 필드 순서대로 한 화면씩
 
 export default function ServiceInfoPage() {
   const router = useRouter()
-  const { selectedServices, updateServiceField, updateServiceAction, setStep } = useApplyStore()
-
-  // 서비스 인덱스 + 해당 서비스 내 스텝 인덱스
+  const { selectedServices, updateServiceField, setStep } = useApplyStore()
   const [svcIdx, setSvcIdx] = useState(0)
-  const [stepIdx, setStepIdx] = useState(0)
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const service = selectedServices[svcIdx]
-  if (!service) {
-    router.push('/apply/services')
-    return null
-  }
+  if (!service) { router.push('/apply/services'); return null }
 
-  // 현재 서비스의 스텝 목록 구성
-  // 처리 방식이 2개 이상이면 첫 스텝으로 추가
-  type Step =
-    | { type: 'action' }
-    | { type: 'field'; fieldIdx: number }
+  const track = service.track
+  const cfg = getTrackConfig(service.id, track)
+  if (!cfg) { router.push('/apply/services'); return null }
 
-  const steps: Step[] = []
-  if (service.actionOptions?.length > 1) {
-    steps.push({ type: 'action' })
-  }
-  service.fields.forEach((_, i) => steps.push({ type: 'field', fieldIdx: i }))
-
-  const currentStep = steps[stepIdx]
-  const isLastStep = stepIdx === steps.length - 1
   const isLastService = svcIdx === selectedServices.length - 1
+  const totalServices = selectedServices.length
 
-  // 전체 진행 상태 계산 (서비스별 스텝 수 합산)
-  const totalSteps = selectedServices.reduce((acc, svc) => {
-    let n = svc.fields.length
-    if (svc.actionOptions?.length > 1) n++
-    return acc + n
-  }, 0)
-  const doneSteps = selectedServices.slice(0, svcIdx).reduce((acc, svc) => {
-    let n = svc.fields.length
-    if (svc.actionOptions?.length > 1) n++
-    return acc + n
-  }, 0) + stepIdx
-
-  const validate = (): boolean => {
-    if (!currentStep) return true
-    if (currentStep.type === 'action') {
-      if (!service.selectedAction) {
-        setError('처리 방식을 선택해주세요')
-        return false
-      }
-    } else {
-      const field = service.fields[currentStep.fieldIdx]
-      if (!service.fieldValues?.[field.key]?.trim()) {
-        setError(`${field.label}을(를) 입력해주세요`)
-        return false
+  const validate = () => {
+    const errs: Record<string, string> = {}
+    for (const field of cfg.fields) {
+      if (field.required && !service.fieldValues[field.key]?.trim()) {
+        errs[field.key] = `${field.label}을(를) 입력해주세요`
       }
     }
-    return true
+    setErrors(errs)
+    return Object.keys(errs).length === 0
   }
 
-  const goNext = () => {
+  const handleNext = () => {
     if (!validate()) return
-    setError('')
-
-    if (!isLastStep) {
-      setStepIdx(prev => prev + 1)
-      return
-    }
-
-    // 현재 서비스 완료
     if (!isLastService) {
-      setSvcIdx(prev => prev + 1)
-      setStepIdx(0)
-      return
+      setSvcIdx(i => i + 1)
+      setErrors({})
+    } else {
+      setStep(2)
+      router.push('/apply/documents')
     }
-
-    // 모든 서비스 완료 → 서류 업로드
-    setStep(2)
-    router.push('/apply/documents')
   }
 
-  const goBack = () => {
-    setError('')
-    if (stepIdx > 0) {
-      setStepIdx(prev => prev - 1)
-      return
-    }
-    if (svcIdx > 0) {
-      const prevSvc = selectedServices[svcIdx - 1]
-      let prevStepCount = prevSvc.fields.length
-      if (prevSvc.actionOptions?.length > 1) prevStepCount++
-      setSvcIdx(prev => prev - 1)
-      setStepIdx(prevStepCount - 1)
-      return
-    }
-    router.push('/apply/services')
-  }
-
-  // 현재 필드
-  const currentField = currentStep?.type === 'field'
-    ? service.fields[currentStep.fieldIdx]
-    : null
+  const trackColor = track === 'delete' ? '#DC2626' : '#2563EB'
+  const trackBg = track === 'delete' ? '#FFF5F5' : '#EFF6FF'
+  const trackBorder = track === 'delete' ? '#FECACA' : '#BFDBFE'
+  const trackLabel = track === 'delete' ? '🗑️ 계정 삭제' : '🕯️ 추모 계정 전환'
 
   return (
     <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* 상단 진행 바 + 뒤로 (layout.tsx의 헤더 위에 오버라이드) */}
-      <div style={{ padding: '0 24px', flexShrink: 0 }}>
-        {/* 서비스별 세그먼트 진행 바 */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 0 }}>
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} style={{
-              flex: 1, height: 3, borderRadius: 2,
-              background: i < doneSteps ? 'var(--color-primary-normal)'
-                : i === doneSteps ? 'var(--color-primary-normal)'
-                : 'var(--color-line-solid-normal)',
-              opacity: i < doneSteps ? 0.4 : 1,
-              transition: 'background 0.3s',
-            }} />
-          ))}
+      {/* 진행 바 */}
+      <div style={{ padding: '20px 24px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>
+            {svcIdx + 1} / {totalServices}
+          </span>
+          <span style={{ fontSize: 12, color: '#9CA3AF' }}>정보 입력</span>
+        </div>
+        <div style={{ height: 4, background: '#F3F4F6', borderRadius: 2 }}>
+          <div style={{ height: '100%', width: `${((svcIdx + 1) / totalServices) * 100}%`, background: trackColor, borderRadius: 2, transition: 'width 0.3s' }} />
         </div>
       </div>
 
-      {/* 질문 영역 */}
-      <div
-        key={`${svcIdx}-${stepIdx}`}
-        className="animate-slide-up"
-        style={{ flex: 1, padding: '32px 24px' }}
-      >
+      {/* 헤더 */}
+      <div style={{ padding: '20px 24px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 800, padding: '4px 12px', borderRadius: 20, background: trackBg, color: trackColor, border: `1px solid ${trackBorder}` }}>
+            {trackLabel}
+          </span>
+        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#111', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+          {service.name} 정보 입력
+        </h2>
+        <p style={{ fontSize: 14, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+          신청에 필요한 정보를 입력해주세요
+        </p>
+      </div>
 
-        {/* ── 처리 방식 선택 스텝 ── */}
-        {currentStep?.type === 'action' && (
-          <>
-            <h2 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em',
-              color: 'var(--color-label-strong)', marginBottom: 8, lineHeight: 1.3,
-            }}>
-              {service.name}<br />처리 방식을<br />선택해주세요
-            </h2>
-            <p style={{ fontSize: 15, color: 'var(--color-label-alternative)', marginBottom: 40 }}>
-              고인의 계정을 어떻게 처리할지 알려주세요
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {service.actionOptions.map(opt => {
-                const isSelected = service.selectedAction === opt
-                return (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      updateServiceAction(service.id, opt)
-                      setError('')
-                    }}
-                    style={{
-                      width: '100%', padding: '18px 20px',
-                      borderRadius: 14, cursor: 'pointer', textAlign: 'left',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 16, fontWeight: isSelected ? 700 : 500,
-                      border: isSelected
-                        ? '2px solid var(--color-primary-normal)'
-                        : '2px solid var(--color-line-solid-normal)',
-                      background: isSelected ? '#EFF6FF' : '#FAFAFA',
-                      color: isSelected ? 'var(--color-primary-normal)' : 'var(--color-label-normal)',
-                      transition: 'all 0.18s',
-                      display: 'flex', alignItems: 'center', gap: 12,
-                    }}
-                  >
-                    <span style={{
-                      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                      border: isSelected
-                        ? '2px solid var(--color-primary-normal)'
-                        : '2px solid #D1D5DB',
-                      background: isSelected ? 'var(--color-primary-normal)' : '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {isSelected && (
-                        <span style={{
-                          width: 8, height: 8, borderRadius: '50%',
-                          background: '#fff', display: 'block',
-                        }} />
-                      )}
-                    </span>
-                    {opt}
-                  </button>
-                )
-              })}
+      {/* 대행 가능 여부 안내 */}
+      <div style={{ padding: '0 24px 16px' }}>
+        <div style={{
+          padding: '12px 16px', borderRadius: 12,
+          background: cfg.agentCanHandle ? '#ECFDF5' : '#FFFBEB',
+          border: `1px solid ${cfg.agentCanHandle ? '#A7F3D0' : '#FDE68A'}`,
+          display: 'flex', gap: 10, alignItems: 'flex-start',
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>{cfg.agentCanHandle ? '✅' : '⚠️'}</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: cfg.agentCanHandle ? '#065F46' : '#92400E', marginBottom: 2 }}>
+              {cfg.agentCanHandle ? '에프텀 대행 가능' : '직접 신청 필요'}
             </div>
+            <div style={{ fontSize: 12, color: cfg.agentCanHandle ? '#047857' : '#78350F', lineHeight: 1.5 }}>
+              {cfg.agentCanHandleNote}
+            </div>
+          </div>
+        </div>
+      </div>
 
-            {error && (
-              <p style={{ fontSize: 13, color: 'var(--color-status-negative)', marginTop: 12, fontWeight: 600 }}>
-                {error}
-              </p>
-            )}
-          </>
-        )}
+      {/* 필드 입력 */}
+      <div style={{ flex: 1, padding: '0 24px', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {cfg.fields.map(field => (
+            <div key={field.key}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                {field.label}
+                {field.required && <span style={{ color: '#DC2626', marginLeft: 2 }}>*</span>}
+              </label>
 
-        {/* ── 필드 입력 스텝 ── */}
-        {currentStep?.type === 'field' && currentField && (
-          <>
-            <h2 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em',
-              color: 'var(--color-label-strong)', marginBottom: 8, lineHeight: 1.3,
-            }}>
-              {service.name}의<br />{currentField.label}을<br />알려주세요
-            </h2>
-            <p style={{ fontSize: 15, color: 'var(--color-label-alternative)', marginBottom: 40 }}>
-              {currentField.tip || '정확히 입력해주세요'}
-            </p>
+              {field.type === 'select' ? (
+                <select
+                  value={service.fieldValues[field.key] || ''}
+                  onChange={e => { updateServiceField(service.id, field.key, e.target.value); setErrors(p => ({ ...p, [field.key]: '' })) }}
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: 10,
+                    border: `1.5px solid ${errors[field.key] ? '#DC2626' : '#E5E7EB'}`,
+                    fontSize: 14, outline: 'none', background: '#fff',
+                    fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+                  }}
+                >
+                  <option value="">선택해주세요</option>
+                  {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              ) : (
+                <input
+                  type={field.type}
+                  value={service.fieldValues[field.key] || ''}
+                  onChange={e => { updateServiceField(service.id, field.key, e.target.value); setErrors(p => ({ ...p, [field.key]: '' })) }}
+                  placeholder={field.placeholder}
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: 10,
+                    border: `1.5px solid ${errors[field.key] ? '#DC2626' : '#E5E7EB'}`,
+                    fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                    fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+                  }}
+                />
+              )}
 
-            <input
-              key={`${svcIdx}-${stepIdx}-input`}
-              type={currentField.type === 'select' ? 'text' : currentField.type}
-              placeholder={currentField.placeholder}
-              value={service.fieldValues?.[currentField.key] || ''}
-              onChange={e => {
-                updateServiceField(service.id, currentField.key, e.target.value)
-                setError('')
-              }}
-              autoFocus
-              onKeyDown={e => e.key === 'Enter' && goNext()}
-              className="input"
-              style={{ padding: 0 }}
-            />
+              {field.tip && !errors[field.key] && (
+                <p style={{ fontSize: 12, color: '#9CA3AF', margin: '4px 0 0' }}>{field.tip}</p>
+              )}
+              {errors[field.key] && (
+                <p style={{ fontSize: 12, color: '#DC2626', margin: '4px 0 0' }}>{errors[field.key]}</p>
+              )}
+            </div>
+          ))}
 
-            {error && (
-              <p style={{ fontSize: 13, color: 'var(--color-status-negative)', marginTop: 8, fontWeight: 600 }}>
-                {error}
-              </p>
-            )}
-          </>
-        )}
+          {cfg.warnings && cfg.warnings.length > 0 && (
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '14px 16px' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#92400E', margin: '0 0 6px' }}>⚠️ 주의사항</p>
+              {cfg.warnings.map((w, i) => (
+                <p key={i} style={{ fontSize: 12, color: '#78350F', margin: i === 0 ? 0 : '4px 0 0', lineHeight: 1.5 }}>• {w}</p>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ height: 100 }} />
       </div>
 
       {/* 하단 버튼 */}
-      <div className="cta-dock" style={{ display: 'flex', gap: 12 }}>
-        <Button
-          variant="secondary"
-          onClick={goBack}
-          style={{ width: 56, padding: 0, flexShrink: 0 }}
-        >
-          ←
-        </Button>
-        <Button block onClick={goNext} style={{ flex: 1 }}>
-          {isLastStep && isLastService ? '서류 업로드로 →' : '계속하기'}
+      <div className="cta-dock" style={{ display: 'flex', gap: 10 }}>
+        {svcIdx > 0 && (
+          <button
+            onClick={() => { setSvcIdx(i => i - 1); setErrors({}) }}
+            style={{ padding: '18px 20px', borderRadius: 14, border: '1.5px solid #E5E7EB', background: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', color: '#374151' }}
+          >
+            이전
+          </button>
+        )}
+        <Button block onClick={handleNext}>
+          {isLastService ? '서류 업로드로 →' : `다음 (${svcIdx + 1}/${totalServices})`}
         </Button>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
 import { getRequiredDocs } from '@/lib/services-catalog'
+import type { TrackType } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
 
 const DOC_META: Record<string, { icon: string; tip: string }> = {
@@ -21,7 +22,10 @@ export default function DocumentsPage() {
   const { caseId, selectedServices, documentsUploaded, setDocumentUploaded, setDelegation, setStep } = useApplyStore()
 
   // 선택된 서비스 기반 동적 서류 목록
-  const DOCS = getRequiredDocs(selectedServices.map(s => s.id))
+  // 트랙 정보가 있으면 트랙별 서류, 없으면 레거시 방식
+  const DOCS = getRequiredDocs(
+    selectedServices.map(s => ({ id: s.id, track: (s.track || 'delete') as TrackType }))
+  )
 
   const [phase, setPhase] = useState<Phase>('docs')
   const [uploading, setUploading] = useState<string | null>(null)

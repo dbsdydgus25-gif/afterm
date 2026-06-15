@@ -3,17 +3,19 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ServiceItem } from '@/lib/services-catalog'
+import type { ServiceItem, TrackType } from '@/lib/services-catalog'
 
 // 신청 스텝 정의
 export type ApplyStep = 0 | 1 | 2 | 3
 
-// 선택된 서비스 (계정 정보 포함)
+// 선택된 서비스 (트랙 + 계정 정보 포함)
 export interface SelectedService extends ServiceItem {
-  accountId?: string       // 고인 아이디 (모르면 undefined)
-  accountUnknown: boolean  // '모름' 체크 여부
-  fieldValues: Record<string, string>  // 서비스별 추가 입력값
-  selectedAction?: string              // 처리 방식 (삭제/추모계정 등)
+  track: TrackType             // 'delete' | 'memorial'
+  fieldValues: Record<string, string>  // 트랙별 입력값
+  // 레거시 호환
+  accountId?: string
+  accountUnknown: boolean
+  selectedAction?: string
 }
 
 // 고인 기본 정보
@@ -54,7 +56,8 @@ interface ApplyStore {
   setStep: (step: ApplyStep) => void
   setCaseId: (id: string) => void
   setDeceasedInfo: (info: Partial<DeceasedInfo>) => void
-  toggleService: (service: ServiceItem) => void
+  toggleService: (service: ServiceItem, track: TrackType) => void
+  updateServiceTrack: (serviceId: string, track: TrackType) => void
   updateServiceAccount: (serviceId: string, accountId: string, unknown: boolean) => void
   updateServiceField: (serviceId: string, key: string, value: string) => void
   updateServiceAction: (serviceId: string, action: string) => void
@@ -84,22 +87,27 @@ export const useApplyStore = create<ApplyStore>()(
       setDeceasedInfo: (info) =>
         set((state) => ({ deceasedInfo: { ...state.deceasedInfo, ...info } })),
 
-      toggleService: (service) =>
+      toggleService: (service, track) =>
         set((state) => {
           const exists = state.selectedServices.find(s => s.id === service.id)
           if (exists) {
-            // 이미 선택된 경우 제거
             return { selectedServices: state.selectedServices.filter(s => s.id !== service.id) }
           } else {
-            // 새로 추가
             return {
               selectedServices: [
                 ...state.selectedServices,
-                { ...service, accountUnknown: false, fieldValues: {}, selectedAction: service.actionOptions?.[0] }
+                { ...service, track, accountUnknown: false, fieldValues: {} }
               ]
             }
           }
         }),
+
+      updateServiceTrack: (serviceId, track) =>
+        set((state) => ({
+          selectedServices: state.selectedServices.map(s =>
+            s.id === serviceId ? { ...s, track, fieldValues: {} } : s
+          )
+        })),
 
       updateServiceAccount: (serviceId, accountId, unknown) =>
         set((state) => ({

@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
 import { SERVICE_CATALOG } from '@/lib/services-catalog'
+import type { TrackType } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
 
-// 서비스 아이콘 SVG 컴포넌트 (브랜드 컬러 적용)
+// 브랜드 아이콘 SVG
 function ServiceIcon({ id, size = 48 }: { id: string; size?: number }) {
   const icons: Record<string, React.ReactNode> = {
     instagram: (
@@ -30,10 +31,10 @@ function ServiceIcon({ id, size = 48 }: { id: string; size?: number }) {
       </svg>
     ),
     kakaotalk: (
-      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="#3A1D1D">
-        <ellipse cx="12" cy="10.5" rx="10" ry="8" fill="#FEE500" />
-        <path d="M7.5 13.5c-.8-1.2-.8-2.8 0-4M16.5 13.5c.8-1.2.8-2.8 0-4M12 7.5v3" stroke="#3A1D1D" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-        <path d="M8 17l1.5-2.5" stroke="#FEE500" strokeWidth="1.5" fill="none" />
+      <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24">
+        <rect width="24" height="24" rx="6" fill="#FEE500"/>
+        <ellipse cx="12" cy="11" rx="8.5" ry="7" fill="#3C1E1E"/>
+        <path d="M8.5 14l1.2-2M12 8.5v4M15.5 14l-1.2-2" stroke="#FEE500" strokeWidth="1.6" strokeLinecap="round"/>
       </svg>
     ),
     google: (
@@ -55,27 +56,46 @@ function ServiceIcon({ id, size = 48 }: { id: string; size?: number }) {
 
 export default function ServicesPage() {
   const router = useRouter()
-  const { selectedServices, toggleService, setStep, caseId } = useApplyStore()
+  const { selectedServices, toggleService, updateServiceTrack, setStep, caseId } = useApplyStore()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  // 트랙 선택 모달 상태
+  const [showTrackModal, setShowTrackModal] = useState<string | null>(null)
 
-  const isSelected = (id: string) => selectedServices.some(s => s.id === id)
+  const getSelected = (id: string) => selectedServices.find(s => s.id === id)
+
+  const handleServiceClick = (serviceId: string) => {
+    const selected = getSelected(serviceId)
+    if (selected) {
+      // 이미 선택됨 → 제거
+      const svc = SERVICE_CATALOG.find(s => s.id === serviceId)!
+      toggleService(svc, selected.track)
+    } else {
+      // 선택 안 됨 → 트랙 선택 모달
+      setShowTrackModal(serviceId)
+    }
+  }
+
+  const handleTrackSelect = (serviceId: string, track: TrackType) => {
+    const svc = SERVICE_CATALOG.find(s => s.id === serviceId)!
+    const cfg = svc.tracks[track]
+    if (!cfg) return
+    toggleService(svc, track)
+    setShowTrackModal(null)
+  }
 
   const handleNext = async () => {
     if (selectedServices.length === 0) return
     setLoading(true)
     try {
       if (!caseId) { router.push('/apply'); return }
-
-      // 기존 서비스 삭제 후 임시 저장 (계정 정보는 service-info 단계에서 확정)
       await supabase.from('case_services').delete().eq('case_id', caseId)
       const rows = selectedServices.map(s => ({
         case_id: caseId,
         service_id: s.id,
         service_name: s.name,
-        service_category: s.category,
-        dispatch_type: s.dispatchType,
-        contact_info: s.contactInfo,
+        service_category: s.track === 'delete' ? '계정삭제' : '추모계정',
+        contact_info: null,
         status: 'pending',
       }))
       await supabase.from('case_services').insert(rows)
@@ -88,99 +108,130 @@ export default function ServicesPage() {
     }
   }
 
+  const modalService = showTrackModal ? SERVICE_CATALOG.find(s => s.id === showTrackModal) : null
+
   return (
     <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* 헤더 영역 */}
-      <div className="animate-slide-up" style={{ padding: '32px 24px 24px' }}>
+      {/* 헤더 */}
+      <div className="animate-slide-up" style={{ padding: '32px 24px 20px' }}>
         <h2 style={{
           fontFamily: 'var(--font-display)',
           fontSize: '26px', fontWeight: 800,
           letterSpacing: '-0.02em', color: 'var(--color-label-strong)',
           marginBottom: '8px', lineHeight: 1.3,
         }}>
-          해지할 서비스를<br />선택해 주세요
+          처리할 서비스를<br />선택해 주세요
         </h2>
-        <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', lineHeight: 1.6 }}>
-          확실하지 않아도, 아이디를 몰라도 괜찮아요.<br />
-          {selectedServices.length > 0
-            ? <><strong style={{ color: 'var(--color-primary-normal)' }}>{selectedServices.length}개 선택됨</strong></>
-            : '생각나는 서비스 모두 선택해 주세요.'
-          }
+        <p style={{ fontSize: '14px', color: 'var(--color-label-alternative)', lineHeight: 1.6 }}>
+          각 서비스마다 <strong>삭제</strong> 또는 <strong>추모 계정 전환</strong> 중 선택합니다.
         </p>
       </div>
 
-      {/* 서비스 선택 카드 목록 */}
+      {/* 트랙 안내 배너 */}
+      <div style={{ padding: '0 24px 16px', display: 'flex', gap: 10 }}>
+        <div style={{ flex: 1, background: '#FEF2F2', borderRadius: 12, padding: '12px 14px', border: '1px solid #FECACA' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#DC2626', marginBottom: 2 }}>🗑️ 계정 삭제</div>
+          <div style={{ fontSize: 12, color: '#7F1D1D', lineHeight: 1.5 }}>계정 완전 삭제<br/>데이터 영구 삭제</div>
+        </div>
+        <div style={{ flex: 1, background: '#EFF6FF', borderRadius: 12, padding: '12px 14px', border: '1px solid #BFDBFE' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#2563EB', marginBottom: 2 }}>🕯️ 추모 계정</div>
+          <div style={{ fontSize: 12, color: '#1E3A8A', lineHeight: 1.5 }}>계정 보존<br/>추모 공간으로 전환</div>
+        </div>
+      </div>
+
+      {/* 서비스 카드 목록 */}
       <div style={{ flex: 1, padding: '0 24px', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {SERVICE_CATALOG.map(service => {
-            const selected = isSelected(service.id)
+            const selected = getSelected(service.id)
+            const hasDelete = !!service.tracks.delete
+            const hasMemorial = !!service.tracks.memorial
+
             return (
               <div
                 key={service.id}
-                onClick={() => toggleService(service)}
+                onClick={() => handleServiceClick(service.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '16px',
-                  padding: '20px',
-                  borderRadius: 'var(--radius-16)',
-                  border: `2px solid ${selected ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)'}`,
-                  background: selected ? 'var(--color-blue-99)' : 'var(--color-background-normal-normal)',
+                  borderRadius: 16,
+                  border: `2px solid ${selected ? (selected.track === 'delete' ? '#DC2626' : '#2563EB') : '#E8EAF0'}`,
+                  background: selected
+                    ? (selected.track === 'delete' ? '#FFF5F5' : '#EFF6FF')
+                    : '#fff',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  transition: 'all 0.15s',
+                  overflow: 'hidden',
                 }}
               >
-                {/* 브랜드 아이콘 */}
-                <div style={{
-                  width: '52px', height: '52px',
-                  borderRadius: 'var(--radius-12)',
-                  background: 'var(--color-coolNeutral-98)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  overflow: 'hidden',
-                }}>
-                  <ServiceIcon id={service.id} size={52} />
-                </div>
-
-                {/* 서비스 정보 */}
-                <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px' }}>
+                  {/* 아이콘 */}
                   <div style={{
-                    fontSize: '17px', fontWeight: 700,
-                    color: 'var(--color-label-strong)',
-                    letterSpacing: '-0.02em',
-                    marginBottom: '3px',
+                    width: 48, height: 48, borderRadius: 12,
+                    background: '#F8FAFF',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
                   }}>
-                    {service.name}
+                    <ServiceIcon id={service.id} size={48} />
                   </div>
-                  <div style={{
-                    fontSize: '13px',
-                    color: 'var(--color-label-alternative)',
-                  }}>
-                    {service.description}
-                  </div>
-                </div>
 
-                {/* 선택 체크박스 */}
-                <div style={{
-                  width: '24px', height: '24px',
-                  borderRadius: '50%',
-                  border: `2px solid ${selected ? 'var(--color-primary-normal)' : 'var(--color-line-solid-normal)'}`,
-                  background: selected ? 'var(--color-primary-normal)' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  transition: 'all 0.15s ease',
-                }}>
-                  {selected && (
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                  {/* 서비스 정보 */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#111', marginBottom: 4 }}>
+                      {service.name}
+                    </div>
+                    {/* 가능한 트랙 뱃지 */}
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                      {hasDelete && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                          background: service.tracks.delete!.agentCanHandle ? '#ECFDF5' : '#FEF2F2',
+                          color: service.tracks.delete!.agentCanHandle ? '#059669' : '#DC2626',
+                        }}>
+                          🗑️ 삭제 {service.tracks.delete!.agentCanHandle ? '대행가능' : '직접신청'}
+                        </span>
+                      )}
+                      {hasMemorial && (
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                          background: service.tracks.memorial!.agentCanHandle ? '#ECFDF5' : '#FEF2F2',
+                          color: service.tracks.memorial!.agentCanHandle ? '#059669' : '#DC2626',
+                        }}>
+                          🕯️ 추모 {service.tracks.memorial!.agentCanHandle ? '대행가능' : '직접신청'}
+                        </span>
+                      )}
+                      {!hasMemorial && (
+                        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#F3F4F6', color: '#9CA3AF', fontWeight: 600 }}>
+                          추모 없음
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 선택 상태 */}
+                  {selected ? (
+                    <div style={{ flexShrink: 0, textAlign: 'center' }}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 20,
+                        background: selected.track === 'delete' ? '#DC2626' : '#2563EB',
+                        color: '#fff', marginBottom: 4,
+                      }}>
+                        {selected.track === 'delete' ? '🗑️ 삭제' : '🕯️ 추모'}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>탭하면 취소</div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      width: 26, height: 26, borderRadius: '50%',
+                      border: '2px solid #E5E7EB',
+                      flexShrink: 0,
+                    }} />
                   )}
                 </div>
               </div>
             )
           })}
         </div>
-
-        <div style={{ height: '100px' }} /> {/* 하단 버튼 공간 */}
+        <div style={{ height: 100 }} />
       </div>
 
       {/* 하단 CTA */}
@@ -196,6 +247,125 @@ export default function ServicesPage() {
           }
         </Button>
       </div>
+
+      {/* 트랙 선택 바텀시트 모달 */}
+      {modalService && (
+        <div
+          onClick={() => setShowTrackModal(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 100, display: 'flex', alignItems: 'flex-end',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: '20px 20px 0 0',
+              padding: '24px 20px 40px', width: '100%',
+              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+            }}
+          >
+            {/* 핸들 */}
+            <div style={{ width: 40, height: 4, background: '#E5E7EB', borderRadius: 2, margin: '0 auto 20px' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ServiceIcon id={modalService.id} size={44} />
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#111' }}>{modalService.name}</div>
+                <div style={{ fontSize: 13, color: '#9CA3AF' }}>어떻게 처리하시겠어요?</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* 삭제 트랙 */}
+              {modalService.tracks.delete ? (
+                <button
+                  onClick={() => handleTrackSelect(modalService.id, 'delete')}
+                  style={{
+                    width: '100%', padding: '18px', borderRadius: 14,
+                    border: '2px solid #FECACA', background: '#FFF5F5',
+                    cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#DC2626', marginBottom: 4 }}>🗑️ 계정 삭제</div>
+                      <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6 }}>
+                        계정과 모든 데이터를 영구 삭제합니다
+                      </div>
+                      <div style={{ fontSize: 12, color: '#9CA3AF' }}>
+                        신청 가능: {modalService.tracks.delete.who}
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                      background: modalService.tracks.delete.agentCanHandle ? '#ECFDF5' : '#FEF2F2',
+                      color: modalService.tracks.delete.agentCanHandle ? '#059669' : '#DC2626',
+                      flexShrink: 0, marginLeft: 8,
+                    }}>
+                      {modalService.tracks.delete.agentCanHandle ? '✅ 대행 가능' : '⚠️ 직접 신청'}
+                    </span>
+                  </div>
+                  {!modalService.tracks.delete.agentCanHandle && (
+                    <div style={{ marginTop: 10, padding: '8px 10px', background: '#FEF2F2', borderRadius: 8, fontSize: 12, color: '#B91C1C', lineHeight: 1.5 }}>
+                      ⚠️ {modalService.tracks.delete.agentCanHandleNote}
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <div style={{ padding: '16px', borderRadius: 14, background: '#F9FAFB', border: '1px solid #E5E7EB', color: '#9CA3AF', fontSize: 13, textAlign: 'center' }}>
+                  🗑️ 삭제 — 이 플랫폼은 삭제 기능을 지원하지 않습니다
+                </div>
+              )}
+
+              {/* 추모 트랙 */}
+              {modalService.tracks.memorial ? (
+                <button
+                  onClick={() => handleTrackSelect(modalService.id, 'memorial')}
+                  style={{
+                    width: '100%', padding: '18px', borderRadius: 14,
+                    border: '2px solid #BFDBFE', background: '#EFF6FF',
+                    cursor: 'pointer', textAlign: 'left',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', marginBottom: 4 }}>🕯️ 추모 계정 전환</div>
+                      <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6 }}>
+                        계정을 보존하여 추모 공간으로 전환합니다
+                      </div>
+                      <div style={{ fontSize: 12, color: '#9CA3AF' }}>
+                        신청 가능: {modalService.tracks.memorial.who}
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                      background: modalService.tracks.memorial.agentCanHandle ? '#ECFDF5' : '#FEF2F2',
+                      color: modalService.tracks.memorial.agentCanHandle ? '#059669' : '#DC2626',
+                      flexShrink: 0, marginLeft: 8,
+                    }}>
+                      {modalService.tracks.memorial.agentCanHandle ? '✅ 대행 가능' : '⚠️ 직접 신청'}
+                    </span>
+                  </div>
+                </button>
+              ) : (
+                <div style={{ padding: '16px', borderRadius: 14, background: '#F9FAFB', border: '1px solid #E5E7EB', color: '#9CA3AF', fontSize: 13, textAlign: 'center' }}>
+                  🕯️ 추모 — 이 플랫폼은 추모 계정 전환을 지원하지 않습니다
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowTrackModal(null)}
+              style={{ width: '100%', marginTop: 14, padding: '14px', borderRadius: 12, border: 'none', background: '#F3F4F6', color: '#6B7280', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

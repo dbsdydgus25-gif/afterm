@@ -60,6 +60,19 @@ export default function ConfirmPage() {
             body: JSON.stringify({ type: 'new_case' }),
           }).catch(() => {}) // 알림 실패해도 진행
 
+          // 📊 구글 시트에 케이스 정보 자동 저장 (fire-and-forget)
+          fetch('/api/sheets/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              caseId,
+              deceasedInfo,
+              selectedServices,
+              delegation,
+              submittedAt: new Date().toISOString(),
+            }),
+          }).catch(() => {})
+
           // 🤖 AI 에이전트 파이프라인 자동 시작 (fire-and-forget)
           // 응답을 기다리지 않고 백그라운드에서 실행됨
           fetch('/api/agents/trigger', {
