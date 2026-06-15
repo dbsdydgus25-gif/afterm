@@ -14,6 +14,9 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  // 직접 유저가 보낸 경우에만 스크롤 (폴링으로 받아온 경우 스크롤 금지)
+  const shouldScrollRef = useRef(false)
 
   const fetchMessages = async () => {
     try {
@@ -33,8 +36,14 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
     return () => clearInterval(interval)
   }, [userId])
 
+  // 직접 메시지를 보낸 직후에만 채팅창 내부 스크롤
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (!shouldScrollRef.current) return
+    shouldScrollRef.current = false
+    // 페이지 전체가 아닌 채팅 컨테이너 내부만 스크롤
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
   }, [messages])
 
   const handleSend = async (e: React.FormEvent) => {
@@ -52,6 +61,7 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
       })
       if (res.ok) {
         const newMsg = await res.json()
+        shouldScrollRef.current = true // 내가 보낸 경우만 스크롤
         setMessages(prev => [...prev, newMsg])
       }
     } catch (e) {
@@ -69,7 +79,7 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
       </div>
 
       {/* 메시지 영역 */}
-      <div style={{ flex: 1, padding: 16, overflowY: 'auto', background: '#F9FAFB', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div ref={chatContainerRef} style={{ flex: 1, padding: 16, overflowY: 'auto', background: '#F9FAFB', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {messages.length === 0 && (
           <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 13, marginTop: 40 }}>채팅 내역이 없습니다.</p>
         )}
