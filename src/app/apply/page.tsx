@@ -35,7 +35,7 @@ const FIELDS: { key: Field; question: string; sub: string; placeholder: string; 
   {
     key: 'phone',
     question: '고인의 휴대폰 번호를\n알고 계신가요?',
-    sub: '모르셔도 건너뛸 수 있어요',
+    sub: '카카오톡 계정 확인에 필요해요',
     placeholder: '010-0000-0000',
     type: 'tel',
     inputMode: 'tel',
@@ -197,19 +197,6 @@ function ApplyForm() {
             </p>
           )}
 
-          {field.key === 'phone' && (
-            <button
-              onClick={goNext}
-              style={{
-                marginTop: '16px', background: 'none', border: 'none',
-                color: 'var(--color-label-assistive)', fontSize: '14px', cursor: 'pointer',
-                fontFamily: 'var(--font-sans)', fontWeight: 600, padding: 0,
-                textDecoration: 'underline',
-              }}
-            >
-              모르면 건너뛰기
-            </button>
-          )}
         </div>
       </div>
 

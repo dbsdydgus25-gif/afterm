@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
@@ -35,6 +35,17 @@ export default function DocumentsPage() {
   // 위임 정보
   const [delegatorName, setDelegatorName] = useState('')
   const [delegatorRelation, setDelegatorRelation] = useState('')
+
+  // 로그인 사용자 이름 자동 입력
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || ''
+        if (name) setDelegatorName(name)
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 서명
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -250,9 +261,12 @@ export default function DocumentsPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '4px' }}>
                 신청인 성함 *
               </label>
+              <p style={{ fontSize: '12px', color: '#DC2626', fontWeight: 600, margin: '0 0 12px' }}>
+                ⚠️ 본명으로 기재 필수 (위임장에 그대로 사용됩니다)
+              </p>
               <input
                 type="text"
                 placeholder="예: 홍길동"

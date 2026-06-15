@@ -73,6 +73,23 @@ export default function ConfirmPage() {
             }),
           }).catch(() => {})
 
+          // 📱 고객에게 카카오 알림톡 발송 (접수 완료)
+          const { data: { user } } = await supabase.auth.getUser()
+          const userPhone = user?.user_metadata?.phone || user?.phone || ''
+          if (userPhone) {
+            fetch('/api/notify/kakao', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone: userPhone,
+                caseId,
+                type: 'submitted',
+                deceasedName: deceasedInfo.name,
+                services: selectedServices.map(s => `${s.name}(${s.track === 'memorial' ? '추모' : '삭제'})`).join(', '),
+              }),
+            }).catch(() => {})
+          }
+
           // 🤖 AI 에이전트 파이프라인 자동 시작 (fire-and-forget)
           // 응답을 기다리지 않고 백그라운드에서 실행됨
           fetch('/api/agents/trigger', {

@@ -112,10 +112,10 @@ export default function ServicesPage() {
     return (
       <div className="screen-body" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '40px 24px' }}>
         <h2 style={{ fontSize: 28, fontWeight: 900, color: '#111', margin: '0 0 8px', letterSpacing: '-0.03em', lineHeight: 1.3 }}>
-          어떻게 처리하실<br />건가요?
+          어떤 행정 서비스를<br />원하시나요?
         </h2>
         <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 40px', lineHeight: 1.6 }}>
-          고인의 디지털 계정을 어떻게 할지 선택해주세요
+          고인의 디지털 유산을 어떻게 할지 선택해주세요
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -130,7 +130,7 @@ export default function ServicesPage() {
             }}
           >
             <div style={{ fontSize: 36, marginBottom: 12 }}>🕯️</div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 6 }}>추모 계정으로 전환</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 6 }}>추모계정 전환</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
               계정을 보존하고 추모 공간으로 만들어요<br />
               <span style={{ fontSize: 12, opacity: 0.6 }}>페이스북 · 인스타그램 · 카카오톡</span>
@@ -148,7 +148,7 @@ export default function ServicesPage() {
             }}
           >
             <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginBottom: 6 }}>계정 완전 삭제</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginBottom: 6 }}>계정 삭제</div>
             <div style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6 }}>
               계정과 모든 데이터를 영구 삭제해요<br />
               <span style={{ fontSize: 12, color: '#9CA3AF' }}>구글 · 페이스북 · 트위터X</span>

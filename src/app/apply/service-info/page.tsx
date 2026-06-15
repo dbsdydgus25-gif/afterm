@@ -153,21 +153,8 @@ export default function ServiceInfoPage() {
     return null
   }
 
-  const progressPct = totalFields > 0 ? Math.round((doneFields / totalFields) * 100) : 0
-
   return (
     <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* 진행 바 */}
-      <div style={{ padding: '20px 24px 0' }}>
-        <div style={{ height: 4, background: '#F3F4F6', borderRadius: 2 }}>
-          <div style={{
-            height: '100%', borderRadius: 2, transition: 'width 0.4s',
-            width: `${progressPct}%`,
-            background: trackColor,
-          }} />
-        </div>
-      </div>
-
       {/* 서비스 헤더 */}
       <div style={{ padding: '16px 24px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{
@@ -263,14 +250,6 @@ export default function ServiceInfoPage() {
             {isLastField && isLastService ? '서류 업로드로 →' : '다음 →'}
           </Button>
         </div>
-        {currentField && !currentField.required && (
-          <button
-            onClick={handleSkip}
-            style={{ padding: '12px', borderRadius: 12, border: 'none', background: 'transparent', fontSize: 14, color: '#9CA3AF', cursor: 'pointer', fontWeight: 600 }}
-          >
-            모르겠어요, 건너뛸게요
-          </button>
-        )}
       </div>
     </div>
   )

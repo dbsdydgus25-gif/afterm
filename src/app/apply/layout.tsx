@@ -14,7 +14,10 @@ const STEPS = [
 export default function ApplyLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const currentIndex = STEPS.findIndex(s => s.path === pathname)
+  // service-info는 '서비스 선택' 스텝(1)과 같은 단계로 표시
+  const currentIndex = pathname.startsWith('/apply/service-info')
+    ? 1
+    : STEPS.findIndex(s => s.path === pathname)
   const isConfirm = pathname === '/apply/confirm'
 
   const handleBack = () => {
