@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
 interface Message {
   id: string
@@ -46,6 +47,7 @@ export default function HomeTabBar() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [hasUnread, setHasUnread] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -131,7 +133,7 @@ export default function HomeTabBar() {
 
   const leftTabs = [
     {
-      href: '/home', label: '홈',
+      href: '/home', label: '홈', requireAuth: false,
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
@@ -141,7 +143,7 @@ export default function HomeTabBar() {
       ),
     },
     {
-      href: '/home/orders', label: '신청내역',
+      href: '/home/orders', label: '신청내역', requireAuth: true,
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <rect x="5" y="3" width="14" height="18" rx="2"
@@ -154,7 +156,7 @@ export default function HomeTabBar() {
 
   const rightTabs = [
     {
-      href: '/home/myinfo', label: '마이',
+      href: '/home/myinfo', label: '마이', requireAuth: false,
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="8" r="4.5" fill={active ? '#163272' : 'none'} stroke={active ? '#163272' : '#9CA3AF'} strokeWidth="1.8" />
@@ -166,6 +168,8 @@ export default function HomeTabBar() {
 
   return (
     <>
+      <LoginBottomSheet open={loginOpen} onClose={() => setLoginOpen(false)} redirectTo="/home" />
+
       {/* ── 채팅 패널 오버레이 ── */}
       <AnimatePresence>
         {open && (
@@ -357,8 +361,11 @@ export default function HomeTabBar() {
         {/* 왼쪽 탭 */}
         {leftTabs.map(tab => {
           const active = tab.href === '/home' ? pathname === '/home' : pathname.startsWith(tab.href)
+          const handleClick = (e: React.MouseEvent) => {
+            if (tab.requireAuth && !userId) { e.preventDefault(); setLoginOpen(true) }
+          }
           return (
-            <Link key={tab.href} href={tab.href} style={{
+            <Link key={tab.href} href={tab.href} onClick={handleClick} style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               padding: '10px 0 8px', textDecoration: 'none', gap: 3,
             }}>
