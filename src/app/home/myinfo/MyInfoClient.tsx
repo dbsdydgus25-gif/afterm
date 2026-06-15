@@ -62,8 +62,8 @@ export default function MyInfoClient() {
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         }} onClick={() => setActiveModal(null)}>
           <div style={{
-            background: '#fff', borderRadius: '24px 24px 0 0', padding: '24px 20px 40px',
-            width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
+            background: '#fff', borderRadius: '24px 24px 0 0', padding: '24px 20px 48px',
+            width: '100%', maxWidth: 480, maxHeight: '85vh', overflowY: 'auto',
           }} onClick={e => e.stopPropagation()}>
             <div style={{ width: 40, height: 4, background: '#E5E7EB', borderRadius: 99, margin: '0 auto 20px' }} />
 
@@ -95,14 +95,25 @@ export default function MyInfoClient() {
             </>)}
 
             {activeModal === 'terms' && (<>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>📄 이용약관 및 정책</h3>
-              <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.8 }}>
-                <p style={{ fontWeight: 700, margin: '0 0 8px' }}>서비스 이용약관</p>
-                <p style={{ color: '#6B7280', margin: '0 0 16px' }}>에프텀은 사망 이후 발생하는 행정 업무를 대행하는 서비스입니다. 서비스 이용 시 고객님의 위임을 받아 각 기관에 해지·신고·청구 등의 업무를 처리합니다.</p>
-                <p style={{ fontWeight: 700, margin: '0 0 8px' }}>면책 조항</p>
-                <p style={{ color: '#6B7280', margin: '0 0 16px' }}>에프텀은 각 기관의 내부 정책 변경, 처리 지연 등 에프텀의 귀책이 아닌 사유로 발생한 결과에 대해서는 책임을 지지 않습니다.</p>
-                <p style={{ fontWeight: 700, margin: '0 0 8px' }}>문의</p>
-                <p style={{ color: '#6B7280', margin: 0 }}>카카오 채널 또는 이메일(afterm001@gmail.com)로 문의해 주세요.</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 20px' }}>📄 이용약관 및 정책</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  { label: '이용약관', href: '/terms' },
+                  { label: '개인정보처리방침', href: '/privacy' },
+                  { label: '환불정책', href: '/refund' },
+                ].map(item => (
+                  <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '16px 18px', borderRadius: 14, border: '1px solid #E5E7EB', background: '#FAFAFA',
+                    }}>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{item.label}</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </div>
+                  </a>
+                ))}
               </div>
             </>)}
 
