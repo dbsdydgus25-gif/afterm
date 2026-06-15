@@ -12,8 +12,10 @@ const AUTO_FILL_KEYS = new Set([
   'requester_name',
   'requester_email',
   'deceased_name',
-  'deceased_profile_name', // 페이스북 등에서 고인 이름
+  'deceased_profile_name',
   'deceased_death_date',
+  'deceased_phone',
+  'requester_country',
 ])
 
 export default function ServiceInfoPage() {
@@ -49,6 +51,8 @@ export default function ServiceInfoPage() {
           else if (field.key === 'requester_email') val = email
           else if (field.key === 'deceased_name' || field.key === 'deceased_profile_name') val = deceasedInfo.name
           else if (field.key === 'deceased_death_date') val = deceasedInfo.deathDate
+          else if (field.key === 'deceased_phone') val = deceasedInfo.phone
+          else if (field.key === 'requester_country') val = '대한민국'
           if (val) updateServiceField(svc.id, field.key, val)
         }
       }
@@ -132,7 +136,10 @@ export default function ServiceInfoPage() {
       setError('필수 항목이에요')
       return
     }
-    updateServiceField(service.id, currentField.key, inputValue.trim())
+    const saveValue = currentField.prefix
+      ? currentField.prefix + inputValue.trim()
+      : inputValue.trim()
+    updateServiceField(service.id, currentField.key, saveValue)
     goNext()
   }
 
@@ -162,7 +169,7 @@ export default function ServiceInfoPage() {
           background: service.track === 'memorial' ? '#EFF6FF' : '#FEF2F2',
           color: trackColor,
         }}>
-          {service.name} {service.track === 'memorial' ? '🕯️ 추모' : '🗑️ 삭제'}
+          {service.name} {service.track === 'memorial' ? '추모' : '삭제'}
         </span>
         <span style={{ fontSize: 12, color: '#9CA3AF' }}>{svcIdx + 1}/{totalPlatforms}</span>
       </div>
@@ -205,23 +212,30 @@ export default function ServiceInfoPage() {
             </div>
           ) : (
             <div>
-              <input
-                key={`${svcIdx}-${fieldIdx}`}
-                type={currentField?.type || 'text'}
-                value={inputValue}
-                onChange={e => { setInputValue(e.target.value); setError('') }}
-                onKeyDown={e => e.key === 'Enter' && handleNext()}
-                placeholder={currentField?.placeholder || ''}
-                autoFocus
-                style={{
-                  width: '100%', padding: '0 0 14px',
-                  border: 'none', borderBottom: `2px solid ${error ? '#DC2626' : trackColor}`,
-                  fontSize: 22, fontWeight: 700, outline: 'none',
-                  background: 'transparent', color: '#111',
-                  fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                  boxSizing: 'border-box',
-                }}
-              />
+              <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: `2px solid ${error ? '#DC2626' : trackColor}` }}>
+                {currentField?.prefix && (
+                  <span style={{ fontSize: 22, fontWeight: 700, color: '#9CA3AF', whiteSpace: 'nowrap', paddingBottom: 14, fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
+                    {currentField.prefix.replace('https://', '')}
+                  </span>
+                )}
+                <input
+                  key={`${svcIdx}-${fieldIdx}`}
+                  type={currentField?.type === 'url' ? 'text' : (currentField?.type || 'text')}
+                  value={inputValue}
+                  onChange={e => { setInputValue(e.target.value); setError('') }}
+                  onKeyDown={e => e.key === 'Enter' && handleNext()}
+                  placeholder={currentField?.placeholder || ''}
+                  autoFocus
+                  style={{
+                    flex: 1, padding: '0 0 14px',
+                    border: 'none',
+                    fontSize: 22, fontWeight: 700, outline: 'none',
+                    background: 'transparent', color: '#111',
+                    fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+                    minWidth: 0,
+                  }}
+                />
+              </div>
               {error && <p style={{ fontSize: 13, color: '#DC2626', marginTop: 8 }}>{error}</p>}
             </div>
           )}

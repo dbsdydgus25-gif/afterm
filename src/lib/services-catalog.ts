@@ -12,6 +12,7 @@ export interface ServiceField {
   required: boolean
   tip?: string
   options?: string[]
+  prefix?: string  // 입력창 앞에 고정으로 표시되는 텍스트 (저장 시 값 앞에 붙임)
 }
 
 export interface RequiredDoc {
@@ -51,10 +52,10 @@ export interface ServiceItem {
 
 // ── 공통 서류 정의 ──
 const ID_CARD: RequiredDoc = {
-  type: 'id_card', title: '신청인 신분증 사본',
+  type: 'id_card', title: '신청인 신분증',
   desc: '주민등록증 또는 운전면허증 앞면',
   required: true,
-  maskingNote: '성명·생년월일·성별/국적 외 전부 마스킹',
+  maskingNote: '주민번호 뒷자리 반드시 마스킹 후 제출',
 }
 const DEATH_CERT: RequiredDoc = {
   type: 'death_cert', title: '사망진단서',
@@ -65,7 +66,7 @@ const FAMILY_CERT: RequiredDoc = {
   type: 'family_cert', title: '가족관계증명서',
   desc: '정부24 또는 주민센터 발급 (사망 확인 표기 필수)',
   required: true,
-  maskingNote: '주민번호 뒷자리 마스킹 필수',
+  maskingNote: '주민번호 뒷자리 반드시 마스킹 후 제출',
 }
 const DEATH_PROOF_SCREENSHOT: RequiredDoc = {
   type: 'death_proof_screenshot', title: '사망 증명 스크린샷',
@@ -94,7 +95,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
           { key: 'requester_email', label: '신청인 이메일', placeholder: 'you@email.com', type: 'email', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
           { key: 'deceased_death_date', label: '고인 사망 날짜', placeholder: '2024-11-20', type: 'text', required: true },
-          { key: 'account_username', label: '고인의 인스타그램 아이디', placeholder: '@username', type: 'text', required: true, tip: '@ 포함 입력' },
+          { key: 'account_username', label: '고인의 인스타그램 아이디', placeholder: 'username', type: 'text', required: true, prefix: '@' },
         ],
         requiredDocs: [],  // 양식에 파일 업로드 없음 (제출 후 이메일 요청 가능)
         warnings: [
@@ -114,13 +115,11 @@ export const SERVICE_CATALOG: ServiceItem[] = [
           { key: 'requester_email', label: '신청인 이메일', placeholder: 'you@email.com', type: 'email', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
           { key: 'deceased_death_date', label: '고인 사망 날짜', placeholder: '2024-11-20', type: 'text', required: true },
-          { key: 'account_username', label: '고인의 인스타그램 아이디', placeholder: '@username', type: 'text', required: true },
-          { key: 'threads_username', label: '고인의 Threads 아이디 (있다면)', placeholder: '@username', type: 'text', required: false },
+          { key: 'account_username', label: '고인의 인스타그램 아이디', placeholder: 'username', type: 'text', required: true, prefix: '@' },
+          { key: 'threads_username', label: '고인의 Threads 아이디 (있다면)', placeholder: 'username', type: 'text', required: false, prefix: '@' },
         ],
-        requiredDocs: [DEATH_PROOF_SCREENSHOT],
-        warnings: [
-          '사망 증명은 공식 서류 불필요 — 부고 문자, 온라인 기사, SNS 추모글 스크린샷으로 가능합니다.',
-        ],
+        requiredDocs: [DEATH_CERT],
+        warnings: [],
       },
     },
   },
@@ -144,7 +143,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
           { key: 'requester_email', label: '연락 이메일', placeholder: 'you@email.com', type: 'email', required: true },
           { key: 'deceased_profile_name', label: '고인의 프로필 이름', placeholder: '홍길동', type: 'text', required: true },
-          { key: 'deceased_profile_url', label: '고인의 프로필 URL', placeholder: 'https://facebook.com/hong.gildong', type: 'url', required: true, tip: 'facebook.com/이름 형태로 입력' },
+          { key: 'deceased_profile_url', label: '고인의 페이스북 아이디', placeholder: 'hong.gildong', type: 'text', required: true, prefix: 'https://facebook.com/' },
           { key: 'deceased_account_email', label: '고인의 페이스북 계정 이메일', placeholder: 'deceased@email.com', type: 'email', required: false, tip: '모르시면 비워두셔도 됩니다' },
         ],
         requiredDocs: [DEATH_CERT, ID_CARD],
@@ -163,7 +162,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
           { key: 'requester_email', label: '연락 이메일', placeholder: 'you@email.com', type: 'email', required: true },
           { key: 'deceased_profile_name', label: '고인의 프로필 이름', placeholder: '홍길동', type: 'text', required: true },
-          { key: 'deceased_profile_url', label: '고인의 프로필 URL', placeholder: 'https://facebook.com/hong.gildong', type: 'url', required: true },
+          { key: 'deceased_profile_url', label: '고인의 페이스북 아이디', placeholder: 'hong.gildong', type: 'text', required: true, prefix: 'https://facebook.com/' },
           { key: 'deceased_account_email', label: '고인의 페이스북 계정 이메일', placeholder: 'deceased@email.com', type: 'email', required: false },
         ],
         requiredDocs: [DEATH_CERT, ID_CARD],
@@ -191,9 +190,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
         processingDays: '5~10영업일',
         fields: [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
-          { key: 'requester_relation', label: '고인과의 관계', placeholder: '딸, 아들, 배우자 등', type: 'text', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
-          { key: 'deceased_phone', label: '고인의 카카오톡 전화번호', placeholder: '010-0000-0000', type: 'tel', required: true },
           { key: 'deceased_telecom', label: '고인의 통신사', placeholder: '', type: 'select', required: true, options: ['SKT', 'KT', 'LG U+', '알뜰폰(MVNO)'] },
           { key: 'refund_account', label: '환불 계좌 (카카오페이 잔액 있을 경우)', placeholder: '은행명 계좌번호', type: 'text', required: false },
         ],
@@ -226,9 +223,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
         processingDays: '5~10영업일',
         fields: [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
-          { key: 'requester_relation', label: '고인과의 관계', placeholder: '딸, 아들, 배우자 등', type: 'text', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
-          { key: 'deceased_phone', label: '고인의 카카오톡 전화번호', placeholder: '010-0000-0000', type: 'tel', required: true },
           { key: 'is_pre_designated', label: '사전 지정 대리인 여부', placeholder: '', type: 'select', required: true, options: ['예 (앱에서 지정됨)', '아니오'] },
         ],
         requiredDocs: [
@@ -262,18 +257,12 @@ export const SERVICE_CATALOG: ServiceItem[] = [
         fields: [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
           { key: 'requester_email', label: '신청인 이메일', placeholder: 'you@email.com', type: 'email', required: true },
-          { key: 'requester_relation', label: '고인과의 관계', placeholder: '딸, 아들, 배우자 등', type: 'text', required: true },
           { key: 'requester_country', label: '거주 국가', placeholder: '대한민국', type: 'text', required: true },
-          { key: 'requester_zipcode', label: '우편번호', placeholder: '12345', type: 'text', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
           { key: 'deceased_account_email', label: '고인의 구글 계정 이메일', placeholder: 'deceased@gmail.com', type: 'email', required: true },
           { key: 'deceased_death_date', label: '고인 사망일', placeholder: '2024-11-20', type: 'text', required: true },
         ],
-        requiredDocs: [
-          ID_CARD,
-          DEATH_CERT,
-          { type: 'en_translation', title: '공인 영문 번역본', desc: '사망진단서·신분증의 공인 영문 번역 (공증 번역사 작성)', required: true },
-        ],
+        requiredDocs: [ID_CARD, DEATH_CERT],
         warnings: [
           '한국어 서류는 반드시 공인 영문 번역본이 필요합니다.',
           '처리 기간이 2~6주로 다른 플랫폼보다 오래 걸립니다.',
@@ -302,9 +291,8 @@ export const SERVICE_CATALOG: ServiceItem[] = [
         fields: [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
           { key: 'requester_email', label: '신청인 이메일', placeholder: 'you@email.com', type: 'email', required: true },
-          { key: 'requester_relation', label: '고인과의 관계', placeholder: '딸, 아들, 배우자 등', type: 'text', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
-          { key: 'account_username', label: '고인의 X 아이디', placeholder: '@username', type: 'text', required: true, tip: '@ 포함 입력' },
+          { key: 'account_username', label: '고인의 X 아이디', placeholder: 'username', type: 'text', required: true, prefix: '@' },
         ],
         requiredDocs: [ID_CARD, DEATH_CERT],
         warnings: [

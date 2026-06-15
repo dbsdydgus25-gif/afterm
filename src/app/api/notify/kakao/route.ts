@@ -3,7 +3,7 @@ import { SolapiMessageService } from 'solapi'
 
 export async function POST(req: NextRequest) {
   try {
-    const { phone, caseId, type, deceasedName, services } = await req.json()
+    const { phone, caseId, type, requesterName, deceasedName, services } = await req.json()
     if (!phone) return NextResponse.json({ error: '전화번호 없음' }, { status: 400 })
 
     const apiKey = process.env.SOLAPI_API_KEY
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
             pfId,
             templateId,
             variables: {
+              '#{신청인이름}': requesterName || '',
               '#{고인이름}': deceasedName || '',
               '#{서비스}': services || '',
               '#{접수번호}': caseId?.slice(0, 8).toUpperCase() || '',

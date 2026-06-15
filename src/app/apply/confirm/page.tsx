@@ -76,6 +76,7 @@ export default function ConfirmPage() {
           // 📱 고객에게 카카오 알림톡 발송 (접수 완료)
           const { data: { user } } = await supabase.auth.getUser()
           const userPhone = user?.user_metadata?.phone || user?.phone || ''
+          const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
           if (userPhone) {
             fetch('/api/notify/kakao', {
               method: 'POST',
@@ -84,6 +85,7 @@ export default function ConfirmPage() {
                 phone: userPhone,
                 caseId,
                 type: 'submitted',
+                requesterName: userName,
                 deceasedName: deceasedInfo.name,
                 services: selectedServices.map(s => `${s.name}(${s.track === 'memorial' ? '추모' : '삭제'})`).join(', '),
               }),

@@ -201,6 +201,9 @@ export default function DocumentsPage() {
                         {doc.title}
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '2px' }}>{doc.desc}</div>
+                      {doc.maskingNote && (
+                        <div style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px', fontWeight: 600 }}>⚠️ {doc.maskingNote}</div>
+                      )}
                     </div>
                     {!uploaded && !isUploading && (
                       <span style={{

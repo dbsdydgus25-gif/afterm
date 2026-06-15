@@ -73,6 +73,35 @@ export default async function HomePage() {
         <CaseCarousel cases={activeCases} />
       </div>
 
+      {/* ── 서비스 준비 가이드 ── */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
+          서비스 신청 전 준비하세요
+        </h2>
+        <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 12px' }}>서류 발급 및 계정 정보 확인 방법</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {[
+            { icon: '📋', label: '사망진단서 발급', sub: '정부24에서 온라인 발급', href: 'https://www.gov.kr/portal/service/serviceInfo/PTR000051250' },
+            { icon: '👨‍👩‍👧', label: '가족관계증명서', sub: '정부24에서 온라인 발급', href: 'https://efamily.scourt.go.kr' },
+            { icon: '📘', label: '페이스북 계정 찾기', sub: '프로필 URL 확인 방법', href: 'https://www.facebook.com/help/211813265517027' },
+            { icon: '📸', label: '인스타그램 아이디', sub: '프로필에서 @아이디 확인', href: 'https://help.instagram.com/181103882360146' },
+            { icon: '🐦', label: 'X 아이디 확인', sub: '프로필에서 @username 확인', href: 'https://help.twitter.com/ko/managing-your-account' },
+            { icon: '📧', label: '구글 계정 확인', sub: '고인의 Gmail 주소 확인', href: 'https://support.google.com/accounts/troubleshooter/6357590' },
+          ].map(item => (
+            <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: '#F9FAFB', borderRadius: 12, padding: '14px 12px',
+                border: '1px solid #F3F4F6',
+              }}>
+                <div style={{ fontSize: 22, marginBottom: 6 }}>{item.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em', marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>{item.sub}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
       {/* ── 행정 가이드 ── */}
       <div style={{ padding: '24px 20px 0' }}>
         <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px', letterSpacing: '-0.01em' }}>
