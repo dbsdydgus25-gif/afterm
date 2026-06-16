@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 /* ─── 로그인 바텀시트 ─── */
@@ -244,14 +245,15 @@ function useApplicants() {
 
 export default function LandingPage() {
   const applicants = useApplicants()
+  const router = useRouter()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const openSheet = useCallback(() => setSheetOpen(true), [])
   const closeSheet = useCallback(() => setSheetOpen(false), [])
   const handleAuthSuccess = useCallback(() => {
     setSheetOpen(false)
-    window.location.href = '/apply'
-  }, [])
+    router.push('/apply')
+  }, [router])
 
   /* 섹션2 트리거 */
   const sec2Ref = useRef<HTMLDivElement>(null)
@@ -380,7 +382,7 @@ export default function LandingPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
 
-                <a href="/home" style={{
+                <Link href="/home" style={{
                   display:'inline-flex', alignItems:'center', gap:8,
                   background:'rgba(137,191,255,0.18)', color:'#89bfff',
                   borderRadius:14, padding:'15px 24px',
@@ -390,10 +392,11 @@ export default function LandingPage() {
                   backdropFilter:'blur(4px)',
                   letterSpacing:'-0.2px',
                   flexShrink: 0,
+                  touchAction:'manipulation',
                 }}>
                   서비스로 이동
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
