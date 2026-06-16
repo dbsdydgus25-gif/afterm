@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
 import nodemailer from 'nodemailer'
+import { SolapiMessageService } from 'solapi'
 
 // POST /api/admin/cases/[caseId]/notify
 // 새 케이스 접수 또는 서류 업로드 시 어드민에게 이메일 알림을 발송합니다.
@@ -108,12 +109,34 @@ export async function POST(
       },
     })
 
+    // 이메일 발송
     await transporter.sendMail({
       from: `"에프텀 시스템" <${process.env.GMAIL_USER}>`,
       to: process.env.ADMIN_EMAILS || 'afterm001@gmail.com',
       subject: tpl.subject,
       html,
     })
+
+    // 어드민 SMS 알림 (새 신청 접수 시)
+    if (type === 'new_case') {
+      const adminPhone = process.env.ADMIN_PHONE
+      const solapiKey = process.env.SOLAPI_API_KEY
+      const solapiSecret = process.env.SOLAPI_API_SECRET
+      const senderPhone = process.env.SOLAPI_SENDER_NUMBER
+      if (adminPhone && solapiKey && solapiSecret && senderPhone) {
+        try {
+          const svc = new SolapiMessageService(solapiKey, solapiSecret)
+          const svcList = services.map((s: any) => s.service_name || s.service_id).join(', ')
+          await (svc as any).sendOne({
+            to: adminPhone,
+            from: senderPhone,
+            text: `[에프텀] 새 신청 접수\n고인: ${caseData.deceased_name}\n신청인: ${delegatorName}\n서비스: ${svcList}\n\n확인: afterm.co.kr/admin/cases/${caseId}`,
+          })
+        } catch (smsErr) {
+          console.error('[notify] 어드민 SMS 실패:', smsErr)
+        }
+      }
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
