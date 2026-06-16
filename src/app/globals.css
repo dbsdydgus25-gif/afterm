@@ -125,6 +125,21 @@ a, button, [role="button"], input, select, textarea, label {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 버튼 눌림 효과 */
+button:active,
+a:active,
+[role="button"]:active {
+  transform: scale(0.95);
+  opacity: 0.85;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+button,
+a,
+[role="button"] {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
 .mobile-container {
   max-width: var(--max-w-mobile);
   margin: 0 auto;
