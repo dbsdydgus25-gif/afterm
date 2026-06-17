@@ -144,7 +144,13 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
         {/* 우측: 서비스 관리 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* 📥 서류 다운로드 */}
-          <PackageActions caseId={caseId} deceasedName={caseData.deceased_name} documents={documentsWithUrl} />
+          <PackageActions
+            caseId={caseId}
+            deceasedName={caseData.deceased_name}
+            documents={documentsWithUrl}
+            paymentStatus={caseData.payment_status}
+            paidAmount={caseData.paid_amount}
+          />
 
           {/* 진행률 요약 */}
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', padding: '20px' }}>

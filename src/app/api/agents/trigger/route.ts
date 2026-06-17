@@ -81,7 +81,6 @@ export async function POST(req: NextRequest) {
     .update({
       agent_status: 'running',
       agent_started_at: new Date().toISOString(),
-      status: 'processing',
     })
     .eq('id', caseId)
 
@@ -150,7 +149,7 @@ async function runPipelineAndSave(
           draft_count: result.case_object.draft_results?.length || 0,
         } : null,
         agent_completed_at: new Date().toISOString(),
-        status: result.success ? 'processing' : 'submitted', // 어드민 확인 대기
+        status: 'submitted', // 어드민이 직접 확인 후 processing으로 변경
       })
       .eq('id', caseId)
 

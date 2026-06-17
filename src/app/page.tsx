@@ -579,6 +579,196 @@ export default function LandingPage() {
         </section>
 
         {/* ════════════════════════════════
+            SECTION 5.5: 가격 비교
+        ════════════════════════════════ */}
+        <section style={{ padding:'0 0 80px' }}>
+          <Fade>
+            <div style={{ padding:'0 24px', marginBottom:32 }}>
+              <p style={{ fontSize:12, fontWeight:700, color:'#163272', letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 10px' }}>Price Comparison</p>
+              <h2 style={{ fontSize:28, fontWeight:900, color:'#0A0A0A', margin:'0 0 10px', lineHeight:1.3, letterSpacing:'-0.03em', wordBreak:'keep-all' }}>
+                같은 서비스,<br/>에프텀이 훨씬 저렴합니다
+              </h2>
+              <p style={{ color:'#6B7280', fontSize:14, lineHeight:1.7, margin:0, wordBreak:'keep-all' }}>
+                복잡한 절차 없이, 합리적인 비용으로 맡기세요
+              </p>
+            </div>
+          </Fade>
+
+          {/* 비교 테이블 */}
+          <Fade delay={60}>
+            <div style={{ padding:'0 24px', display:'flex', flexDirection:'column', gap:1, background:'transparent' }}>
+
+              {/* 헤더 */}
+              <div style={{
+                display:'grid', gridTemplateColumns:'1fr auto auto',
+                padding:'10px 20px', gap:16,
+              }}>
+                <p style={{ fontSize:11, color:'#9CA3AF', fontWeight:700, margin:0, letterSpacing:'0.06em' }}>서비스</p>
+                <p style={{ fontSize:11, color:'#9CA3AF', fontWeight:700, margin:0, letterSpacing:'0.06em', textAlign:'right', minWidth:60 }}>소요기간</p>
+                <p style={{ fontSize:11, color:'#9CA3AF', fontWeight:700, margin:0, letterSpacing:'0.06em', textAlign:'right', minWidth:72 }}>비용</p>
+              </div>
+
+              {/* Row 1 */}
+              <div style={{
+                background:'#fff', borderRadius:14, padding:'16px 20px',
+                border:'1px solid #F3F4F6',
+                display:'grid', gridTemplateColumns:'1fr auto auto', gap:16, alignItems:'center',
+              }}>
+                <div>
+                  <p style={{ fontSize:11, color:'#9CA3AF', margin:'0 0 2px', fontWeight:500 }}>숨고 · 디지털 장의사</p>
+                  <p style={{ fontSize:15, fontWeight:700, color:'#1F2937', margin:0, letterSpacing:'-0.01em' }}>SNS 계정 삭제 대행</p>
+                </div>
+                <p style={{ fontSize:13, color:'#6B7280', margin:0, textAlign:'right', minWidth:60, fontWeight:500 }}>1~4주</p>
+                <div style={{ textAlign:'right', minWidth:72 }}>
+                  <p style={{ fontSize:11, color:'#D1D5DB', margin:'0 0 1px', textDecoration:'line-through' }}>최대 30만원</p>
+                  <p style={{ fontSize:17, fontWeight:800, color:'#374151', margin:0, letterSpacing:'-0.02em' }}>평균 9만원</p>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div style={{
+                background:'#fff', borderRadius:14, padding:'16px 20px',
+                border:'1px solid #F3F4F6', marginTop:6,
+                display:'grid', gridTemplateColumns:'1fr auto auto', gap:16, alignItems:'center',
+              }}>
+                <div>
+                  <p style={{ fontSize:11, color:'#9CA3AF', margin:'0 0 2px', fontWeight:500 }}>행정사 사무소</p>
+                  <p style={{ fontSize:15, fontWeight:700, color:'#1F2937', margin:0, letterSpacing:'-0.01em' }}>유산 행정 대행</p>
+                </div>
+                <p style={{ fontSize:13, color:'#6B7280', margin:0, textAlign:'right', minWidth:60, fontWeight:500 }}>2~8주</p>
+                <div style={{ textAlign:'right', minWidth:72 }}>
+                  <p style={{ fontSize:11, color:'#D1D5DB', margin:'0 0 1px' }}>건당</p>
+                  <p style={{ fontSize:17, fontWeight:800, color:'#374151', margin:0, letterSpacing:'-0.02em' }}>평균 15만원</p>
+                </div>
+              </div>
+
+              {/* Row 3: 직접 */}
+              <div style={{
+                background:'#fff', borderRadius:14, padding:'16px 20px',
+                border:'1px solid #F3F4F6', marginTop:6,
+                display:'grid', gridTemplateColumns:'1fr auto auto', gap:16, alignItems:'center',
+              }}>
+                <div>
+                  <p style={{ fontSize:11, color:'#9CA3AF', margin:'0 0 2px', fontWeight:500 }}>직접 처리</p>
+                  <p style={{ fontSize:15, fontWeight:700, color:'#1F2937', margin:0, letterSpacing:'-0.01em' }}>고객센터 직접 신청</p>
+                </div>
+                <p style={{ fontSize:13, color:'#EF4444', margin:0, textAlign:'right', minWidth:60, fontWeight:600 }}>수개월</p>
+                <div style={{ textAlign:'right', minWidth:72 }}>
+                  <p style={{ fontSize:11, color:'#9CA3AF', margin:'0 0 1px' }}>비용</p>
+                  <p style={{ fontSize:17, fontWeight:800, color:'#374151', margin:0, letterSpacing:'-0.02em' }}>무료</p>
+                </div>
+              </div>
+
+            </div>
+          </Fade>
+
+          {/* 에프텀 강조 카드 */}
+          <Fade delay={120}>
+            <div style={{ padding:'12px 24px 0' }}>
+              <div style={{
+                borderRadius:20, overflow:'hidden',
+                boxShadow:'0 20px 60px rgba(22,50,114,0.18)',
+                border:'1px solid rgba(22,50,114,0.08)',
+              }}>
+                {/* 상단: 가격 영역 */}
+                <div style={{
+                  background:'#0F1E4A',
+                  padding:'28px 24px 24px',
+                  position:'relative', overflow:'hidden',
+                }}>
+                  {/* 배경 원 */}
+                  <div style={{ position:'absolute', top:-40, right:-40, width:140, height:140, borderRadius:'50%', background:'rgba(255,255,255,0.03)' }}/>
+                  <div style={{ position:'absolute', bottom:-60, left:60, width:160, height:160, borderRadius:'50%', background:'rgba(99,179,237,0.04)' }}/>
+
+                  <div style={{ position:'relative' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+                      <div>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.45)', margin:'0 0 6px', letterSpacing:'0.08em', fontWeight:600 }}>AFTERM · 에프텀</p>
+                        <p style={{ fontSize:14, color:'rgba(255,255,255,0.7)', margin:0, fontWeight:500 }}>디지털 계정 정리 전문 대행</p>
+                      </div>
+                      <div style={{
+                        background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.12)',
+                        borderRadius:100, padding:'5px 12px',
+                      }}>
+                        <p style={{ fontSize:11, color:'rgba(255,255,255,0.7)', margin:0, fontWeight:700, letterSpacing:'0.04em' }}>서비스 1건당</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
+                      <div>
+                        <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                          <p style={{ fontSize:46, fontWeight:900, color:'#fff', margin:0, letterSpacing:'-0.04em', lineHeight:1 }}>4,900</p>
+                          <p style={{ fontSize:22, fontWeight:800, color:'rgba(255,255,255,0.8)', margin:0, letterSpacing:'-0.02em' }}>원</p>
+                        </div>
+                        <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', margin:'6px 0 0' }}>부가세 별도 (+ 490원)</p>
+                      </div>
+                      <div style={{
+                        background:'rgba(74,222,128,0.12)', border:'1px solid rgba(74,222,128,0.25)',
+                        borderRadius:12, padding:'10px 16px', textAlign:'center',
+                      }}>
+                        <p style={{ fontSize:11, color:'rgba(74,222,128,0.8)', margin:'0 0 2px', fontWeight:600 }}>숨고 대비</p>
+                        <p style={{ fontSize:28, fontWeight:900, color:'#4ADE80', margin:0, letterSpacing:'-0.03em', lineHeight:1 }}>95%</p>
+                        <p style={{ fontSize:11, color:'rgba(74,222,128,0.8)', margin:'2px 0 0', fontWeight:600 }}>절약</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 하단: 보장 사항 */}
+                <div style={{ background:'#fff', padding:'20px 24px' }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                      <div style={{ width:36, height:36, borderRadius:10, background:'#EFF6FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#163272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize:13, fontWeight:700, color:'#111', margin:'0 0 1px' }}>평균 1주일 이내 처리</p>
+                        <p style={{ fontSize:12, color:'#9CA3AF', margin:0 }}>타 서비스 대비 최대 8배 빠릅니다</p>
+                      </div>
+                    </div>
+                    <div style={{ height:1, background:'#F9FAFB' }}/>
+                    <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                      <div style={{ width:36, height:36, borderRadius:10, background:'#F0FDF4', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div>
+                        <p style={{ fontSize:13, fontWeight:700, color:'#111', margin:'0 0 1px' }}>대행 불가 시 전액 환불 + 정보 즉시 파기</p>
+                        <p style={{ fontSize:12, color:'#9CA3AF', margin:0 }}>걱정 없이 맡기세요. 100% 보장합니다</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Fade>
+
+          {/* 무료 이벤트 */}
+          <Fade delay={160}>
+            <div style={{ padding:'12px 24px 0' }}>
+              <div style={{
+                borderRadius:16, padding:'18px 20px',
+                background:'#FFFBEB',
+                border:'1px solid #FDE68A',
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+              }}>
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#D97706', margin:'0 0 4px', letterSpacing:'0.06em' }}>LIMITED OFFER</p>
+                  <p style={{ fontSize:15, fontWeight:800, color:'#92400E', margin:'0 0 2px', letterSpacing:'-0.01em' }}>선착순 50명 무료 이벤트 진행 중</p>
+                  <p style={{ fontSize:12, color:'#B45309', margin:0, lineHeight:1.6 }}>자리가 얼마 남지 않았습니다</p>
+                </div>
+                <div style={{
+                  background:'#F59E0B', borderRadius:12, padding:'10px 16px',
+                  flexShrink:0, textAlign:'center', cursor:'pointer',
+                }}>
+                  <p style={{ fontSize:12, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-0.01em' }}>무료 신청</p>
+                  <p style={{ fontSize:10, color:'rgba(255,255,255,0.75)', margin:'2px 0 0' }}>→</p>
+                </div>
+              </div>
+            </div>
+          </Fade>
+        </section>
+
+        {/* ════════════════════════════════
             SECTION 6: CTA — 신청자 수
         ════════════════════════════════ */}
         <section style={{ padding:'0 24px 56px' }}>
@@ -643,9 +833,10 @@ export default function LandingPage() {
             <p style={{ margin:0 }}>소재지: 경기도 평택시 지산로 128 9층</p>
             <p style={{ margin:0 }}>이메일: afterm001@gmail.com</p>
           </div>
-          <div style={{ display:'flex', gap:16, marginTop:20 }}>
+          <div style={{ display:'flex', gap:16, marginTop:20, flexWrap:'wrap' }}>
             <Link href="/terms" style={{ color:'#888', fontSize:11, textDecoration:'none' }}>이용약관</Link>
             <Link href="/privacy" style={{ color:'#888', fontSize:11, textDecoration:'none' }}>개인정보처리방침</Link>
+            <Link href="/business-info" style={{ color:'#888', fontSize:11, textDecoration:'none' }}>사업자등록정보</Link>
           </div>
           <p style={{ color:'#bbb', fontSize:10, margin:'16px 0 0' }}>© 2026 Afterm. All rights reserved.</p>
         </footer>

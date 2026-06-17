@@ -3,7 +3,7 @@ import { SolapiMessageService } from 'solapi'
 
 export async function POST(req: NextRequest) {
   try {
-    const { phone, caseId, type, requesterName, deceasedName, services } = await req.json()
+    const { phone, caseId, type, requesterName, deceasedName, services, amount, refundReason, otpCode } = await req.json()
     if (!phone) return NextResponse.json({ error: '전화번호 없음' }, { status: 400 })
 
     const apiKey = process.env.SOLAPI_API_KEY
@@ -32,6 +32,18 @@ export async function POST(req: NextRequest) {
         templateId: process.env.SOLAPI_KAKAO_COMPLETE_TEMPLATE_ID,
         text: `[에프텀] 서비스가 완료되었습니다.\n\n고인: ${deceasedName}\n접수번호: ${caseId.slice(0, 8).toUpperCase()}\n\n신청하신 모든 서비스 처리가 완료되었습니다. 자세한 내용은 앱에서 확인해 주세요.`,
       },
+      payment: {
+        templateId: process.env.SOLAPI_KAKAO_PAYMENT_TEMPLATE_ID,
+        text: `[에프텀] 결제가 완료되었습니다\n\n${requesterName}님, 결제가 정상적으로 완료되었습니다.\n\n▪ 결제 금액: ${amount}원\n▪ 신청 서비스: ${services}\n\n서류 검토 후 처리를 시작합니다.\n평균 1주일 이내 완료됩니다.\n\n문의: afterm001@gmail.com`,
+      },
+      refund: {
+        templateId: process.env.SOLAPI_KAKAO_REFUND_TEMPLATE_ID,
+        text: `[에프텀] 환불이 완료되었습니다\n\n${requesterName}님, 환불 처리가 완료되었습니다.\n\n▪ 환불 금액: ${amount}원\n▪ 환불 사유: ${refundReason || '관리자 처리'}\n\n영업일 기준 3~5일 내 카드사에서 취소됩니다.\n\n문의: afterm001@gmail.com`,
+      },
+      otp: {
+        templateId: process.env.SOLAPI_KAKAO_OTP_TEMPLATE_ID,
+        text: `[에프텀] 인증번호: ${otpCode}\n\n인증번호를 입력해 주세요. (5분 이내 유효)`,
+      },
     }
 
     const msg = messages[type] || messages.submitted
@@ -47,9 +59,15 @@ export async function POST(req: NextRequest) {
             templateId,
             variables: {
               '#{신청인이름}': requesterName || '',
-              '#{고인이름}': deceasedName || '',
+              '#{고인명}': deceasedName || '',
+              '#{고객명}': requesterName || '',
               '#{서비스}': services || '',
+              '#{서비스목록}': services || '',
               '#{접수번호}': caseId?.slice(0, 8).toUpperCase() || '',
+              '#{결제금액}': amount || '',
+              '#{환불금액}': amount || '',
+              '#{환불사유}': refundReason || '관리자 처리',
+              '#{인증번호}': otpCode || '',
             },
           },
         })

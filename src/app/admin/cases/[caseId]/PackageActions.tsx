@@ -19,13 +19,19 @@ export default function PackageActions({
   caseId,
   deceasedName,
   documents = [],
+  paymentStatus,
+  paidAmount,
 }: {
   caseId: string
   deceasedName: string
   documents?: Document[]
+  paymentStatus?: string
+  paidAmount?: number
 }) {
   const [downloading, setDownloading] = useState<string | null>(null)
   const [toast, setToast] = useState('')
+  const [refunding, setRefunding] = useState(false)
+  const [currentPaymentStatus, setCurrentPaymentStatus] = useState(paymentStatus)
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -59,6 +65,24 @@ export default function PackageActions({
       showToast('✅ 위임장 PDF 다운로드 완료!')
     } catch { showToast('❌ 위임장 다운로드 실패') }
     finally { setDownloading(null) }
+  }
+
+  // 환불 처리
+  const handleRefund = async () => {
+    if (!confirm(`${deceasedName}님 케이스 결제 ${paidAmount?.toLocaleString()}원을 전액 환불하시겠습니까?`)) return
+    setRefunding(true)
+    try {
+      const res = await fetch(`/api/payment/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId, reason: '관리자 환불 처리' }),
+      })
+      const data = await res.json()
+      if (!res.ok) { showToast(`❌ 환불 실패: ${data.error}`); return }
+      setCurrentPaymentStatus('refunded')
+      showToast('✅ 환불 완료!')
+    } catch { showToast('❌ 환불 중 오류 발생') }
+    finally { setRefunding(false) }
   }
 
   // 전체 ZIP 다운로드
@@ -159,6 +183,38 @@ export default function PackageActions({
         <p style={{ fontSize: 11, color: '#9ca3af', margin: '10px 0 0', textAlign: 'center' }}>
           사망진단서 · 신분증 · 가족관계증명서 · 위임장(PDF)
         </p>
+
+        {/* 결제 / 환불 */}
+        {paidAmount && (
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>💳 결제 현황</span>
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100,
+                background: currentPaymentStatus === 'refunded' ? '#FEF2F2' : '#ECFDF5',
+                color: currentPaymentStatus === 'refunded' ? '#DC2626' : '#059669',
+              }}>
+                {currentPaymentStatus === 'refunded' ? '환불완료' : `${paidAmount.toLocaleString()}원 결제됨`}
+              </span>
+            </div>
+            {currentPaymentStatus !== 'refunded' && (
+              <button
+                onClick={handleRefund}
+                disabled={refunding}
+                style={{
+                  width: '100%', padding: '11px', borderRadius: 10,
+                  background: refunding ? '#f3f4f6' : '#FEF2F2',
+                  color: refunding ? '#9ca3af' : '#DC2626',
+                  border: '1px solid #FECACA',
+                  cursor: refunding ? 'not-allowed' : 'pointer',
+                  fontSize: 13, fontWeight: 700,
+                }}
+              >
+                {refunding ? '환불 처리 중...' : `↩ ${paidAmount.toLocaleString()}원 전액 환불`}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

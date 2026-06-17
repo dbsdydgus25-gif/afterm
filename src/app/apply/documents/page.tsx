@@ -145,7 +145,7 @@ export default function DocumentsPage() {
       }, { onConflict: 'case_id' })
       setDelegation({ delegatorName, delegatorRelation, signatureData })
       setStep(3)
-      router.push('/apply/confirm')
+      router.push('/apply/payment')
     } catch {
       setError('저장 중 오류가 발생했습니다')
     } finally {

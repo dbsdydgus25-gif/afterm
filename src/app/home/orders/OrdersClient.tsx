@@ -307,6 +307,9 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
             background: 'rgba(255,255,255,0.95)', borderRadius: 20,
             boxShadow: '0 2px 12px rgba(0,0,0,0.12)', border: '1px solid #E8EAF0',
             pointerEvents: 'all',
+            overflowX: 'auto', flexWrap: 'nowrap',
+            maxWidth: 'calc(100vw - 32px)',
+            scrollbarWidth: 'none', msOverflowStyle: 'none',
           }}>
             {cases.map((c, i) => (
               <button
@@ -319,6 +322,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                   fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.2s',
                   fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+                  whiteSpace: 'nowrap', flexShrink: 0,
                 }}
               >
                 {c.deceased_name}
