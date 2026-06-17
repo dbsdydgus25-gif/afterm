@@ -1,6 +1,6 @@
 # Afterm MVP3 — 작업 내역 정리
 
-> 브랜치: `mvp3` | 마지막 업데이트: 2026-06-09
+> 브랜치: `main` | 마지막 업데이트: 2026-06-18
 
 ---
 
@@ -263,3 +263,137 @@ ALTER TABLE case_services ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAUL
 | 어드민 서비스 상태 변경 실패 | API가 ADMIN_EMAILS로 Supabase 인증 시도 | admin_session 쿠키 인증으로 변경 |
 | 앱 전체 서버 크래시 | home/page.tsx(서버컴포넌트)에 window.open 직접 사용 | ChatOpenButton 클라이언트 컴포넌트로 분리 |
 | 카카오 채널 버튼 모바일 미작동 | window.open 팝업 차단 | `<a href target="_blank">` 태그로 변경 |
+
+---
+
+## 🚀 2026-06-15 ~ 06-16 작업 내역
+
+### 1. 모바일 터치 반응성 개선
+- `touch-action: manipulation` 전역 적용 → 300ms 탭 딜레이 완전 제거
+- 버튼 `active` 상태 누름 피드백 추가 (scale + opacity)
+- SPA 네비게이션 적용 (전체 페이지 리로드 없이 이동)
+
+### 2. 메인 페이지 가격 비교 섹션 추가 (`src/app/page.tsx`)
+- 숨고(평균 9만원) / 행정사(평균 15만원) / 에프텀(4,900원) 비교 테이블
+- SVG 아이콘 사용 (이모지 제거), 토스 스타일 레퍼런스 참고하되 에프텀 스타일 유지
+- **95% 절약** 강조, 선착순 50명 무료 이벤트 배너 연결
+- 이모지 전면 제거, 디자이너 퀄리티로 재작성
+
+### 3. 사업자등록정보 페이지 (`/business-info`)
+- 사업자등록증 PDF 뷰어 (iframe)
+- PDF 다운로드 버튼
+- 푸터에 이용약관 / 개인정보처리방침 / 사업자등록정보 링크 추가
+- `public/business-registration.pdf` 파일 업로드
+
+### 4. 포트원 V2 결제 연동
+- **PortOne SDK** (`@portone/browser-sdk/v2`) 설치
+- **KG이니시스 + 카카오페이** 두 채널 동시 설정 (탭 UI)
+- `/apply/payment/page.tsx`: 결제 수단 선택 UI (신용카드 탭 / 카카오페이 탭)
+  - 서비스 내역, 부가세 10% 계산, 최종 금액 표시
+  - 카카오페이 버튼: 노란색(`#FEE500`), 카드: 네이비(`#163272`)
+  - 안심 문구 3가지 (환불보장/1주일처리/정보파기)
+- `/apply/payment/complete/page.tsx`: 결제 리다이렉트 완료 처리
+- `/api/payment/verify/route.ts`: PortOne V2 결제 서버 검증 + DB 업데이트
+- **신청 플로우 변경**: `documents → payment → confirm` 순서
+- **Supabase 컬럼 추가**: `payment_status`, `payment_id`, `paid_amount`, `paid_at`, `refunded_at`
+
+### 5. 환불 기능
+- `/api/payment/refund/route.ts`: PortOne V2 환불 API 연동
+- 어드민 케이스 상세(`PackageActions.tsx`)에 환불 버튼 + confirm 다이얼로그
+- 환불 완료 후 `payment_status: 'refunded'` 업데이트
+
+### 6. 카카오 알림톡 전면 확장 (`/api/notify/kakao`)
+- **결제완료** (templateId: `wxta05zd3E`) — 결제금액, 서비스 목록 포함
+- **환불완료** (templateId: `ojcmUmM3D6`) — 환불금액, 환불사유 포함
+- **OTP 인증번호** (templateId: `ThehnOtjKW`) — 회원가입 인증번호 알림톡 발송
+- 알림톡 실패 시 SMS 폴백 자동 전환
+- `/api/otp/send`: 카카오 알림톡 → SMS 폴백 구조로 개편, 유효시간 3분→5분
+
+### 7. 어드민 상태 변경 시 자동 연동
+- 케이스 상태 변경 시 알림톡 자동 발송 (신청접수/처리시작/완료)
+- 구글 시트 자동 동기화 (Google Sheets API)
+- 위임장 PDF 자동생성 (`pdf-lib`) — 어드민 케이스 상세에서 다운로드 가능
+
+### 🔑 Vercel 환경변수 추가
+```env
+NEXT_PUBLIC_PORTONE_STORE_ID=        # 포트원 스토어 ID
+NEXT_PUBLIC_PORTONE_CHANNEL_KEY=     # KG이니시스 채널키
+NEXT_PUBLIC_PORTONE_KAKAO_CHANNEL_KEY=  # 카카오페이 채널키
+PORTONE_API_SECRET=                  # 포트원 V2 API Secret
+SOLAPI_KAKAO_PAYMENT_TEMPLATE_ID=    # 결제완료 알림톡
+SOLAPI_KAKAO_REFUND_TEMPLATE_ID=     # 환불완료 알림톡
+SOLAPI_KAKAO_OTP_TEMPLATE_ID=        # OTP 인증번호 알림톡
+```
+
+---
+
+## 🚀 2026-06-17 작업 내역
+
+### 1. 신청내역 모바일 레이아웃 버그 수정 (`OrdersClient.tsx`)
+- 하단 고인 이름 탭 버튼들이 모바일에서 세로로 깨지는 버그
+- **원인**: `whiteSpace: 'nowrap'` 없고 컨테이너 overflow 처리 안 됨
+- **수정**: `overflowX: 'auto'`, `flexWrap: 'nowrap'`, `whiteSpace: 'nowrap'`, `flexShrink: 0` 추가
+
+### 2. 신청 후 자동 "처리 중" 전환 버그 수정 (`/api/agents/trigger`)
+- **원인**: AI 에이전트 파이프라인이 시작 시 `status: 'processing'`으로 자동 변경
+- **수정**: 에이전트는 `agent_status`만 관리, `status`는 건드리지 않음
+- 케이스 상태는 **어드민이 수동으로만 변경** (submitted → reviewing → processing → completed)
+
+### 3. 어드민 결제 관리 페이지 (`/admin/payments`)
+- AdminNav에 "💳 결제 관리" 탭 추가
+- 요약 카드: 총 결제액 / 총 환불액 / 결제 완료 건수 / 미결제 건수
+- 탭 필터: 전체 / 결제완료 / 환불 / 미결제
+- 검색: 고인명, 신청인, 결제 ID
+- 테이블: 신청인+연락처, 고인명, 결제금액, 상태뱃지, 결제/환불 일시, 결제ID, 케이스 바로가기
+
+---
+
+## 🚀 2026-06-18 작업 내역
+
+### 1. 기존 케이스 status DB 수정
+- 기존 케이스 6개가 모두 `processing`으로 남아있던 문제
+- Supabase SQL로 일괄 `submitted`로 수정
+  ```sql
+  UPDATE cases SET status = 'submitted'
+  WHERE status = 'processing' AND agent_status IN ('running', 'completed', 'failed');
+  ```
+
+### 2. 약관 동의 화면 추가 (`/apply/page.tsx`)
+- 신청 플로우 가장 첫 단계에 약관 동의 화면 삽입
+- 필수 4개 항목: 이용약관 / 개인정보처리방침 / 위임 동의 / 만 19세 이상
+- 전체 동의 버튼 (토글) + 개별 체크 항목
+- 전체 동의 시 네이비 배경으로 전환되는 피드백 UI
+- 모든 항목 동의 후 "동의하고 시작하기" 버튼 활성화
+
+### 3. 서류 업로드 모바일 개선 (`/apply/documents/page.tsx`)
+- **`capture="environment"` 완전 제거** → 갤러리/파일앱/카메라 모두 선택 가능
+- **서류별 업로드 가이드 모달** 추가 (첨부 전 하단 시트로 표시)
+  - 신분증: 주민번호 뒷자리 반드시 가리기 경고 (빨간 박스)
+  - 사망진단서: 고인 이름·사망일 선명하게, 어두운 배경 권장
+  - 가족관계증명서: 정부24 발급, 3개월 이내 발급본
+- 지원 파일 형식 안내: `jpg, jpeg, png, pdf · 10MB 이하`
+- 업로드 완료 후 재첨부 버튼 제공
+
+---
+
+## 📋 현재 케이스 상태 흐름 (업데이트)
+
+```
+submitted(접수완료) → reviewing(서류확인) → processing(처리중) → completed(처리완료)
+                      ↑ 어드민 수동 변경만 가능 (AI 에이전트 자동변경 제거됨)
+```
+
+### 결제 상태 흐름
+```
+없음(pending) → paid(결제완료) → refunded(환불완료)
+```
+
+---
+
+## ⚠️ 현재 미완료 / 진행 중
+
+- [ ] **KG이니시스 실연동 심사**: 전자계약 완료 후 실결제 MID 발급 대기
+- [ ] **카카오페이 가맹점 CID**: 카카오페이 비즈니스 가맹점 심사 완료 후 실연동
+- [ ] **솔라피 알림톡 템플릿 검수**: 결제/환불/OTP 템플릿 검수 통과 대기
+- [ ] **사망진단서 OCR 자동 입력**: 업로드 시 고인 이름·사망일 자동 추출 (별도 작업 필요)
+- [ ] `NEXT_PUBLIC_PORTONE_KAKAO_CHANNEL_KEY` 실 채널키로 교체 (심사 통과 후)
