@@ -8,10 +8,144 @@ import { getRequiredDocs } from '@/lib/services-catalog'
 import type { TrackType } from '@/lib/services-catalog'
 import Button from '@/components/ui/Button'
 
+type DocGuide = {
+  icon: string
+  title: string
+  notices: string[]
+  maskingNote?: string
+  formats: string
+}
+
 const DOC_META: Record<string, { icon: string; tip: string }> = {
   death_cert:  { icon: '📋', tip: '스마트폰 카메라로 촬영하셔도 됩니다' },
   family_cert: { icon: '👨‍👩‍👧', tip: '정부24 앱에서 발급 가능합니다' },
   id_card:     { icon: '🪪', tip: '신청인(유족) 본인의 신분증입니다' },
+}
+
+const DOC_GUIDE: Record<string, DocGuide> = {
+  id_card: {
+    icon: '🪪',
+    title: '신분증 첨부 유의사항',
+    notices: [
+      '신청인(유족) 본인의 신분증을 준비해 주세요',
+      '주민번호 뒷 6자리는 가리거나 지운 후 첨부해 주세요',
+      '빛 반사나 그림자 없이 선명하게 촬영해 주세요',
+      '모서리가 모두 나오도록 촬영해 주세요',
+    ],
+    maskingNote: '주민번호 뒷자리(7자리 중 뒤 6자리)를 반드시 가려주세요',
+    formats: 'jpg, jpeg, png, pdf · 10MB 이하',
+  },
+  death_cert: {
+    icon: '📋',
+    title: '사망진단서 첨부 유의사항',
+    notices: [
+      '병원에서 발급받은 사망진단서 원본 또는 스캔본',
+      '고인 성함, 사망일이 명확히 보여야 합니다',
+      '어두운 배경에 문서만 크게 나오도록 촬영해 주세요',
+      '흐리거나 잘린 부분 없이 전체가 보여야 합니다',
+    ],
+    formats: 'jpg, jpeg, png, pdf · 10MB 이하',
+  },
+  family_cert: {
+    icon: '📄',
+    title: '가족관계증명서 첨부 유의사항',
+    notices: [
+      '정부24(gov.kr) 또는 주민센터에서 발급 가능합니다',
+      '발급일로부터 3개월 이내 발급본이어야 합니다',
+      '신청인이 고인의 가족임을 확인할 수 있어야 합니다',
+      '모서리가 모두 나오도록 촬영 또는 스캔해 주세요',
+    ],
+    formats: 'jpg, jpeg, png, pdf · 10MB 이하',
+  },
+}
+
+// 서류 가이드 모달
+function DocGuideModal({
+  docType,
+  onConfirm,
+  onClose,
+}: {
+  docType: string
+  onConfirm: () => void
+  onClose: () => void
+}) {
+  const guide = DOC_GUIDE[docType] || {
+    icon: '📄', title: '서류 첨부 유의사항',
+    notices: ['서류의 모든 내용이 명확히 보여야 합니다'],
+    formats: 'jpg, jpeg, png, pdf · 10MB 이하',
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }} onClick={onClose}>
+      <div
+        style={{
+          background: '#fff', borderRadius: '24px 24px 0 0',
+          padding: '28px 24px 40px', width: '100%', maxWidth: 480,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* 상단 핸들 */}
+        <div style={{ width: 36, height: 4, background: '#E5E7EB', borderRadius: 2, margin: '0 auto 24px' }} />
+
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 20px', letterSpacing: '-0.02em' }}>
+          {guide.title}
+        </h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+          {guide.notices.map((notice, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', background: '#163272',
+                color: '#fff', fontSize: 12, fontWeight: 800, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {i + 1}
+              </div>
+              <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.6 }}>{notice}</p>
+            </div>
+          ))}
+        </div>
+
+        {guide.maskingNote && (
+          <div style={{
+            background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10,
+            padding: '12px 14px', marginBottom: 16,
+          }}>
+            <p style={{ fontSize: 13, color: '#DC2626', fontWeight: 700, margin: 0 }}>
+              ⚠️ {guide.maskingNote}
+            </p>
+          </div>
+        )}
+
+        <div style={{
+          background: '#F8FAFC', borderRadius: 10, padding: '12px 14px', marginBottom: 24,
+          display: 'flex', gap: 8, alignItems: 'center',
+        }}>
+          <span style={{ fontSize: 16 }}>📎</span>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', margin: '0 0 2px' }}>첨부 가능 파일</p>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>{guide.formats}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={onConfirm}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 14,
+            background: '#163272', color: '#fff',
+            fontSize: 16, fontWeight: 800, border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--font-sans)', letterSpacing: '-0.02em',
+          }}
+        >
+          파일 선택하기
+        </button>
+      </div>
+    </div>
+  )
 }
 
 type Phase = 'docs' | 'delegator' | 'sign'
@@ -31,6 +165,8 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [guideModal, setGuideModal] = useState<string | null>(null) // 가이드 모달 표시할 docType
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   // 위임 정보
   const [delegatorName, setDelegatorName] = useState('')
@@ -157,13 +293,25 @@ export default function DocumentsPage() {
   if (phase === 'docs') {
     return (
       <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* 가이드 모달 */}
+        {guideModal && (
+          <DocGuideModal
+            docType={guideModal}
+            onClose={() => setGuideModal(null)}
+            onConfirm={() => {
+              setGuideModal(null)
+              setTimeout(() => fileInputRefs.current[guideModal]?.click(), 50)
+            }}
+          />
+        )}
+
         <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
-          
+
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3 }}>
-            서류를 업로드해 주세요
+            서류를 첨부해 주세요
           </h2>
           <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '32px' }}>
-            카메라로 촬영하거나 파일을 선택해 주세요<br/>
+            사진 촬영 또는 파일 선택 모두 가능합니다<br/>
             <span style={{ color: 'var(--color-primary-normal)', fontWeight: 700 }}>{uploadedCount} / {DOCS.length}개 완료</span>
           </p>
 
@@ -173,21 +321,32 @@ export default function DocumentsPage() {
               const isUploading = uploading === doc.type
               const meta = DOC_META[doc.type] || { icon: '📄', tip: '' }
               return (
-                <label key={doc.type} style={{ cursor: 'pointer', display: 'block' }}>
+                <div key={doc.type}>
+                  {/* hidden file input — capture 없음, 갤러리/파일 선택 가능 */}
                   <input
+                    ref={el => { fileInputRefs.current[doc.type] = el }}
                     type="file"
                     accept="image/*,.pdf"
-                    capture="environment"
                     style={{ display: 'none' }}
-                    onChange={e => e.target.files?.[0] && handleFileUpload(doc.type, e.target.files[0])}
+                    onChange={e => {
+                      if (e.target.files?.[0]) handleFileUpload(doc.type, e.target.files[0])
+                      e.target.value = ''
+                    }}
                   />
-                  <div className={uploaded ? 'card-soft' : 'card'} style={{
-                    padding: '20px',
-                    borderColor: uploaded ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)',
-                    background: uploaded ? 'var(--color-blue-99)' : 'var(--color-common-100)',
-                    display: 'flex', alignItems: 'center', gap: '16px',
-                    transition: 'all 0.2s',
-                  }}>
+                  <div
+                    className={uploaded ? 'card-soft' : 'card'}
+                    onClick={() => {
+                      if (!uploaded && !isUploading) setGuideModal(doc.type)
+                    }}
+                    style={{
+                      padding: '20px',
+                      borderColor: uploaded ? 'var(--color-primary-normal)' : 'var(--color-line-normal-normal)',
+                      background: uploaded ? 'var(--color-blue-99)' : 'var(--color-common-100)',
+                      display: 'flex', alignItems: 'center', gap: '16px',
+                      transition: 'all 0.2s',
+                      cursor: uploaded || isUploading ? 'default' : 'pointer',
+                    }}
+                  >
                     <div style={{
                       width: '48px', height: '48px', borderRadius: 'var(--radius-12)',
                       background: uploaded ? 'var(--color-primary-normal)' : 'var(--color-background-normal-alternative)',
@@ -201,41 +360,57 @@ export default function DocumentsPage() {
                         {doc.title}
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--color-label-alternative)', marginTop: '2px' }}>{doc.desc}</div>
-                      {doc.maskingNote && (
-                        <div style={{ fontSize: '12px', color: '#DC2626', marginTop: '4px', fontWeight: 600 }}>⚠️ {doc.maskingNote}</div>
+                      {uploaded && (
+                        <div style={{ fontSize: '12px', color: 'var(--color-primary-normal)', marginTop: '4px', fontWeight: 600 }}>
+                          첨부 완료 · 다시 첨부하려면 탭하세요
+                        </div>
                       )}
                     </div>
                     {!uploaded && !isUploading && (
                       <span style={{
                         padding: '6px 14px', borderRadius: 'var(--radius-8)',
-                        background: 'var(--color-coolNeutral-96)', color: 'var(--color-label-strong)',
+                        background: '#163272', color: '#fff',
                         fontSize: '13px', fontWeight: 700, flexShrink: 0,
                       }}>
-                        업로드
+                        첨부
                       </span>
                     )}
                     {isUploading && (
                       <span style={{ fontSize: '13px', color: 'var(--color-primary-normal)', fontWeight: 600, flexShrink: 0 }}>
-                        처리 중...
+                        업로드 중...
                       </span>
                     )}
                   </div>
-                </label>
+                  {/* 완료된 서류도 재첨부 가능 */}
+                  {uploaded && (
+                    <button
+                      onClick={() => setGuideModal(doc.type)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 12, color: '#9CA3AF', padding: '4px 4px 0',
+                        fontFamily: 'var(--font-sans)',
+                      }}
+                    >
+                      다시 첨부하기
+                    </button>
+                  )}
+                </div>
               )
             })}
           </div>
 
-          <div className="card-soft" style={{
-            marginTop: '24px', padding: '16px',
-            fontSize: '13px', color: 'var(--color-label-alternative)', lineHeight: 1.6,
+          <div style={{
+            marginTop: '24px', padding: '14px 16px',
+            background: '#F8FAFC', borderRadius: 12, border: '1px solid #E8EAF0',
+            fontSize: '13px', color: '#6B7280', lineHeight: 1.6,
           }}>
-            🔒 업로드된 서류는 암호화되어 안전하게 보관되며, 해지 처리 목적 외에는 사용되지 않습니다.
+            🔒 업로드된 서류는 암호화 보관되며, 처리 완료 후 30일 이내 파기됩니다.
           </div>
         </div>
 
         <div className="cta-dock">
           <Button block disabled={!allDocsUploaded} onClick={() => setPhase('delegator')}>
-            {allDocsUploaded ? '다음 단계' : `${DOCS.length - uploadedCount}개 더 업로드해 주세요`}
+            {allDocsUploaded ? '다음 단계' : `${DOCS.length - uploadedCount}개 더 첨부해 주세요`}
           </Button>
         </div>
       </div>

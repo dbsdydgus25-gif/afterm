@@ -42,12 +42,142 @@ const FIELDS: { key: Field; question: string; sub: string; placeholder: string; 
   },
 ]
 
+// ── 약관 동의 화면 ──
+function TermsScreen({ onAgree }: { onAgree: () => void }) {
+  const TERMS = [
+    { key: 'service', label: '이용약관 동의', required: true, href: '/terms' },
+    { key: 'privacy', label: '개인정보 처리방침 동의', required: true, href: '/privacy' },
+    { key: 'delegate', label: '디지털 계정 해지 대행 위임 동의', required: true, href: null },
+    { key: 'age', label: '만 19세 이상입니다', required: true, href: null },
+  ]
+  const [agreed, setAgreed] = useState<Record<string, boolean>>({})
+  const allRequired = TERMS.filter(t => t.required).every(t => agreed[t.key])
+
+  const toggleAll = () => {
+    if (allRequired) setAgreed({})
+    else {
+      const all: Record<string, boolean> = {}
+      TERMS.forEach(t => { all[t.key] = true })
+      setAgreed(all)
+    }
+  }
+
+  return (
+    <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-label-alternative)', marginBottom: 6, fontWeight: 600 }}>시작하기 전에</p>
+        <h2 style={{
+          fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800,
+          letterSpacing: '-0.02em', color: 'var(--color-label-strong)',
+          marginBottom: 32, lineHeight: 1.3,
+        }}>
+          약관에 동의해 주세요
+        </h2>
+
+        {/* 전체 동의 */}
+        <button
+          onClick={toggleAll}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+            background: allRequired ? '#163272' : '#F4F6F9',
+            border: `1.5px solid ${allRequired ? '#163272' : '#E8EAF0'}`,
+            borderRadius: 14, padding: '18px 20px',
+            cursor: 'pointer', marginBottom: 12, transition: 'all 0.2s',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
+          <div style={{
+            width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+            border: `2px solid ${allRequired ? '#fff' : '#CBD5E1'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {allRequired && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff' }} />}
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: allRequired ? '#fff' : '#111827' }}>전체 동의</div>
+            <div style={{ fontSize: 12, color: allRequired ? 'rgba(255,255,255,0.7)' : '#9CA3AF', marginTop: 2 }}>
+              서비스 이용을 위한 필수 항목에 모두 동의합니다
+            </div>
+          </div>
+        </button>
+
+        {/* 개별 항목 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {TERMS.map(term => (
+            <div
+              key={term.key}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 4px', borderBottom: '1px solid #F3F4F6',
+              }}
+            >
+              <button
+                onClick={() => setAgreed(prev => ({ ...prev, [term.key]: !prev[term.key] }))}
+                style={{
+                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                  border: `2px solid ${agreed[term.key] ? '#163272' : '#CBD5E1'}`,
+                  background: agreed[term.key] ? '#163272' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: 0,
+                }}
+              >
+                {agreed[term.key] && (
+                  <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                    <path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+              <span style={{ flex: 1, fontSize: 14, color: '#374151', fontWeight: 500 }}>
+                <span style={{ color: '#163272', fontWeight: 700 }}>(필수) </span>
+                {term.label}
+              </span>
+              {term.href && (
+                <a href={term.href} target="_blank" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0 }}>
+                  보기 →
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          marginTop: 24, padding: '14px 16px',
+          background: '#F8FAFC', borderRadius: 12, border: '1px solid #E8EAF0',
+          fontSize: 12, color: '#9CA3AF', lineHeight: 1.7,
+        }}>
+          수집된 서류는 디지털 계정 해지 대행 목적으로만 사용되며,<br />
+          업무 완료 후 30일 이내 파기됩니다.
+        </div>
+      </div>
+
+      <div className="cta-dock">
+        <button
+          disabled={!allRequired}
+          onClick={onAgree}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 14,
+            background: allRequired ? '#163272' : '#E5E9EF',
+            color: allRequired ? '#fff' : '#9CA3AF',
+            fontSize: 16, fontWeight: 800, border: 'none',
+            cursor: allRequired ? 'pointer' : 'not-allowed',
+            fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          동의하고 시작하기
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ApplyForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, resetStore } = useApplyStore()
   const supabase = createClient()
 
+  const [termsAgreed, setTermsAgreed] = useState(false)
   const [currentField, setCurrentField] = useState<number>(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -69,6 +199,8 @@ function ApplyForm() {
         })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!termsAgreed) return <TermsScreen onAgree={() => setTermsAgreed(true)} />
 
   const field = FIELDS[currentField]
   const isLast = currentField === FIELDS.length - 1
