@@ -69,7 +69,7 @@ export default async function DashboardPage() {
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 800, color: 'var(--color-label-strong)', marginBottom: '16px' }}>
                 새 신청 시작하기
               </h2>
-              <Link href="/apply?reset=true" style={{ textDecoration: 'none' }}>
+              <Link href="/apply/new" style={{ textDecoration: 'none' }}>
                 <div style={{
                   borderRadius: 'var(--radius-20)', background: 'var(--color-label-strong)', color: '#fff',
                   padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '16px',

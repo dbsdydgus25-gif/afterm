@@ -40,7 +40,7 @@ export default async function OrdersPage() {
               {hasAny ? `총 ${cases!.length}건 진행 중` : '신청 내역이 없습니다'}
             </p>
           </div>
-          <Link href="/apply?reset=true" style={{
+          <Link href="/apply/new" style={{
             background: 'rgba(255,255,255,0.15)', color: '#fff', padding: '8px 14px',
             borderRadius: 10, fontWeight: 700, fontSize: 13, textDecoration: 'none',
             border: '1px solid rgba(255,255,255,0.25)',

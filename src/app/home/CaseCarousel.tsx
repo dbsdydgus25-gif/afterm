@@ -311,7 +311,7 @@ export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseIt
 
       {/* ★ 새 신청 박스: padding: '12px 20px 0' → 케이스 카드와 동일한 왼쪽선(20px) */}
       <div style={{ padding: '12px 20px 0' }}>
-        <Link href="/apply?reset=true" style={{
+        <Link href="/apply/new" style={{
           display: 'block', background: '#111827', borderRadius: 16, padding: '18px 20px',
           textDecoration: 'none',
         }}>

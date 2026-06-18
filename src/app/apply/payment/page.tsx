@@ -17,6 +17,7 @@ function PaymentInner() {
   const [services, setServices] = useState<{ name: string; action: string }[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(searchParams.get('error') || '')
+  const [delegatorPhone, setDelegatorPhoneState] = useState('')
 
   useEffect(() => {
     if (!caseId) { router.push('/apply'); return }
@@ -27,6 +28,14 @@ function PaymentInner() {
       .then(({ data }) => {
         if (data) setServices(data.map(d => ({ name: d.service_name, action: d.service_category })))
       })
+    supabase
+      .from('cases')
+      .select('delegator_phone')
+      .eq('id', caseId)
+      .single()
+      .then(({ data }) => {
+        if (data?.delegator_phone) setDelegatorPhoneState(data.delegator_phone)
+      })
   }, [caseId])
 
   const count = services.length || 1
@@ -34,7 +43,7 @@ function PaymentInner() {
   const vat = Math.floor(totalAmount * 0.1)
   const grandTotal = totalAmount + vat
 
-  const handlePay = async () => {
+  const requestPay = async (method: 'CARD' | 'EASY_PAY') => {
     if (!caseId) return
     setLoading(true)
     setError('')
@@ -45,20 +54,27 @@ function PaymentInner() {
       const userEmail = user?.email || 'test@afterm.co.kr'
       const userName = user?.user_metadata?.full_name || '고객'
 
-      const response = await PortOne.requestPayment({
+      const payParams: Parameters<typeof PortOne.requestPayment>[0] = {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
         channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
         paymentId,
         orderName: `에프텀 디지털 계정 정리 대행 (${count}건)`,
         totalAmount: grandTotal,
         currency: 'KRW',
-        payMethod: 'CARD',
+        payMethod: method,
         customer: {
           fullName: userName,
           email: userEmail,
+          ...(delegatorPhone ? { phoneNumber: delegatorPhone.replace(/-/g, '') } : {}),
         },
         redirectUrl: `${window.location.origin}/apply/payment/complete`,
-      })
+      }
+
+      if (method === 'EASY_PAY') {
+        (payParams as any).easyPay = { easyPayProvider: 'KAKAOPAY' }
+      }
+
+      const response = await PortOne.requestPayment(payParams)
 
       if (response?.code) {
         setError(response.message || '결제가 취소되었습니다.')
@@ -84,6 +100,9 @@ function PaymentInner() {
       setLoading(false)
     }
   }
+
+  const handlePay = () => requestPay('CARD')
+  const handleKakaoPay = () => requestPay('EASY_PAY')
 
   return (
     <div style={{
@@ -196,18 +215,35 @@ function PaymentInner() {
       {/* 결제 버튼 */}
       <div style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430, padding: '16px 24px',
-        paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+        width: '100%', maxWidth: 430, padding: '12px 24px',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
         background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50,
+        display: 'flex', flexDirection: 'column', gap: 8,
       }}>
+        {/* 카카오페이 */}
+        <button
+          onClick={handleKakaoPay}
+          disabled={loading}
+          style={{
+            width: '100%', padding: '15px', borderRadius: 14,
+            background: loading ? '#E5E9EF' : '#FEE500',
+            color: loading ? '#9CA3AF' : '#3C1E1E',
+            border: 'none', fontSize: 15, fontWeight: 800,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontFamily: 'inherit', letterSpacing: '-0.02em',
+          }}
+        >
+          {loading ? '처리 중...' : `카카오페이로 결제하기`}
+        </button>
+        {/* 카드 결제 */}
         <button
           onClick={handlePay}
           disabled={loading}
           style={{
-            width: '100%', padding: '17px', borderRadius: 14,
+            width: '100%', padding: '15px', borderRadius: 14,
             background: loading ? '#E5E9EF' : '#2563EB',
             color: loading ? '#9CA3AF' : '#fff',
-            border: 'none', fontSize: 16, fontWeight: 800,
+            border: 'none', fontSize: 15, fontWeight: 800,
             cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit', letterSpacing: '-0.02em',
             boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,0.3)',

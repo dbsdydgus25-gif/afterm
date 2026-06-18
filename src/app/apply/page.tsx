@@ -403,12 +403,13 @@ const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손
 function StepApplicant({
   onNext, onBack,
 }: {
-  onNext: (name: string, relation: string) => void
+  onNext: (name: string, relation: string, phone: string) => void
   onBack: () => void
 }) {
   const [name, setName] = useState('')
   const [relation, setRelation] = useState('')
-  const [nameStep, setNameStep] = useState(true)
+  const [phone, setPhone] = useState('')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone'>('name')
   const supabase = createClient()
 
   useEffect(() => {
@@ -418,15 +419,22 @@ function StepApplicant({
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const phoneFormat = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 11)
+    if (d.length <= 3) return d
+    if (d.length <= 7) return `${d.slice(0,3)}-${d.slice(3)}`
+    return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
+  }
+
   return (
     <Screen>
       <Body>
-        {nameStep ? (
+        {innerStep === 'name' && (
           <div key="name">
             <Question label={'신청인 성함을\n입력해 주세요'} sub="위임장에 기재됩니다. 반드시 실명으로 입력해 주세요" />
             <input type="text" placeholder="예: 홍길동" value={name} autoFocus
               onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && name.trim() && setNameStep(false)}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && setInnerStep('relation')}
               style={{
                 width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
                 background: 'transparent', fontSize: 20, fontWeight: 700,
@@ -437,7 +445,8 @@ function StepApplicant({
               ⚠ 실명 미기재 시 서비스 진행이 불가합니다
             </p>
           </div>
-        ) : (
+        )}
+        {innerStep === 'relation' && (
           <div key="relation">
             <Question label={`${name}님과\n고인의 관계는요?`} sub="해당 관계를 선택해 주세요" />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -456,15 +465,37 @@ function StepApplicant({
             </div>
           </div>
         )}
+        {innerStep === 'phone' && (
+          <div key="phone">
+            <Question label={'신청인 전화번호를\n입력해 주세요'} sub="결제 인증에 사용됩니다" />
+            <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
+              onChange={e => setPhone(phoneFormat(e.target.value))}
+              onKeyDown={e => e.key === 'Enter' && phone.length >= 12 && onNext(name, relation, phone)}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+          </div>
+        )}
       </Body>
       <Dock>
         <div style={{ display: 'flex', gap: 10 }}>
-          <BackBtn onClick={() => nameStep ? onBack() : setNameStep(true)} />
+          <BackBtn onClick={() => {
+            if (innerStep === 'name') onBack()
+            else if (innerStep === 'relation') setInnerStep('name')
+            else setInnerStep('relation')
+          }} />
           <PrimaryBtn
-            disabled={nameStep ? !name.trim() : !relation}
-            onClick={() => nameStep ? setNameStep(false) : onNext(name, relation)}
+            disabled={innerStep === 'name' ? !name.trim() : innerStep === 'relation' ? !relation : !phone}
+            onClick={() => {
+              if (innerStep === 'name') setInnerStep('relation')
+              else if (innerStep === 'relation') setInnerStep('phone')
+              else onNext(name, relation, phone)
+            }}
           >
-            계속하기
+            {innerStep === 'phone' ? '다음 단계' : '계속하기'}
           </PrimaryBtn>
         </div>
       </Dock>
@@ -537,11 +568,12 @@ type FlowStep = 'terms' | 'family' | 'deathcert' | 'deceased' | 'applicant'
 function ApplyFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, resetStore } = useApplyStore()
+  const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, setDelegation, resetStore } = useApplyStore()
   const supabase = createClient()
   const [flowStep, setFlowStep] = useState<FlowStep>('terms')
   const [delegatorName, setDelegatorName] = useState('')
   const [delegatorRelation, setDelegatorRelation] = useState('')
+  const [delegatorPhone, setDelegatorPhone] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -553,13 +585,16 @@ function ApplyFlow() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveCaseAndNext = async (name?: string, relation?: string) => {
+  const saveCaseAndNext = async (name?: string, relation?: string, phone?: string) => {
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
       const existingCaseId = useApplyStore.getState().caseId
+      const dName = name ?? delegatorName
+      const dRelation = relation ?? delegatorRelation
+      const dPhone = phone ?? delegatorPhone
 
       if (existingCaseId) {
         await supabase.from('cases').update({
@@ -567,11 +602,13 @@ function ApplyFlow() {
           deceased_birth: deceasedInfo.birthDate,
           deceased_death: deceasedInfo.deathDate,
           deceased_phone: deceasedInfo.phone || null,
+          delegator_phone: dPhone || null,
         }).eq('id', existingCaseId)
         await supabase.from('delegations').upsert({
           case_id: existingCaseId,
-          delegator_name: name ?? delegatorName,
-          delegator_relation: relation ?? delegatorRelation,
+          delegator_name: dName,
+          delegator_relation: dRelation,
+          delegator_phone: dPhone || null,
         }, { onConflict: 'case_id' })
       } else {
         const { data, error } = await supabase.from('cases').insert({
@@ -580,17 +617,20 @@ function ApplyFlow() {
           deceased_birth: deceasedInfo.birthDate,
           deceased_death: deceasedInfo.deathDate,
           deceased_phone: deceasedInfo.phone || null,
+          delegator_phone: dPhone || null,
           status: 'draft',
         }).select('id').single()
         if (error) throw error
         setCaseId(data.id)
         await supabase.from('delegations').upsert({
           case_id: data.id,
-          delegator_name: name ?? delegatorName,
-          delegator_relation: relation ?? delegatorRelation,
+          delegator_name: dName,
+          delegator_relation: dRelation,
+          delegator_phone: dPhone || null,
         }, { onConflict: 'case_id' })
       }
 
+      setDelegation({ delegatorName: dName, delegatorRelation: dRelation, signatureData: '' })
       setStep(1)
       router.push('/apply/services')
     } catch (e) {
@@ -628,10 +668,11 @@ function ApplyFlow() {
   )
   if (flowStep === 'applicant') return (
     <StepApplicant
-      onNext={(name, relation) => {
+      onNext={(name, relation, phone) => {
         setDelegatorName(name)
         setDelegatorRelation(relation)
-        saveCaseAndNext(name, relation)
+        setDelegatorPhone(phone)
+        saveCaseAndNext(name, relation, phone)
       }}
       onBack={() => setFlowStep('deceased')}
     />

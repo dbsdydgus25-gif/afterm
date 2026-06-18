@@ -148,12 +148,12 @@ function DocGuideModal({
   )
 }
 
-type Phase = 'docs' | 'delegator' | 'sign'
+type Phase = 'docs' | 'sign'
 
 export default function DocumentsPage() {
   const router = useRouter()
   const supabase = createClient()
-  const { caseId, selectedServices, documentsUploaded, setDocumentUploaded, setDelegation, setStep } = useApplyStore()
+  const { caseId, selectedServices, documentsUploaded, setDocumentUploaded, setDelegation, setStep, delegation } = useApplyStore()
 
   // 선택된 서비스 기반 동적 서류 목록
   // 트랙 정보가 있으면 트랙별 서류, 없으면 레거시 방식
@@ -165,23 +165,12 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [guideModal, setGuideModal] = useState<string | null>(null) // 가이드 모달 표시할 docType
+  const [guideModal, setGuideModal] = useState<string | null>(null)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
-  // 위임 정보
-  const [delegatorName, setDelegatorName] = useState('')
-  const [delegatorRelation, setDelegatorRelation] = useState('')
-
-  // 로그인 사용자 이름 자동 입력
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || ''
-        if (name) setDelegatorName(name)
-      }
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // 신청인 정보는 apply/page.tsx에서 이미 수집 — store에서 읽음
+  const delegatorName = delegation?.delegatorName || ''
+  const delegatorRelation = delegation?.delegatorRelation || ''
 
   // 서명
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -265,8 +254,6 @@ export default function DocumentsPage() {
   // 최종 제출
   const handleFinish = async () => {
     setError('')
-    if (!delegatorName) { setError('신청인 성함을 입력해 주세요'); return }
-    if (!delegatorRelation) { setError('고인과의 관계를 선택해 주세요'); return }
     if (!hasSig) { setError('서명해 주세요'); return }
 
     setLoading(true)
@@ -409,87 +396,8 @@ export default function DocumentsPage() {
         </div>
 
         <div className="cta-dock">
-          <Button block disabled={!allDocsUploaded} onClick={() => setPhase('delegator')}>
-            {allDocsUploaded ? '다음 단계' : `${DOCS.length - uploadedCount}개 더 첨부해 주세요`}
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── 위임 정보 입력 단계 ──
-  if (phase === 'delegator') {
-    const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
-    return (
-      <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
-          
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3 }}>
-            신청인 정보를<br />입력해 주세요
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '32px' }}>
-            위임장에 기재될 유족(신청인) 정보입니다
-          </p>
-
-          {error && (
-            <div className="card-soft" style={{ padding: '12px 16px', marginBottom: '24px', color: 'var(--color-status-negative)' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>{error}</span>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <div>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '4px' }}>
-                신청인 성함 *
-              </label>
-              <p style={{ fontSize: '12px', color: '#DC2626', fontWeight: 600, margin: '0 0 12px' }}>
-                ⚠️ 본명으로 기재 필수 (위임장에 그대로 사용됩니다)
-              </p>
-              <input
-                type="text"
-                placeholder="예: 홍길동"
-                value={delegatorName}
-                onChange={e => { setDelegatorName(e.target.value); setError('') }}
-                autoFocus
-                className="input"
-                style={{ padding: 0 }}
-              />
-            </div>
-
-            <div>
-              <label style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-label-alternative)', display: 'block', marginBottom: '16px' }}>
-                고인과의 관계 *
-              </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {RELATIONS.map(r => (
-                  <button
-                    key={r}
-                    onClick={() => { setDelegatorRelation(r); setError('') }}
-                    style={{
-                      padding: '10px 18px', borderRadius: 'var(--radius-pill)',
-                      border: `1.5px solid ${delegatorRelation === r ? 'var(--color-label-strong)' : 'var(--color-line-normal-normal)'}`,
-                      background: delegatorRelation === r ? 'var(--color-label-strong)' : 'var(--color-common-100)',
-                      color: delegatorRelation === r ? 'var(--color-common-100)' : 'var(--color-label-alternative)',
-                      fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-                      fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
-                    }}
-                  >{r}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="cta-dock" style={{ display: 'flex', gap: '12px' }}>
-          <Button variant="secondary" onClick={() => setPhase('docs')} style={{ width: '56px', padding: 0 }}>
-            ←
-          </Button>
-          <Button block onClick={() => {
-            if (!delegatorName) { setError('신청인 성함을 입력해 주세요'); return }
-            if (!delegatorRelation) { setError('고인과의 관계를 선택해 주세요'); return }
-            setError(''); setPhase('sign')
-          }} style={{ flex: 1 }}>
-            서명하기
+          <Button block disabled={!allDocsUploaded} onClick={() => setPhase('sign')}>
+            {allDocsUploaded ? '서명하기' : `${DOCS.length - uploadedCount}개 더 첨부해 주세요`}
           </Button>
         </div>
       </div>
@@ -574,7 +482,7 @@ export default function DocumentsPage() {
       </div>
 
       <div className="cta-dock" style={{ display: 'flex', gap: '12px' }}>
-        <Button variant="secondary" onClick={() => { setError(''); setPhase('delegator') }} style={{ width: '56px', padding: 0 }}>
+        <Button variant="secondary" onClick={() => { setError(''); setPhase('docs') }} style={{ width: '56px', padding: 0 }}>
           ←
         </Button>
         <Button block disabled={!hasSig || loading} onClick={handleFinish} style={{ flex: 1 }}>
