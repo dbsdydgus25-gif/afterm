@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { google } from 'googleapis'
-import { SolapiMessageService } from 'solapi'
+import { sendKakao } from '@/lib/kakao/sendKakao'
 
 export const runtime = 'nodejs'
 
@@ -81,7 +81,7 @@ export async function PATCH(
   // 병렬: 알림톡 + 이메일 + 구글시트
   await Promise.allSettled([
     notifyType && customerPhone
-      ? sendKakaoNotification({ phone: customerPhone, caseId, type: notifyType, requesterName: customerName, deceasedName, services })
+      ? sendKakao({ phone: customerPhone, caseId, type: notifyType as any, requesterName: customerName, deceasedName, services })
       : Promise.resolve(),
     notifyType && customerEmail
       ? fetch(`${siteUrl}/api/notify/email`, {
@@ -95,50 +95,6 @@ export async function PATCH(
   return NextResponse.json({ ok: true, status, label: STATUS_LABEL[status] || status })
 }
 
-async function sendKakaoNotification({ phone, caseId, type, requesterName, deceasedName, services }: {
-  phone: string; caseId: string; type: string;
-  requesterName: string; deceasedName: string; services: string;
-}) {
-  const apiKey = process.env.SOLAPI_API_KEY
-  const apiSecret = process.env.SOLAPI_API_SECRET
-  const senderPhone = process.env.SOLAPI_SENDER_NUMBER
-  const pfId = process.env.SOLAPI_KAKAO_PFID
-  if (!apiKey || !apiSecret || !senderPhone) return
-
-  const templateMap: Record<string, string | undefined> = {
-    submitted:  process.env.SOLAPI_KAKAO_SUBMIT_TEMPLATE_ID,
-    processing: process.env.SOLAPI_KAKAO_PROCESSING_TEMPLATE_ID,
-    completed:  process.env.SOLAPI_KAKAO_COMPLETE_TEMPLATE_ID,
-  }
-
-  const fallback: Record<string, string> = {
-    submitted:  `[에프텀] ${deceasedName}님 관련 서류 검토가 시작되었습니다. 접수번호: ${caseId.slice(0,8).toUpperCase()}`,
-    processing: `[에프텀] ${deceasedName}님 관련 처리가 시작되었습니다. 접수번호: ${caseId.slice(0,8).toUpperCase()}`,
-    completed:  `[에프텀] ${deceasedName}님 관련 모든 서비스 처리가 완료되었습니다. 접수번호: ${caseId.slice(0,8).toUpperCase()}`,
-  }
-
-  const messageService = new SolapiMessageService(apiKey, apiSecret)
-  const templateId = templateMap[type]
-
-  if (!pfId || !templateId) {
-    console.log(`[알림] pfId 또는 templateId 없음 — 생략 (SMS 미발송)`)
-    return
-  }
-  try {
-    await (messageService as any).sendOne({
-      to: phone, from: senderPhone,
-      kakaoOptions: {
-        pfId, templateId,
-        variables: {
-          '#{신청인이름}': requesterName,
-          '#{고인이름}': deceasedName,
-          '#{서비스}': services,
-          '#{접수번호}': caseId.slice(0, 8).toUpperCase(),
-        },
-      },
-    })
-  } catch (e) { console.error('[알림] 카카오 발송 실패:', e) }
-}
 
 async function updateGoogleSheetStatus(caseId: string, status: string) {
   const credJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON

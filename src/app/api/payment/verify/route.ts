@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendKakao } from '@/lib/kakao/sendKakao'
 
 export async function POST(req: NextRequest) {
   const { paymentId, caseId } = await req.json()
@@ -46,21 +47,23 @@ export async function POST(req: NextRequest) {
       const userName = caseData.delegations?.[0]?.delegator_name || user?.user_metadata?.full_name || '고객'
       const services = (caseData.case_services || []).map((s: any) => s.service_name).join(', ')
 
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
       const notifyPayload = {
         caseId,
-        type: 'payment',
+        type: 'payment' as const,
         requesterName: userName,
         deceasedName: caseData.deceased_name,
         services,
         amount: payment.amount.total.toLocaleString(),
       }
+
+      // 신청접수 + 결제완료 동시 발송
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
       await Promise.allSettled([
         userPhone
-          ? fetch(`${siteUrl}/api/notify/kakao`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: userPhone, ...notifyPayload }),
-            })
+          ? sendKakao({ phone: userPhone, ...notifyPayload })
+          : Promise.resolve(),
+        userPhone
+          ? sendKakao({ phone: userPhone, ...notifyPayload, type: 'submitted' })
           : Promise.resolve(),
         fetch(`${siteUrl}/api/notify/email`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
