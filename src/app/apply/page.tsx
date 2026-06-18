@@ -62,6 +62,17 @@ function BackBtn({ onClick }: { onClick: () => void }) {
   )
 }
 
+// 작은 카테고리 레이블 (섬세한 UX)
+function StepLabel({ label }: { label: string }) {
+  return (
+    <p style={{
+      fontSize: 12, fontWeight: 700, color: '#2563EB',
+      letterSpacing: '0.06em', textTransform: 'uppercase',
+      margin: '0 0 12px', opacity: 0.7,
+    }}>{label}</p>
+  )
+}
+
 function Question({ label, sub }: { label: string; sub?: string }) {
   return (
     <div style={{ marginBottom: 36 }}>
@@ -70,6 +81,21 @@ function Question({ label, sub }: { label: string; sub?: string }) {
         letterSpacing: '-0.03em', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line',
       }}>{label}</h2>
       {sub && <p style={{ fontSize: 14, color: '#9CA3AF', margin: '8px 0 0', lineHeight: 1.6 }}>{sub}</p>}
+    </div>
+  )
+}
+
+// 진행 표시 바
+function ProgressBar({ current, total }: { current: number; total: number }) {
+  return (
+    <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} style={{
+          flex: 1, height: 3, borderRadius: 2,
+          background: i < current ? '#2563EB' : '#E5E9EF',
+          transition: 'background 0.3s',
+        }} />
+      ))}
     </div>
   )
 }
@@ -133,7 +159,9 @@ function StepTerms({ onNext }: { onNext: () => void }) {
 
   return (
     <Screen>
+      <ProgressBar current={1} total={5} />
       <Body>
+        <StepLabel label="시작하기 전에" />
         <Question label={'약관에\n동의해 주세요'} sub="서비스 이용을 위한 필수 항목에 동의해 주세요" />
 
         <button onClick={toggleAll} style={{
@@ -186,7 +214,9 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
   return (
     <Screen>
+      <ProgressBar current={2} total={5} />
       <Body>
+        <StepLabel label="신청 자격 확인" />
         <Question label={'신청인이 고인의\n유가족이신가요?'} sub="에프텀 서비스는 유가족만 신청할 수 있습니다" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SelectCard label="네, 유가족입니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
@@ -345,7 +375,9 @@ function StepDeceased({
 
   return (
     <Screen>
+      <ProgressBar current={4} total={5} />
       <Body>
+        <StepLabel label={`고인 정보 ${fieldIdx + 1}/${DECEASED_FIELDS.length}`} />
         <div key={field.key}>
           <Question label={field.question} sub={field.sub} />
           {isDateField ? (
@@ -425,9 +457,13 @@ function StepApplicant({
     return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
   }
 
+  const innerLabels = { name: '신청인 정보 1/3', relation: '신청인 정보 2/3', phone: '신청인 정보 3/3' }
+
   return (
     <Screen>
+      <ProgressBar current={5} total={5} />
       <Body>
+        <StepLabel label={innerLabels[innerStep]} />
         {innerStep === 'name' && (
           <div key="name">
             <Question label={'신청인 성함을\n입력해 주세요'} sub="위임장에 기재됩니다. 반드시 실명으로 입력해 주세요" />
@@ -469,13 +505,20 @@ function StepApplicant({
             <Question label={'신청인 전화번호를\n입력해 주세요'} sub="결제 인증에 사용됩니다" />
             <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
               onChange={e => setPhone(phoneFormat(e.target.value))}
-              onKeyDown={e => e.key === 'Enter' && phone.length >= 12 && onNext(name, relation, phone)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) {
+                  onNext(name, relation, phone)
+                }
+              }}
               style={{
                 width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
                 background: 'transparent', fontSize: 20, fontWeight: 700,
                 color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
               }}
             />
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
+              결제 시 본인인증에 사용되며, 외부에 공유되지 않습니다
+            </p>
           </div>
         )}
       </Body>
@@ -487,7 +530,11 @@ function StepApplicant({
             else setInnerStep('relation')
           }} />
           <PrimaryBtn
-            disabled={innerStep === 'name' ? !name.trim() : innerStep === 'relation' ? !relation : !phone}
+            disabled={
+              innerStep === 'name' ? !name.trim() :
+              innerStep === 'relation' ? !relation :
+              phone.replace(/\D/g, '').length < 10
+            }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
               else if (innerStep === 'relation') setInnerStep('phone')
@@ -507,7 +554,9 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
   const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
   return (
     <Screen>
+      <ProgressBar current={3} total={5} />
       <Body>
+        <StepLabel label="서류 준비 확인" />
         <Question label={'사망진단서를\n준비하셨나요?'} sub="서비스 진행을 위해 반드시 필요합니다" />
 
         <p style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
@@ -518,7 +567,6 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
           <SelectCard label="아직 없습니다" selected={selected === 'no'} onClick={() => setSelected('no')} />
         </div>
 
-        {/* 안내 박스 - 항상 표시 */}
         <div style={{
           marginTop: 20, padding: '18px', borderRadius: 14,
           background: '#EFF6FF', border: '1px solid #BFDBFE',
@@ -568,6 +616,7 @@ function ApplyFlow() {
   const [delegatorRelation, setDelegatorRelation] = useState('')
   const [delegatorPhone, setDelegatorPhone] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     const { caseId } = useApplyStore.getState()
@@ -580,6 +629,7 @@ function ApplyFlow() {
 
   const saveCaseAndNext = async (name?: string, relation?: string, phone?: string) => {
     setSaving(true)
+    setSaveError('')
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -628,12 +678,12 @@ function ApplyFlow() {
       router.push('/apply/services')
     } catch (e) {
       console.error(e)
+      setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
     } finally {
       setSaving(false)
     }
   }
 
-  // 순서: 약관 → 유가족 → 사망진단서 → 고인정보 → 신청인 → (저장 후 services)
   if (flowStep === 'terms') return <StepTerms onNext={() => setFlowStep('family')} />
   if (flowStep === 'family') return (
     <StepFamilyCheck
@@ -660,15 +710,41 @@ function ApplyFlow() {
     />
   )
   if (flowStep === 'applicant') return (
-    <StepApplicant
-      onNext={(name, relation, phone) => {
-        setDelegatorName(name)
-        setDelegatorRelation(relation)
-        setDelegatorPhone(phone)
-        saveCaseAndNext(name, relation, phone)
-      }}
-      onBack={() => setFlowStep('deceased')}
-    />
+    <>
+      <StepApplicant
+        onNext={(name, relation, phone) => {
+          setDelegatorName(name)
+          setDelegatorRelation(relation)
+          setDelegatorPhone(phone)
+          saveCaseAndNext(name, relation, phone)
+        }}
+        onBack={() => setFlowStep('deceased')}
+      />
+      {saving && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.85)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          zIndex: 100, gap: 12,
+        }}>
+          <div style={{
+            width: 36, height: 36, border: '3px solid #E5E9EF',
+            borderTop: '3px solid #2563EB', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <p style={{ fontSize: 14, color: '#374151', fontWeight: 600 }}>저장 중...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        </div>
+      )}
+      {saveError && (
+        <div style={{
+          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
+          background: '#EF4444', color: '#fff', padding: '12px 20px', borderRadius: 10,
+          fontSize: 14, fontWeight: 600, zIndex: 200,
+        }}>
+          {saveError}
+        </div>
+      )}
+    </>
   )
   return null
 }
