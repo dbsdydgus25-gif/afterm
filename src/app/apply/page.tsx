@@ -214,16 +214,62 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   )
 }
 
+// ─── 날짜 텍스트 입력 ────────────────────────────
+function DateInput({ value, onChange, error }: {
+  value: string
+  onChange: (v: string) => void
+  error?: boolean
+}) {
+  // value 형식: "YYYY-MM-DD" (store용), 화면 표시는 "YYYY.MM.DD"
+  const display = value ? value.replace(/-/g, '.') : ''
+
+  const handleInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, '').slice(0, 8)
+    let formatted = digits
+    if (digits.length > 4) formatted = digits.slice(0, 4) + '.' + digits.slice(4)
+    if (digits.length > 6) formatted = formatted.slice(0, 7) + '.' + digits.slice(6)
+
+    // store에는 YYYY-MM-DD 형식
+    const store = digits.length === 8
+      ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`
+      : digits.length > 4
+        ? `${digits.slice(0, 4)}-${digits.slice(4)}`
+        : digits
+    onChange(store)
+  }
+
+  return (
+    <div>
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder="예: 1960.01.15"
+        value={display}
+        autoFocus
+        onChange={e => handleInput(e.target.value)}
+        style={{
+          width: '100%', height: 52, border: 0,
+          borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
+          background: 'transparent', fontSize: 24, fontWeight: 700,
+          color: '#111827', outline: 'none', fontFamily: 'inherit',
+          boxSizing: 'border-box', letterSpacing: '0.04em',
+        }}
+      />
+      <p style={{ fontSize: 12, color: '#C4C4CC', marginTop: 8 }}>숫자만 입력하면 자동으로 형식이 맞춰집니다</p>
+    </div>
+  )
+}
+
 // ─── Step 3: 고인 정보 ───────────────────────────
 type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
 
 const DECEASED_FIELDS: {
-  key: DeceasedField; question: string; sub: string; placeholder: string; type: string; optional?: boolean
+  key: DeceasedField; question: string; sub: string; placeholder: string; optional?: boolean
 }[] = [
-  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동', type: 'text' },
-  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '', type: 'date' },
-  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '', type: 'date' },
-  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', type: 'tel', optional: true },
+  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동' },
+  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '' },
+  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '' },
+  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', optional: true },
 ]
 
 function StepDeceased({
@@ -249,11 +295,25 @@ function StepDeceased({
     return deceasedInfo.phone
   }
 
+  const isDateField = field.key === 'birth' || field.key === 'death'
+
+  const validateDate = (v: string) => {
+    if (!v) return false
+    const digits = v.replace(/\D/g, '')
+    return digits.length === 8
+  }
+
   const goNext = () => {
     setError('')
-    if (!field.optional && !getValue().trim()) {
-      setError(field.key === 'name' ? '성함을 입력해 주세요' : '날짜를 선택해 주세요')
-      return
+    if (!field.optional) {
+      if (isDateField && !validateDate(getValue())) {
+        setError('날짜 8자리를 모두 입력해 주세요 (예: 1960.01.15)')
+        return
+      }
+      if (!isDateField && !getValue().trim()) {
+        setError('성함을 입력해 주세요')
+        return
+      }
     }
     if (isLast) onNext()
     else setFieldIdx(i => i + 1)
@@ -272,19 +332,18 @@ function StepDeceased({
         </div>
         <div key={field.key}>
           <Question label={field.question} sub={field.sub} />
-          {field.type === 'date' ? (
-            <input type="date" value={getValue()}
-              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                width: '100%', height: 52, border: 0,
-                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
-                background: 'transparent', fontSize: 18, fontWeight: 600,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
+          {isDateField ? (
+            <DateInput
+              value={getValue()}
+              onChange={v => { onUpdate(field.key, v); setError('') }}
+              error={!!error}
             />
           ) : (
-            <input type={field.type} placeholder={field.placeholder} value={getValue()} autoFocus
+            <input
+              type={field.key === 'phone' ? 'tel' : 'text'}
+              placeholder={field.placeholder}
+              value={getValue()}
+              autoFocus
               onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
               onKeyDown={e => e.key === 'Enter' && goNext()}
               style={{
@@ -391,20 +450,43 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
   return (
     <Screen>
       <Body>
-        <Question label={'사망진단서를\n보유하고 계신가요?'} sub="서비스 진행을 위해 사망진단서가 반드시 필요합니다" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-          <SelectCard label="네, 있습니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
+        <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, marginBottom: 6 }}>서류 준비</p>
+        <Question label={'사망진단서가\n필요합니다'} />
+
+        {/* 준비 안내 박스 - 선택 전에 항상 표시 */}
+        <div style={{
+          padding: '18px 18px', borderRadius: 14, marginBottom: 28,
+          background: '#EFF6FF', border: '1px solid #BFDBFE',
+        }}>
+          <p style={{ fontSize: 14, fontWeight: 800, color: '#1E40AF', margin: '0 0 10px' }}>
+            서비스 진행을 위해 반드시 필요합니다
+          </p>
+          <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 14px', lineHeight: 2.1 }}>
+            <li>사망을 처리한 <strong>병원 원무과</strong>에서 발급</li>
+            <li><strong>관할 보건소</strong> (사망신고 후 발급 가능)</li>
+            <li><strong>정부24</strong> 온라인 발급 (gov.kr)</li>
+          </ul>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
+            아직 없으시다면 먼저 발급받으신 후 신청을 진행해 주세요
+          </p>
+        </div>
+
+        <p style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
+          사망진단서를 준비하셨나요?
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SelectCard label="네, 준비했습니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
           <SelectCard label="아직 없습니다" selected={selected === 'no'} onClick={() => setSelected('no')} />
         </div>
+
         {selected === 'no' && (
-          <div style={{ padding: '16px', borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#1E40AF', margin: '0 0 8px' }}>사망진단서 발급 방법</p>
-            <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 16px', lineHeight: 2 }}>
-              <li>사망 처리한 병원 원무과</li>
-              <li>관할 보건소 (사망신고 후 발급)</li>
-              <li>정부24 온라인 발급 (gov.kr)</li>
-            </ul>
-            <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0' }}>발급 후 다시 돌아와 신청을 완료해 주세요</p>
+          <div style={{
+            marginTop: 16, padding: '14px 16px', borderRadius: 12,
+            background: '#FFFBEB', border: '1px solid #FCD34D',
+          }}>
+            <p style={{ fontSize: 14, color: '#92400E', margin: 0, lineHeight: 1.7, fontWeight: 600 }}>
+              사망진단서 발급 후 다시 돌아와<br />신청을 완료해 주세요
+            </p>
           </div>
         )}
       </Body>
@@ -412,7 +494,7 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
         <div style={{ display: 'flex', gap: 10 }}>
           <BackBtn onClick={onBack} />
           <PrimaryBtn disabled={!selected} onClick={() => selected === 'yes' ? onYes() : onNo()}>
-            {selected === 'no' ? '나중에 신청하기' : '계속하기'}
+            {selected === 'no' ? '나중에 신청하기' : '서비스 선택하러 가기'}
           </PrimaryBtn>
         </div>
       </Dock>
