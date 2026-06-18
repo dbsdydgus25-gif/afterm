@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
@@ -214,9 +214,9 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   )
 }
 
-// ─── 날짜 3칸 입력 ──────────────────────────────
+// ─── 날짜 3칸 입력 (자동 포커스 이동) ───────────
 function DateFields({ value, onChange, error }: {
-  value: string  // "YYYY-MM-DD" or ""
+  value: string
   onChange: (v: string) => void
   error?: boolean
 }) {
@@ -225,9 +225,11 @@ function DateFields({ value, onChange, error }: {
   const month = parts[1] || ''
   const day = parts[2] || ''
 
+  const monthRef = useRef<HTMLInputElement>(null)
+  const dayRef   = useRef<HTMLInputElement>(null)
+
   const update = (y: string, m: string, d: string) => {
-    if (y || m || d) onChange(`${y}-${m}-${d}`)
-    else onChange('')
+    onChange(`${y}-${m}-${d}`)
   }
 
   const inputStyle = (hasError?: boolean): React.CSSProperties => ({
@@ -244,25 +246,38 @@ function DateFields({ value, onChange, error }: {
         <input
           type="text" inputMode="numeric" placeholder="1960" maxLength={4}
           value={year} autoFocus
-          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 4); update(v, month, day) }}
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+            update(v, month, day)
+            if (v.length === 4) monthRef.current?.focus()
+          }}
           style={inputStyle(error)}
         />
         <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>년</p>
       </div>
       <div style={{ flex: 1 }}>
         <input
+          ref={monthRef}
           type="text" inputMode="numeric" placeholder="01" maxLength={2}
           value={month}
-          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, v, day) }}
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
+            update(year, v, day)
+            if (v.length === 2) dayRef.current?.focus()
+          }}
           style={inputStyle(error)}
         />
         <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>월</p>
       </div>
       <div style={{ flex: 1 }}>
         <input
+          ref={dayRef}
           type="text" inputMode="numeric" placeholder="01" maxLength={2}
           value={day}
-          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, month, v) }}
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
+            update(year, month, v)
+          }}
           style={inputStyle(error)}
         />
         <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>일</p>
@@ -343,10 +358,21 @@ function StepDeceased({
           ) : (
             <input
               type={field.key === 'phone' ? 'tel' : 'text'}
+              inputMode={field.key === 'phone' ? 'numeric' : undefined}
               placeholder={field.placeholder}
               value={getValue()}
               autoFocus
-              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
+              onChange={e => {
+                let v = e.target.value
+                if (field.key === 'phone') {
+                  const d = v.replace(/\D/g, '').slice(0, 11)
+                  if (d.length <= 3) v = d
+                  else if (d.length <= 7) v = `${d.slice(0,3)}-${d.slice(3)}`
+                  else v = `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
+                }
+                onUpdate(field.key, v)
+                setError('')
+              }}
               onKeyDown={e => e.key === 'Enter' && goNext()}
               style={{
                 width: '100%', height: 52, border: 0,
