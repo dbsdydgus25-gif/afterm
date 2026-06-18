@@ -4,249 +4,452 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
-import Button from '@/components/ui/Button'
 import { Suspense } from 'react'
 
-// 신청 플로우 Step 0: 고인 기본 정보 (Toss UX: 1 Question 1 Screen)
-type Field = 'name' | 'birth' | 'death' | 'phone'
+// ─── 공통 ───────────────────────────────────────
+function Screen({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', minHeight: '100dvh',
+      fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff',
+    }}>
+      {children}
+    </div>
+  )
+}
 
-const FIELDS: { key: Field; question: string; sub: string; placeholder: string; type: string; inputMode?: string }[] = [
-  {
-    key: 'name',
-    question: '고인의 성함을\n알려주세요',
-    sub: '기업 CS 접수에 사용됩니다',
-    placeholder: '예: 홍길동',
-    type: 'text',
-  },
-  {
-    key: 'birth',
-    question: '고인의 생년월일은\n언제인가요?',
-    sub: '계정 조회 및 서류 작성에 사용됩니다',
-    placeholder: '',
-    type: 'date',
-  },
-  {
-    key: 'death',
-    question: '사망일은\n언제인가요?',
-    sub: '사망진단서의 사망일과 일치해야 합니다',
-    placeholder: '',
-    type: 'date',
-  },
-  {
-    key: 'phone',
-    question: '고인의 휴대폰 번호를\n알고 계신가요?',
-    sub: '카카오톡 계정 확인에 필요해요',
-    placeholder: '010-0000-0000',
-    type: 'tel',
-    inputMode: 'tel',
-  },
+function Body({ children }: { children: React.ReactNode }) {
+  return <div style={{ flex: 1, padding: '40px 24px 120px' }}>{children}</div>
+}
+
+function Dock({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 430, padding: '16px 24px',
+      paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+      background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+function PrimaryBtn({ children, onClick, disabled }: {
+  children: React.ReactNode; onClick?: () => void; disabled?: boolean
+}) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      width: '100%', padding: '17px', borderRadius: 14,
+      background: disabled ? '#E5E9EF' : '#2563EB',
+      color: disabled ? '#9CA3AF' : '#fff',
+      fontSize: 16, fontWeight: 800, border: 'none',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      fontFamily: 'inherit', letterSpacing: '-0.02em', transition: 'background 0.15s',
+    }}>
+      {children}
+    </button>
+  )
+}
+
+function BackBtn({ onClick }: { onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      width: 52, height: 52, borderRadius: 12, border: '1.5px solid #E5E9EF',
+      background: '#fff', fontSize: 20, cursor: 'pointer', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>←</button>
+  )
+}
+
+function Question({ label, sub }: { label: string; sub?: string }) {
+  return (
+    <div style={{ marginBottom: 36 }}>
+      <h2 style={{
+        fontSize: 26, fontWeight: 800, color: '#111827',
+        letterSpacing: '-0.03em', lineHeight: 1.35, margin: 0, whiteSpace: 'pre-line',
+      }}>{label}</h2>
+      {sub && <p style={{ fontSize: 14, color: '#9CA3AF', margin: '8px 0 0', lineHeight: 1.6 }}>{sub}</p>}
+    </div>
+  )
+}
+
+function CheckCircle({ checked, onClick }: { checked: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+      background: checked ? '#2563EB' : '#fff',
+      border: `2px solid ${checked ? '#2563EB' : '#D1D5DB'}`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer', padding: 0,
+    }}>
+      {checked && (
+        <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+          <path d="M1 3.5L4 6.5L10 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
+function SelectCard({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '20px', borderRadius: 14, textAlign: 'left', width: '100%',
+      background: selected ? '#EBF3FF' : '#F8FAFC',
+      border: `1.5px solid ${selected ? '#2563EB' : '#E5E9EF'}`,
+      fontSize: 16, fontWeight: 600, color: selected ? '#2563EB' : '#374151',
+      cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    }}>
+      {label}
+      {selected && (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="10" fill="#2563EB"/>
+          <path d="M6 10L9 13L14 7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
+// ─── Step 1: 약관 동의 ───────────────────────────
+const TERMS = [
+  { key: 'privacy',  label: '개인정보 수집·이용 동의', href: '/privacy' },
+  { key: 'delegate', label: '디지털 계정 대행 위임 동의', href: null },
+  { key: 'esign',    label: '전자서명 법적 효력 동의', href: null },
 ]
 
-// ── 약관 동의 화면 ──
-function TermsScreen({ onAgree }: { onAgree: () => void }) {
-  const TERMS = [
-    { key: 'service', label: '이용약관 동의', required: true, href: '/terms' },
-    { key: 'privacy', label: '개인정보 처리방침 동의', required: true, href: '/privacy' },
-    { key: 'delegate', label: '디지털 계정 해지 대행 위임 동의', required: true, href: null },
-    { key: 'age', label: '만 19세 이상입니다', required: true, href: null },
-  ]
+function StepTerms({ onNext }: { onNext: () => void }) {
   const [agreed, setAgreed] = useState<Record<string, boolean>>({})
-  const allRequired = TERMS.filter(t => t.required).every(t => agreed[t.key])
+  const allAgreed = TERMS.every(t => agreed[t.key])
 
   const toggleAll = () => {
-    if (allRequired) setAgreed({})
-    else {
-      const all: Record<string, boolean> = {}
-      TERMS.forEach(t => { all[t.key] = true })
-      setAgreed(all)
-    }
+    if (allAgreed) { setAgreed({}); return }
+    const all: Record<string, boolean> = {}
+    TERMS.forEach(t => { all[t.key] = true })
+    setAgreed(all)
   }
 
   return (
-    <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
-      <div className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
-        <p style={{ fontSize: 13, color: 'var(--color-label-alternative)', marginBottom: 6, fontWeight: 600 }}>시작하기 전에</p>
-        <h2 style={{
-          fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800,
-          letterSpacing: '-0.02em', color: 'var(--color-label-strong)',
-          marginBottom: 32, lineHeight: 1.3,
-        }}>
-          약관에 동의해 주세요
-        </h2>
+    <Screen>
+      <Body>
+        <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, marginBottom: 6 }}>시작하기 전에</p>
+        <Question label={'약관에\n동의해 주세요'} />
 
-        {/* 전체 동의 */}
-        <button
-          onClick={toggleAll}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-            background: allRequired ? '#2563EB' : '#F4F6F9',
-            border: `1.5px solid ${allRequired ? '#2563EB' : '#E8EAF0'}`,
-            borderRadius: 14, padding: '18px 20px',
-            cursor: 'pointer', marginBottom: 12, transition: 'all 0.2s',
-            fontFamily: 'var(--font-sans)',
-          }}
-        >
-          <div style={{
-            width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-            border: `2px solid ${allRequired ? '#fff' : '#CBD5E1'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {allRequired && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff' }} />}
-          </div>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: allRequired ? '#fff' : '#111827' }}>전체 동의</div>
-            <div style={{ fontSize: 12, color: allRequired ? 'rgba(255,255,255,0.7)' : '#9CA3AF', marginTop: 2 }}>
-              서비스 이용을 위한 필수 항목에 모두 동의합니다
-            </div>
+        <button onClick={toggleAll} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+          background: allAgreed ? '#EBF3FF' : '#F8FAFC',
+          border: `1.5px solid ${allAgreed ? '#2563EB' : '#E5E9EF'}`,
+          borderRadius: 14, padding: '16px 18px', cursor: 'pointer',
+          marginBottom: 8, transition: 'all 0.15s', fontFamily: 'inherit', textAlign: 'left',
+        }}>
+          <CheckCircle checked={allAgreed} onClick={() => {}} />
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: allAgreed ? '#2563EB' : '#111827' }}>전체 동의</div>
+            <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>서비스 이용 필수 항목 모두 동의</div>
           </div>
         </button>
 
-        {/* 개별 항목 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {TERMS.map(term => (
-            <div
-              key={term.key}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '14px 4px', borderBottom: '1px solid #F3F4F6',
-              }}
-            >
-              <button
+            <div key={term.key} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '14px 4px', borderBottom: '1px solid #F3F4F6',
+            }}>
+              <CheckCircle
+                checked={!!agreed[term.key]}
                 onClick={() => setAgreed(prev => ({ ...prev, [term.key]: !prev[term.key] }))}
-                style={{
-                  width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                  border: `2px solid ${agreed[term.key] ? '#2563EB' : '#CBD5E1'}`,
-                  background: agreed[term.key] ? '#2563EB' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', padding: 0,
-                }}
-              >
-                {agreed[term.key] && (
-                  <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                    <path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </button>
-              <span style={{ flex: 1, fontSize: 14, color: '#374151', fontWeight: 500 }}>
-                <span style={{ color: '#2563EB', fontWeight: 700 }}>(필수) </span>
+              />
+              <span style={{ flex: 1, fontSize: 14, color: '#374151' }}>
+                <span style={{ color: '#2563EB', fontWeight: 700, fontSize: 12 }}>(필수) </span>
                 {term.label}
               </span>
               {term.href && (
-                <a href={term.href} target="_blank" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none', flexShrink: 0 }}>
-                  보기 →
-                </a>
+                <a href={term.href} target="_blank" style={{ fontSize: 12, color: '#C4C4CC', textDecoration: 'none' }}>보기</a>
               )}
             </div>
           ))}
         </div>
 
-        <div style={{
-          marginTop: 24, padding: '14px 16px',
-          background: '#F8FAFC', borderRadius: 12, border: '1px solid #E8EAF0',
-          fontSize: 12, color: '#9CA3AF', lineHeight: 1.7,
-        }}>
-          수집된 서류는 디지털 계정 해지 대행 목적으로만 사용되며,<br />
+        <p style={{ marginTop: 20, fontSize: 12, color: '#C4C4CC', lineHeight: 1.7, padding: '12px 0' }}>
+          수집된 개인정보 및 서류는 디지털 계정 해지 대행 목적으로만 사용되며,<br />
           업무 완료 후 30일 이내 파기됩니다.
-        </div>
-      </div>
-
-      <div className="cta-dock">
-        <button
-          disabled={!allRequired}
-          onClick={onAgree}
-          style={{
-            width: '100%', padding: '16px', borderRadius: 14,
-            background: allRequired ? '#2563EB' : '#E5E9EF',
-            color: allRequired ? '#fff' : '#9CA3AF',
-            fontSize: 16, fontWeight: 800, border: 'none',
-            cursor: allRequired ? 'pointer' : 'not-allowed',
-            fontFamily: 'var(--font-sans)', transition: 'all 0.2s',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          동의하고 시작하기
-        </button>
-      </div>
-    </div>
+        </p>
+      </Body>
+      <Dock><PrimaryBtn disabled={!allAgreed} onClick={onNext}>동의하고 시작하기</PrimaryBtn></Dock>
+    </Screen>
   )
 }
 
-function ApplyForm() {
+// ─── Step 2: 유가족 확인 ─────────────────────────
+function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
+  const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
+  return (
+    <Screen>
+      <Body>
+        <Question label={'신청인이 고인의\n유가족이신가요?'} sub="에프텀 서비스는 유가족만 신청할 수 있습니다" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <SelectCard label="네, 유가족입니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
+          <SelectCard label="아니요, 유가족이 아닙니다" selected={selected === 'no'} onClick={() => setSelected('no')} />
+        </div>
+        {selected === 'no' && (
+          <div style={{
+            marginTop: 16, padding: '14px 16px', borderRadius: 12,
+            background: '#FFF7ED', border: '1px solid #FED7AA',
+          }}>
+            <p style={{ fontSize: 14, color: '#92400E', margin: 0, lineHeight: 1.7, fontWeight: 600 }}>
+              에프텀은 고인의 유가족 대상 서비스입니다.<br />
+              유가족 외 신청은 접수가 불가합니다.
+            </p>
+          </div>
+        )}
+      </Body>
+      <Dock>
+        <PrimaryBtn disabled={!selected} onClick={() => selected === 'yes' ? onYes() : onNo()}>
+          {selected === 'no' ? '서비스 종료하기' : '계속하기'}
+        </PrimaryBtn>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 3: 고인 정보 ───────────────────────────
+type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
+
+const DECEASED_FIELDS: {
+  key: DeceasedField; question: string; sub: string; placeholder: string; type: string; optional?: boolean
+}[] = [
+  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동', type: 'text' },
+  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '', type: 'date' },
+  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '', type: 'date' },
+  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', type: 'tel', optional: true },
+]
+
+function StepDeceased({
+  deceasedInfo,
+  onUpdate,
+  onNext,
+  onBack,
+}: {
+  deceasedInfo: { name: string; birthDate: string; deathDate: string; phone: string }
+  onUpdate: (k: DeceasedField, v: string) => void
+  onNext: () => void
+  onBack: () => void
+}) {
+  const [fieldIdx, setFieldIdx] = useState(0)
+  const [error, setError] = useState('')
+  const field = DECEASED_FIELDS[fieldIdx]
+  const isLast = fieldIdx === DECEASED_FIELDS.length - 1
+
+  const getValue = () => {
+    if (field.key === 'name') return deceasedInfo.name
+    if (field.key === 'birth') return deceasedInfo.birthDate
+    if (field.key === 'death') return deceasedInfo.deathDate
+    return deceasedInfo.phone
+  }
+
+  const goNext = () => {
+    setError('')
+    if (!field.optional && !getValue().trim()) {
+      setError(field.key === 'name' ? '성함을 입력해 주세요' : '날짜를 선택해 주세요')
+      return
+    }
+    if (isLast) onNext()
+    else setFieldIdx(i => i + 1)
+  }
+
+  return (
+    <Screen>
+      <Body>
+        <div style={{ display: 'flex', gap: 4, marginBottom: 36 }}>
+          {DECEASED_FIELDS.map((_, i) => (
+            <div key={i} style={{
+              flex: 1, height: 3, borderRadius: 2,
+              background: i <= fieldIdx ? '#2563EB' : '#E5E9EF', transition: 'background 0.2s',
+            }} />
+          ))}
+        </div>
+        <div key={field.key}>
+          <Question label={field.question} sub={field.sub} />
+          {field.type === 'date' ? (
+            <input type="date" value={getValue()}
+              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
+              max={new Date().toISOString().split('T')[0]}
+              style={{
+                width: '100%', height: 52, border: 0,
+                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
+                background: 'transparent', fontSize: 18, fontWeight: 600,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+          ) : (
+            <input type={field.type} placeholder={field.placeholder} value={getValue()} autoFocus
+              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
+              onKeyDown={e => e.key === 'Enter' && goNext()}
+              style={{
+                width: '100%', height: 52, border: 0,
+                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+          )}
+          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>{error}</p>}
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => fieldIdx === 0 ? onBack() : setFieldIdx(i => i - 1)} />
+          <PrimaryBtn onClick={goNext}>
+            {isLast && field.optional && !getValue() ? '건너뛰기' : '계속하기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 4: 신청인 정보 ─────────────────────────
+const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
+
+function StepApplicant({
+  onNext, onBack,
+}: {
+  onNext: (name: string, relation: string) => void
+  onBack: () => void
+}) {
+  const [name, setName] = useState('')
+  const [relation, setRelation] = useState('')
+  const [nameStep, setNameStep] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const n = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
+      if (n) setName(n)
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Screen>
+      <Body>
+        {nameStep ? (
+          <div key="name">
+            <Question label={'신청인 성함을\n입력해 주세요'} sub="위임장에 기재됩니다. 반드시 실명으로 입력해 주세요" />
+            <input type="text" placeholder="예: 홍길동" value={name} autoFocus
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && setNameStep(false)}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: 12, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>
+              ⚠ 실명 미기재 시 서비스 진행이 불가합니다
+            </p>
+          </div>
+        ) : (
+          <div key="relation">
+            <Question label={`${name}님과\n고인의 관계는요?`} sub="해당 관계를 선택해 주세요" />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {RELATIONS.map(r => (
+                <button key={r} onClick={() => setRelation(r)} style={{
+                  padding: '11px 20px', borderRadius: 50,
+                  border: `1.5px solid ${relation === r ? '#2563EB' : '#E5E9EF'}`,
+                  background: relation === r ? '#EBF3FF' : '#fff',
+                  color: relation === r ? '#2563EB' : '#374151',
+                  fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit', transition: 'all 0.15s',
+                }}>
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => nameStep ? onBack() : setNameStep(true)} />
+          <PrimaryBtn
+            disabled={nameStep ? !name.trim() : !relation}
+            onClick={() => nameStep ? setNameStep(false) : onNext(name, relation)}
+          >
+            계속하기
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 5: 사망진단서 보유 확인 ───────────────
+function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: () => void; onBack: () => void }) {
+  const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
+  return (
+    <Screen>
+      <Body>
+        <Question label={'사망진단서를\n보유하고 계신가요?'} sub="서비스 진행을 위해 사망진단서가 반드시 필요합니다" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+          <SelectCard label="네, 있습니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
+          <SelectCard label="아직 없습니다" selected={selected === 'no'} onClick={() => setSelected('no')} />
+        </div>
+        {selected === 'no' && (
+          <div style={{ padding: '16px', borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#1E40AF', margin: '0 0 8px' }}>사망진단서 발급 방법</p>
+            <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 16px', lineHeight: 2 }}>
+              <li>사망 처리한 병원 원무과</li>
+              <li>관할 보건소 (사망신고 후 발급)</li>
+              <li>정부24 온라인 발급 (gov.kr)</li>
+            </ul>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0' }}>발급 후 다시 돌아와 신청을 완료해 주세요</p>
+          </div>
+        )}
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={onBack} />
+          <PrimaryBtn disabled={!selected} onClick={() => selected === 'yes' ? onYes() : onNo()}>
+            {selected === 'no' ? '나중에 신청하기' : '계속하기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── 메인 플로우 ─────────────────────────────────
+type FlowStep = 'terms' | 'family' | 'deceased' | 'applicant' | 'deathcert'
+
+function ApplyFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, resetStore } = useApplyStore()
   const supabase = createClient()
-
-  const [termsAgreed, setTermsAgreed] = useState(false)
-  const [currentField, setCurrentField] = useState<number>(0)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [flowStep, setFlowStep] = useState<FlowStep>('terms')
+  const [delegatorName, setDelegatorName] = useState('')
+  const [delegatorRelation, setDelegatorRelation] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    // ?reset=true 또는 이전 케이스가 draft가 아니면 초기화 (새 신청)
     const { caseId } = useApplyStore.getState()
-    if (searchParams.get('reset') === 'true') {
-      resetStore()
-      return
-    }
-    // draft가 아닌 케이스(submitted/processing 등)가 남아있으면 새 신청으로 간주 초기화
+    if (searchParams.get('reset') === 'true') { resetStore(); return }
     if (caseId) {
       supabase.from('cases').select('status').eq('id', caseId).single()
-        .then(({ data }) => {
-          if (!data || data.status !== 'draft') {
-            resetStore()
-          }
-        })
+        .then(({ data }) => { if (!data || data.status !== 'draft') resetStore() })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!termsAgreed) return <TermsScreen onAgree={() => setTermsAgreed(true)} />
-
-  const field = FIELDS[currentField]
-  const isLast = currentField === FIELDS.length - 1
-  const value = currentField === 0 ? deceasedInfo.name
-    : currentField === 1 ? deceasedInfo.birthDate
-    : currentField === 2 ? deceasedInfo.deathDate
-    : deceasedInfo.phone
-
-  const handleChange = (v: string) => {
-    setError('')
-    if (field.key === 'name') setDeceasedInfo({ name: v })
-    else if (field.key === 'birth') setDeceasedInfo({ birthDate: v })
-    else if (field.key === 'death') setDeceasedInfo({ deathDate: v })
-    else setDeceasedInfo({ phone: v })
-  }
-
-  const validate = () => {
-    if (field.key === 'name' && !deceasedInfo.name.trim()) {
-      setError('고인의 성함을 입력해 주세요')
-      return false
-    }
-    if (field.key === 'birth' && !deceasedInfo.birthDate) {
-      setError('생년월일을 선택해 주세요')
-      return false
-    }
-    if (field.key === 'death' && !deceasedInfo.deathDate) {
-      setError('사망일을 선택해 주세요')
-      return false
-    }
-    return true
-  }
-
-  const goNext = async () => {
-    if (!validate()) return
-
-    if (!isLast) {
-      setCurrentField(prev => prev + 1)
-      return
-    }
-
-    setLoading(true)
+  const saveCaseAndNext = async () => {
+    setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
       const existingCaseId = useApplyStore.getState().caseId
+
       if (existingCaseId) {
         await supabase.from('cases').update({
           deceased_name: deceasedInfo.name,
@@ -254,8 +457,13 @@ function ApplyForm() {
           deceased_death: deceasedInfo.deathDate,
           deceased_phone: deceasedInfo.phone || null,
         }).eq('id', existingCaseId)
+        await supabase.from('delegations').upsert({
+          case_id: existingCaseId,
+          delegator_name: delegatorName,
+          delegator_relation: delegatorRelation,
+        }, { onConflict: 'case_id' })
       } else {
-        const { data, error: err } = await supabase.from('cases').insert({
+        const { data, error } = await supabase.from('cases').insert({
           user_id: user.id,
           deceased_name: deceasedInfo.name,
           deceased_birth: deceasedInfo.birthDate,
@@ -263,93 +471,54 @@ function ApplyForm() {
           deceased_phone: deceasedInfo.phone || null,
           status: 'draft',
         }).select('id').single()
-        if (err) throw err
+        if (error) throw error
         setCaseId(data.id)
+        await supabase.from('delegations').upsert({
+          case_id: data.id,
+          delegator_name: delegatorName,
+          delegator_relation: delegatorRelation,
+        }, { onConflict: 'case_id' })
       }
 
       setStep(1)
       router.push('/apply/services')
-    } catch {
-      setError('저장 중 오류가 발생했습니다')
+    } catch (e) {
+      console.error(e)
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  const goPrev = () => {
-    if (currentField === 0) return
-    setCurrentField(prev => prev - 1)
-  }
-
-  return (
-    <div className="screen-body" style={{ display: 'flex', flexDirection: 'column' }}>
-      
-      {/* 질문 영역 */}
-      <div key={field.key} className="animate-slide-up" style={{ flex: 1, padding: '32px 24px' }}>
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em',
-          color: 'var(--color-label-strong)', marginBottom: '8px', lineHeight: 1.3,
-          whiteSpace: 'pre-line',
-        }}>
-          {field.question}
-        </h2>
-        <p style={{ fontSize: '15px', color: 'var(--color-label-alternative)', marginBottom: '40px' }}>
-          {field.sub}
-        </p>
-
-        {/* 입력 필드 */}
-        <div>
-          {field.type === 'date' ? (
-            <input
-              type="date"
-              value={value}
-              onChange={e => handleChange(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              className="input"
-              style={{ padding: 0 }}
-            />
-          ) : (
-            <input
-              type={field.type}
-              placeholder={field.placeholder}
-              value={value}
-              onChange={e => handleChange(e.target.value)}
-              autoFocus
-              inputMode={field.inputMode as any}
-              onKeyDown={e => e.key === 'Enter' && goNext()}
-              className="input"
-              style={{ padding: 0 }}
-            />
-          )}
-
-          {error && (
-            <p style={{ fontSize: '13px', color: 'var(--color-status-negative)', marginTop: '8px', fontWeight: 600 }}>
-              {error}
-            </p>
-          )}
-
-        </div>
-      </div>
-
-      <div className="cta-dock" style={{ display: 'flex', gap: '12px' }}>
-        {currentField > 0 && (
-          <Button variant="secondary" onClick={goPrev} style={{ width: '56px', padding: 0 }}>
-            ←
-          </Button>
-        )}
-        <Button block disabled={loading} onClick={goNext} style={{ flex: 1 }}>
-          {loading ? '저장 중...' : isLast ? '다음 단계' : '계속하기'}
-        </Button>
-      </div>
-    </div>
+  if (flowStep === 'terms') return <StepTerms onNext={() => setFlowStep('family')} />
+  if (flowStep === 'family') return <StepFamilyCheck onYes={() => setFlowStep('deceased')} onNo={() => router.push('/')} />
+  if (flowStep === 'deceased') return (
+    <StepDeceased
+      deceasedInfo={deceasedInfo}
+      onUpdate={(k, v) => setDeceasedInfo({ [k]: v })}
+      onNext={() => setFlowStep('applicant')}
+      onBack={() => setFlowStep('family')}
+    />
   )
+  if (flowStep === 'applicant') return (
+    <StepApplicant
+      onNext={(name, relation) => { setDelegatorName(name); setDelegatorRelation(relation); setFlowStep('deathcert') }}
+      onBack={() => setFlowStep('deceased')}
+    />
+  )
+  if (flowStep === 'deathcert') return (
+    <StepDeathCertCheck
+      onYes={saving ? () => {} : saveCaseAndNext}
+      onNo={() => router.push('/')}
+      onBack={() => setFlowStep('applicant')}
+    />
+  )
+  return null
 }
 
 export default function ApplyPage() {
   return (
     <Suspense fallback={<div />}>
-      <ApplyForm />
+      <ApplyFlow />
     </Suspense>
   )
 }
