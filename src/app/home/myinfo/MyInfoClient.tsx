@@ -83,7 +83,7 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
                 알림은 홈 화면 우측 상단 🔔 벨 아이콘을 통해 확인하실 수 있습니다.
               </p>
               <div style={{ background: '#EBF3FF', borderRadius: 14, padding: '14px 16px' }}>
-                <p style={{ fontSize: 13, color: '#163272', margin: 0, fontWeight: 600 }}>
+                <p style={{ fontSize: 13, color: '#0066FF', margin: 0, fontWeight: 600 }}>
                   📱 카카오 채널을 추가하시면 카카오톡으로도 알림을 받으실 수 있습니다.
                 </p>
               </div>
@@ -128,7 +128,7 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
 
             <button onClick={() => setActiveModal(null)} style={{
               width: '100%', marginTop: 24, padding: '14px', borderRadius: 14,
-              background: '#163272', color: '#fff', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer',
+              background: '#0066FF', color: '#fff', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer',
             }}>확인</button>
           </div>
         </div>
@@ -185,13 +185,13 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
               padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
             }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#163272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                   <polyline points="10 17 15 12 10 7"></polyline>
                   <line x1="15" y1="12" x2="3" y2="12"></line>
                 </svg>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#163272', margin: 0 }}>로그인하기</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: '#0066FF', margin: 0 }}>로그인하기</p>
             </div>
           )}
         </div>

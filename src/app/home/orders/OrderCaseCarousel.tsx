@@ -85,7 +85,7 @@ export default function OrderCaseCarousel({ services, caseId, userId }: Props) {
                 width: currentIdx === i ? 20 : 6,
                 height: 6,
                 borderRadius: 3,
-                background: currentIdx === i ? '#163272' : '#D1D5DB',
+                background: currentIdx === i ? '#0066FF' : '#D1D5DB',
                 border: 'none', padding: 0, cursor: 'pointer',
                 transition: 'all 0.25s',
               }}

@@ -43,7 +43,7 @@ function CompleteInner() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 16 }}>
-      <div style={{ width: 40, height: 40, border: '3px solid #E5E7EB', borderTop: '3px solid #163272', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ width: 40, height: 40, border: '3px solid #E5E7EB', borderTop: '3px solid #0066FF', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <p style={{ fontSize: 14, color: '#6B7280', fontWeight: 600 }}>결제 확인 중...</p>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

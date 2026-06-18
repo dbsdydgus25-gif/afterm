@@ -12,7 +12,7 @@ function StepBar({ current, total }: { current: number; total: number }) {
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} style={{
           flex: 1, height: 4, borderRadius: 2,
-          background: i < current ? '#163272' : '#e8eaed',
+          background: i < current ? '#0066FF' : '#e8eaed',
           transition: 'background .3s',
         }} />
       ))}
@@ -87,7 +87,7 @@ function StepName({ kakaoName, onNext }: { kakaoName: string; onNext: (name: str
               onClick={() => handleConfirm(true)}
               style={{
                 flex: 1, padding: '16px', borderRadius: 14, border: 'none',
-                background: '#163272', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer',
+                background: '#0066FF', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer',
               }}
             >
               네, 맞습니다
@@ -117,7 +117,7 @@ function StepName({ kakaoName, onNext }: { kakaoName: string; onNext: (name: str
             placeholder="홍길동"
             autoFocus
             style={{ ...inputStyle, marginBottom: 6 }}
-            onFocus={e => { e.target.style.borderBottomColor = '#163272' }}
+            onFocus={e => { e.target.style.borderBottomColor = '#0066FF' }}
             onBlur={e => { e.target.style.borderBottomColor = '#e0e0e0' }}
           />
           {error && <p style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, margin: '4px 0 0' }}>{error}</p>}
@@ -125,7 +125,7 @@ function StepName({ kakaoName, onNext }: { kakaoName: string; onNext: (name: str
             onClick={handleSubmit}
             style={{
               width: '100%', marginTop: 32, padding: '17px', borderRadius: 14,
-              border: 'none', background: '#163272', color: '#fff',
+              border: 'none', background: '#0066FF', color: '#fff',
               fontSize: 16, fontWeight: 800, cursor: 'pointer',
             }}
           >
@@ -216,7 +216,7 @@ function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; ka
           value={phone}
           onChange={e => setPhone(formatPhone(e.target.value))}
           disabled={verified}
-          style={{ ...inputStyle, borderColor: verified ? '#163272' : '#e0e0e0', paddingRight: 90 }}
+          style={{ ...inputStyle, borderColor: verified ? '#0066FF' : '#e0e0e0', paddingRight: 90 }}
         />
         <button
           onClick={sendOtp}
@@ -224,7 +224,7 @@ function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; ka
           style={{
             position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#163272', fontWeight: 700, fontSize: 14,
+            color: '#0066FF', fontWeight: 700, fontSize: 14,
             opacity: verified || timer > 0 ? 0.4 : 1,
           }}
         >
@@ -254,7 +254,7 @@ function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; ka
             style={{
               position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#163272', fontWeight: 700, fontSize: 14,
+              color: '#0066FF', fontWeight: 700, fontSize: 14,
             }}
           >
             확인
@@ -277,7 +277,7 @@ function StepPhone({ onNext, kakaoToken }: { onNext: (phone: string) => void; ka
         style={{
           position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
           width: '100%', maxWidth: 480, padding: '18px 24px',
-          background: verified ? '#163272' : '#e0e0e0',
+          background: verified ? '#0066FF' : '#e0e0e0',
           border: 'none', cursor: verified ? 'pointer' : 'default',
           fontSize: 16, fontWeight: 700,
           color: verified ? '#fff' : '#aaa',
@@ -323,7 +323,7 @@ function StepPassword({ onNext }: { onNext: (pw: string) => void }) {
           onChange={e => { setPw(e.target.value); setError('') }}
           onFocus={() => setFocus('pw')}
           onBlur={() => setFocus(null)}
-          style={{ ...inputStyle, borderColor: focus === 'pw' ? '#163272' : '#e0e0e0' }}
+          style={{ ...inputStyle, borderColor: focus === 'pw' ? '#0066FF' : '#e0e0e0' }}
         />
       </div>
 
@@ -335,7 +335,7 @@ function StepPassword({ onNext }: { onNext: (pw: string) => void }) {
           onChange={e => { setPw2(e.target.value); setError('') }}
           onFocus={() => setFocus('pw2')}
           onBlur={() => setFocus(null)}
-          style={{ ...inputStyle, borderColor: focus === 'pw2' ? '#163272' : match ? '#22c55e' : '#e0e0e0' }}
+          style={{ ...inputStyle, borderColor: focus === 'pw2' ? '#0066FF' : match ? '#22c55e' : '#e0e0e0' }}
         />
         {pw2.length > 0 && (
           <p style={{ fontSize: 12, marginTop: 6, color: match ? '#22c55e' : '#ef4444' }}>
@@ -352,7 +352,7 @@ function StepPassword({ onNext }: { onNext: (pw: string) => void }) {
         style={{
           position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
           width: '100%', maxWidth: 480, padding: '18px 24px',
-          background: valid && match ? '#163272' : '#e0e0e0',
+          background: valid && match ? '#0066FF' : '#e0e0e0',
           border: 'none', cursor: valid && match ? 'pointer' : 'default',
           fontSize: 16, fontWeight: 700,
           color: valid && match ? '#fff' : '#aaa',
@@ -385,7 +385,7 @@ function StepDone({ next, userName }: { next: string; userName: string }) {
           onClick={() => { window.location.href = next }}
           style={{
             width: '100%', padding: '18px',
-            background: '#163272', border: 'none', borderRadius: 14,
+            background: '#0066FF', border: 'none', borderRadius: 14,
             fontSize: 16, fontWeight: 700, color: '#fff', cursor: 'pointer',
           }}
         >

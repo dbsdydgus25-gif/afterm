@@ -156,10 +156,10 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ fontSize: 14, fontWeight: 800, color: '#374151', margin: 0 }}>📊 전체 진행률</h3>
-              <span style={{ fontSize: 18, fontWeight: 900, color: '#163272' }}>{progressPct}%</span>
+              <span style={{ fontSize: 18, fontWeight: 900, color: '#0066FF' }}>{progressPct}%</span>
             </div>
             <div style={{ height: 8, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden', marginBottom: 8 }}>
-              <div style={{ height: '100%', width: `${progressPct}%`, background: progressPct === 100 ? '#10B981' : '#163272', borderRadius: 100, transition: 'width .6s' }} />
+              <div style={{ height: '100%', width: `${progressPct}%`, background: progressPct === 100 ? '#10B981' : '#0066FF', borderRadius: 100, transition: 'width .6s' }} />
             </div>
             <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>{doneCount}개 완료 / 전체 {services.length}개</p>
           </div>

@@ -131,7 +131,7 @@ function LoginBottomSheet({ open, onClose, onSuccess }: {
               {error && <p style={{ color:'#e53e3e', fontSize:12, margin:'0 0 12px' }}>{error}</p>}
               <button type="submit" disabled={!!loading} style={{
                 width:'100%', padding:'15px', borderRadius:14,
-                background:'#163272', border:'none', cursor:'pointer',
+                background:'#0066FF', border:'none', cursor:'pointer',
                 fontSize:15, fontWeight:700, color:'#fff', marginTop:8,
                 opacity: loading ? 0.7 : 1,
               }}>
@@ -294,7 +294,7 @@ export default function LandingPage() {
             히어로 (헤더 포함 — 배경 이어짐)
         ════════════════════════════════ */}
         <div style={{
-          background: 'linear-gradient(155deg,#0b1d47 0%,#163272 55%,#1c4494 100%)',
+          background: 'linear-gradient(155deg,#0b1d47 0%,#0066FF 55%,#1c4494 100%)',
           paddingBottom: 64,
           position: 'relative',
           overflow: 'hidden',
@@ -447,7 +447,7 @@ export default function LandingPage() {
             <p style={{
               fontSize:34, margin:'0 0 24px', lineHeight:1.2,
               fontFamily:"'Nanum Pen Script', cursive",
-              color:'#163272',
+              color:'#0066FF',
               minHeight:44,
             }}>
               <HandwriteText text="고인의 디지털 유산" trigger={sec2Visible} delay={400} />
@@ -468,7 +468,7 @@ export default function LandingPage() {
             <p style={{ color:'#1a3a7c', fontSize:11, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 14px' }}>OUR PROMISE</p>
             <h2 style={{ fontSize:26, fontWeight:800, color:'#111', margin:'0 0 12px', lineHeight:1.45, wordBreak:'keep-all' }}>
               에프텀이 고인의<br />
-              <span style={{ color:'#163272' }}>장례 그 이후</span>를<br />
+              <span style={{ color:'#0066FF' }}>장례 그 이후</span>를<br />
               함께 하겠습니다
             </h2>
             <p style={{ color:'#777', fontSize:14, lineHeight:1.8, margin:'0 0 36px', wordBreak:'keep-all' }}>
@@ -515,7 +515,7 @@ export default function LandingPage() {
                     display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
                     boxShadow:'0 2px 8px rgba(22,50,114,0.08)',
                   }}>
-                    <span style={{ fontSize:12, fontWeight:800, color:'#163272' }}>{step.num}</span>
+                    <span style={{ fontSize:12, fontWeight:800, color:'#0066FF' }}>{step.num}</span>
                   </div>
                   <div style={{ paddingTop:3 }}>
                     <p style={{ fontWeight:700, color:'#111', fontSize:15, margin:'0 0 3px' }}>{step.title}</p>
@@ -526,8 +526,8 @@ export default function LandingPage() {
             ))}
 
             <Fade delay={300}>
-              <div style={{ marginTop:8, padding:'18px 20px', background:'#edf3ff', borderRadius:14, borderLeft:'4px solid #163272' }}>
-                <p style={{ color:'#163272', fontSize:14, margin:0, lineHeight:1.75, fontWeight:700, wordBreak:'keep-all' }}>
+              <div style={{ marginTop:8, padding:'18px 20px', background:'#edf3ff', borderRadius:14, borderLeft:'4px solid #0066FF' }}>
+                <p style={{ color:'#0066FF', fontSize:14, margin:0, lineHeight:1.75, fontWeight:700, wordBreak:'keep-all' }}>
                   남겨진 포인트·혜택은<br />
                   <span style={{ color:'#333', fontWeight:500 }}>가족에게 돌아올 수 있습니다</span>
                 </p>
@@ -584,7 +584,7 @@ export default function LandingPage() {
         <section style={{ padding:'0 0 80px' }}>
           <Fade>
             <div style={{ padding:'0 24px', marginBottom:32 }}>
-              <p style={{ fontSize:12, fontWeight:700, color:'#163272', letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 10px' }}>Price Comparison</p>
+              <p style={{ fontSize:12, fontWeight:700, color:'#0066FF', letterSpacing:'0.12em', textTransform:'uppercase', margin:'0 0 10px' }}>Price Comparison</p>
               <h2 style={{ fontSize:28, fontWeight:900, color:'#0A0A0A', margin:'0 0 10px', lineHeight:1.3, letterSpacing:'-0.03em', wordBreak:'keep-all' }}>
                 같은 서비스,<br/>에프텀이 훨씬 저렴합니다
               </h2>
@@ -672,7 +672,7 @@ export default function LandingPage() {
               }}>
                 {/* 상단: 가격 영역 */}
                 <div style={{
-                  background:'#0F1E4A',
+                  background:'#0066FF',
                   padding:'28px 24px 24px',
                   position:'relative', overflow:'hidden',
                 }}>
@@ -719,7 +719,7 @@ export default function LandingPage() {
                   <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:14 }}>
                       <div style={{ width:36, height:36, borderRadius:10, background:'#EFF6FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#163272" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#0066FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                       <div>
                         <p style={{ fontSize:13, fontWeight:700, color:'#111', margin:'0 0 1px' }}>평균 1주일 이내 처리</p>
@@ -774,7 +774,7 @@ export default function LandingPage() {
         <section style={{ padding:'0 24px 56px' }}>
           <Fade>
             <div style={{
-              background:'linear-gradient(135deg,#0b1d47,#163272)',
+              background:'linear-gradient(135deg,#0b1d47,#0066FF)',
               borderRadius:24, padding:'44px 28px',
               position:'relative', overflow:'hidden',
             }}>

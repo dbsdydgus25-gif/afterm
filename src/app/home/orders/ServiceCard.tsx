@@ -130,23 +130,23 @@ export default function ServiceCard({ svc, caseId, userId }: ServiceCardProps) {
                 {i < SVC_STEPS.length - 1 && (
                   <div style={{
                     position: 'absolute', top: 8, left: '60%', right: '-40%',
-                    height: 2, background: isDone ? '#163272' : '#E5E7EB', zIndex: 0,
+                    height: 2, background: isDone ? '#0066FF' : '#E5E7EB', zIndex: 0,
                   }} />
                 )}
                 <div style={{
                   width: 18, height: 18, borderRadius: '50%', zIndex: 1, marginBottom: 4,
-                  background: isDone ? '#163272' : isActive ? '#fff' : '#fff',
-                  border: isActive ? '2px solid #163272' : isDone ? 'none' : '2px solid #E5E7EB',
+                  background: isDone ? '#0066FF' : isActive ? '#fff' : '#fff',
+                  border: isActive ? '2px solid #0066FF' : isDone ? 'none' : '2px solid #E5E7EB',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: isActive ? '0 0 0 3px rgba(22,50,114,0.15)' : 'none',
                 }}>
                   {isDone
                     ? <span style={{ fontSize: 9, color: '#fff', fontWeight: 800 }}>✓</span>
                     : isActive
-                    ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#163272' }} />
+                    ? <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0066FF' }} />
                     : null}
                 </div>
-                <span style={{ fontSize: 9, fontWeight: isActive ? 800 : isDone ? 600 : 400, color: isActive ? '#163272' : isDone ? '#6B7280' : '#D1D5DB' }}>
+                <span style={{ fontSize: 9, fontWeight: isActive ? 800 : isDone ? 600 : 400, color: isActive ? '#0066FF' : isDone ? '#6B7280' : '#D1D5DB' }}>
                   {step}
                 </span>
               </div>
@@ -166,7 +166,7 @@ export default function ServiceCard({ svc, caseId, userId }: ServiceCardProps) {
           <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.04em' }}>📎 필요 서류</p>
           {docInfo.docs.map((doc, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-              <div style={{ width: 16, height: 16, borderRadius: 5, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#163272', fontWeight: 800, flexShrink: 0 }}>
+              <div style={{ width: 16, height: 16, borderRadius: 5, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#0066FF', fontWeight: 800, flexShrink: 0 }}>
                 {i + 1}
               </div>
               <span style={{ fontSize: 12, color: '#374151' }}>{doc}</span>
@@ -207,7 +207,7 @@ export default function ServiceCard({ svc, caseId, userId }: ServiceCardProps) {
           <button
             onClick={() => setShowUpload(v => !v)}
             style={{
-              background: showUpload ? '#F3F4F6' : '#163272', color: showUpload ? '#374151' : '#fff',
+              background: showUpload ? '#F3F4F6' : '#0066FF', color: showUpload ? '#374151' : '#fff',
               border: 'none', borderRadius: 7, padding: '6px 12px',
               fontSize: 11, fontWeight: 700, cursor: 'pointer',
             }}
@@ -225,7 +225,7 @@ export default function ServiceCard({ svc, caseId, userId }: ServiceCardProps) {
                 background: '#F0F7FF', textAlign: 'center', cursor: 'pointer',
               }}
             >
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#163272', margin: '0 0 2px' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#0066FF', margin: '0 0 2px' }}>
                 {uploading ? '업로드 중...' : '📂 파일 선택'}
               </p>
               <p style={{ fontSize: 10, color: '#9CA3AF', margin: 0 }}>PDF, JPG, PNG, HEIC · 최대 10MB</p>

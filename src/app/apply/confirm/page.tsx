@@ -127,7 +127,7 @@ export default function ConfirmPage() {
         <div style={{ position: 'relative', width: 80, height: 80 }}>
           <svg viewBox="0 0 80 80" width="80" height="80" style={{ position: 'absolute', inset: 0, animation: 'spin 1.2s linear infinite' }}>
             <circle cx="40" cy="40" r="34" fill="none" stroke="#E8EAF0" strokeWidth="6" />
-            <circle cx="40" cy="40" r="34" fill="none" stroke="#163272" strokeWidth="6"
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#0066FF" strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray="80 134"
               strokeDashoffset="0"
@@ -158,7 +158,7 @@ export default function ConfirmPage() {
           {[0, 1, 2, 3].map(i => (
             <div key={i} style={{
               width: 8, height: 8, borderRadius: '50%',
-              background: loadingMsgIdx % 4 === i ? '#163272' : '#E5E7EB',
+              background: loadingMsgIdx % 4 === i ? '#0066FF' : '#E5E7EB',
               transition: 'background 0.3s',
             }} />
           ))}
@@ -228,7 +228,7 @@ export default function ConfirmPage() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 13, color: '#6B7280' }}>예상 처리</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#163272' }}>5~7 영업일</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#0066FF' }}>5~7 영업일</span>
             </div>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function ConfirmPage() {
           onClick={() => router.push('/home')}
           style={{
             width: '100%', padding: '18px',
-            background: '#163272', border: 'none', borderRadius: 16,
+            background: '#0066FF', border: 'none', borderRadius: 16,
             color: '#fff', fontSize: 16, fontWeight: 800,
             cursor: 'pointer',
             fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
@@ -359,7 +359,7 @@ export default function ConfirmPage() {
           disabled={loading}
           style={{
             width: '100%', padding: '18px',
-            background: '#163272', border: 'none', borderRadius: 16,
+            background: '#0066FF', border: 'none', borderRadius: 16,
             color: '#fff', fontSize: 16, fontWeight: 800,
             cursor: loading ? 'default' : 'pointer',
             fontFamily: "'Pretendard Variable', Pretendard, sans-serif",

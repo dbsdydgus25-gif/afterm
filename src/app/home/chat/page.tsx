@@ -93,7 +93,7 @@ export default function ChatPage() {
     }}>
       {/* 헤더 */}
       <div style={{
-        background: '#163272', padding: '16px 20px',
+        background: '#0066FF', padding: '16px 20px',
         display: 'flex', alignItems: 'center', gap: 12,
         position: 'sticky', top: 0, zIndex: 10,
       }}>
@@ -155,7 +155,7 @@ export default function ChatPage() {
                 {!isMine && (
                   <div style={{
                     width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                    background: '#163272', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#0066FF', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 16, marginBottom: 2,
                   }}>
                     🎧
@@ -164,7 +164,7 @@ export default function ChatPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', gap: 3 }}>
                   <div style={{
                     maxWidth: 260, padding: '12px 16px', borderRadius: 20,
-                    background: isMine ? '#163272' : '#fff',
+                    background: isMine ? '#0066FF' : '#fff',
                     color: isMine ? '#fff' : '#111827',
                     border: isMine ? 'none' : '1px solid #E8EAF0',
                     fontSize: 15, lineHeight: 1.5,
@@ -199,7 +199,7 @@ export default function ChatPage() {
               background: '#F9FAFB', fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
               transition: 'border-color 0.2s',
             }}
-            onFocus={e => { e.target.style.borderColor = '#163272' }}
+            onFocus={e => { e.target.style.borderColor = '#0066FF' }}
             onBlur={e => { e.target.style.borderColor = '#E8EAF0' }}
           />
           <button
@@ -207,7 +207,7 @@ export default function ChatPage() {
             disabled={loading || !input.trim()}
             style={{
               width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-              background: input.trim() ? '#163272' : '#E5E7EB', border: 'none',
+              background: input.trim() ? '#0066FF' : '#E5E7EB', border: 'none',
               color: '#fff', cursor: input.trim() ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.2s',

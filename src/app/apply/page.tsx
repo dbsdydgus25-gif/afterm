@@ -79,8 +79,8 @@ function TermsScreen({ onAgree }: { onAgree: () => void }) {
           onClick={toggleAll}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-            background: allRequired ? '#163272' : '#F4F6F9',
-            border: `1.5px solid ${allRequired ? '#163272' : '#E8EAF0'}`,
+            background: allRequired ? '#0066FF' : '#F4F6F9',
+            border: `1.5px solid ${allRequired ? '#0066FF' : '#E8EAF0'}`,
             borderRadius: 14, padding: '18px 20px',
             cursor: 'pointer', marginBottom: 12, transition: 'all 0.2s',
             fontFamily: 'var(--font-sans)',
@@ -115,8 +115,8 @@ function TermsScreen({ onAgree }: { onAgree: () => void }) {
                 onClick={() => setAgreed(prev => ({ ...prev, [term.key]: !prev[term.key] }))}
                 style={{
                   width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                  border: `2px solid ${agreed[term.key] ? '#163272' : '#CBD5E1'}`,
-                  background: agreed[term.key] ? '#163272' : 'transparent',
+                  border: `2px solid ${agreed[term.key] ? '#0066FF' : '#CBD5E1'}`,
+                  background: agreed[term.key] ? '#0066FF' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
                 }}
@@ -128,7 +128,7 @@ function TermsScreen({ onAgree }: { onAgree: () => void }) {
                 )}
               </button>
               <span style={{ flex: 1, fontSize: 14, color: '#374151', fontWeight: 500 }}>
-                <span style={{ color: '#163272', fontWeight: 700 }}>(필수) </span>
+                <span style={{ color: '#0066FF', fontWeight: 700 }}>(필수) </span>
                 {term.label}
               </span>
               {term.href && (
@@ -156,7 +156,7 @@ function TermsScreen({ onAgree }: { onAgree: () => void }) {
           onClick={onAgree}
           style={{
             width: '100%', padding: '16px', borderRadius: 14,
-            background: allRequired ? '#163272' : '#E5E9EF',
+            background: allRequired ? '#0066FF' : '#E5E9EF',
             color: allRequired ? '#fff' : '#9CA3AF',
             fontSize: 16, fontWeight: 800, border: 'none',
             cursor: allRequired ? 'pointer' : 'not-allowed',

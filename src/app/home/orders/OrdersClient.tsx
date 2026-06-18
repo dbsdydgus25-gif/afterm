@@ -117,7 +117,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
               title={c.deceased_name}
               style={{
                 width: caseIdx === i ? 28 : 8, height: 8, borderRadius: 4,
-                background: caseIdx === i ? '#163272' : '#CBD5E1',
+                background: caseIdx === i ? '#0066FF' : '#CBD5E1',
                 border: 'none', padding: 0, cursor: 'pointer',
                 transition: 'all 0.25s',
               }}
@@ -189,7 +189,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: '#F4F6F9', borderRadius: 10, marginBottom: 12 }}>
                   <div>
                     <p style={{ fontSize: 9, color: '#9CA3AF', margin: 0, fontWeight: 700 }}>신청번호</p>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: '#163272', margin: '2px 0 0', letterSpacing: '0.04em' }}>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: '#0066FF', margin: '2px 0 0', letterSpacing: '0.04em' }}>
                       #{shortId(c.id)}
                     </p>
                   </div>
@@ -197,14 +197,14 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                       <span style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 700 }}>전체 진행률</span>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: progressPct === 100 ? '#059669' : '#163272' }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: progressPct === 100 ? '#059669' : '#0066FF' }}>
                         {doneCount}/{services.length} · {progressPct}%
                       </span>
                     </div>
                     <div style={{ height: 5, background: '#E8EAF0', borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', borderRadius: 3,
-                        background: progressPct === 100 ? '#10B981' : '#163272',
+                        background: progressPct === 100 ? '#10B981' : '#0066FF',
                         width: `${progressPct}%`, transition: 'width .6s',
                       }} />
                     </div>
@@ -220,11 +220,11 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                       <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
                         <div style={{
                           height: 3, borderRadius: 2,
-                          background: isActive ? '#163272' : isPast ? '#93A8D4' : '#E8EAF0',
+                          background: isActive ? '#0066FF' : isPast ? '#93A8D4' : '#E8EAF0',
                         }} />
                         <span style={{
                           fontSize: 9, textAlign: 'center', fontWeight: isActive ? 800 : 500,
-                          color: isActive ? '#163272' : isPast ? '#93A8D4' : '#D1D5DB',
+                          color: isActive ? '#0066FF' : isPast ? '#93A8D4' : '#D1D5DB',
                         }}>
                           {isActive ? `● ${label}` : label}
                         </span>
@@ -246,7 +246,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                           onClick={() => goToSvc(cIdx, sIdx)}
                           style={{
                             width: curSvcIdx === sIdx ? 20 : 6, height: 6, borderRadius: 3,
-                            background: curSvcIdx === sIdx ? '#163272' : '#D1D5DB',
+                            background: curSvcIdx === sIdx ? '#0066FF' : '#D1D5DB',
                             border: 'none', padding: 0, cursor: 'pointer', transition: 'all 0.25s',
                           }}
                         />
@@ -317,7 +317,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                 onClick={() => goToCase(i)}
                 style={{
                   padding: '4px 12px', borderRadius: 14, border: 'none',
-                  background: caseIdx === i ? '#163272' : 'transparent',
+                  background: caseIdx === i ? '#0066FF' : 'transparent',
                   color: caseIdx === i ? '#fff' : '#6B7280',
                   fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   transition: 'all 0.2s',

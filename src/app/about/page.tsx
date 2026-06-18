@@ -4,7 +4,7 @@ export default function AboutPage() {
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: '#f8f9fb' }}>
       {/* 헤더 */}
-      <div style={{ background: '#163272', padding: '20px 20px 32px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: '#0066FF', padding: '20px 20px 32px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
         <Link href="/home" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14, marginBottom: 20 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
@@ -53,7 +53,7 @@ export default function AboutPage() {
           <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>처리 가능한 행정 서비스</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {['은행 계좌 해지', '보험금 청구', '유족연금 신청', '휴대폰 해지', '인터넷 해지', '공과금 정리', '안심상속 신청', '부동산 상속', '자동차 이전', '카드 해지'].map(tag => (
-              <span key={tag} style={{ fontSize: 12, fontWeight: 600, color: '#163272', background: '#EBF3FF', padding: '6px 12px', borderRadius: 100 }}>{tag}</span>
+              <span key={tag} style={{ fontSize: 12, fontWeight: 600, color: '#0066FF', background: '#EBF3FF', padding: '6px 12px', borderRadius: 100 }}>{tag}</span>
             ))}
           </div>
         </div>

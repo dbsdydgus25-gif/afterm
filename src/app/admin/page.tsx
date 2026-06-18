@@ -54,7 +54,7 @@ export default async function AdminPage() {
   const completionRate = totalServices ? Math.round(((doneServices || 0) / totalServices) * 100) : 0
 
   const STATS = [
-    { label: '전체 신청',  value: totalCases || 0,      desc: '누적 대행 신청 건수', color: '#163272', bg: '#EBF3FF', emoji: '📋' },
+    { label: '전체 신청',  value: totalCases || 0,      desc: '누적 대행 신청 건수', color: '#0066FF', bg: '#EBF3FF', emoji: '📋' },
     { label: '접수 완료',  value: submittedCases || 0,  desc: '서류 검토 대기 중',   color: '#2563EB', bg: '#EFF6FF', emoji: '📬' },
     { label: '서류 확인',  value: reviewingCases || 0,  desc: '서류 확인 진행 중',   color: '#7C3AED', bg: '#F5F3FF', emoji: '🔍' },
     { label: '처리 중',    value: processingCases || 0, desc: '행정 처리 진행 중',   color: '#D97706', bg: '#FFFBEB', emoji: '⚙️' },
@@ -99,12 +99,12 @@ export default async function AdminPage() {
           <p style={{ fontSize: 12, color: '#9ca3af', margin: '0 0 20px' }}>개별 기업 요청서 기준</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 42, fontWeight: 900, color: '#163272' }}>{completionRate}%</div>
+              <div style={{ fontSize: 42, fontWeight: 900, color: '#0066FF' }}>{completionRate}%</div>
               <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>완료율</div>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ height: 10, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden', marginBottom: 10 }}>
-                <div style={{ height: '100%', width: `${completionRate}%`, background: '#163272', borderRadius: 100, transition: 'width 0.8s' }} />
+                <div style={{ height: '100%', width: `${completionRate}%`, background: '#0066FF', borderRadius: 100, transition: 'width 0.8s' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
                 <span>완료 {doneServices || 0}건</span>
@@ -126,7 +126,7 @@ export default async function AdminPage() {
                   <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', width: 80, flexShrink: 0 }}>{cat}</span>
                     <div style={{ flex: 1, height: 6, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: '#163272', borderRadius: 100 }} />
+                      <div style={{ height: '100%', width: `${pct}%`, background: '#0066FF', borderRadius: 100 }} />
                     </div>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', width: 50, textAlign: 'right' }}>{count}건</span>
                   </div>
@@ -143,7 +143,7 @@ export default async function AdminPage() {
       <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #f3f4f6' }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: 0 }}>최근 신청 목록</h3>
-          <Link href="/admin/cases" style={{ fontSize: 13, color: '#163272', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href="/admin/cases" style={{ fontSize: 13, color: '#0066FF', fontWeight: 600, textDecoration: 'none' }}>
             전체 보기 →
           </Link>
         </div>
@@ -180,7 +180,7 @@ export default async function AdminPage() {
                       <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: si.bg, color: si.color }}>{si.label}</span>
                     </td>
                     <td style={{ padding: '13px 16px' }}>
-                      <Link href={`/admin/cases/${c.id}`} style={{ fontSize: 13, color: '#163272', fontWeight: 700, textDecoration: 'none' }}>관리 →</Link>
+                      <Link href={`/admin/cases/${c.id}`} style={{ fontSize: 13, color: '#0066FF', fontWeight: 700, textDecoration: 'none' }}>관리 →</Link>
                     </td>
                   </tr>
                 )

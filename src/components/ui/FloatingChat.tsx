@@ -71,7 +71,7 @@ export default function FloatingChat() {
         onClick={() => setIsOpen(true)}
         style={{
           position: 'fixed', bottom: 90, right: 20, zIndex: 1000,
-          width: 56, height: 56, borderRadius: '50%', background: '#163272',
+          width: 56, height: 56, borderRadius: '50%', background: '#0066FF',
           border: 'none', boxShadow: '0 4px 12px rgba(22,50,114,0.3)',
           display: isOpen ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer'
@@ -92,7 +92,7 @@ export default function FloatingChat() {
         }}>
           {/* 헤더 */}
           <div style={{
-            background: '#163272', padding: '16px 20px', display: 'flex',
+            background: '#0066FF', padding: '16px 20px', display: 'flex',
             justifyContent: 'space-between', alignItems: 'center'
           }}>
             <div>
@@ -112,7 +112,7 @@ export default function FloatingChat() {
                 <div key={m.id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
                   <div style={{
                     maxWidth: '80%', padding: '10px 14px', borderRadius: 16,
-                    background: isMine ? '#163272' : '#fff',
+                    background: isMine ? '#0066FF' : '#fff',
                     color: isMine ? '#fff' : '#111827',
                     border: isMine ? 'none' : '1px solid #E8EAF0',
                     fontSize: 14, lineHeight: 1.4,
@@ -139,7 +139,7 @@ export default function FloatingChat() {
               }}
             />
             <button type="submit" disabled={loading || !input.trim()} style={{
-              width: 40, height: 40, borderRadius: '50%', background: input.trim() ? '#163272' : '#E8EAF0',
+              width: 40, height: 40, borderRadius: '50%', background: input.trim() ? '#0066FF' : '#E8EAF0',
               border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               transition: 'background 0.2s'
             }}>

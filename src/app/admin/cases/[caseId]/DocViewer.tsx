@@ -87,7 +87,7 @@ export default function DocViewer({ documents, signatureData, delegatorName, del
             rel="noopener noreferrer"
             style={{
               position: 'absolute', top: 12, right: 12, zIndex: 10,
-              background: '#163272', color: '#fff', borderRadius: 8,
+              background: '#0066FF', color: '#fff', borderRadius: 8,
               padding: '7px 14px', fontSize: 12, fontWeight: 700,
               textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
             }}

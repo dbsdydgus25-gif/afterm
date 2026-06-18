@@ -39,7 +39,7 @@ function ProgressRing({ pct, size = 96, stroke = 8 }: { pct: number; size?: numb
         <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none" stroke="#E5E7EB" />
         <circle
           cx={size / 2} cy={size / 2} r={r} strokeWidth={stroke} fill="none"
-          stroke={pct === 100 ? '#10B981' : '#163272'}
+          stroke={pct === 100 ? '#10B981' : '#0066FF'}
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={off}
@@ -100,7 +100,7 @@ export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseIt
               신청 현황 확인 및 서비스 이용을 위해<br />로그인이 필요합니다.
             </p>
             <button onClick={() => setLoginOpen(true)} style={{
-              display: 'inline-block', background: '#fff', color: '#163272',
+              display: 'inline-block', background: '#fff', color: '#0066FF',
               fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10,
               border: 'none', cursor: 'pointer',
             }}>
@@ -139,7 +139,7 @@ export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseIt
               아직 신청이 없어요.<br />지금 바로 디지털 유산 정리를 시작해보세요.
             </p>
             <Link href="/apply" onClick={handleApplyClick} style={{
-              display: 'inline-block', background: '#fff', color: '#163272',
+              display: 'inline-block', background: '#fff', color: '#0066FF',
               fontSize: 14, fontWeight: 700, padding: '10px 20px', borderRadius: 10, textDecoration: 'none',
             }}>
               신청하기 →
@@ -263,12 +263,12 @@ export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseIt
                       <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <div style={{
                           height: 3, borderRadius: 2,
-                          background: isActive ? '#163272' : isPast ? '#93A8D8' : '#E5E7EB',
+                          background: isActive ? '#0066FF' : isPast ? '#93A8D8' : '#E5E7EB',
                           transition: 'background .3s',
                         }} />
                         <span style={{
                           fontSize: 9, textAlign: 'center', fontWeight: isActive ? 800 : 500,
-                          color: isActive ? '#163272' : isPast ? '#6B7280' : '#D1D5DB',
+                          color: isActive ? '#0066FF' : isPast ? '#6B7280' : '#D1D5DB',
                         }}>
                           {isActive ? `● ${label}` : label}
                         </span>
@@ -281,7 +281,7 @@ export default function CaseCarousel({ cases, isGuest = false }: { cases: CaseIt
                 <Link href="/home/orders" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: '#EFF6FF', borderRadius: 10, padding: '10px',
-                  fontSize: 13, fontWeight: 700, color: '#163272', textDecoration: 'none',
+                  fontSize: 13, fontWeight: 700, color: '#0066FF', textDecoration: 'none',
                   border: '1px solid #DBEAFE',
                 }}>
                   진행 현황 상세 보기 →

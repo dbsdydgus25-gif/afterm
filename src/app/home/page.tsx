@@ -8,7 +8,7 @@ import ChatOpenButton from './ChatOpenButton'
 import CaseCarousel from './CaseCarousel'
 
 const GUIDES = [
-  { tag: '안심상속', title: '안심상속 원스톱 서비스', desc: '금융·부동산·세금 정보를 한 번에 조회하는 방법', color: '#EBF3FF', accent: '#163272', icon: '🏛️', href: 'https://www.gov.kr/portal/service/serviceInfo/PTR000051077' },
+  { tag: '안심상속', title: '안심상속 원스톱 서비스', desc: '금융·부동산·세금 정보를 한 번에 조회하는 방법', color: '#EBF3FF', accent: '#0066FF', icon: '🏛️', href: 'https://www.gov.kr/portal/service/serviceInfo/PTR000051077' },
   { tag: '연금',    title: '유족연금 신청 방법',     desc: '국민연금·공무원연금 유족급여 청구 절차',        color: '#F0FDF4', accent: '#15803D', icon: '💰', href: 'https://www.nps.or.kr/jsppage/business/bnn/bnn_03_01.jsp' },
   { tag: '금융',    title: '은행 계좌 사망 신고',    desc: '계좌 동결·해지·상속 이전 처리 안내',           color: '#FFF7ED', accent: '#C2410C', icon: '🏦', href: 'https://www.fss.or.kr/fss/main/contents.do?menuNo=200463' },
   { tag: '통신',    title: '휴대폰·인터넷 해지',     desc: '사망자 명의 이동통신·인터넷 해지 방법',         color: '#F5F3FF', accent: '#7C3AED', icon: '📱', href: 'https://www.msit.go.kr/bbs/view.do?sCode=user&mId=99&mPid=74&bbsSeqNo=94&nttSeqNo=3173329' },
@@ -39,7 +39,7 @@ export default async function HomePage() {
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
       {/* ── 헤더 블루 영역 ── */}
-      <div style={{ background: '#163272', padding: '20px 0 24px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: '#0066FF', padding: '20px 0 24px', position: 'relative', overflow: 'hidden' }}>
         {/* 배경 원 장식 */}
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
         <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />

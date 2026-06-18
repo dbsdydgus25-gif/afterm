@@ -96,7 +96,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
       {/* 요약 카드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
         {[
-          { label: '전체 신청', value: stats.total, color: '#163272', bg: '#EFF6FF', icon: '📋' },
+          { label: '전체 신청', value: stats.total, color: '#0066FF', bg: '#EFF6FF', icon: '📋' },
           { label: '접수 완료', value: stats.submitted, color: '#2563EB', bg: '#DBEAFE', icon: '✅' },
           { label: '처리 중', value: stats.processing, color: '#D97706', bg: '#FEF3C7', icon: '⚙️' },
           { label: '처리 완료', value: stats.completed, color: '#059669', bg: '#D1FAE5', icon: '🎉' },
@@ -129,7 +129,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
             <div style={{ padding: '16px 20px', background: '#F8FAFF', borderBottom: '1px solid #EFF2FF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{
-                  width: 42, height: 42, borderRadius: '50%', background: '#163272',
+                  width: 42, height: 42, borderRadius: '50%', background: '#0066FF',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 16, fontWeight: 800, color: '#fff',
                 }}>
@@ -217,7 +217,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{pct}%</span>
                         </div>
                         <Link href={`/admin/cases/${c.id}`} style={{
-                          fontSize: 12, color: '#163272', fontWeight: 800, textDecoration: 'none',
+                          fontSize: 12, color: '#0066FF', fontWeight: 800, textDecoration: 'none',
                           padding: '6px 14px', borderRadius: 8, background: '#EFF6FF',
                         }}>
                           관리 →

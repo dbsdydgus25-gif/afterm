@@ -136,7 +136,7 @@ export default function AdminChatPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{
                   fontSize: 13, fontWeight: 800,
-                  color: selectedUserId === t.userId ? '#163272' : '#111827',
+                  color: selectedUserId === t.userId ? '#0066FF' : '#111827',
                 }}>
                   {displayName(t)}
                 </span>
@@ -171,7 +171,7 @@ export default function AdminChatPage() {
         ) : (
           <>
             {/* 헤더 */}
-            <div style={{ padding: '14px 20px', background: '#163272', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ padding: '14px 20px', background: '#0066FF', display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -211,7 +211,7 @@ export default function AdminChatPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: isAdmin ? 'flex-end' : 'flex-start', gap: 2 }}>
                       <div style={{
                         maxWidth: 320, padding: '10px 14px', borderRadius: 16,
-                        background: isAdmin ? '#163272' : '#fff',
+                        background: isAdmin ? '#0066FF' : '#fff',
                         color: isAdmin ? '#fff' : '#111827',
                         border: isAdmin ? 'none' : '1px solid #E8EAF0',
                         fontSize: 14, lineHeight: 1.5,
@@ -225,7 +225,7 @@ export default function AdminChatPage() {
                     {isAdmin && (
                       <div style={{
                         width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                        background: '#163272', display: 'flex', alignItems: 'center',
+                        background: '#0066FF', display: 'flex', alignItems: 'center',
                         justifyContent: 'center', fontSize: 12, marginBottom: 2,
                       }}>🎧</div>
                     )}
@@ -253,7 +253,7 @@ export default function AdminChatPage() {
                 disabled={!reply.trim() || sending}
                 style={{
                   padding: '11px 20px', borderRadius: 10, border: 'none',
-                  background: reply.trim() ? '#163272' : '#E5E7EB',
+                  background: reply.trim() ? '#0066FF' : '#E5E7EB',
                   color: '#fff', fontSize: 14, fontWeight: 700,
                   cursor: reply.trim() ? 'pointer' : 'default',
                 }}

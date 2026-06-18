@@ -89,7 +89,7 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
             <div key={m.id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
               <div style={{
                 maxWidth: '80%', padding: '10px 14px', borderRadius: 16,
-                background: isMine ? '#163272' : '#fff',
+                background: isMine ? '#0066FF' : '#fff',
                 color: isMine ? '#fff' : '#111827',
                 border: isMine ? 'none' : '1px solid #e5e9ef',
                 fontSize: 14, lineHeight: 1.4,
@@ -116,7 +116,7 @@ export default function AdminChatPanel({ userId, deceasedName }: { userId: strin
           }}
         />
         <button type="submit" disabled={loading || !input.trim()} style={{
-          padding: '0 20px', borderRadius: 8, background: input.trim() ? '#163272' : '#e5e9ef',
+          padding: '0 20px', borderRadius: 8, background: input.trim() ? '#0066FF' : '#e5e9ef',
           border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
           transition: 'background 0.2s'
         }}>

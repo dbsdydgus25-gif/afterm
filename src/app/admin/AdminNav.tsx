@@ -28,7 +28,7 @@ export default function AdminNav() {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 14px', borderRadius: 8, textDecoration: 'none',
               fontSize: 14, fontWeight: active ? 700 : 500,
-              color: active ? '#163272' : '#374151',
+              color: active ? '#0066FF' : '#374151',
               background: active ? '#EBF3FF' : 'transparent',
               transition: 'background 0.15s',
             }}>

@@ -34,7 +34,7 @@ export default async function OrdersPage() {
     <div style={{ marginBottom: 28 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 24px', marginBottom: 12 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, color: '#111', margin: 0 }}>{title}</h2>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#163272', background: '#EBF3FF', padding: '2px 8px', borderRadius: 100 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#0066FF', background: '#EBF3FF', padding: '2px 8px', borderRadius: 100 }}>
           {items.length}
         </span>
       </div>
@@ -98,7 +98,7 @@ export default async function OrdersPage() {
                 {/* 하단 메타 */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 12, color: '#aaa' }}>신청일 {createdAt}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#163272' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0066FF' }}>
                     {doneCount}/{svcCount}개 완료
                   </span>
                 </div>

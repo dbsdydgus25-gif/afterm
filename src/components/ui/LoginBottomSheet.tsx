@@ -105,7 +105,7 @@ export function LoginBottomSheet({ open, onClose, onSuccess, redirectTo = '/home
                 style={{ width: '100%', padding: '14px 16px', borderRadius: 12, border: '1.5px solid #e0e0e0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box', outline: 'none' }} />
               {error && <p style={{ color: '#e53e3e', fontSize: 12, margin: '0 0 12px' }}>{error}</p>}
               <button type="submit" disabled={!!loading} style={{
-                width: '100%', padding: '15px', borderRadius: 14, background: '#163272',
+                width: '100%', padding: '15px', borderRadius: 14, background: '#0066FF',
                 border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: '#fff',
                 marginTop: 8, opacity: loading ? 0.7 : 1,
               }}>
