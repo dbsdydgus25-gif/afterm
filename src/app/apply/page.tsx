@@ -134,8 +134,7 @@ function StepTerms({ onNext }: { onNext: () => void }) {
   return (
     <Screen>
       <Body>
-        <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, marginBottom: 6 }}>시작하기 전에</p>
-        <Question label={'약관에\n동의해 주세요'} />
+        <Question label={'약관에\n동의해 주세요'} sub="서비스 이용을 위한 필수 항목에 동의해 주세요" />
 
         <button onClick={toggleAll} style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 14,
@@ -509,38 +508,32 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
   return (
     <Screen>
       <Body>
-        <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, marginBottom: 6 }}>서류 준비</p>
-        <Question label={'사망진단서가\n필요합니다'} />
-
-        {/* 준비 안내 박스 - 선택 전에 항상 표시 */}
-        <div style={{
-          padding: '18px 18px', borderRadius: 14, marginBottom: 28,
-          background: '#EFF6FF', border: '1px solid #BFDBFE',
-        }}>
-          <p style={{ fontSize: 14, fontWeight: 800, color: '#1E40AF', margin: '0 0 10px' }}>
-            서비스 진행을 위해 반드시 필요합니다
-          </p>
-          <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 14px', lineHeight: 2.1 }}>
-            <li>사망을 처리한 <strong>병원 원무과</strong>에서 발급</li>
-            <li><strong>관할 보건소</strong> (사망신고 후 발급 가능)</li>
-            <li><strong>정부24</strong> 온라인 발급 (gov.kr)</li>
-          </ul>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
-            아직 없으시다면 먼저 발급받으신 후 신청을 진행해 주세요
-          </p>
-        </div>
+        <Question label={'사망진단서를\n준비하셨나요?'} sub="서비스 진행을 위해 반드시 필요합니다" />
 
         <p style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: '0 0 12px' }}>
-          사망진단서를 준비하셨나요?
+          준비 상태를 선택해 주세요
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SelectCard label="네, 준비했습니다" selected={selected === 'yes'} onClick={() => setSelected('yes')} />
           <SelectCard label="아직 없습니다" selected={selected === 'no'} onClick={() => setSelected('no')} />
         </div>
 
+        {/* 안내 박스 - 항상 표시 */}
+        <div style={{
+          marginTop: 20, padding: '18px', borderRadius: 14,
+          background: '#EFF6FF', border: '1px solid #BFDBFE',
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#1E40AF', margin: '0 0 8px' }}>발급 방법</p>
+          <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 14px', lineHeight: 2.1 }}>
+            <li>사망을 처리한 <strong>병원 원무과</strong>에서 발급</li>
+            <li><strong>관할 보건소</strong> (사망신고 후 발급 가능)</li>
+            <li><strong>정부24</strong> 온라인 발급 (gov.kr)</li>
+          </ul>
+        </div>
+
         {selected === 'no' && (
           <div style={{
-            marginTop: 16, padding: '14px 16px', borderRadius: 12,
+            marginTop: 12, padding: '14px 16px', borderRadius: 12,
             background: '#FFFBEB', border: '1px solid #FCD34D',
           }}>
             <p style={{ fontSize: 14, color: '#92400E', margin: 0, lineHeight: 1.7, fontWeight: 600 }}>
