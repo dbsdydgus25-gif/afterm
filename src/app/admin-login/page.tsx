@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
       <div style={{ width: '100%', maxWidth: 380, padding: '0 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <span style={{ fontSize: 28, fontWeight: 900, color: '#fff' }}>
-            after<span style={{ color: '#0066ff' }}>m</span>
+            after<span style={{ color: '#2563EB' }}>m</span>
           </span>
           <span style={{
             display: 'inline-block', background: 'rgba(0,102,255,0.15)', color: '#3385ff',
@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
             onClick={handleLogin}
             disabled={loading || !pw}
             style={{
-              width: '100%', marginTop: 20, padding: '14px', background: '#0066ff',
+              width: '100%', marginTop: 20, padding: '14px', background: '#2563EB',
               border: 'none', borderRadius: 12, color: '#fff', fontSize: 15, fontWeight: 700,
               cursor: loading ? 'default' : 'pointer', opacity: pw ? 1 : 0.5,
             }}

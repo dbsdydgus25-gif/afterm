@@ -99,7 +99,7 @@ export default function HomeChatButton({ kakaoToken }: { kakaoToken: string | nu
   // 기본: 채팅 버튼 (채널 추가 완료 or 토큰 없음 — 항상 동작)
   return (
     <button onClick={openChat} style={{
-      width: '100%', background: 'linear-gradient(135deg, #0066FF 0%, #1e4db7 100%)',
+      width: '100%', background: 'linear-gradient(135deg, #2563EB 0%, #1e4db7 100%)',
       border: 'none', borderRadius: 16, padding: '18px 20px',
       display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', textAlign: 'left',
     }}>

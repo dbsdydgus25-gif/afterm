@@ -81,7 +81,7 @@ export default function ServiceCarousel({ services, caseId, userId }: ServiceCar
                 width: currentIdx === i ? 18 : 6,
                 height: 6,
                 borderRadius: 3,
-                background: currentIdx === i ? '#0066FF' : '#D1D5DB',
+                background: currentIdx === i ? '#2563EB' : '#D1D5DB',
                 border: 'none', padding: 0, cursor: 'pointer',
                 transition: 'all 0.25s',
               }}

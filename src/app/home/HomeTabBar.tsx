@@ -137,7 +137,7 @@ export default function HomeTabBar() {
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-            fill={active ? '#0066FF' : 'none'} stroke={active ? '#0066FF' : '#9CA3AF'} strokeWidth="1.8" strokeLinejoin="round" />
+            fill={active ? '#2563EB' : 'none'} stroke={active ? '#2563EB' : '#9CA3AF'} strokeWidth="1.8" strokeLinejoin="round" />
           <path d="M9 21V12h6v9" stroke={active ? '#fff' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       ),
@@ -147,7 +147,7 @@ export default function HomeTabBar() {
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <rect x="5" y="3" width="14" height="18" rx="2"
-            fill={active ? '#0066FF' : 'none'} stroke={active ? '#0066FF' : '#9CA3AF'} strokeWidth="1.8" />
+            fill={active ? '#2563EB' : 'none'} stroke={active ? '#2563EB' : '#9CA3AF'} strokeWidth="1.8" />
           <path d="M9 8h6M9 12h6M9 16h4" stroke={active ? '#fff' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       ),
@@ -159,8 +159,8 @@ export default function HomeTabBar() {
       href: '/home/myinfo', label: '마이', requireAuth: false,
       icon: (active: boolean) => (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4.5" fill={active ? '#0066FF' : 'none'} stroke={active ? '#0066FF' : '#9CA3AF'} strokeWidth="1.8" />
-          <path d="M5 20c0-3.5 3.5-6 7-6s7 2.5 7 6" stroke={active ? '#0066FF' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="12" cy="8" r="4.5" fill={active ? '#2563EB' : 'none'} stroke={active ? '#2563EB' : '#9CA3AF'} strokeWidth="1.8" />
+          <path d="M5 20c0-3.5 3.5-6 7-6s7 2.5 7 6" stroke={active ? '#2563EB' : '#9CA3AF'} strokeWidth="1.8" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -212,7 +212,7 @@ export default function HomeTabBar() {
           >
             {/* 패널 헤더 */}
             <div style={{
-              padding: '14px 20px 12px', background: '#0066FF',
+              padding: '14px 20px 12px', background: '#2563EB',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -282,14 +282,14 @@ export default function HomeTabBar() {
                       {!isMine && (
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                          background: '#0066FF', display: 'flex', alignItems: 'center',
+                          background: '#2563EB', display: 'flex', alignItems: 'center',
                           justifyContent: 'center', fontSize: 14, marginBottom: 2,
                         }}>🎧</div>
                       )}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start', gap: 3 }}>
                         <div style={{
                           maxWidth: 240, padding: '10px 14px', borderRadius: 18,
-                          background: isMine ? '#0066FF' : '#fff',
+                          background: isMine ? '#2563EB' : '#fff',
                           color: isMine ? '#fff' : '#111827',
                           border: isMine ? 'none' : '1px solid #E8EAF0',
                           fontSize: 14, lineHeight: 1.5,
@@ -326,7 +326,7 @@ export default function HomeTabBar() {
                     maxHeight: 90, overflowY: 'auto',
                     transition: 'border-color 0.2s',
                   }}
-                  onFocus={e => { e.target.style.borderColor = '#0066FF' }}
+                  onFocus={e => { e.target.style.borderColor = '#2563EB' }}
                   onBlur={e => { e.target.style.borderColor = '#E8EAF0' }}
                 />
                 <button
@@ -334,7 +334,7 @@ export default function HomeTabBar() {
                   disabled={loading || !input.trim()}
                   style={{
                     width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                    background: input.trim() ? '#0066FF' : '#E5E7EB', border: 'none',
+                    background: input.trim() ? '#2563EB' : '#E5E7EB', border: 'none',
                     color: '#fff', cursor: input.trim() ? 'pointer' : 'default',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'background 0.2s',
@@ -370,7 +370,7 @@ export default function HomeTabBar() {
               padding: '10px 0 8px', textDecoration: 'none', gap: 3,
             }}>
               {tab.icon(active)}
-              <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#0066FF' : '#9CA3AF' }}>
+              <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
             </Link>
@@ -383,7 +383,7 @@ export default function HomeTabBar() {
             onClick={() => setOpen(v => !v)}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: open ? '#0066FF' : '#F3F4F6',
+              background: open ? '#2563EB' : '#F3F4F6',
               border: open ? 'none' : '1.5px solid #E8EDF5',
               borderRadius: 24, padding: '7px 14px 7px 10px',
               boxShadow: open ? '0 2px 12px rgba(22,50,114,0.3)' : '0 2px 10px rgba(0,0,0,0.08)',
@@ -420,7 +420,7 @@ export default function HomeTabBar() {
               padding: '10px 0 8px', textDecoration: 'none', gap: 3,
             }}>
               {tab.icon(active)}
-              <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#0066FF' : '#9CA3AF' }}>
+              <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
             </Link>

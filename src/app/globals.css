@@ -25,7 +25,7 @@
   /* Blue */
   --color-blue-99: #f7fbff; --color-blue-95: #eaf2fe; --color-blue-90: #c9defe;
   --color-blue-80: #9ec5ff; --color-blue-70: #69a5ff; --color-blue-60: #4f95ff;
-  --color-blue-55: #3385ff; --color-blue-50: #1a75ff; --color-blue-45: #0066ff;
+  --color-blue-55: #3385ff; --color-blue-50: #1a75ff; --color-blue-45: #2563EB;
   --color-blue-40: #005eeb; --color-blue-35: #0054d1; --color-blue-25: #003e9c;
   --color-blue-15: #002966; --color-blue-08: #001536;
 
@@ -48,10 +48,10 @@
   --color-yellow-30: #9c5800; --color-yellow-15: #663a00; --color-yellow-08: #361e00;
 
   /* ── Semantic ── */
-  --color-primary-normal: #0066ff;        /* color-atomic-blue-45 */
-  --color-primary-strong: #005eeb;        /* color-atomic-blue-40 */
+  --color-primary-normal: #2563eb;        /* color-atomic-blue-45 */
+  --color-primary-strong: #1d4ed8;        /* color-atomic-blue-40 */
   --color-primary-heavy: #0054d1;
-  --color-primary-hover: #1a75ff;
+  --color-primary-hover: #1d4ed8;
 
   --color-label-normal: #171719;          /* coolNeutral-15 */
   --color-label-strong: #000000;          /* common-0 */
@@ -74,7 +74,7 @@
   --color-status-positive: #00bf40;       /* green-45 */
   --color-status-cautionary: #ff9200;     /* yellow-55 */
   --color-status-negative: #ff4242;       /* red-50 */
-  --color-status-informative: #0066ff;
+  --color-status-informative: #2563EB;
 
   --color-interaction-inactive: #989ba2;  /* coolNeutral-70 */
   --color-interaction-disable: rgba(112, 115, 124, 0.16);

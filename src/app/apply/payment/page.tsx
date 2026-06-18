@@ -129,7 +129,7 @@ function PaymentInner() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>최종 결제금액</span>
-          <span style={{ fontSize: 20, fontWeight: 900, color: '#0066FF', letterSpacing: '-0.02em' }}>{grandTotal.toLocaleString()}원</span>
+          <span style={{ fontSize: 20, fontWeight: 900, color: '#2563EB', letterSpacing: '-0.02em' }}>{grandTotal.toLocaleString()}원</span>
         </div>
       </div>
 
@@ -142,14 +142,14 @@ function PaymentInner() {
             onClick={() => setPayMethod(m.id)}
             style={{
               padding: '16px 12px', borderRadius: 14, cursor: 'pointer',
-              border: payMethod === m.id ? '2px solid #0066FF' : '1.5px solid #E5E7EB',
+              border: payMethod === m.id ? '2px solid #2563EB' : '1.5px solid #E5E7EB',
               background: payMethod === m.id ? '#EFF6FF' : '#fff',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
               transition: 'all 0.15s',
             }}
           >
             <span style={{ fontSize: 26 }}>{m.icon}</span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: payMethod === m.id ? '#0066FF' : '#374151' }}>{m.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: payMethod === m.id ? '#2563EB' : '#374151' }}>{m.label}</span>
             <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 500 }}>{m.desc}</span>
           </button>
         ))}
@@ -183,7 +183,7 @@ function PaymentInner() {
         disabled={loading}
         style={{
           width: '100%', padding: '18px', borderRadius: 14,
-          background: loading ? '#9CA3AF' : payMethod === 'EASY_PAY' ? '#FEE500' : '#0066FF',
+          background: loading ? '#9CA3AF' : payMethod === 'EASY_PAY' ? '#FEE500' : '#2563EB',
           color: loading ? '#fff' : payMethod === 'EASY_PAY' ? '#000' : '#fff',
           border: 'none', fontSize: 16, fontWeight: 800,
           cursor: loading ? 'not-allowed' : 'pointer',

@@ -99,7 +99,7 @@ function DocGuideModal({
           {guide.notices.map((notice, i) => (
             <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <div style={{
-                width: 22, height: 22, borderRadius: '50%', background: '#0066FF',
+                width: 22, height: 22, borderRadius: '50%', background: '#2563EB',
                 color: '#fff', fontSize: 12, fontWeight: 800, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
@@ -136,7 +136,7 @@ function DocGuideModal({
           onClick={onConfirm}
           style={{
             width: '100%', padding: '16px', borderRadius: 14,
-            background: '#0066FF', color: '#fff',
+            background: '#2563EB', color: '#fff',
             fontSize: 16, fontWeight: 800, border: 'none', cursor: 'pointer',
             fontFamily: 'var(--font-sans)', letterSpacing: '-0.02em',
           }}
@@ -369,7 +369,7 @@ export default function DocumentsPage() {
                     {!uploaded && !isUploading && (
                       <span style={{
                         padding: '6px 14px', borderRadius: 'var(--radius-8)',
-                        background: '#0066FF', color: '#fff',
+                        background: '#2563EB', color: '#fff',
                         fontSize: '13px', fontWeight: 700, flexShrink: 0,
                       }}>
                         첨부

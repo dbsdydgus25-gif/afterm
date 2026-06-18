@@ -141,7 +141,7 @@ export default function EditProfilePage() {
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F6F9' }}>
-      <div style={{ width: 28, height: 28, border: '3px solid #E5E7EB', borderTopColor: '#0066FF', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <div style={{ width: 28, height: 28, border: '3px solid #E5E7EB', borderTopColor: '#2563EB', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
@@ -172,7 +172,7 @@ export default function EditProfilePage() {
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        input:focus{border-color:#0066FF!important;box-shadow:0 0 0 3px rgba(22,50,114,0.08)!important;outline:none!important}
+        input:focus{border-color:#2563EB!important;box-shadow:0 0 0 3px rgba(22,50,114,0.08)!important;outline:none!important}
       `}</style>
 
       {toast && (
@@ -212,8 +212,8 @@ export default function EditProfilePage() {
               value={phone ? formatPhone(phone) : '미등록'}
               badge={phone ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#EBF3FF', padding: '3px 8px', borderRadius: 99 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0066FF" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#0066FF' }}>인증완료</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB' }}>인증완료</span>
                 </div>
               ) : undefined}
               onClick={() => openSection('phone')}
@@ -263,7 +263,7 @@ export default function EditProfilePage() {
           />
           <button onClick={saveName} disabled={saving || !nameInput.trim()} style={{
             width: '100%', padding: '18px', borderRadius: 14, border: 'none',
-            background: nameInput.trim() ? '#0066FF' : '#E5E7EB',
+            background: nameInput.trim() ? '#2563EB' : '#E5E7EB',
             color: nameInput.trim() ? '#fff' : '#9CA3AF',
             fontSize: 16, fontWeight: 800, cursor: nameInput.trim() ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -283,8 +283,8 @@ export default function EditProfilePage() {
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>{formatPhone(phone)}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#EBF3FF', padding: '5px 10px', borderRadius: 99 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0066FF" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#0066FF' }}>인증완료</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB' }}>인증완료</span>
               </div>
             </div>
           )}
@@ -307,7 +307,7 @@ export default function EditProfilePage() {
             />
             <button onClick={sendOtp} disabled={sending || otpVerified || timer > 0} style={{
               padding: '16px 16px', borderRadius: 12, border: 'none', fontWeight: 700, fontSize: 13,
-              background: otpVerified ? '#D1FAE5' : (sending || timer > 0) ? '#F3F4F6' : '#0066FF',
+              background: otpVerified ? '#D1FAE5' : (sending || timer > 0) ? '#F3F4F6' : '#2563EB',
               color: otpVerified ? '#059669' : (sending || timer > 0) ? '#9CA3AF' : '#fff',
               cursor: (otpVerified || timer > 0) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', minWidth: 88,
             }}>
@@ -320,7 +320,7 @@ export default function EditProfilePage() {
               <div style={{ background: '#EBF3FF', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <span style={{ fontSize: 18 }}>💬</span>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#0066FF', margin: '0 0 1px' }}>인증번호를 발송했습니다</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#2563EB', margin: '0 0 1px' }}>인증번호를 발송했습니다</p>
                   <p style={{ fontSize: 12, color: '#6B7280', margin: 0 }}>카카오톡 또는 문자로 6자리를 확인해주세요</p>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function EditProfilePage() {
                 />
                 <button onClick={verifyOtp} disabled={otpCode.length < 4} style={{
                   padding: '16px 20px', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: 14,
-                  background: otpCode.length >= 4 ? '#0066FF' : '#E5E7EB',
+                  background: otpCode.length >= 4 ? '#2563EB' : '#E5E7EB',
                   color: otpCode.length >= 4 ? '#fff' : '#9CA3AF',
                   cursor: otpCode.length >= 4 ? 'pointer' : 'not-allowed',
                 }}>확인</button>
@@ -352,7 +352,7 @@ export default function EditProfilePage() {
 
           <button onClick={savePhone} disabled={!otpVerified || saving} style={{
             width: '100%', padding: '18px', borderRadius: 14, border: 'none',
-            background: otpVerified ? '#0066FF' : '#E5E7EB',
+            background: otpVerified ? '#2563EB' : '#E5E7EB',
             color: otpVerified ? '#fff' : '#9CA3AF',
             fontSize: 16, fontWeight: 800, cursor: otpVerified ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -420,7 +420,7 @@ export default function EditProfilePage() {
 
           <button onClick={savePassword} disabled={saving || pw.length < 6 || pw !== pw2} style={{
             width: '100%', padding: '18px', borderRadius: 14, border: 'none',
-            background: pw.length >= 6 && pw === pw2 ? '#0066FF' : '#E5E7EB',
+            background: pw.length >= 6 && pw === pw2 ? '#2563EB' : '#E5E7EB',
             color: pw.length >= 6 && pw === pw2 ? '#fff' : '#9CA3AF',
             fontSize: 16, fontWeight: 800,
             cursor: pw.length >= 6 && pw === pw2 ? 'pointer' : 'not-allowed',

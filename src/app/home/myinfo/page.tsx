@@ -56,7 +56,7 @@ export default async function MyInfoPage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: '50%', background: '#0066FF',
+                  width: 56, height: 56, borderRadius: '50%', background: '#2563EB',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22, fontWeight: 800, color: '#fff', flexShrink: 0
                 }}>

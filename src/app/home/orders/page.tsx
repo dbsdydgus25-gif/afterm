@@ -31,7 +31,7 @@ export default async function OrdersPage() {
     }}>
       {/* 헤더 */}
       <div style={{
-        padding: '16px 20px 14px', background: '#0066FF', flexShrink: 0,
+        padding: '16px 20px 14px', background: '#2563EB', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -53,7 +53,7 @@ export default async function OrdersPage() {
           <div style={{ fontSize: 52, marginBottom: 14 }}>📭</div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>신청 내역이 없어요</p>
           <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 24px', lineHeight: 1.6 }}>디지털 유산 행정 대행을<br />신청해보세요</p>
-          <Link href="/apply" style={{ background: '#0066FF', color: '#fff', padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
+          <Link href="/apply" style={{ background: '#2563EB', color: '#fff', padding: '14px 28px', borderRadius: 14, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
             신청하기 →
           </Link>
         </div>

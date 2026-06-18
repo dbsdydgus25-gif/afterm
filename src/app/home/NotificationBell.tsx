@@ -86,7 +86,7 @@ export default function NotificationBell() {
           <span style={{
             position: 'absolute', top: 2, right: 2,
             width: 8, height: 8, borderRadius: '50%',
-            background: '#EF4444', border: '1.5px solid #0066FF',
+            background: '#EF4444', border: '1.5px solid #2563EB',
           }} />
         )}
       </button>
@@ -102,7 +102,7 @@ export default function NotificationBell() {
           overflow: 'hidden', zIndex: 400,
         }}>
           <div style={{
-            padding: '14px 16px', background: '#0066FF',
+            padding: '14px 16px', background: '#2563EB',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>🔔 알림</span>

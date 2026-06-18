@@ -47,7 +47,7 @@ export default function BusinessInfoPage() {
             download="에프텀_사업자등록증.pdf"
             style={{
               display:'block', marginTop:12, textAlign:'center',
-              background:'#0066FF', color:'#fff', borderRadius:12,
+              background:'#2563EB', color:'#fff', borderRadius:12,
               padding:'14px', fontSize:14, fontWeight:700, textDecoration:'none',
             }}
           >

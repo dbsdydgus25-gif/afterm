@@ -114,7 +114,7 @@ export default function AdminServiceRow({ service, caseId }: { service: any; cas
           disabled={loading}
           style={{
             padding: '9px 18px', borderRadius: 8, border: 'none',
-            background: saved ? '#22C55E' : '#0066FF',
+            background: saved ? '#22C55E' : '#2563EB',
             color: '#fff', fontSize: 13, fontWeight: 700,
             cursor: loading ? 'default' : 'pointer',
             opacity: loading ? 0.7 : 1, whiteSpace: 'nowrap',

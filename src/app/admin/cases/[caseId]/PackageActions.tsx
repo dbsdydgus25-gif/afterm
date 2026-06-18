@@ -152,13 +152,13 @@ export default function PackageActions({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '11px 14px', borderRadius: 9,
-              border: '1.5px solid #0066FF', background: '#EFF6FF',
-              cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#0066FF',
+              border: '1.5px solid #2563EB', background: '#EFF6FF',
+              cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#2563EB',
               transition: 'background 0.15s',
             }}
           >
             <span>✍️ 위임장 (자동 생성 PDF)</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#0066FF' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB' }}>
               {downloading === 'delegation' ? '생성 중...' : '↓ 다운로드'}
             </span>
           </button>
@@ -170,7 +170,7 @@ export default function PackageActions({
           disabled={downloading === 'zip'}
           style={{
             width: '100%', padding: '13px', borderRadius: 10,
-            background: downloading === 'zip' ? '#f3f4f6' : '#0066FF',
+            background: downloading === 'zip' ? '#f3f4f6' : '#2563EB',
             color: downloading === 'zip' ? '#9ca3af' : '#fff',
             border: 'none', cursor: downloading === 'zip' ? 'not-allowed' : 'pointer',
             fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

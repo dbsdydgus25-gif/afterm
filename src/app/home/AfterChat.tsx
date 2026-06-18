@@ -201,7 +201,7 @@ export default function AfterChat() {
                 padding: '14px 20px 12px',
                 borderBottom: '1px solid #F0F0F0',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: '#0066FF',
+                background: '#2563EB',
                 borderRadius: '24px 24px 0 0',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -280,7 +280,7 @@ export default function AfterChat() {
                         {!isMine && (
                           <div style={{
                             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                            background: '#0066FF', display: 'flex', alignItems: 'center',
+                            background: '#2563EB', display: 'flex', alignItems: 'center',
                             justifyContent: 'center', fontSize: 14, marginBottom: 2,
                           }}>🎧</div>
                         )}
@@ -290,7 +290,7 @@ export default function AfterChat() {
                         }}>
                           <div style={{
                             maxWidth: 240, padding: '10px 14px', borderRadius: 18,
-                            background: isMine ? '#0066FF' : '#fff',
+                            background: isMine ? '#2563EB' : '#fff',
                             color: isMine ? '#fff' : '#111827',
                             border: isMine ? 'none' : '1px solid #E8EAF0',
                             fontSize: 14, lineHeight: 1.5,
@@ -331,7 +331,7 @@ export default function AfterChat() {
                       maxHeight: 90, overflowY: 'auto',
                       transition: 'border-color 0.2s',
                     }}
-                    onFocus={e => { e.target.style.borderColor = '#0066FF' }}
+                    onFocus={e => { e.target.style.borderColor = '#2563EB' }}
                     onBlur={e => { e.target.style.borderColor = '#E8EAF0' }}
                   />
                   <button
@@ -339,7 +339,7 @@ export default function AfterChat() {
                     disabled={loading || !input.trim()}
                     style={{
                       width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                      background: input.trim() ? '#0066FF' : '#E5E7EB', border: 'none',
+                      background: input.trim() ? '#2563EB' : '#E5E7EB', border: 'none',
                       color: '#fff', cursor: input.trim() ? 'pointer' : 'default',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'background 0.2s',

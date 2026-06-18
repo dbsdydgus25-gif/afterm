@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     }}>
       {/* 상단 헤더 */}
       <header style={{
-        height: 56, background: '#0066FF', display: 'flex', alignItems: 'center',
+        height: 56, background: '#2563EB', display: 'flex', alignItems: 'center',
         padding: '0 24px', flexShrink: 0, gap: 16,
         boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
       }}>

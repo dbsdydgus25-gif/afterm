@@ -104,7 +104,7 @@ export default async function AdminPaymentsPage({
                 padding: '6px 14px', borderRadius: 7, fontSize: 13, fontWeight: 700,
                 textDecoration: 'none',
                 background: currentStatus === tab.value ? '#fff' : 'transparent',
-                color: currentStatus === tab.value ? '#0066FF' : '#6B7280',
+                color: currentStatus === tab.value ? '#2563EB' : '#6B7280',
                 boxShadow: currentStatus === tab.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                 transition: 'all 0.15s',
               }}
@@ -126,7 +126,7 @@ export default async function AdminPaymentsPage({
             }}
           />
           <button type="submit" style={{
-            padding: '8px 16px', background: '#0066FF', color: '#fff',
+            padding: '8px 16px', background: '#2563EB', color: '#fff',
             border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer',
           }}>검색</button>
         </form>
@@ -195,7 +195,7 @@ export default async function AdminPaymentsPage({
                   </td>
                   <td style={{ padding: '14px' }}>
                     <Link href={`/admin/cases/${c.id}`} style={{
-                      fontSize: 12, fontWeight: 700, color: '#0066FF', textDecoration: 'none',
+                      fontSize: 12, fontWeight: 700, color: '#2563EB', textDecoration: 'none',
                       padding: '5px 10px', background: '#EBF3FF', borderRadius: 6,
                     }}>
                       케이스 보기
