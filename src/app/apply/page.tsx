@@ -527,7 +527,7 @@ function ApplyFlow() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveCaseAndNext = async () => {
+  const saveCaseAndNext = async (name?: string, relation?: string) => {
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -544,8 +544,8 @@ function ApplyFlow() {
         }).eq('id', existingCaseId)
         await supabase.from('delegations').upsert({
           case_id: existingCaseId,
-          delegator_name: delegatorName,
-          delegator_relation: delegatorRelation,
+          delegator_name: name ?? delegatorName,
+          delegator_relation: relation ?? delegatorRelation,
         }, { onConflict: 'case_id' })
       } else {
         const { data, error } = await supabase.from('cases').insert({
@@ -560,8 +560,8 @@ function ApplyFlow() {
         setCaseId(data.id)
         await supabase.from('delegations').upsert({
           case_id: data.id,
-          delegator_name: delegatorName,
-          delegator_relation: delegatorRelation,
+          delegator_name: name ?? delegatorName,
+          delegator_relation: relation ?? delegatorRelation,
         }, { onConflict: 'case_id' })
       }
 
@@ -574,34 +574,40 @@ function ApplyFlow() {
     }
   }
 
+  // 순서: 약관 → 유가족 → 사망진단서 → 고인정보 → 신청인 → (저장 후 services)
   if (flowStep === 'terms') return <StepTerms onNext={() => setFlowStep('family')} />
-  if (flowStep === 'family') return <StepFamilyCheck onYes={() => setFlowStep('deathcert')} onNo={() => router.push('/')} />
+  if (flowStep === 'family') return (
+    <StepFamilyCheck
+      onYes={() => setFlowStep('deathcert')}
+      onNo={() => router.push('/home')}
+    />
+  )
   if (flowStep === 'deathcert') return (
     <StepDeathCertCheck
       onYes={() => setFlowStep('deceased')}
-      onNo={() => router.push('/')}
+      onNo={() => router.push('/home')}
       onBack={() => setFlowStep('family')}
     />
   )
   if (flowStep === 'deceased') return (
     <StepDeceased
       deceasedInfo={deceasedInfo}
-      onUpdate={(k, v) => setDeceasedInfo({ [k]: v })}
+      onUpdate={(k, v) => {
+        const storeKey = k === 'birth' ? 'birthDate' : k === 'death' ? 'deathDate' : k
+        setDeceasedInfo({ [storeKey]: v })
+      }}
       onNext={() => setFlowStep('applicant')}
       onBack={() => setFlowStep('deathcert')}
     />
   )
   if (flowStep === 'applicant') return (
     <StepApplicant
-      onNext={(name, relation) => { setDelegatorName(name); setDelegatorRelation(relation); setFlowStep('deathcert') }}
+      onNext={(name, relation) => {
+        setDelegatorName(name)
+        setDelegatorRelation(relation)
+        saveCaseAndNext(name, relation)
+      }}
       onBack={() => setFlowStep('deceased')}
-    />
-  )
-  if (flowStep === 'deathcert') return (
-    <StepDeathCertCheck
-      onYes={saving ? () => {} : saveCaseAndNext}
-      onNo={() => router.push('/')}
-      onBack={() => setFlowStep('applicant')}
     />
   )
   return null
