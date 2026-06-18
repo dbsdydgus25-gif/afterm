@@ -52,9 +52,13 @@ function PaymentInner() {
       const userEmail = user?.email || 'test@afterm.co.kr'
       const userName = user?.user_metadata?.full_name || '고객'
 
+      const channelKey = method === 'EASY_PAY'
+        ? process.env.NEXT_PUBLIC_PORTONE_KAKAO_CHANNEL_KEY!
+        : process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!
+
       const payParams: Parameters<typeof PortOne.requestPayment>[0] = {
         storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID!,
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY!,
+        channelKey,
         paymentId,
         orderName: `에프텀 디지털 계정 정리 대행 (${count}건)`,
         totalAmount: grandTotal,
