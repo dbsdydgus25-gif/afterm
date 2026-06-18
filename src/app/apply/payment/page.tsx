@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import * as PortOne from '@portone/browser-sdk/v2'
 import { createClient } from '@/lib/supabase/client'
+import { Screen, Body, Dock, StepLabel, Question } from '../_components'
 
 const PRICE_PER_SERVICE = 4900
 
@@ -17,26 +18,17 @@ function PaymentInner() {
   const [services, setServices] = useState<{ name: string; action: string }[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(searchParams.get('error') || '')
-  const [delegatorPhone, setDelegatorPhoneState] = useState('')
+  const [delegatorPhone, setDelegatorPhone] = useState('')
 
   useEffect(() => {
     if (!caseId) { router.push('/apply'); return }
-    supabase
-      .from('case_services')
-      .select('service_name, service_category')
-      .eq('case_id', caseId)
+    supabase.from('case_services').select('service_name, service_category').eq('case_id', caseId)
       .then(({ data }) => {
         if (data) setServices(data.map(d => ({ name: d.service_name, action: d.service_category })))
       })
-    supabase
-      .from('cases')
-      .select('delegator_phone')
-      .eq('id', caseId)
-      .single()
-      .then(({ data }) => {
-        if (data?.delegator_phone) setDelegatorPhoneState(data.delegator_phone)
-      })
-  }, [caseId])
+    supabase.from('cases').select('delegator_phone').eq('id', caseId).single()
+      .then(({ data }) => { if (data?.delegator_phone) setDelegatorPhone(data.delegator_phone) })
+  }, [caseId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const count = services.length || 1
   const totalAmount = count * PRICE_PER_SERVICE
@@ -47,6 +39,12 @@ function PaymentInner() {
     if (!caseId) return
     setLoading(true)
     setError('')
+
+    // 30초 타임아웃
+    const timeout = setTimeout(() => {
+      setLoading(false)
+      setError('결제 시간이 초과되었습니다. 다시 시도해 주세요.')
+    }, 30000)
 
     try {
       const paymentId = `afterm-${caseId}-${Date.now()}`
@@ -75,6 +73,7 @@ function PaymentInner() {
       }
 
       const response = await PortOne.requestPayment(payParams)
+      clearTimeout(timeout)
 
       if (response?.code) {
         setError(response.message || '결제가 취소되었습니다.')
@@ -89,37 +88,36 @@ function PaymentInner() {
       })
 
       if (!verifyRes.ok) {
-        setError('결제 검증에 실패했습니다. 고객센터에 문의해주세요.')
+        const errData = await verifyRes.json().catch(() => ({}))
+        setError(errData.error || '결제 검증에 실패했습니다. 고객센터에 문의해주세요.')
         setLoading(false)
         return
       }
 
       router.push('/apply/confirm')
     } catch (e: any) {
+      clearTimeout(timeout)
       setError(e.message || '결제 중 오류가 발생했습니다.')
       setLoading(false)
     }
   }
 
-  const handlePay = () => requestPay('CARD')
-  const handleKakaoPay = () => requestPay('EASY_PAY')
-
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', minHeight: '100dvh',
-      fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff',
-    }}>
-      <div style={{ flex: 1, padding: '40px 24px 120px' }}>
-        <h2 style={{
-          fontSize: 26, fontWeight: 800, color: '#111827',
-          letterSpacing: '-0.03em', lineHeight: 1.35, margin: '0 0 32px',
-        }}>
-          결제하기
-        </h2>
+    <Screen>
+      {/* 진행 바 완료 */}
+      <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: '#2563EB' }} />
+        ))}
+      </div>
 
-        {/* 서비스 내역 */}
+      <Body>
+        <StepLabel label="결제" />
+        <Question label="결제하기" />
+
+        {/* 신청 서비스 */}
         <div style={{
-          background: '#F8FAFC', borderRadius: 14, padding: '18px 20px', marginBottom: 16,
+          background: '#F8FAFC', borderRadius: 14, padding: '18px 20px', marginBottom: 12,
           border: '1px solid #E5E9EF',
         }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', margin: '0 0 12px', letterSpacing: '0.06em' }}>
@@ -139,9 +137,7 @@ function PaymentInner() {
                 </span>
               </div>
             )) : (
-              <div style={{ fontSize: 14, color: '#374151', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
-                <span>서비스 로딩 중...</span>
-              </div>
+              <div style={{ fontSize: 14, color: '#9CA3AF' }}>불러오는 중...</div>
             )}
           </div>
         </div>
@@ -149,7 +145,7 @@ function PaymentInner() {
         {/* 금액 합계 */}
         <div style={{
           background: '#fff', borderRadius: 14, border: '1px solid #E5E9EF',
-          padding: '18px 20px', marginBottom: 24,
+          padding: '18px 20px', marginBottom: 20,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: 13, color: '#6B7280' }}>서비스 {count}건</span>
@@ -162,21 +158,17 @@ function PaymentInner() {
             <span style={{ fontSize: 13, color: '#6B7280' }}>부가세 (10%)</span>
             <span style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{vat.toLocaleString()}원</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 16, fontWeight: 800, color: '#111827' }}>최종 결제금액</span>
-            <span style={{ fontSize: 22, fontWeight: 900, color: '#2563EB', letterSpacing: '-0.02em' }}>
+            <span style={{ fontSize: 24, fontWeight: 900, color: '#2563EB', letterSpacing: '-0.02em' }}>
               {grandTotal.toLocaleString()}원
             </span>
           </div>
         </div>
 
         {/* 안심 문구 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-          {[
-            '대행 불가 시 전액 환불 보장',
-            '결제 후 평균 1주일 이내 처리',
-            '개인정보는 처리 완료 즉시 파기',
-          ].map((txt) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+          {['대행 불가 시 전액 환불 보장', '결제 후 평균 1주일 이내 처리', '개인정보는 처리 완료 즉시 파기'].map(txt => (
             <div key={txt} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
                 width: 18, height: 18, borderRadius: '50%',
@@ -191,7 +183,6 @@ function PaymentInner() {
           ))}
         </div>
 
-        {/* KG이니시스 안내 */}
         <div style={{
           padding: '12px 14px', borderRadius: 10,
           background: '#F8FAFC', border: '1px solid #E5E9EF',
@@ -210,49 +201,36 @@ function PaymentInner() {
             <p style={{ fontSize: 13, color: '#DC2626', margin: 0, fontWeight: 600 }}>{error}</p>
           </div>
         )}
-      </div>
+      </Body>
 
-      {/* 결제 버튼 */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430, padding: '12px 24px',
-        paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50,
-        display: 'flex', flexDirection: 'column', gap: 8,
-      }}>
-        {/* 카카오페이 */}
-        <button
-          onClick={handleKakaoPay}
-          disabled={loading}
-          style={{
-            width: '100%', padding: '15px', borderRadius: 14,
+      <Dock>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* 카카오페이 */}
+          <button onClick={() => requestPay('EASY_PAY')} disabled={loading} style={{
+            width: '100%', padding: '16px', borderRadius: 14,
             background: loading ? '#E5E9EF' : '#FEE500',
             color: loading ? '#9CA3AF' : '#3C1E1E',
             border: 'none', fontSize: 15, fontWeight: 800,
             cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit', letterSpacing: '-0.02em',
-          }}
-        >
-          {loading ? '처리 중...' : `카카오페이로 결제하기`}
-        </button>
-        {/* 카드 결제 */}
-        <button
-          onClick={handlePay}
-          disabled={loading}
-          style={{
-            width: '100%', padding: '15px', borderRadius: 14,
+          }}>
+            {loading ? '처리 중...' : '카카오페이로 결제하기'}
+          </button>
+          {/* 카드 결제 */}
+          <button onClick={() => requestPay('CARD')} disabled={loading} style={{
+            width: '100%', padding: '16px', borderRadius: 14,
             background: loading ? '#E5E9EF' : '#2563EB',
             color: loading ? '#9CA3AF' : '#fff',
             border: 'none', fontSize: 15, fontWeight: 800,
             cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit', letterSpacing: '-0.02em',
             boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,0.3)',
-          }}
-        >
-          {loading ? '결제 처리 중...' : `${grandTotal.toLocaleString()}원 카드로 결제하기`}
-        </button>
-      </div>
-    </div>
+          }}>
+            {loading ? '결제 처리 중...' : `${grandTotal.toLocaleString()}원 카드로 결제하기`}
+          </button>
+        </div>
+      </Dock>
+    </Screen>
   )
 }
 
