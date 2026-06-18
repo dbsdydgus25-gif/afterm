@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$CLAUDE_USER_PROMPT\" | grep -q '하루 일과 끝내자\\|퇴근\\|오늘 마감' && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"[김비서] 대표님이 오늘 하루를 마무리하려 합니다. /퇴근 커맨드 플로우를 자동으로 실행합니다: 1) PROGRESS.md를 오늘 작업 내용으로 업데이트 2) 내일 할일 체크리스트 정리 3) https://afterm.co.kr/api/secretary/save-todo 에 POST로 내일 할일 저장 4) 오늘 완료 내역 + 내일 핵심 과제 3가지 보고. 지금 바로 시작하세요.\"}}' || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,8 +1,16 @@
 {
-    "crons": [
-        {
-            "path": "/api/cron/verify",
-            "schedule": "0 0 * * *"
-        }
-    ]
+  "crons": [
+    {
+      "path": "/api/cron/verify",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/secretary/morning",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/secretary/night",
+      "schedule": "0 14 * * *"
+    }
+  ]
 }
