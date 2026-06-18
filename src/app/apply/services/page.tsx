@@ -195,16 +195,6 @@ export default function ServicesPage() {
         fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff',
       }}>
         <div style={{ flex: 1, padding: '40px 24px 120px' }}>
-          {/* 진행 표시 */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 32 }}>
-            {services.map((_, i) => (
-              <div key={i} style={{
-                flex: 1, height: 3, borderRadius: 2,
-                background: i <= currentIdx ? '#2563EB' : '#E5E9EF',
-              }} />
-            ))}
-          </div>
-
           <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, margin: '0 0 8px' }}>
             {currentIdx + 1} / {services.length}
           </p>

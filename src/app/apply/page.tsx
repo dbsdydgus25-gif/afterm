@@ -214,52 +214,6 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   )
 }
 
-// ─── 날짜 텍스트 입력 ────────────────────────────
-function DateInput({ value, onChange, error }: {
-  value: string
-  onChange: (v: string) => void
-  error?: boolean
-}) {
-  // value 형식: "YYYY-MM-DD" (store용), 화면 표시는 "YYYY.MM.DD"
-  const display = value ? value.replace(/-/g, '.') : ''
-
-  const handleInput = (raw: string) => {
-    const digits = raw.replace(/\D/g, '').slice(0, 8)
-    let formatted = digits
-    if (digits.length > 4) formatted = digits.slice(0, 4) + '.' + digits.slice(4)
-    if (digits.length > 6) formatted = formatted.slice(0, 7) + '.' + digits.slice(6)
-
-    // store에는 YYYY-MM-DD 형식
-    const store = digits.length === 8
-      ? `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`
-      : digits.length > 4
-        ? `${digits.slice(0, 4)}-${digits.slice(4)}`
-        : digits
-    onChange(store)
-  }
-
-  return (
-    <div>
-      <input
-        type="text"
-        inputMode="numeric"
-        placeholder="예: 1960.01.15"
-        value={display}
-        autoFocus
-        onChange={e => handleInput(e.target.value)}
-        style={{
-          width: '100%', height: 52, border: 0,
-          borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
-          background: 'transparent', fontSize: 24, fontWeight: 700,
-          color: '#111827', outline: 'none', fontFamily: 'inherit',
-          boxSizing: 'border-box', letterSpacing: '0.04em',
-        }}
-      />
-      <p style={{ fontSize: 12, color: '#C4C4CC', marginTop: 8 }}>숫자만 입력하면 자동으로 형식이 맞춰집니다</p>
-    </div>
-  )
-}
-
 // ─── Step 3: 고인 정보 ───────────────────────────
 type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
 
@@ -297,23 +251,11 @@ function StepDeceased({
 
   const isDateField = field.key === 'birth' || field.key === 'death'
 
-  const validateDate = (v: string) => {
-    if (!v) return false
-    const digits = v.replace(/\D/g, '')
-    return digits.length === 8
-  }
-
   const goNext = () => {
     setError('')
-    if (!field.optional) {
-      if (isDateField && !validateDate(getValue())) {
-        setError('날짜 8자리를 모두 입력해 주세요 (예: 1960.01.15)')
-        return
-      }
-      if (!isDateField && !getValue().trim()) {
-        setError('성함을 입력해 주세요')
-        return
-      }
+    if (!field.optional && !getValue().trim()) {
+      setError(isDateField ? '날짜를 선택해 주세요' : '성함을 입력해 주세요')
+      return
     }
     if (isLast) onNext()
     else setFieldIdx(i => i + 1)
@@ -322,21 +264,23 @@ function StepDeceased({
   return (
     <Screen>
       <Body>
-        <div style={{ display: 'flex', gap: 4, marginBottom: 36 }}>
-          {DECEASED_FIELDS.map((_, i) => (
-            <div key={i} style={{
-              flex: 1, height: 3, borderRadius: 2,
-              background: i <= fieldIdx ? '#2563EB' : '#E5E9EF', transition: 'background 0.2s',
-            }} />
-          ))}
-        </div>
         <div key={field.key}>
           <Question label={field.question} sub={field.sub} />
           {isDateField ? (
-            <DateInput
+            <input
+              type="date"
               value={getValue()}
-              onChange={v => { onUpdate(field.key, v); setError('') }}
-              error={!!error}
+              autoFocus
+              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
+              max={new Date().toISOString().split('T')[0]}
+              style={{
+                width: '100%', padding: '14px 16px', marginTop: 4,
+                border: `1.5px solid ${error ? '#EF4444' : '#2563EB'}`,
+                borderRadius: 12, background: '#F8FAFC',
+                fontSize: 18, fontWeight: 600, color: '#111827',
+                outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+                WebkitAppearance: 'none',
+              } as React.CSSProperties}
             />
           ) : (
             <input
