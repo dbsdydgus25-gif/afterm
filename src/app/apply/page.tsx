@@ -85,21 +85,10 @@ function Question({ label, sub }: { label: string; sub?: string }) {
   )
 }
 
-// 전체 8단계 진행 표시 바
-// terms=1, family=2, deathcert=3, deceased=4, applicant=5, account_notice=6, track=7, platforms=8
+// ProgressBar 제거 (사용자 요청)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ProgressBar({ current }: { current: number }) {
-  const total = 8
-  return (
-    <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} style={{
-          flex: 1, height: 3, borderRadius: 2,
-          background: i < current ? '#2563EB' : '#E5E9EF',
-          transition: 'background 0.3s',
-        }} />
-      ))}
-    </div>
-  )
+  return null
 }
 
 function CheckCircle({ checked, onClick }: { checked: boolean; onClick: () => void }) {
@@ -780,12 +769,13 @@ function ApplyFlow() {
 
       const existingCaseId = useApplyStore.getState().caseId
 
+      const latestDeceased = useApplyStore.getState().deceasedInfo
       if (existingCaseId) {
         await supabase.from('cases').update({
-          deceased_name: deceasedInfo.name,
-          deceased_birth: deceasedInfo.birthDate,
-          deceased_death: deceasedInfo.deathDate,
-          deceased_phone: deceasedInfo.phone || null,
+          deceased_name: latestDeceased.name,
+          deceased_birth: latestDeceased.birthDate,
+          deceased_death: latestDeceased.deathDate,
+          deceased_phone: latestDeceased.phone || null,
           delegator_phone: phone || null,
         }).eq('id', existingCaseId)
         await supabase.from('delegations').upsert({
@@ -797,10 +787,10 @@ function ApplyFlow() {
       } else {
         const { data, error } = await supabase.from('cases').insert({
           user_id: user.id,
-          deceased_name: deceasedInfo.name,
-          deceased_birth: deceasedInfo.birthDate,
-          deceased_death: deceasedInfo.deathDate,
-          deceased_phone: deceasedInfo.phone || null,
+          deceased_name: latestDeceased.name,
+          deceased_birth: latestDeceased.birthDate,
+          deceased_death: latestDeceased.deathDate,
+          deceased_phone: latestDeceased.phone || null,
           delegator_phone: phone || null,
           status: 'draft',
         }).select('id').single()

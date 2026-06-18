@@ -17,6 +17,7 @@ function PaymentInner() {
 
   const [services, setServices] = useState<{ name: string; action: string }[]>([])
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(searchParams.get('error') || '')
   const [delegatorPhone, setDelegatorPhone] = useState('')
 
@@ -98,7 +99,8 @@ function PaymentInner() {
         return
       }
 
-      router.push('/apply/confirm')
+      setSubmitting(true)
+      setTimeout(() => router.push(`/apply/confirm?done=true&caseId=${caseId}`), 1500)
     } catch (e: any) {
       clearTimeout(timeout)
       setError(e.message || '결제 중 오류가 발생했습니다.')
@@ -106,15 +108,29 @@ function PaymentInner() {
     }
   }
 
+  if (submitting) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100dvh', background: '#fff', gap: 20,
+        fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+      }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: '50%',
+          border: '4px solid #E5E9EF', borderTopColor: '#2563EB',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ fontSize: 18, fontWeight: 800, color: '#111827', letterSpacing: '-0.02em', margin: 0 }}>
+          신청중입니다
+        </p>
+        <p style={{ fontSize: 14, color: '#9CA3AF', margin: 0 }}>잠시만 기다려 주세요...</p>
+      </div>
+    )
+  }
+
   return (
     <Screen>
-      {/* 진행 바 완료 */}
-      <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: '#2563EB' }} />
-        ))}
-      </div>
-
       <Body>
         <StepLabel label="결제" />
         <Question label="결제하기" />

@@ -295,42 +295,6 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
         })}
       </div>
 
-      {/* ── 고인 이름 탭 (하단 케이스 네비게이터) ── */}
-      {cases.length > 1 && (
-        <div style={{
-          position: 'absolute', bottom: 70, left: 0, right: 0,
-          display: 'flex', justifyContent: 'center', gap: 8, padding: '0 16px',
-          pointerEvents: 'none',
-        }}>
-          <div style={{
-            display: 'flex', gap: 6, padding: '6px 10px',
-            background: 'rgba(255,255,255,0.95)', borderRadius: 20,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.12)', border: '1px solid #E8EAF0',
-            pointerEvents: 'all',
-            overflowX: 'auto', flexWrap: 'nowrap',
-            maxWidth: 'calc(100vw - 32px)',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-          }}>
-            {cases.map((c, i) => (
-              <button
-                key={c.id}
-                onClick={() => goToCase(i)}
-                style={{
-                  padding: '4px 12px', borderRadius: 14, border: 'none',
-                  background: caseIdx === i ? '#2563EB' : 'transparent',
-                  color: caseIdx === i ? '#fff' : '#6B7280',
-                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                  whiteSpace: 'nowrap', flexShrink: 0,
-                }}
-              >
-                {c.deceased_name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

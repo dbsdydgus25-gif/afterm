@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
@@ -14,14 +14,67 @@ const LOADING_MESSAGES = [
   '접수를 완료하고 있어요...',
 ]
 
-export default function ConfirmPage() {
+function ConfirmPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isDoneParam = searchParams.get('done') === 'true'
+  // URL 파라미터에서 caseId 우선 읽기 (store reset 이후에도 안전)
+  const urlCaseId = searchParams.get('caseId')
   const supabase = createClient()
-  const { caseId, deceasedInfo, selectedServices, delegation, resetStore } = useApplyStore()
+  const { caseId: storeCaseId, deceasedInfo, selectedServices, delegation, resetStore } = useApplyStore()
+  const caseId = urlCaseId || storeCaseId
   const [loading, setLoading] = useState(false)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState(isDoneParam)
+  const [dbDeceasedName, setDbDeceasedName] = useState('')
+  const [dbServiceCount, setDbServiceCount] = useState(0)
+
+  // ?done=true 인 경우 서버 API로 케이스 정보 읽기 + submitted 처리
+  useEffect(() => {
+    if (!isDoneParam || !caseId) return
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
+
+    const runDoneFlow = async () => {
+      // 서버 API (admin client) 로 조회 — RLS/join 문제 없음
+      const res = await fetch(`/api/case-summary?caseId=${caseId}`)
+      const summary = res.ok ? await res.json() : null
+
+      if (summary?.deceased_name) setDbDeceasedName(summary.deceased_name)
+      if (summary?.service_count) setDbServiceCount(summary.service_count)
+
+      // status 업데이트
+      supabase.from('cases').update({ status: 'submitted' }).eq('id', caseId).then(() => {})
+
+      // 신청 완료 알림 (카카오 + 이메일)
+      const notifyPayload = {
+        caseId,
+        type: 'submitted',
+        requesterName: summary?.delegator_name || '',
+        deceasedName: summary?.deceased_name || '',
+      }
+      await Promise.allSettled([
+        summary?.delegator_phone
+          ? fetch(`${siteUrl}/api/notify/kakao`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone: summary.delegator_phone, ...notifyPayload }),
+            })
+          : Promise.resolve(),
+        fetch(`${siteUrl}/api/notify/email`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...notifyPayload }),
+        }),
+      ])
+
+      // 완료 후 store 초기화
+      resetStore()
+    }
+
+    runDoneFlow()
+  }, [isDoneParam]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displayName = dbDeceasedName || deceasedInfo.name
+  const displayCount = dbServiceCount || selectedServices.length
 
   // 로딩 중 메시지 순환
   useEffect(() => {
@@ -220,11 +273,11 @@ export default function ConfirmPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 13, color: '#6B7280' }}>고인</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{deceasedInfo.name || '-'} 님</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{displayName || '-'} 님</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 13, color: '#6B7280' }}>신청 서비스</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{selectedServices.length}개</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{displayCount}개</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: 13, color: '#6B7280' }}>예상 처리</span>
@@ -248,7 +301,7 @@ export default function ConfirmPage() {
         </div>
 
         <button
-          onClick={() => router.push('/home')}
+          onClick={() => router.push('/home/orders')}
           style={{
             width: '100%', padding: '18px',
             background: '#2563EB', border: 'none', borderRadius: 16,
@@ -257,7 +310,7 @@ export default function ConfirmPage() {
             fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
           }}
         >
-          홈에서 확인하기 →
+          신청내역 확인하기 →
         </button>
       </div>
     )
@@ -371,4 +424,8 @@ export default function ConfirmPage() {
       </div>
     </div>
   )
+}
+
+export default function ConfirmPage() {
+  return <Suspense><ConfirmPageInner /></Suspense>
 }

@@ -79,16 +79,7 @@ export function Question({ label, sub }: { label: string; sub?: string }) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ProgressBar({ current, total = 8 }: { current: number; total?: number }) {
-  return (
-    <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} style={{
-          flex: 1, height: 3, borderRadius: 2,
-          background: i < current ? '#2563EB' : '#E5E9EF',
-          transition: 'background 0.3s',
-        }} />
-      ))}
-    </div>
-  )
+  return null
 }

@@ -1,9 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
@@ -32,6 +30,7 @@ function ColorOrb({ size = 26 }: { size?: number }) {
 
 export default function HomeTabBar() {
   const pathname = usePathname()
+  const router = useRouter()
   const supabase = createClient()
 
   const [open, setOpen] = useState(false)
@@ -46,6 +45,7 @@ export default function HomeTabBar() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [authLoaded, setAuthLoaded] = useState(false)
   const [hasUnread, setHasUnread] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
 
@@ -53,12 +53,16 @@ export default function HomeTabBar() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // 유저 ID
+  // 유저 ID + 탭 prefetch
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setUserId(user.id)
+      setAuthLoaded(true)
     })
-  }, [])
+    router.prefetch('/home')
+    router.prefetch('/home/orders')
+    router.prefetch('/home/myinfo')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 메시지 로드
   const fetchMessages = useCallback(async () => {
@@ -66,10 +70,10 @@ export default function HomeTabBar() {
     if (res.ok) setMessages(await res.json())
   }, [])
 
-  // Realtime 구독
+  // Realtime 구독 (userId 있을 때만)
   useEffect(() => {
-    fetchMessages()
     if (!userId) return
+    fetchMessages()
     const channel = supabase
       .channel('tab_chat')
       .on('postgres_changes',
@@ -171,45 +175,36 @@ export default function HomeTabBar() {
       <LoginBottomSheet open={loginOpen} onClose={() => setLoginOpen(false)} redirectTo="/home" />
 
       {/* ── 채팅 패널 오버레이 ── */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            onClick={() => setOpen(false)}
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.38)',
-              zIndex: 290, backdropFilter: 'blur(2px)',
-            }}
-          />
-        )}
-      </AnimatePresence>
+      <div
+        onClick={() => setOpen(false)}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.38)',
+          zIndex: 290,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'all' : 'none',
+          transition: 'opacity 0.18s',
+        }}
+      />
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            ref={panelRef}
-            key="chat-panel"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 420, damping: 38, mass: 0.75 }}
-            style={{
-              position: 'fixed',
-              bottom: 64, // 탭바 높이만큼 위
-              left: '50%', transform: 'translateX(-50%)',
-              width: '100%', maxWidth: 480,
-              background: '#fff',
-              borderRadius: '24px 24px 0 0',
-              boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-              zIndex: 295,
-              display: 'flex', flexDirection: 'column',
-              height: '72dvh',
-              overflow: 'hidden',
-            }}
-          >
+      <div
+        ref={panelRef}
+        style={{
+          position: 'fixed',
+          bottom: 64,
+          left: 0, right: 0, margin: '0 auto',
+          width: '100%', maxWidth: 480,
+          background: '#fff',
+          borderRadius: '24px 24px 0 0',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+          zIndex: 295,
+          display: 'flex', flexDirection: 'column',
+          height: '72dvh',
+          overflow: 'hidden',
+          transform: open ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
+          willChange: 'transform',
+        }}
+      >
             {/* 패널 헤더 */}
             <div style={{
               padding: '14px 20px 12px', background: '#2563EB',
@@ -346,9 +341,7 @@ export default function HomeTabBar() {
                 </button>
               </form>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
 
       {/* ── 탭바 ── */}
       <nav style={{
@@ -361,19 +354,22 @@ export default function HomeTabBar() {
         {/* 왼쪽 탭 */}
         {leftTabs.map(tab => {
           const active = tab.href === '/home' ? pathname === '/home' : pathname.startsWith(tab.href)
-          const handleClick = (e: React.MouseEvent) => {
-            if (tab.requireAuth && !userId) { e.preventDefault(); setLoginOpen(true) }
-          }
           return (
-            <Link key={tab.href} href={tab.href} onClick={handleClick} style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '10px 0 8px', textDecoration: 'none', gap: 3,
-            }}>
+            <button key={tab.href}
+              onClick={() => {
+                if (tab.requireAuth && authLoaded && !userId) { setLoginOpen(true); return }
+                router.push(tab.href)
+              }}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                padding: '10px 0 8px', gap: 3, background: 'none', border: 'none',
+                cursor: 'pointer', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
+              }}>
               {tab.icon(active)}
               <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
-            </Link>
+            </button>
           )
         })}
 
@@ -389,7 +385,7 @@ export default function HomeTabBar() {
               boxShadow: open ? '0 2px 12px rgba(22,50,114,0.3)' : '0 2px 10px rgba(0,0,0,0.08)',
               cursor: 'pointer',
               fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-              transition: 'all 0.2s',
+              transition: 'background 0.2s, box-shadow 0.2s',
               position: 'relative',
             }}
           >
@@ -415,15 +411,18 @@ export default function HomeTabBar() {
         {rightTabs.map(tab => {
           const active = pathname.startsWith(tab.href)
           return (
-            <Link key={tab.href} href={tab.href} style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '10px 0 8px', textDecoration: 'none', gap: 3,
-            }}>
+            <button key={tab.href}
+              onClick={() => router.push(tab.href)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                padding: '10px 0 8px', gap: 3, background: 'none', border: 'none',
+                cursor: 'pointer', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
+              }}>
               {tab.icon(active)}
               <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
-            </Link>
+            </button>
           )
         })}
       </nav>

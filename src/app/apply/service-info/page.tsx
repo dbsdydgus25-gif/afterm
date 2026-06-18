@@ -117,13 +117,6 @@ export default function ServiceInfoPage() {
 
   return (
     <Screen>
-      {/* 진행 바: 서비스 정보 입력은 8단계 이후라 별도 표시 */}
-      <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: '#2563EB' }} />
-        ))}
-      </div>
-
       <Body>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{

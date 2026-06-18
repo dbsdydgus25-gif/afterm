@@ -48,24 +48,30 @@ export async function POST(req: NextRequest) {
 
     // 환불 완료 알림톡 발송
     const { data: { user } } = await adminClient.auth.admin.getUserById(caseData.user_id)
-    const userPhone = user?.phone || user?.user_metadata?.phone || ''
+    const userPhone = caseData.delegator_phone || caseData.delegations?.[0]?.delegator_phone || user?.phone || user?.user_metadata?.phone || ''
     const userName = caseData.delegations?.[0]?.delegator_name || user?.user_metadata?.full_name || '고객'
 
-    if (userPhone) {
-      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'}/api/notify/kakao`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: userPhone,
-          caseId,
-          type: 'refund',
-          requesterName: userName,
-          deceasedName: caseData.deceased_name,
-          amount: caseData.paid_amount?.toLocaleString(),
-          refundReason: reason,
-        }),
-      }).catch(() => {})
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
+    const notifyPayload = {
+      caseId,
+      type: 'refund',
+      requesterName: userName,
+      deceasedName: caseData.deceased_name,
+      amount: caseData.paid_amount?.toLocaleString(),
+      refundReason: reason,
     }
+    await Promise.allSettled([
+      userPhone
+        ? fetch(`${siteUrl}/api/notify/kakao`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: userPhone, ...notifyPayload }),
+          })
+        : Promise.resolve(),
+      fetch(`${siteUrl}/api/notify/email`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toEmail: user?.email, ...notifyPayload }),
+      }),
+    ])
 
     return NextResponse.json({ success: true, refund: refundData })
   } catch (e: any) {

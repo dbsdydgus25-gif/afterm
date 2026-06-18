@@ -32,7 +32,7 @@ function CompleteInner() {
       body: JSON.stringify({ paymentId, caseId }),
     }).then(res => {
       if (res.ok) {
-        router.replace('/apply/confirm')
+        router.replace(`/apply/confirm?done=true&caseId=${caseId}`)
       } else {
         router.replace('/apply/payment?error=결제 검증 실패')
       }

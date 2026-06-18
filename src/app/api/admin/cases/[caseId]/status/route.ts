@@ -59,6 +59,7 @@ export async function PATCH(
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
   // 고객 연락처
+  const { data: { user } } = await adminClient.auth.admin.getUserById(caseData.user_id)
   const { data: profileRow } = await adminClient
     .from('profiles')
     .select('name, phone')
@@ -66,17 +67,27 @@ export async function PATCH(
     .single()
 
   const delegation = caseData.delegations?.[0]
-  const customerPhone = profileRow?.phone || delegation?.delegator_phone || ''
-  const customerName = delegation?.delegator_name || profileRow?.name || ''
+  const customerPhone = caseData.delegator_phone || delegation?.delegator_phone || profileRow?.phone || user?.phone || ''
+  const customerName = delegation?.delegator_name || profileRow?.name || user?.user_metadata?.full_name || ''
+  const customerEmail = user?.email || ''
   const deceasedName = caseData.deceased_name || ''
   const services = (caseData.case_services || [])
     .map((s: any) => s.service_name || s.service_id)
     .join(', ')
 
-  // 병렬: 알림톡 + 구글시트
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
+  const notifyType = STATUS_NOTIFY_MAP[status]
+
+  // 병렬: 알림톡 + 이메일 + 구글시트
   await Promise.allSettled([
-    STATUS_NOTIFY_MAP[status] && customerPhone
-      ? sendKakaoNotification({ phone: customerPhone, caseId, type: STATUS_NOTIFY_MAP[status], requesterName: customerName, deceasedName, services })
+    notifyType && customerPhone
+      ? sendKakaoNotification({ phone: customerPhone, caseId, type: notifyType, requesterName: customerName, deceasedName, services })
+      : Promise.resolve(),
+    notifyType && customerEmail
+      ? fetch(`${siteUrl}/api/notify/email`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ toEmail: customerEmail, caseId, type: notifyType, requesterName: customerName, deceasedName, services }),
+        }).catch(() => {})
       : Promise.resolve(),
     updateGoogleSheetStatus(caseId, status),
   ])
@@ -109,31 +120,24 @@ async function sendKakaoNotification({ phone, caseId, type, requesterName, decea
   const messageService = new SolapiMessageService(apiKey, apiSecret)
   const templateId = templateMap[type]
 
-  try {
-    if (pfId && templateId) {
-      await (messageService as any).sendOne({
-        to: phone, from: senderPhone,
-        kakaoOptions: {
-          pfId, templateId,
-          variables: {
-            '#{신청인이름}': requesterName,
-            '#{고인이름}': deceasedName,
-            '#{서비스}': services,
-            '#{접수번호}': caseId.slice(0, 8).toUpperCase(),
-          },
-        },
-      })
-    } else {
-      throw new Error('template 없음')
-    }
-  } catch {
-    try {
-      await (messageService as any).sendOne({
-        to: phone, from: senderPhone,
-        text: fallback[type] || `[에프텀] 진행 현황이 업데이트되었습니다.`,
-      })
-    } catch (e) { console.error('[알림] SMS 폴백 실패:', e) }
+  if (!pfId || !templateId) {
+    console.log(`[알림] pfId 또는 templateId 없음 — 생략 (SMS 미발송)`)
+    return
   }
+  try {
+    await (messageService as any).sendOne({
+      to: phone, from: senderPhone,
+      kakaoOptions: {
+        pfId, templateId,
+        variables: {
+          '#{신청인이름}': requesterName,
+          '#{고인이름}': deceasedName,
+          '#{서비스}': services,
+          '#{접수번호}': caseId.slice(0, 8).toUpperCase(),
+        },
+      },
+    })
+  } catch (e) { console.error('[알림] 카카오 발송 실패:', e) }
 }
 
 async function updateGoogleSheetStatus(caseId: string, status: string) {
