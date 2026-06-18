@@ -214,6 +214,63 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   )
 }
 
+// ─── 날짜 3칸 입력 ──────────────────────────────
+function DateFields({ value, onChange, error }: {
+  value: string  // "YYYY-MM-DD" or ""
+  onChange: (v: string) => void
+  error?: boolean
+}) {
+  const parts = value ? value.split('-') : ['', '', '']
+  const year = parts[0] || ''
+  const month = parts[1] || ''
+  const day = parts[2] || ''
+
+  const update = (y: string, m: string, d: string) => {
+    if (y || m || d) onChange(`${y}-${m}-${d}`)
+    else onChange('')
+  }
+
+  const inputStyle = (hasError?: boolean): React.CSSProperties => ({
+    border: 0, borderBottom: `2px solid ${hasError ? '#EF4444' : '#2563EB'}`,
+    background: 'transparent', fontSize: 22, fontWeight: 700,
+    color: '#111827', outline: 'none', fontFamily: 'inherit',
+    textAlign: 'center', width: '100%', padding: '8px 0',
+    boxSizing: 'border-box',
+  })
+
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 8 }}>
+      <div style={{ flex: 2 }}>
+        <input
+          type="text" inputMode="numeric" placeholder="1960" maxLength={4}
+          value={year} autoFocus
+          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 4); update(v, month, day) }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>년</p>
+      </div>
+      <div style={{ flex: 1 }}>
+        <input
+          type="text" inputMode="numeric" placeholder="01" maxLength={2}
+          value={month}
+          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, v, day) }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>월</p>
+      </div>
+      <div style={{ flex: 1 }}>
+        <input
+          type="text" inputMode="numeric" placeholder="01" maxLength={2}
+          value={day}
+          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, month, v) }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>일</p>
+      </div>
+    </div>
+  )
+}
+
 // ─── Step 3: 고인 정보 ───────────────────────────
 type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
 
@@ -251,11 +308,22 @@ function StepDeceased({
 
   const isDateField = field.key === 'birth' || field.key === 'death'
 
+  const validateDate = (v: string) => {
+    const parts = v.split('-')
+    return parts.length === 3 && parts[0].length === 4 && parts[1].length >= 1 && parts[2].length >= 1
+  }
+
   const goNext = () => {
     setError('')
-    if (!field.optional && !getValue().trim()) {
-      setError(isDateField ? '날짜를 선택해 주세요' : '성함을 입력해 주세요')
-      return
+    if (!field.optional) {
+      if (isDateField && !validateDate(getValue())) {
+        setError('년, 월, 일을 모두 입력해 주세요')
+        return
+      }
+      if (!isDateField && !getValue().trim()) {
+        setError('성함을 입력해 주세요')
+        return
+      }
     }
     if (isLast) onNext()
     else setFieldIdx(i => i + 1)
@@ -267,20 +335,10 @@ function StepDeceased({
         <div key={field.key}>
           <Question label={field.question} sub={field.sub} />
           {isDateField ? (
-            <input
-              type="date"
+            <DateFields
               value={getValue()}
-              autoFocus
-              onChange={e => { onUpdate(field.key, e.target.value); setError('') }}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                width: '100%', padding: '14px 16px', marginTop: 4,
-                border: `1.5px solid ${error ? '#EF4444' : '#2563EB'}`,
-                borderRadius: 12, background: '#F8FAFC',
-                fontSize: 18, fontWeight: 600, color: '#111827',
-                outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-                WebkitAppearance: 'none',
-              } as React.CSSProperties}
+              onChange={v => { onUpdate(field.key, v); setError('') }}
+              error={!!error}
             />
           ) : (
             <input
@@ -298,7 +356,7 @@ function StepDeceased({
               }}
             />
           )}
-          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
         </div>
       </Body>
       <Dock>
@@ -438,7 +496,7 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
         <div style={{ display: 'flex', gap: 10 }}>
           <BackBtn onClick={onBack} />
           <PrimaryBtn disabled={!selected} onClick={() => selected === 'yes' ? onYes() : onNo()}>
-            {selected === 'no' ? '나중에 신청하기' : '서비스 선택하러 가기'}
+            {selected === 'no' ? '나중에 신청하기' : '계속하기'}
           </PrimaryBtn>
         </div>
       </Dock>
@@ -447,7 +505,8 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
 }
 
 // ─── 메인 플로우 ─────────────────────────────────
-type FlowStep = 'terms' | 'family' | 'deceased' | 'applicant' | 'deathcert'
+// 순서: 약관 → 유가족확인 → 사망진단서확인 → 고인정보 → 신청인
+type FlowStep = 'terms' | 'family' | 'deathcert' | 'deceased' | 'applicant'
 
 function ApplyFlow() {
   const router = useRouter()
@@ -516,13 +575,20 @@ function ApplyFlow() {
   }
 
   if (flowStep === 'terms') return <StepTerms onNext={() => setFlowStep('family')} />
-  if (flowStep === 'family') return <StepFamilyCheck onYes={() => setFlowStep('deceased')} onNo={() => router.push('/')} />
+  if (flowStep === 'family') return <StepFamilyCheck onYes={() => setFlowStep('deathcert')} onNo={() => router.push('/')} />
+  if (flowStep === 'deathcert') return (
+    <StepDeathCertCheck
+      onYes={() => setFlowStep('deceased')}
+      onNo={() => router.push('/')}
+      onBack={() => setFlowStep('family')}
+    />
+  )
   if (flowStep === 'deceased') return (
     <StepDeceased
       deceasedInfo={deceasedInfo}
       onUpdate={(k, v) => setDeceasedInfo({ [k]: v })}
       onNext={() => setFlowStep('applicant')}
-      onBack={() => setFlowStep('family')}
+      onBack={() => setFlowStep('deathcert')}
     />
   )
   if (flowStep === 'applicant') return (
