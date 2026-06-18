@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
+import { SERVICE_CATALOG } from '@/lib/services-catalog'
+import type { TrackType } from '@/lib/services-catalog'
 import { Suspense } from 'react'
 
-// ─── 공통 ───────────────────────────────────────
+// ─── 공통 컴포넌트 ─────────────────────────────────────
 function Screen({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
@@ -62,13 +64,11 @@ function BackBtn({ onClick }: { onClick: () => void }) {
   )
 }
 
-// 작은 카테고리 레이블 (섬세한 UX)
 function StepLabel({ label }: { label: string }) {
   return (
     <p style={{
       fontSize: 12, fontWeight: 700, color: '#2563EB',
-      letterSpacing: '0.06em', textTransform: 'uppercase',
-      margin: '0 0 12px', opacity: 0.7,
+      letterSpacing: '0.06em', margin: '0 0 12px', opacity: 0.7,
     }}>{label}</p>
   )
 }
@@ -85,8 +85,10 @@ function Question({ label, sub }: { label: string; sub?: string }) {
   )
 }
 
-// 진행 표시 바
-function ProgressBar({ current, total }: { current: number; total: number }) {
+// 전체 8단계 진행 표시 바
+// terms=1, family=2, deathcert=3, deceased=4, applicant=5, account_notice=6, track=7, platforms=8
+function ProgressBar({ current }: { current: number }) {
+  const total = 8
   return (
     <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
       {Array.from({ length: total }).map((_, i) => (
@@ -139,7 +141,7 @@ function SelectCard({ label, selected, onClick }: { label: string; selected: boo
   )
 }
 
-// ─── Step 1: 약관 동의 ───────────────────────────
+// ─── Step 1: 약관 동의 ─────────────────────────────────
 const TERMS = [
   { key: 'privacy',  label: '개인정보 수집·이용 동의', href: '/privacy' },
   { key: 'delegate', label: '디지털 계정 대행 위임 동의', href: null },
@@ -159,7 +161,7 @@ function StepTerms({ onNext }: { onNext: () => void }) {
 
   return (
     <Screen>
-      <ProgressBar current={1} total={5} />
+      <ProgressBar current={1} />
       <Body>
         <StepLabel label="시작하기 전에" />
         <Question label={'약관에\n동의해 주세요'} sub="서비스 이용을 위한 필수 항목에 동의해 주세요" />
@@ -209,12 +211,12 @@ function StepTerms({ onNext }: { onNext: () => void }) {
   )
 }
 
-// ─── Step 2: 유가족 확인 ─────────────────────────
+// ─── Step 2: 유가족 확인 ───────────────────────────────
 function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void }) {
   const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
   return (
     <Screen>
-      <ProgressBar current={2} total={5} />
+      <ProgressBar current={2} />
       <Body>
         <StepLabel label="신청 자격 확인" />
         <Question label={'신청인이 고인의\n유가족이신가요?'} sub="에프텀 서비스는 유가족만 신청할 수 있습니다" />
@@ -243,318 +245,12 @@ function StepFamilyCheck({ onYes, onNo }: { onYes: () => void; onNo: () => void 
   )
 }
 
-// ─── 날짜 3칸 입력 (자동 포커스 이동) ───────────
-function DateFields({ value, onChange, error }: {
-  value: string
-  onChange: (v: string) => void
-  error?: boolean
-}) {
-  const parts = value ? value.split('-') : ['', '', '']
-  const year = parts[0] || ''
-  const month = parts[1] || ''
-  const day = parts[2] || ''
-
-  const monthRef = useRef<HTMLInputElement>(null)
-  const dayRef   = useRef<HTMLInputElement>(null)
-
-  const update = (y: string, m: string, d: string) => {
-    onChange(`${y}-${m}-${d}`)
-  }
-
-  const inputStyle = (hasError?: boolean): React.CSSProperties => ({
-    border: 0, borderBottom: `2px solid ${hasError ? '#EF4444' : '#2563EB'}`,
-    background: 'transparent', fontSize: 22, fontWeight: 700,
-    color: '#111827', outline: 'none', fontFamily: 'inherit',
-    textAlign: 'center', width: '100%', padding: '8px 0',
-    boxSizing: 'border-box',
-  })
-
-  return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 8 }}>
-      <div style={{ flex: 2 }}>
-        <input
-          type="text" inputMode="numeric" placeholder="1960" maxLength={4}
-          value={year} autoFocus
-          onChange={e => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
-            update(v, month, day)
-            if (v.length === 4) monthRef.current?.focus()
-          }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>년</p>
-      </div>
-      <div style={{ flex: 1 }}>
-        <input
-          ref={monthRef}
-          type="text" inputMode="numeric" placeholder="01" maxLength={2}
-          value={month}
-          onChange={e => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
-            update(year, v, day)
-            if (v.length === 2) dayRef.current?.focus()
-          }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>월</p>
-      </div>
-      <div style={{ flex: 1 }}>
-        <input
-          ref={dayRef}
-          type="text" inputMode="numeric" placeholder="01" maxLength={2}
-          value={day}
-          onChange={e => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
-            update(year, month, v)
-          }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>일</p>
-      </div>
-    </div>
-  )
-}
-
-// ─── Step 3: 고인 정보 ───────────────────────────
-type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
-
-const DECEASED_FIELDS: {
-  key: DeceasedField; question: string; sub: string; placeholder: string; optional?: boolean
-}[] = [
-  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동' },
-  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '' },
-  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '' },
-  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', optional: true },
-]
-
-function StepDeceased({
-  deceasedInfo,
-  onUpdate,
-  onNext,
-  onBack,
-}: {
-  deceasedInfo: { name: string; birthDate: string; deathDate: string; phone: string }
-  onUpdate: (k: DeceasedField, v: string) => void
-  onNext: () => void
-  onBack: () => void
-}) {
-  const [fieldIdx, setFieldIdx] = useState(0)
-  const [error, setError] = useState('')
-  const field = DECEASED_FIELDS[fieldIdx]
-  const isLast = fieldIdx === DECEASED_FIELDS.length - 1
-
-  const getValue = () => {
-    if (field.key === 'name') return deceasedInfo.name
-    if (field.key === 'birth') return deceasedInfo.birthDate
-    if (field.key === 'death') return deceasedInfo.deathDate
-    return deceasedInfo.phone
-  }
-
-  const isDateField = field.key === 'birth' || field.key === 'death'
-
-  const validateDate = (v: string) => {
-    const parts = v.split('-')
-    return parts.length === 3 && parts[0].length === 4 && parts[1].length >= 1 && parts[2].length >= 1
-  }
-
-  const goNext = () => {
-    setError('')
-    if (!field.optional) {
-      if (isDateField && !validateDate(getValue())) {
-        setError('년, 월, 일을 모두 입력해 주세요')
-        return
-      }
-      if (!isDateField && !getValue().trim()) {
-        setError('성함을 입력해 주세요')
-        return
-      }
-    }
-    if (isLast) onNext()
-    else setFieldIdx(i => i + 1)
-  }
-
-  return (
-    <Screen>
-      <ProgressBar current={4} total={5} />
-      <Body>
-        <StepLabel label={`고인 정보 ${fieldIdx + 1}/${DECEASED_FIELDS.length}`} />
-        <div key={field.key}>
-          <Question label={field.question} sub={field.sub} />
-          {isDateField ? (
-            <DateFields
-              value={getValue()}
-              onChange={v => { onUpdate(field.key, v); setError('') }}
-              error={!!error}
-            />
-          ) : (
-            <input
-              type={field.key === 'phone' ? 'tel' : 'text'}
-              inputMode={field.key === 'phone' ? 'numeric' : undefined}
-              placeholder={field.placeholder}
-              value={getValue()}
-              autoFocus
-              onChange={e => {
-                let v = e.target.value
-                if (field.key === 'phone') {
-                  const d = v.replace(/\D/g, '').slice(0, 11)
-                  if (d.length <= 3) v = d
-                  else if (d.length <= 7) v = `${d.slice(0,3)}-${d.slice(3)}`
-                  else v = `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
-                }
-                onUpdate(field.key, v)
-                setError('')
-              }}
-              onKeyDown={e => e.key === 'Enter' && goNext()}
-              style={{
-                width: '100%', height: 52, border: 0,
-                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
-                background: 'transparent', fontSize: 20, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-          )}
-          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
-        </div>
-      </Body>
-      <Dock>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <BackBtn onClick={() => fieldIdx === 0 ? onBack() : setFieldIdx(i => i - 1)} />
-          <PrimaryBtn onClick={goNext}>
-            {isLast && field.optional && !getValue() ? '건너뛰기' : '계속하기'}
-          </PrimaryBtn>
-        </div>
-      </Dock>
-    </Screen>
-  )
-}
-
-// ─── Step 4: 신청인 정보 ─────────────────────────
-const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
-
-function StepApplicant({
-  onNext, onBack,
-}: {
-  onNext: (name: string, relation: string, phone: string) => void
-  onBack: () => void
-}) {
-  const [name, setName] = useState('')
-  const [relation, setRelation] = useState('')
-  const [phone, setPhone] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone'>('name')
-  const supabase = createClient()
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      const n = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
-      if (n) setName(n)
-    })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const phoneFormat = (v: string) => {
-    const d = v.replace(/\D/g, '').slice(0, 11)
-    if (d.length <= 3) return d
-    if (d.length <= 7) return `${d.slice(0,3)}-${d.slice(3)}`
-    return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
-  }
-
-  const innerLabels = { name: '신청인 정보 1/3', relation: '신청인 정보 2/3', phone: '신청인 정보 3/3' }
-
-  return (
-    <Screen>
-      <ProgressBar current={5} total={5} />
-      <Body>
-        <StepLabel label={innerLabels[innerStep]} />
-        {innerStep === 'name' && (
-          <div key="name">
-            <Question label={'신청인 성함을\n입력해 주세요'} sub="위임장에 기재됩니다. 반드시 실명으로 입력해 주세요" />
-            <input type="text" placeholder="예: 홍길동" value={name} autoFocus
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && name.trim() && setInnerStep('relation')}
-              style={{
-                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
-                background: 'transparent', fontSize: 20, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ fontSize: 12, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>
-              ⚠ 실명 미기재 시 서비스 진행이 불가합니다
-            </p>
-          </div>
-        )}
-        {innerStep === 'relation' && (
-          <div key="relation">
-            <Question label={`${name}님과\n고인의 관계는요?`} sub="해당 관계를 선택해 주세요" />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {RELATIONS.map(r => (
-                <button key={r} onClick={() => setRelation(r)} style={{
-                  padding: '11px 20px', borderRadius: 50,
-                  border: `1.5px solid ${relation === r ? '#2563EB' : '#E5E9EF'}`,
-                  background: relation === r ? '#EBF3FF' : '#fff',
-                  color: relation === r ? '#2563EB' : '#374151',
-                  fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'inherit', transition: 'all 0.15s',
-                }}>
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {innerStep === 'phone' && (
-          <div key="phone">
-            <Question label={'신청인 전화번호를\n입력해 주세요'} sub="결제 인증에 사용됩니다" />
-            <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
-              onChange={e => setPhone(phoneFormat(e.target.value))}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) {
-                  onNext(name, relation, phone)
-                }
-              }}
-              style={{
-                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
-                background: 'transparent', fontSize: 20, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
-              결제 시 본인인증에 사용되며, 외부에 공유되지 않습니다
-            </p>
-          </div>
-        )}
-      </Body>
-      <Dock>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <BackBtn onClick={() => {
-            if (innerStep === 'name') onBack()
-            else if (innerStep === 'relation') setInnerStep('name')
-            else setInnerStep('relation')
-          }} />
-          <PrimaryBtn
-            disabled={
-              innerStep === 'name' ? !name.trim() :
-              innerStep === 'relation' ? !relation :
-              phone.replace(/\D/g, '').length < 10
-            }
-            onClick={() => {
-              if (innerStep === 'name') setInnerStep('relation')
-              else if (innerStep === 'relation') setInnerStep('phone')
-              else onNext(name, relation, phone)
-            }}
-          >
-            {innerStep === 'phone' ? '다음 단계' : '계속하기'}
-          </PrimaryBtn>
-        </div>
-      </Dock>
-    </Screen>
-  )
-}
-
-// ─── Step 5: 사망진단서 보유 확인 ───────────────
+// ─── Step 3: 사망진단서 확인 ───────────────────────────
 function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: () => void; onBack: () => void }) {
   const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
   return (
     <Screen>
-      <ProgressBar current={3} total={5} />
+      <ProgressBar current={3} />
       <Body>
         <StepLabel label="서류 준비 확인" />
         <Question label={'사망진단서를\n준비하셨나요?'} sub="서비스 진행을 위해 반드시 필요합니다" />
@@ -602,14 +298,461 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
   )
 }
 
-// ─── 메인 플로우 ─────────────────────────────────
-// 순서: 약관 → 유가족확인 → 사망진단서확인 → 고인정보 → 신청인
-type FlowStep = 'terms' | 'family' | 'deathcert' | 'deceased' | 'applicant'
+// ─── Step 4: 고인 정보 ─────────────────────────────────
+type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
+
+const DECEASED_FIELDS: {
+  key: DeceasedField; question: string; sub: string; placeholder: string; optional?: boolean
+}[] = [
+  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동' },
+  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '' },
+  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '' },
+  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', optional: true },
+]
+
+function DateFields({ value, onChange, error }: {
+  value: string; onChange: (v: string) => void; error?: boolean
+}) {
+  const parts = value ? value.split('-') : ['', '', '']
+  const year = parts[0] || ''
+  const month = parts[1] || ''
+  const day = parts[2] || ''
+  const monthRef = useRef<HTMLInputElement>(null)
+  const dayRef   = useRef<HTMLInputElement>(null)
+  const update = (y: string, m: string, d: string) => onChange(`${y}-${m}-${d}`)
+  const inputStyle = (hasError?: boolean): React.CSSProperties => ({
+    border: 0, borderBottom: `2px solid ${hasError ? '#EF4444' : '#2563EB'}`,
+    background: 'transparent', fontSize: 22, fontWeight: 700,
+    color: '#111827', outline: 'none', fontFamily: 'inherit',
+    textAlign: 'center', width: '100%', padding: '8px 0', boxSizing: 'border-box',
+  })
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 8 }}>
+      <div style={{ flex: 2 }}>
+        <input type="text" inputMode="numeric" placeholder="1960" maxLength={4} value={year} autoFocus
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+            update(v, month, day)
+            if (v.length === 4) monthRef.current?.focus()
+          }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>년</p>
+      </div>
+      <div style={{ flex: 1 }}>
+        <input ref={monthRef} type="text" inputMode="numeric" placeholder="01" maxLength={2} value={month}
+          onChange={e => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
+            update(year, v, day)
+            if (v.length === 2) dayRef.current?.focus()
+          }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>월</p>
+      </div>
+      <div style={{ flex: 1 }}>
+        <input ref={dayRef} type="text" inputMode="numeric" placeholder="01" maxLength={2} value={day}
+          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, month, v) }}
+          style={inputStyle(error)}
+        />
+        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>일</p>
+      </div>
+    </div>
+  )
+}
+
+function StepDeceased({
+  deceasedInfo, onUpdate, onNext, onBack,
+}: {
+  deceasedInfo: { name: string; birthDate: string; deathDate: string; phone: string }
+  onUpdate: (k: DeceasedField, v: string) => void
+  onNext: () => void
+  onBack: () => void
+}) {
+  const [fieldIdx, setFieldIdx] = useState(0)
+  const [error, setError] = useState('')
+  const field = DECEASED_FIELDS[fieldIdx]
+  const isLast = fieldIdx === DECEASED_FIELDS.length - 1
+
+  const getValue = () => {
+    if (field.key === 'name') return deceasedInfo.name
+    if (field.key === 'birth') return deceasedInfo.birthDate
+    if (field.key === 'death') return deceasedInfo.deathDate
+    return deceasedInfo.phone
+  }
+
+  const isDateField = field.key === 'birth' || field.key === 'death'
+
+  const goNext = () => {
+    setError('')
+    if (!field.optional) {
+      if (isDateField) {
+        const parts = getValue().split('-')
+        if (!(parts.length === 3 && parts[0].length === 4 && parts[1].length >= 1 && parts[2].length >= 1)) {
+          setError('년, 월, 일을 모두 입력해 주세요'); return
+        }
+      } else if (!getValue().trim()) {
+        setError('성함을 입력해 주세요'); return
+      }
+    }
+    if (isLast) onNext()
+    else setFieldIdx(i => i + 1)
+  }
+
+  return (
+    <Screen>
+      <ProgressBar current={4} />
+      <Body>
+        <StepLabel label={`고인 정보 ${fieldIdx + 1}/${DECEASED_FIELDS.length}`} />
+        <div key={field.key}>
+          <Question label={field.question} sub={field.sub} />
+          {isDateField ? (
+            <DateFields value={getValue()} onChange={v => { onUpdate(field.key, v); setError('') }} error={!!error} />
+          ) : (
+            <input
+              type={field.key === 'phone' ? 'tel' : 'text'}
+              inputMode={field.key === 'phone' ? 'numeric' : undefined}
+              placeholder={field.placeholder} value={getValue()} autoFocus
+              onChange={e => {
+                let v = e.target.value
+                if (field.key === 'phone') {
+                  const d = v.replace(/\D/g, '').slice(0, 11)
+                  if (d.length <= 3) v = d
+                  else if (d.length <= 7) v = `${d.slice(0,3)}-${d.slice(3)}`
+                  else v = `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
+                }
+                onUpdate(field.key, v); setError('')
+              }}
+              onKeyDown={e => e.key === 'Enter' && goNext()}
+              style={{
+                width: '100%', height: 52, border: 0,
+                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+          )}
+          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => fieldIdx === 0 ? onBack() : setFieldIdx(i => i - 1)} />
+          <PrimaryBtn onClick={goNext}>
+            {isLast && field.optional && !getValue() ? '건너뛰기' : '계속하기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 5: 신청인 정보 ───────────────────────────────
+const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
+
+function StepApplicant({ onNext, onBack }: {
+  onNext: (name: string, relation: string, phone: string) => void
+  onBack: () => void
+}) {
+  const [name, setName] = useState('')
+  const [relation, setRelation] = useState('')
+  const [phone, setPhone] = useState('')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone'>('name')
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const n = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
+      if (n) setName(n)
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const phoneFormat = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 11)
+    if (d.length <= 3) return d
+    if (d.length <= 7) return `${d.slice(0,3)}-${d.slice(3)}`
+    return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
+  }
+
+  const innerLabels = { name: '신청인 정보 1/3', relation: '신청인 정보 2/3', phone: '신청인 정보 3/3' }
+
+  return (
+    <Screen>
+      <ProgressBar current={5} />
+      <Body>
+        <StepLabel label={innerLabels[innerStep]} />
+        {innerStep === 'name' && (
+          <div key="name">
+            <Question label={'신청인 성함을\n입력해 주세요'} sub="위임장에 기재됩니다. 반드시 실명으로 입력해 주세요" />
+            <input type="text" placeholder="예: 홍길동" value={name} autoFocus
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && name.trim() && setInnerStep('relation')}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: 12, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>
+              ⚠ 실명 미기재 시 서비스 진행이 불가합니다
+            </p>
+          </div>
+        )}
+        {innerStep === 'relation' && (
+          <div key="relation">
+            <Question label={`${name}님과\n고인의 관계는요?`} sub="해당 관계를 선택해 주세요" />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {RELATIONS.map(r => (
+                <button key={r} onClick={() => setRelation(r)} style={{
+                  padding: '11px 20px', borderRadius: 50,
+                  border: `1.5px solid ${relation === r ? '#2563EB' : '#E5E9EF'}`,
+                  background: relation === r ? '#EBF3FF' : '#fff',
+                  color: relation === r ? '#2563EB' : '#374151',
+                  fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit', transition: 'all 0.15s',
+                }}>
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {innerStep === 'phone' && (
+          <div key="phone">
+            <Question label={'신청인 전화번호를\n입력해 주세요'} sub="결제 인증에 사용됩니다" />
+            <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
+              onChange={e => setPhone(phoneFormat(e.target.value))}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) onNext(name, relation, phone)
+              }}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 20, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
+              결제 시 본인인증에 사용되며, 외부에 공유되지 않습니다
+            </p>
+          </div>
+        )}
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => {
+            if (innerStep === 'name') onBack()
+            else if (innerStep === 'relation') setInnerStep('name')
+            else setInnerStep('relation')
+          }} />
+          <PrimaryBtn
+            disabled={
+              innerStep === 'name' ? !name.trim() :
+              innerStep === 'relation' ? !relation :
+              phone.replace(/\D/g, '').length < 10
+            }
+            onClick={() => {
+              if (innerStep === 'name') setInnerStep('relation')
+              else if (innerStep === 'relation') setInnerStep('phone')
+              else onNext(name, relation, phone)
+            }}
+          >
+            {innerStep === 'phone' ? '다음 단계' : '계속하기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 6: 계정 아이디 안내 ──────────────────────────
+function StepAccountNotice({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+  return (
+    <Screen>
+      <ProgressBar current={6} />
+      <Body>
+        <StepLabel label="서비스 선택 전 확인" />
+        <Question
+          label={'계정 아이디를\n알고 계셔야 합니다'}
+          sub="서비스 처리를 위해 고인의 계정 아이디(이메일/전화번호)가 필요합니다"
+        />
+        <div style={{
+          padding: '18px 20px', borderRadius: 14,
+          background: '#EBF3FF', border: '1.5px solid #BFDBFE',
+        }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: '#1D4ED8', margin: '0 0 10px' }}>아이디를 모르는 경우</p>
+          <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 16px', lineHeight: 2.2 }}>
+            <li>고인의 휴대폰에서 앱 로그인 확인</li>
+            <li>이메일 받은 메일함에서 가입 메일 검색</li>
+            <li>가족이나 지인에게 확인</li>
+          </ul>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
+            아이디를 모르시면 처리 지연이 발생할 수 있습니다
+          </p>
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={onBack} />
+          <div style={{ flex: 1 }}>
+            <PrimaryBtn onClick={onNext}>아이디 확인했습니다</PrimaryBtn>
+          </div>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 7: 서비스 트랙 선택 ──────────────────────────
+function StepTrack({ onSelect, onBack }: {
+  onSelect: (track: TrackType) => void
+  onBack: () => void
+}) {
+  return (
+    <Screen>
+      <ProgressBar current={7} />
+      <Body>
+        <StepLabel label="서비스 선택" />
+        <Question
+          label={'어떤 서비스를\n원하시나요?'}
+          sub="고인의 디지털 계정을 어떻게 할지 선택해 주세요"
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button onClick={() => onSelect('memorial')} style={{
+            padding: '24px 22px', borderRadius: 16, textAlign: 'left',
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)',
+            border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            boxShadow: '0 4px 16px rgba(37,99,235,0.2)',
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 6 }}>추모계정 전환</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
+              계정을 보존하고 추모 공간으로 만들어요
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 8 }}>페이스북 · 인스타그램 · 카카오톡</div>
+          </button>
+
+          <button onClick={() => onSelect('delete')} style={{
+            padding: '24px 22px', borderRadius: 16, textAlign: 'left',
+            background: '#F8FAFC', border: '1.5px solid #E5E9EF',
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', marginBottom: 6 }}>계정 삭제</div>
+            <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>
+              계정과 모든 데이터를 영구 삭제해요
+            </div>
+            <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>구글 · 페이스북 · 트위터X</div>
+          </button>
+        </div>
+      </Body>
+      <Dock>
+        <BackBtn onClick={onBack} />
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step 8: 플랫폼 선택 ───────────────────────────────
+const TRACK_PLATFORMS: Record<TrackType, string[]> = {
+  memorial: ['facebook', 'instagram', 'kakaotalk'],
+  delete:   ['google', 'facebook', 'twitter'],
+}
+
+function StepPlatforms({ onNext, onBack, saving }: {
+  onNext: () => void
+  onBack: () => void
+  saving: boolean
+}) {
+  const { selectedTrack, selectedServices, toggleService } = useApplyStore()
+  if (!selectedTrack) return null
+
+  const platformIds = TRACK_PLATFORMS[selectedTrack]
+  const availablePlatforms = SERVICE_CATALOG.filter(s => platformIds.includes(s.id))
+  const isSelected = (id: string) => selectedServices.some(s => s.id === id)
+  const trackColor = selectedTrack === 'memorial' ? '#2563EB' : '#DC2626'
+  const trackLabel = selectedTrack === 'memorial' ? '추모계정 전환' : '계정 삭제'
+
+  const handleToggle = (id: string) => {
+    const svc = SERVICE_CATALOG.find(s => s.id === id)!
+    toggleService(svc, selectedTrack)
+  }
+
+  return (
+    <Screen>
+      <ProgressBar current={8} />
+      <Body>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center',
+          padding: '4px 12px', borderRadius: 20, marginBottom: 16,
+          background: selectedTrack === 'memorial' ? '#EBF3FF' : '#FEF2F2',
+        }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: trackColor }}>{trackLabel}</span>
+        </div>
+        <Question label={'어떤 서비스를\n처리할까요?'} sub="여러 개 선택 가능해요" />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {availablePlatforms.map(svc => {
+            const selected = isSelected(svc.id)
+            return (
+              <button key={svc.id} onClick={() => handleToggle(svc.id)} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '16px 4px', background: 'none', border: 'none',
+                borderBottom: '1px solid #F3F4F6', width: '100%',
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+              }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                  background: selected ? trackColor : '#fff',
+                  border: `2px solid ${selected ? trackColor : '#D1D5DB'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}>
+                  {selected && (
+                    <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
+                      <path d="M1.5 5L5 8.5L11.5 1.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{svc.name}</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={onBack} />
+          <div style={{ flex: 1 }}>
+            <PrimaryBtn
+              disabled={selectedServices.length === 0 || saving}
+              onClick={onNext}
+            >
+              {saving ? '저장 중...' : selectedServices.length > 0
+                ? `${selectedServices.length}개 선택 · 다음`
+                : '서비스를 선택해 주세요'}
+            </PrimaryBtn>
+          </div>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── 메인 플로우 ────────────────────────────────────────
+// 순서: terms(1) → family(2) → deathcert(3) → deceased(4) → applicant(5)
+//       → account_notice(6) → track(7) → platforms(8) → /apply/service-info
+type FlowStep =
+  | 'terms' | 'family' | 'deathcert' | 'deceased' | 'applicant'
+  | 'account_notice' | 'track' | 'platforms'
 
 function ApplyFlow() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { deceasedInfo, setDeceasedInfo, setCaseId, setStep, setDelegation, resetStore } = useApplyStore()
+  const {
+    deceasedInfo, setDeceasedInfo,
+    setCaseId, setStep, setDelegation, resetStore,
+    selectedTrack, selectedServices, setSelectedTrack,
+    caseId,
+  } = useApplyStore()
   const supabase = createClient()
   const [flowStep, setFlowStep] = useState<FlowStep>('terms')
   const [delegatorName, setDelegatorName] = useState('')
@@ -619,15 +762,16 @@ function ApplyFlow() {
   const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
-    const { caseId } = useApplyStore.getState()
+    const { caseId: existingId } = useApplyStore.getState()
     if (searchParams.get('reset') === 'true') { resetStore(); return }
-    if (caseId) {
-      supabase.from('cases').select('status').eq('id', caseId).single()
+    if (existingId) {
+      supabase.from('cases').select('status').eq('id', existingId).single()
         .then(({ data }) => { if (!data || data.status !== 'draft') resetStore() })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const saveCaseAndNext = async (name?: string, relation?: string, phone?: string) => {
+  // Step 5 완료 시: cases + delegations 저장, 그 다음 account_notice로 이동
+  const saveCaseInfo = async (name: string, relation: string, phone: string) => {
     setSaving(true)
     setSaveError('')
     try {
@@ -635,9 +779,6 @@ function ApplyFlow() {
       if (!user) { router.push('/login'); return }
 
       const existingCaseId = useApplyStore.getState().caseId
-      const dName = name ?? delegatorName
-      const dRelation = relation ?? delegatorRelation
-      const dPhone = phone ?? delegatorPhone
 
       if (existingCaseId) {
         await supabase.from('cases').update({
@@ -645,13 +786,13 @@ function ApplyFlow() {
           deceased_birth: deceasedInfo.birthDate,
           deceased_death: deceasedInfo.deathDate,
           deceased_phone: deceasedInfo.phone || null,
-          delegator_phone: dPhone || null,
+          delegator_phone: phone || null,
         }).eq('id', existingCaseId)
         await supabase.from('delegations').upsert({
           case_id: existingCaseId,
-          delegator_name: dName,
-          delegator_relation: dRelation,
-          delegator_phone: dPhone || null,
+          delegator_name: name,
+          delegator_relation: relation,
+          delegator_phone: phone || null,
         }, { onConflict: 'case_id' })
       } else {
         const { data, error } = await supabase.from('cases').insert({
@@ -660,22 +801,24 @@ function ApplyFlow() {
           deceased_birth: deceasedInfo.birthDate,
           deceased_death: deceasedInfo.deathDate,
           deceased_phone: deceasedInfo.phone || null,
-          delegator_phone: dPhone || null,
+          delegator_phone: phone || null,
           status: 'draft',
         }).select('id').single()
         if (error) throw error
         setCaseId(data.id)
         await supabase.from('delegations').upsert({
           case_id: data.id,
-          delegator_name: dName,
-          delegator_relation: dRelation,
-          delegator_phone: dPhone || null,
+          delegator_name: name,
+          delegator_relation: relation,
+          delegator_phone: phone || null,
         }, { onConflict: 'case_id' })
       }
 
-      setDelegation({ delegatorName: dName, delegatorRelation: dRelation, signatureData: '' })
-      setStep(1)
-      router.push('/apply/services')
+      setDelegation({ delegatorName: name, delegatorRelation: relation, signatureData: '' })
+      setDelegatorName(name)
+      setDelegatorRelation(relation)
+      setDelegatorPhone(phone)
+      setFlowStep('account_notice')
     } catch (e) {
       console.error(e)
       setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
@@ -684,45 +827,88 @@ function ApplyFlow() {
     }
   }
 
-  if (flowStep === 'terms') return <StepTerms onNext={() => setFlowStep('family')} />
-  if (flowStep === 'family') return (
-    <StepFamilyCheck
-      onYes={() => setFlowStep('deathcert')}
-      onNo={() => router.push('/home')}
-    />
-  )
-  if (flowStep === 'deathcert') return (
-    <StepDeathCertCheck
-      onYes={() => setFlowStep('deceased')}
-      onNo={() => router.push('/home')}
-      onBack={() => setFlowStep('family')}
-    />
-  )
-  if (flowStep === 'deceased') return (
-    <StepDeceased
-      deceasedInfo={deceasedInfo}
-      onUpdate={(k, v) => {
-        const storeKey = k === 'birth' ? 'birthDate' : k === 'death' ? 'deathDate' : k
-        setDeceasedInfo({ [storeKey]: v })
-      }}
-      onNext={() => setFlowStep('applicant')}
-      onBack={() => setFlowStep('deathcert')}
-    />
-  )
-  if (flowStep === 'applicant') return (
+  // Step 8 완료 시: case_services 저장 후 service-info로 이동
+  const saveServicesAndNext = async () => {
+    const currentCaseId = useApplyStore.getState().caseId
+    if (selectedServices.length === 0 || !currentCaseId) return
+    setSaving(true)
+    setSaveError('')
+    try {
+      await supabase.from('case_services').delete().eq('case_id', currentCaseId)
+      await supabase.from('case_services').insert(selectedServices.map(s => ({
+        case_id: currentCaseId,
+        service_id: s.id,
+        service_name: s.name,
+        service_category: s.track === 'delete' ? '계정삭제' : '추모계정',
+        status: 'pending',
+      })))
+      setStep(1)
+      router.push('/apply/service-info')
+    } catch (e) {
+      console.error(e)
+      setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
     <>
-      <StepApplicant
-        onNext={(name, relation, phone) => {
-          setDelegatorName(name)
-          setDelegatorRelation(relation)
-          setDelegatorPhone(phone)
-          saveCaseAndNext(name, relation, phone)
-        }}
-        onBack={() => setFlowStep('deceased')}
-      />
-      {saving && (
+      {flowStep === 'terms' && <StepTerms onNext={() => setFlowStep('family')} />}
+      {flowStep === 'family' && (
+        <StepFamilyCheck
+          onYes={() => setFlowStep('deathcert')}
+          onNo={() => router.push('/home')}
+        />
+      )}
+      {flowStep === 'deathcert' && (
+        <StepDeathCertCheck
+          onYes={() => setFlowStep('deceased')}
+          onNo={() => router.push('/home')}
+          onBack={() => setFlowStep('family')}
+        />
+      )}
+      {flowStep === 'deceased' && (
+        <StepDeceased
+          deceasedInfo={deceasedInfo}
+          onUpdate={(k, v) => {
+            const storeKey = k === 'birth' ? 'birthDate' : k === 'death' ? 'deathDate' : k
+            setDeceasedInfo({ [storeKey]: v })
+          }}
+          onNext={() => setFlowStep('applicant')}
+          onBack={() => setFlowStep('deathcert')}
+        />
+      )}
+      {flowStep === 'applicant' && (
+        <StepApplicant
+          onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
+          onBack={() => setFlowStep('deceased')}
+        />
+      )}
+      {flowStep === 'account_notice' && (
+        <StepAccountNotice
+          onNext={() => setFlowStep('track')}
+          onBack={() => setFlowStep('applicant')}
+        />
+      )}
+      {flowStep === 'track' && (
+        <StepTrack
+          onSelect={(track) => { setSelectedTrack(track); setFlowStep('platforms') }}
+          onBack={() => setFlowStep('account_notice')}
+        />
+      )}
+      {flowStep === 'platforms' && (
+        <StepPlatforms
+          onNext={saveServicesAndNext}
+          onBack={() => setFlowStep('track')}
+          saving={saving}
+        />
+      )}
+
+      {/* 저장 중 로딩 오버레이 */}
+      {saving && flowStep === 'applicant' && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.85)',
+          position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.9)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           zIndex: 100, gap: 12,
         }}>
@@ -735,18 +921,19 @@ function ApplyFlow() {
           <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
         </div>
       )}
+
+      {/* 에러 토스트 */}
       {saveError && (
         <div style={{
           position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
           background: '#EF4444', color: '#fff', padding: '12px 20px', borderRadius: 10,
-          fontSize: 14, fontWeight: 600, zIndex: 200,
+          fontSize: 14, fontWeight: 600, zIndex: 200, whiteSpace: 'nowrap',
         }}>
           {saveError}
         </div>
       )}
     </>
   )
-  return null
 }
 
 export default function ApplyPage() {
