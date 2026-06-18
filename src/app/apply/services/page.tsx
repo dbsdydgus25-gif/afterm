@@ -4,99 +4,148 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { createClient } from '@/lib/supabase/client'
-import { SERVICE_CATALOG } from '@/lib/services-catalog'
-import type { TrackType } from '@/lib/services-catalog'
-import Button from '@/components/ui/Button'
 
-const TRACK_PLATFORMS: Record<TrackType, string[]> = {
-  memorial: ['facebook', 'instagram', 'kakaotalk'],
-  delete:   ['google', 'facebook', 'twitter'],
+// 원래 5개 서비스 (SERVICE_CATALOG 기준)
+const SERVICES: { id: string; name: string; desc: string; canMemorial?: boolean }[] = [
+  { id: 'instagram', name: '인스타그램', desc: 'Instagram 계정', canMemorial: true },
+  { id: 'facebook',  name: '페이스북',   desc: 'Facebook 계정', canMemorial: true },
+  { id: 'kakaotalk', name: '카카오톡',   desc: '카카오톡, 카카오스토리', canMemorial: true },
+  { id: 'google',    name: '구글',       desc: 'Gmail, 유튜브, 구글 포토' },
+  { id: 'twitter',   name: 'X (트위터)', desc: 'X(구 트위터) 계정' },
+]
+
+type Action = 'delete' | 'memorial'
+type SelectedService = { id: string; name: string; action: Action; accountId?: string }
+type Phase = 'account_notice' | 'select' | 'action' | 'account' | 'confirm'
+
+// ─── 공통 UI ──────────────────────────────────────
+const Wrap = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff' }}>
+    {children}
+  </div>
+)
+const Body = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ flex: 1, padding: '40px 24px 120px' }}>{children}</div>
+)
+const Dock = ({ children }: { children: React.ReactNode }) => (
+  <div style={{
+    position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+    width: '100%', maxWidth: 430, padding: '16px 24px',
+    paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50,
+  }}>{children}</div>
+)
+const PrimaryBtn = ({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) => (
+  <button onClick={onClick} disabled={disabled} style={{
+    flex: 1, padding: '17px', borderRadius: 14,
+    background: disabled ? '#E5E9EF' : '#2563EB',
+    color: disabled ? '#9CA3AF' : '#fff',
+    fontSize: 16, fontWeight: 800, border: 'none',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit', letterSpacing: '-0.02em',
+  }}>{children}</button>
+)
+const BackBtn = ({ onClick }: { onClick: () => void }) => (
+  <button onClick={onClick} style={{
+    width: 52, height: 52, borderRadius: 12, border: '1.5px solid #E5E9EF',
+    background: '#fff', fontSize: 20, cursor: 'pointer', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  }}>←</button>
+)
+const H2 = ({ children }: { children: React.ReactNode }) => (
+  <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1.35, margin: '0 0 8px' }}>
+    {children}
+  </h2>
+)
+
+function CheckRow({ label, desc, checked, onToggle }: { label: string; desc: string; checked: boolean; onToggle: () => void }) {
+  return (
+    <button onClick={onToggle} style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '16px 4px', background: 'none', border: 'none',
+      borderBottom: '1px solid #F3F4F6', width: '100%', cursor: 'pointer',
+      fontFamily: 'inherit', textAlign: 'left',
+    }}>
+      <div style={{
+        width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+        background: checked ? '#2563EB' : '#fff',
+        border: `2px solid ${checked ? '#2563EB' : '#D1D5DB'}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.15s',
+      }}>
+        {checked && (
+          <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
+            <path d="M1.5 5L5 8.5L11.5 1.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{label}</div>
+        <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{desc}</div>
+      </div>
+    </button>
+  )
 }
-
-function ServiceIcon({ id, size = 44 }: { id: string; size?: number }) {
-  const s = size * 0.55
-  const icons: Record<string, React.ReactNode> = {
-    instagram: (
-      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig2)" />
-        <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none" />
-        <circle cx="17.2" cy="6.8" r="1.2" fill="white" />
-        <defs><linearGradient id="ig2" x1="2" y1="22" x2="22" y2="2">
-          <stop stopColor="#FFDC80"/><stop offset="0.3" stopColor="#FCAF45"/>
-          <stop offset="0.6" stopColor="#F77737"/><stop offset="0.8" stopColor="#C13584"/>
-          <stop offset="1" stopColor="#833AB4"/>
-        </linearGradient></defs>
-      </svg>
-    ),
-    facebook: (
-      <svg width={s} height={s} viewBox="0 0 24 24" fill="#1877F2">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-      </svg>
-    ),
-    kakaotalk: (
-      <svg width={s} height={s} viewBox="0 0 24 24">
-        <rect width="24" height="24" rx="6" fill="#FEE500"/>
-        <ellipse cx="12" cy="11" rx="8.5" ry="7" fill="#3C1E1E"/>
-        <path d="M8.5 14l1.2-2M12 8.5v4M15.5 14l-1.2-2" stroke="#FEE500" strokeWidth="1.6" strokeLinecap="round"/>
-      </svg>
-    ),
-    google: (
-      <svg width={s} height={s} viewBox="0 0 24 24">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-    ),
-    twitter: (
-      <svg width={s} height={s} viewBox="0 0 24 24" fill="black">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-      </svg>
-    ),
-  }
-  return <>{icons[id] || null}</>
-}
-
-type Phase = 'account_notice' | 'track' | 'platforms'
 
 export default function ServicesPage() {
   const router = useRouter()
-  const { selectedTrack, selectedServices, setSelectedTrack, toggleService, setStep, caseId } = useApplyStore()
+  const { caseId, setStep } = useApplyStore()
   const supabase = createClient()
-  const [loading, setLoading] = useState(false)
+
   const [phase, setPhase] = useState<Phase>('account_notice')
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+  const [services, setServices] = useState<SelectedService[]>([])
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [loading, setLoading] = useState(false)
 
-  const currentTrack = selectedTrack
-  const platformIds = currentTrack ? TRACK_PLATFORMS[currentTrack] : []
-  const availablePlatforms = SERVICE_CATALOG.filter(s => platformIds.includes(s.id))
-  const isSelected = (id: string) => selectedServices.some(s => s.id === id)
+  const checkedList = SERVICES.filter(s => checked.has(s.id))
 
-  const handleTrackSelect = (track: TrackType) => {
-    setSelectedTrack(track)
-    setPhase('platforms')
+  const toggleCheck = (id: string) => {
+    setChecked(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
-  const handleToggle = (id: string) => {
-    if (!currentTrack) return
-    const svc = SERVICE_CATALOG.find(s => s.id === id)!
-    toggleService(svc, currentTrack)
+  const startActionPhase = () => {
+    const list: SelectedService[] = checkedList.map(s => ({ id: s.id, name: s.name, action: 'delete' }))
+    setServices(list)
+    setCurrentIdx(0)
+    setPhase('action')
   }
 
-  const handleNext = async () => {
-    if (selectedServices.length === 0 || !caseId) return
+  const setAction = (action: Action) =>
+    setServices(prev => prev.map((s, i) => i === currentIdx ? { ...s, action } : s))
+
+  const setAccountId = (accountId: string) =>
+    setServices(prev => prev.map((s, i) => i === currentIdx ? { ...s, accountId } : s))
+
+  const goNextService = () => {
+    if (currentIdx < services.length - 1) {
+      setCurrentIdx(i => i + 1)
+      setPhase('action')
+    } else {
+      setPhase('confirm')
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!caseId) return
     setLoading(true)
     try {
       await supabase.from('case_services').delete().eq('case_id', caseId)
-      const rows = selectedServices.map(s => ({
+      await supabase.from('case_services').insert(services.map(s => ({
         case_id: caseId,
         service_id: s.id,
         service_name: s.name,
-        service_category: s.track === 'delete' ? '계정삭제' : '추모계정',
+        service_category: s.action === 'memorial' ? '추모계정' : '계정삭제',
+        account_id: s.accountId || null,
         status: 'pending',
-      }))
-      await supabase.from('case_services').insert(rows)
-      setStep(1)
-      router.push('/apply/service-info')
+      })))
+      setStep(2)
+      router.push('/apply/documents')
     } catch {
       alert('저장 중 오류가 발생했습니다')
     } finally {
@@ -104,121 +153,196 @@ export default function ServicesPage() {
     }
   }
 
-  // ── Phase 0: 계정 아이디 안내 ──────────────────────────
+  const cur = services[currentIdx]
+  const curMeta = SERVICES.find(s => s.id === cur?.id)
+
+  // ── Phase 0: 계정 아이디 안내 ────────────────────
   if (phase === 'account_notice') return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff' }}>
-      <div style={{ flex: 1, padding: '40px 24px 120px' }}>
-        <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1.35, margin: '0 0 8px' }}>
-          계정 아이디를<br />알고 계셔야 합니다
-        </h2>
+    <Wrap>
+      <Body>
+        <H2>계정 아이디를<br />알고 계셔야 합니다</H2>
         <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 28px', lineHeight: 1.7 }}>
           서비스 처리를 위해 고인의 계정<br />아이디(이메일/전화번호)가 필요합니다
         </p>
-        <div style={{ padding: '18px', borderRadius: 14, background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+
+        <div style={{ padding: '18px', borderRadius: 14, background: '#EFF6FF', border: '1px solid #BFDBFE', marginBottom: 20 }}>
           <p style={{ fontSize: 14, fontWeight: 700, color: '#1E40AF', margin: '0 0 10px' }}>아이디를 모르는 경우</p>
           <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 14px', lineHeight: 2 }}>
             <li>고인의 휴대폰에서 앱 로그인 확인</li>
             <li>이메일 받은 메일함에서 가입 메일 검색</li>
             <li>가족이나 지인에게 확인</li>
           </ul>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0' }}>아이디를 모르시면 처리 지연이 발생할 수 있습니다</p>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0' }}>
+            아이디를 모르시면 처리 지연이 발생할 수 있습니다
+          </p>
         </div>
-      </div>
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '16px 24px', paddingBottom: 'max(16px, env(safe-area-inset-bottom))', background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50, display: 'flex', gap: 10 }}>
-        <button onClick={() => router.back()} style={{ width: 52, height: 52, borderRadius: 12, border: '1.5px solid #E5E9EF', background: '#fff', fontSize: 20, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
-        <button onClick={() => setPhase('track')} style={{ flex: 1, padding: '17px', borderRadius: 14, background: '#2563EB', color: '#fff', fontSize: 16, fontWeight: 800, border: 'none', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.02em' }}>
-          아이디 확인했습니다
-        </button>
-      </div>
-    </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => router.back()} />
+          <PrimaryBtn onClick={() => setPhase('select')}>아이디 확인했습니다</PrimaryBtn>
+        </div>
+      </Dock>
+    </Wrap>
   )
 
-  // ── Phase 1: 트랙 선택 ────────────────────────────────
-  if (phase === 'track') return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff' }}>
-      <div style={{ flex: 1, padding: '40px 24px 120px' }}>
-        <h2 style={{ fontSize: 28, fontWeight: 900, color: '#111', margin: '0 0 8px', letterSpacing: '-0.03em', lineHeight: 1.3 }}>
-          어떤 행정 서비스를<br />원하시나요?
-        </h2>
-        <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 40px', lineHeight: 1.6 }}>
-          고인의 디지털 유산을 어떻게 할지 선택해주세요
+  // ── Phase 1: 서비스 선택 ─────────────────────────
+  if (phase === 'select') return (
+    <Wrap>
+      <Body>
+        <H2>처리할 계정을<br />선택해 주세요</H2>
+        <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 32px' }}>여러 개 선택 가능합니다</p>
+        {SERVICES.map(svc => (
+          <CheckRow key={svc.id} label={svc.name} desc={svc.desc} checked={checked.has(svc.id)} onToggle={() => toggleCheck(svc.id)} />
+        ))}
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => setPhase('account_notice')} />
+          <PrimaryBtn disabled={checked.size === 0} onClick={startActionPhase}>
+            {checked.size > 0 ? `${checked.size}개 선택 · 계속하기` : '계정을 선택해 주세요'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Wrap>
+  )
+
+  // ── Phase 2: 해지/추모 선택 ──────────────────────
+  if (phase === 'action' && cur) return (
+    <Wrap>
+      <Body>
+        <p style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 600, margin: '0 0 8px' }}>
+          {currentIdx + 1} / {services.length}
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <button onClick={() => handleTrackSelect('memorial')} style={{ padding: '28px 24px', borderRadius: 20, background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)', border: 'none', cursor: 'pointer', textAlign: 'left', boxShadow: '0 8px 24px rgba(37,99,235,0.25)' }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 6 }}>추모계정 전환</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
-              계정을 보존하고 추모 공간으로 만들어요<br />
-              <span style={{ fontSize: 12, opacity: 0.6 }}>페이스북 · 인스타그램 · 카카오톡</span>
-            </div>
-          </button>
-          <button onClick={() => handleTrackSelect('delete')} style={{ padding: '28px 24px', borderRadius: 20, background: '#fff', border: '2px solid #E5E7EB', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#111', marginBottom: 6 }}>계정 삭제</div>
-            <div style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6 }}>
-              계정과 모든 데이터를 영구 삭제해요<br />
-              <span style={{ fontSize: 12, color: '#9CA3AF' }}>구글 · 페이스북 · 트위터X</span>
-            </div>
-          </button>
-        </div>
-      </div>
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, padding: '16px 24px', paddingBottom: 'max(16px, env(safe-area-inset-bottom))', background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%)', zIndex: 50 }}>
-        <button onClick={() => setPhase('account_notice')} style={{ width: '100%', padding: '17px', borderRadius: 14, background: '#F3F4F6', color: '#374151', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>← 이전으로</button>
-      </div>
-    </div>
-  )
+        <H2>{cur.name}를<br />어떻게 처리할까요?</H2>
+        <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 32px' }}>{curMeta?.desc}</p>
 
-  // ── Phase 2: 플랫폼 선택 ─────────────────────────────
-  const trackLabel = currentTrack === 'memorial' ? '추모 계정' : '계정 삭제'
-  const trackColor = currentTrack === 'memorial' ? '#2563EB' : '#DC2626'
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', fontFamily: "'Pretendard Variable', Pretendard, sans-serif", background: '#fff' }}>
-      <div style={{ padding: '28px 24px 20px' }}>
-        <button onClick={() => setPhase('track')} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          <span style={{ fontSize: 13, color: '#9CA3AF' }}>← 다시 선택</span>
-        </button>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 20, background: currentTrack === 'memorial' ? '#EFF6FF' : '#FEF2F2', marginBottom: 14 }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: trackColor }}>{trackLabel}</span>
-        </div>
-        <h2 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: '0 0 6px', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
-          어떤 서비스를<br />처리할까요?
-        </h2>
-        <p style={{ fontSize: 14, color: '#6B7280', margin: 0 }}>여러 개 선택 가능해요</p>
-      </div>
-
-      <div style={{ flex: 1, padding: '0 24px', overflowY: 'auto' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {availablePlatforms.map(svc => {
-            const selected = isSelected(svc.id)
-            return (
-              <button key={svc.id} onClick={() => handleToggle(svc.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 16,
-                padding: '18px 20px', borderRadius: 16,
-                border: `2px solid ${selected ? trackColor : '#E8EAF0'}`,
-                background: selected ? (currentTrack === 'memorial' ? '#EFF6FF' : '#FFF5F5') : '#fff',
-                cursor: 'pointer', textAlign: 'left', width: '100%',
-                transition: 'all 0.15s', fontFamily: 'inherit',
-              }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F8FAFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <ServiceIcon id={svc.id} size={44} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: '#111' }}>{svc.name}</div>
-                </div>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, border: `2px solid ${selected ? trackColor : '#D1D5DB'}`, background: selected ? trackColor : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
-                  {selected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-        <div style={{ height: 100 }} />
-      </div>
+          <button onClick={() => setAction('delete')} style={{
+            padding: '20px', borderRadius: 14, textAlign: 'left',
+            background: cur.action === 'delete' ? '#EBF3FF' : '#F8FAFC',
+            border: `1.5px solid ${cur.action === 'delete' ? '#2563EB' : '#E5E9EF'}`,
+            cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: cur.action === 'delete' ? '#2563EB' : '#111827', marginBottom: 4 }}>계정 해지 / 삭제</div>
+            <div style={{ fontSize: 13, color: '#9CA3AF' }}>계정과 모든 데이터를 영구적으로 삭제합니다</div>
+          </button>
 
-      <div className="cta-dock">
-        <Button block disabled={selectedServices.length === 0 || loading} onClick={handleNext}>
-          {loading ? '저장 중...' : selectedServices.length > 0 ? `${selectedServices.length}개 선택 · 다음` : '서비스를 선택해 주세요'}
-        </Button>
-      </div>
-    </div>
+          {curMeta?.canMemorial && (
+            <button onClick={() => setAction('memorial')} style={{
+              padding: '20px', borderRadius: 14, textAlign: 'left',
+              background: cur.action === 'memorial' ? '#EBF3FF' : '#F8FAFC',
+              border: `1.5px solid ${cur.action === 'memorial' ? '#2563EB' : '#E5E9EF'}`,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: cur.action === 'memorial' ? '#2563EB' : '#111827', marginBottom: 4 }}>추모 계정 전환</div>
+              <div style={{ fontSize: 13, color: '#9CA3AF' }}>계정을 보존하고 추모 공간으로 전환합니다</div>
+            </button>
+          )}
+        </div>
+
+        {/* 아이디 입력 링크 */}
+        <div style={{ marginTop: 28, padding: '14px 16px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E5E9EF' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>계정 아이디를 알고 계신가요?</p>
+          <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 10px', lineHeight: 1.6 }}>
+            아이디(이메일/전화번호)를 알고 계셔야 처리가 가능합니다.<br />모르시는 경우 처리가 지연될 수 있습니다.
+          </p>
+          <button onClick={() => setPhase('account')} style={{ fontSize: 13, fontWeight: 700, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+            아이디 입력하기 →
+          </button>
+          {cur.accountId && <p style={{ fontSize: 12, color: '#2563EB', margin: '6px 0 0', fontWeight: 600 }}>입력됨: {cur.accountId}</p>}
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => {
+            if (currentIdx === 0) setPhase('select')
+            else { setCurrentIdx(i => i - 1); setPhase('action') }
+          }} />
+          <PrimaryBtn onClick={goNextService}>
+            {currentIdx < services.length - 1 ? '다음 계정' : '계속하기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Wrap>
   )
+
+  // ── Phase 3: 계정 아이디 입력 ────────────────────
+  if (phase === 'account' && cur) return (
+    <Wrap>
+      <Body>
+        <H2>{cur.name} 계정 아이디를<br />입력해 주세요</H2>
+        <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 36px' }}>
+          이메일 또는 전화번호 형태입니다.<br />모르시면 건너뛰셔도 됩니다
+        </p>
+        <input
+          type="text"
+          placeholder="예: example@gmail.com"
+          defaultValue={cur.accountId || ''}
+          autoFocus
+          onChange={e => setAccountId(e.target.value)}
+          style={{
+            width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+            background: 'transparent', fontSize: 18, fontWeight: 600,
+            color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+          }}
+        />
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => setPhase('action')} />
+          <PrimaryBtn onClick={() => setPhase('action')}>
+            {cur.accountId ? '저장하기' : '건너뛰기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Wrap>
+  )
+
+  // ── Phase 4: 확인 ─────────────────────────────────
+  if (phase === 'confirm') return (
+    <Wrap>
+      <Body>
+        <H2>신청 내용을<br />확인해 주세요</H2>
+        <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 32px' }}>총 {services.length}개 계정</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {services.map((svc, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '16px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E5E9EF',
+            }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{svc.name}</div>
+                {svc.accountId && <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{svc.accountId}</div>}
+              </div>
+              <span style={{
+                fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                background: svc.action === 'memorial' ? '#EBF3FF' : '#FEF2F2',
+                color: svc.action === 'memorial' ? '#2563EB' : '#DC2626',
+              }}>
+                {svc.action === 'memorial' ? '추모 전환' : '해지 · 삭제'}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 20, padding: '14px 16px', borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+          <p style={{ fontSize: 13, color: '#1E40AF', margin: 0, lineHeight: 1.7 }}>
+            다음 단계에서 서류를 첨부하고 서명하면<br />신청이 완료됩니다
+          </p>
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={() => { setCurrentIdx(services.length - 1); setPhase('action') }} />
+          <PrimaryBtn disabled={loading} onClick={handleSubmit}>
+            {loading ? '저장 중...' : '서류 첨부하러 가기'}
+          </PrimaryBtn>
+        </div>
+      </Dock>
+    </Wrap>
+  )
+
+  return null
 }
