@@ -1,3 +1,5 @@
+export const revalidate = 0  // 신청내역은 항상 최신 데이터
+
 // 신청내역 페이지 — 서버 컴포넌트
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'

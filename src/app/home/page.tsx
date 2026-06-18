@@ -1,3 +1,5 @@
+export const revalidate = 30  // 30초 캐시
+
 // 홈 대시보드 — 서버 컴포넌트
 // 여러 케이스(고인)를 조회해 CaseCarousel에 전달
 import { createClient } from '@/lib/supabase/server'

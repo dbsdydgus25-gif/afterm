@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
@@ -354,22 +355,32 @@ export default function HomeTabBar() {
         {/* 왼쪽 탭 */}
         {leftTabs.map(tab => {
           const active = tab.href === '/home' ? pathname === '/home' : pathname.startsWith(tab.href)
+          // 비로그인 + requireAuth → 로그인 팝업
+          if (tab.requireAuth && authLoaded && !userId) {
+            return (
+              <button key={tab.href}
+                onClick={() => setLoginOpen(true)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '10px 0 8px', gap: 3, background: 'none', border: 'none',
+                  cursor: 'pointer', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
+                }}>
+                {tab.icon(active)}
+                <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF' }}>{tab.label}</span>
+              </button>
+            )
+          }
           return (
-            <button key={tab.href}
-              onClick={() => {
-                if (tab.requireAuth && authLoaded && !userId) { setLoginOpen(true); return }
-                router.push(tab.href)
-              }}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                padding: '10px 0 8px', gap: 3, background: 'none', border: 'none',
-                cursor: 'pointer', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
-              }}>
+            <Link key={tab.href} href={tab.href} prefetch style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              padding: '10px 0 8px', gap: 3, textDecoration: 'none',
+              WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
+            }}>
               {tab.icon(active)}
               <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
-            </button>
+            </Link>
           )
         })}
 
@@ -411,18 +422,16 @@ export default function HomeTabBar() {
         {rightTabs.map(tab => {
           const active = pathname.startsWith(tab.href)
           return (
-            <button key={tab.href}
-              onClick={() => router.push(tab.href)}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                padding: '10px 0 8px', gap: 3, background: 'none', border: 'none',
-                cursor: 'pointer', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
-              }}>
+            <Link key={tab.href} href={tab.href} prefetch style={{
+              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              padding: '10px 0 8px', gap: 3, textDecoration: 'none',
+              WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
+            }}>
               {tab.icon(active)}
               <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: active ? '#2563EB' : '#9CA3AF' }}>
                 {tab.label}
               </span>
-            </button>
+            </Link>
           )
         })}
       </nav>
