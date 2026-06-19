@@ -289,7 +289,7 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
 
 // ─── Step 4: 사망진단서 OCR ────────────────────────────
 
-function DateInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function DateInput({ label, value, onChange }: { label?: string; value: string; onChange: (v: string) => void }) {
   const parts = value ? value.split('-') : ['', '', '']
   const year = parts[0] || '', month = parts[1] || '', day = parts[2] || ''
   const monthRef = useRef<HTMLInputElement>(null)
@@ -302,7 +302,7 @@ function DateInput({ label, value, onChange }: { label: string; value: string; o
   }
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 6px', fontWeight: 600 }}>{label}</p>
+      {label && <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 6px', fontWeight: 600 }}>{label}</p>}
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
         <div style={{ flex: 2 }}>
           <input type="text" inputMode="numeric" placeholder="YYYY" maxLength={4} value={year}
@@ -371,117 +371,115 @@ function StepOcr({
     onNext()
   }
 
-  if (phase === 'upload') {
-    return (
-      <Screen>
-        <input ref={fileInputRef} type="file" accept="image/*,application/pdf"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if(f) handleFile(f); e.target.value = '' }}
-        />
-        <Body>
-          <StepLabel label="고인 정보 확인" />
-          <Question label={'사망진단서를\n업로드해 주세요'} sub="고인의 이름과 사망일을 자동으로 인식합니다" />
-
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loading}
-            style={{
-              width: '100%', padding: '32px 20px', borderRadius: 20,
-              border: '2px dashed #BFDBFE', background: '#EFF6FF',
-              cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
-            }}
-          >
-            {loading ? (
-              <>
-                <div style={{
-                  width: 40, height: 40, border: '3px solid #BFDBFE',
-                  borderTop: '3px solid #2563EB', borderRadius: '50%',
-                  animation: 'spin 0.8s linear infinite',
-                }} />
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#2563EB', margin: 0 }}>사망진단서 분석 중...</p>
-                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>잠시만 기다려 주세요</p>
-                <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: 48 }}>📄</span>
-                <p style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', margin: 0 }}>사진 업로드</p>
-                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>사진(JPG/PNG) 또는 PDF 파일</p>
-              </>
-            )}
-          </button>
-
-          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 16, fontWeight: 600, textAlign: 'center' }}>{error}</p>}
-
-          <div style={{ marginTop: 24, padding: '16px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E5E9EF' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', margin: '0 0 8px' }}>인식 항목</p>
-            <ul style={{ fontSize: 13, color: '#6B7280', margin: 0, padding: '0 0 0 16px', lineHeight: 2 }}>
-              <li>고인 성함</li>
-              <li>생년월일</li>
-              <li>사망 연월일</li>
-            </ul>
-          </div>
-        </Body>
-        <Dock>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <BackBtn onClick={onBack} />
-            <div style={{ flex: 1 }}>
-              <PrimaryBtn disabled={loading} onClick={() => fileInputRef.current?.click()}>
-                {loading ? '분석 중...' : '사진 / PDF 업로드'}
-              </PrimaryBtn>
-            </div>
-          </div>
-        </Dock>
-      </Screen>
-    )
-  }
-
-  // confirm phase
   return (
     <Screen>
-      <Body>
-        <StepLabel label="고인 정보 확인" />
-        <Question label={'인식된 정보를\n확인해 주세요'} sub="잘못된 정보는 직접 수정할 수 있습니다" />
+      <input ref={fileInputRef} type="file" accept="image/*,application/pdf"
+        style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if(f) handleFile(f); e.target.value = '' }}
+      />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* 이름 */}
-          <div>
-            <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 6px', fontWeight: 600 }}>고인 성함</p>
-            <input
-              type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
-              placeholder="예: 홍길동"
-              style={{
-                width: '100%', border: 0, borderBottom: '1.5px solid #D1D5DB',
-                background: 'transparent', fontSize: 20, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit',
-                padding: '6px 0', boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <DateInput label="생년월일" value={birthDate} onChange={setBirthDate} />
-          <DateInput label="사망 연월일" value={deathDate} onChange={setDeathDate} />
+      {/* 전체화면 로딩 오버레이 */}
+      {loading && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.96)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          zIndex: 100, gap: 16,
+        }}>
+          <div style={{
+            width: 48, height: 48, border: '4px solid #E5E9EF',
+            borderTop: '4px solid #2563EB', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>사망진단서 분석 중</p>
+          <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>잠시만 기다려 주세요</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
         </div>
+      )}
 
-        {!name && (
-          <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: '#FFFBEB', border: '1px solid #FCD34D' }}>
-            <p style={{ fontSize: 13, color: '#92400E', margin: 0, fontWeight: 600 }}>
-              ⚠ 성함이 인식되지 않았습니다. 직접 입력해 주세요.
-            </p>
-          </div>
-        )}
+      {phase === 'upload' ? (
+        <>
+          <Body>
+            <StepLabel label="고인 정보 확인" />
+            <Question label={'사망진단서를\n업로드해 주세요'} sub="이름과 날짜를 자동으로 인식합니다" />
 
-        {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
-      </Body>
-      <Dock>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <BackBtn onClick={() => setPhase('upload')} />
-          <div style={{ flex: 1 }}>
+            <button onClick={() => fileInputRef.current?.click()} style={{
+              width: '100%', padding: '36px 20px', borderRadius: 20,
+              border: '2px dashed #BFDBFE', background: '#EFF6FF',
+              cursor: 'pointer', fontFamily: 'inherit',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 44 }}>📄</span>
+              <p style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', margin: 0 }}>파일 선택</p>
+              <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>사진(JPG·PNG) 또는 PDF</p>
+            </button>
+
+            {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 16, fontWeight: 600, textAlign: 'center' }}>{error}</p>}
+
+            <div style={{ marginTop: 20, padding: '14px 16px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E5E9EF' }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, lineHeight: 1.8 }}>
+                인식 항목: 성함 · 생년월일 · 사망 연월일<br />
+                파일 용량 50MB 이하 · 해상도 150dpi 이상 권장
+              </p>
+            </div>
+          </Body>
+          <Dock>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <BackBtn onClick={onBack} />
+              <div style={{ flex: 1 }}>
+                <PrimaryBtn onClick={() => fileInputRef.current?.click()}>사망진단서 업로드</PrimaryBtn>
+              </div>
+            </div>
+          </Dock>
+        </>
+      ) : (
+        <>
+          <Body>
+            <StepLabel label="고인 정보 확인" />
+            <Question label={'인식된 정보를\n확인해 주세요'} sub="틀린 내용은 바로 수정할 수 있어요" />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid #E5E9EF' }}>
+              {/* 성함 */}
+              <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>성함</p>
+                <input
+                  type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
+                  placeholder="직접 입력해 주세요"
+                  style={{
+                    width: '100%', border: 'none', background: 'transparent',
+                    fontSize: 18, fontWeight: 700, color: name ? '#111827' : '#D1D5DB',
+                    outline: 'none', fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
+                  }}
+                />
+                {!name && <p style={{ fontSize: 12, color: '#F59E0B', margin: '4px 0 0', fontWeight: 600 }}>⚠ 인식되지 않았습니다. 입력해 주세요.</p>}
+              </div>
+
+              {/* 생년월일 */}
+              <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 8px', letterSpacing: '0.05em' }}>생년월일</p>
+                <DateInput label="" value={birthDate} onChange={setBirthDate} />
+              </div>
+
+              {/* 사망 연월일 */}
+              <div style={{ padding: '16px 18px' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 8px', letterSpacing: '0.05em' }}>사망 연월일</p>
+                <DateInput label="" value={deathDate} onChange={setDeathDate} />
+              </div>
+            </div>
+
+            {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
+
+            <button onClick={() => setPhase('upload')} style={{
+              marginTop: 14, fontSize: 13, color: '#6B7280', background: 'none', border: 'none',
+              cursor: 'pointer', padding: '8px 0', fontFamily: 'inherit', textDecoration: 'underline',
+            }}>
+              다시 업로드
+            </button>
+          </Body>
+          <Dock>
             <PrimaryBtn onClick={handleConfirm}>확인, 다음 단계로</PrimaryBtn>
-          </div>
-        </div>
-      </Dock>
+          </Dock>
+        </>
+      )}
     </Screen>
   )
 }

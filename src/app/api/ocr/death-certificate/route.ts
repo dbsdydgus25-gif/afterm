@@ -45,25 +45,50 @@ export async function POST(req: NextRequest) {
     const ocrData = await ocrRes.json()
     const fields: { name: string; inferText: string }[] = ocrData.images?.[0]?.fields ?? []
 
-    // 사망진단서에서 성명, 사망 연월일 추출
+    // 전체 텍스트 (디버그용)
+    const allText = fields.map(f => f.inferText).join(' ')
+    console.log('[OCR] 전체 텍스트:', allText)
+
     let name = ''
     let deathDate = ''
 
+    // ── 이름 추출 ──────────────────────────────────────────
+    // 1) 같은 필드 안에 레이블+이름이 있는 경우 (예: "성명 홍길동")
+    for (const f of fields) {
+      if (name) break
+      const m = f.inferText.match(/(?:성\s*명|사망자\s*성명|망\s*인|이\s*름)[:\s]+([가-힣]{2,5})/)
+      if (m) { name = m[1]; break }
+    }
+
+    // 2) 레이블 다음 필드에 이름이 있는 경우
+    if (!name) {
+      for (let i = 0; i < fields.length; i++) {
+        const text = fields[i].inferText.trim().replace(/\s/g, '')
+        const isNameLabel = ['성명', '사망자성명', '망인', '이름', '사망자'].includes(text)
+          || text.includes('성명') || text.includes('사망자')
+        if (isNameLabel) {
+          for (let j = i + 1; j <= i + 4 && j < fields.length; j++) {
+            const candidate = fields[j].inferText.trim()
+            if (/^[가-힣]{2,5}$/.test(candidate)) { name = candidate; break }
+          }
+        }
+        if (name) break
+      }
+    }
+
+    // 3) fallback: 전체 텍스트에서 패턴 매칭
+    if (!name) {
+      const m = allText.match(/(?:성\s*명|사망자|망\s*인)[:\s]*([가-힣]{2,5})/)
+      if (m) name = m[1]
+    }
+
+    // ── 사망 연월일 추출 ───────────────────────────────────
     for (let i = 0; i < fields.length; i++) {
       const text = fields[i].inferText.trim()
-      const nextText = fields[i + 1]?.inferText?.trim() ?? ''
-
-      // 성명 패턴 — "성명", "사망자" 다음 줄의 한글 이름
-      if ((text === '성명' || text === '사망자' || text.includes('성명')) && !name) {
-        if (/^[가-힣]{2,5}$/.test(nextText)) name = nextText
-      }
-
-      // 사망 연월일 패턴
-      if ((text.includes('사망') && text.includes('일')) || text === '사망연월일') {
-        // 다음 몇 개 필드에서 날짜 형태 찾기
+      const isDeathLabel = (text.includes('사망') && (text.includes('일') || text.includes('연월'))) || text === '사망연월일'
+      if (isDeathLabel) {
         for (let j = i + 1; j <= i + 5 && j < fields.length; j++) {
           const t = fields[j].inferText.trim()
-          // YYYY년 MM월 DD일 또는 YYYY-MM-DD
           const m1 = t.match(/(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/)
           if (m1) {
             deathDate = `${m1[1]}-${m1[2].padStart(2, '0')}-${m1[3].padStart(2, '0')}`
@@ -71,6 +96,8 @@ export async function POST(req: NextRequest) {
           }
         }
       }
+      if (deathDate) break
+    }
 
       // 연-월-일 숫자 직접 패턴
       if (!deathDate) {
