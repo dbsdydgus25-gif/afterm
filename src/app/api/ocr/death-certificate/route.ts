@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
     const file = formData.get('image') as File | null
-    if (!file) return NextResponse.json({ error: '이미지 없음' }, { status: 400 })
+    if (!file) return NextResponse.json({ error: '파일 없음' }, { status: 400 })
 
-    let invokeUrl = process.env.CLOVA_OCR_INVOKE_URL
+    const invokeUrl = process.env.CLOVA_OCR_INVOKE_URL
     const secret = process.env.CLOVA_OCR_SECRET
     if (!invokeUrl || !secret) return NextResponse.json({ error: 'OCR 설정 오류' }, { status: 500 })
-
-    // Vercel은 HTTP 외부 호출 차단 — https로 강제
-    invokeUrl = invokeUrl.replace(/^http:\/\//, 'https://')
 
     const arrayBuffer = await file.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString('base64')
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     else if (mime.includes('tiff') || mime.includes('tif')) ext = 'tiff'
     else ext = 'jpg'
 
+    // ── 1단계: CLOVA OCR ──────────────────────────────────
     const ocrBody = {
       version: 'V2',
       requestId: crypto.randomUUID(),
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
       images: [{ format: ext, name: 'death-cert', data: base64 }],
     }
 
-    const ocrRes = await fetch(invokeUrl, {
+    const safeUrl = invokeUrl.replace(/^http:\/\//, 'https://')
+    const ocrRes = await fetch(safeUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-OCR-SECRET': secret },
       body: JSON.stringify(ocrBody),
@@ -38,117 +40,97 @@ export async function POST(req: NextRequest) {
 
     if (!ocrRes.ok) {
       const txt = await ocrRes.text()
-      console.error('[OCR] CLOVA 응답 오류', ocrRes.status, txt)
-      return NextResponse.json({ error: `CLOVA 오류 ${ocrRes.status}: ${txt}` }, { status: 500 })
+      console.error('[OCR] CLOVA 오류', ocrRes.status, txt)
+      return NextResponse.json({ error: `OCR 오류 ${ocrRes.status}` }, { status: 500 })
     }
 
     const ocrData = await ocrRes.json()
     const fields: { name: string; inferText: string }[] = ocrData.images?.[0]?.fields ?? []
-
-    // 전체 텍스트 (디버그용)
     const allText = fields.map(f => f.inferText).join(' ')
-    console.log('[OCR] 전체 텍스트:', allText)
+    console.log('[OCR] 추출 텍스트:', allText)
 
-    let name = ''
-    let deathDate = ''
+    // ── 2단계: Claude AI 진위 검증 + 정보 추출 ────────────
+    const mediaType = ext === 'pdf' ? 'application/pdf'
+      : ext === 'png' ? 'image/png'
+      : ext === 'tiff' ? 'image/tiff'
+      : 'image/jpeg'
 
-    // ── 이름 추출 ──────────────────────────────────────────
-    // 1) 같은 필드 안에 레이블+이름이 있는 경우 (예: "성명 홍길동")
-    for (const f of fields) {
-      if (name) break
-      const m = f.inferText.match(/(?:성\s*명|사망자\s*성명|망\s*인|이\s*름)[:\s]+([가-힣]{2,5})/)
-      if (m) { name = m[1]; break }
-    }
+    const claudeRes = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: base64 },
+          },
+          {
+            type: 'text',
+            text: `당신은 대한민국 사망진단서 진위 검증 전문가입니다.
 
-    // 2) 레이블 다음 필드에 이름이 있는 경우
-    if (!name) {
-      for (let i = 0; i < fields.length; i++) {
-        const text = fields[i].inferText.trim().replace(/\s/g, '')
-        const isNameLabel = ['성명', '사망자성명', '망인', '이름', '사망자'].includes(text)
-          || text.includes('성명') || text.includes('사망자')
-        if (isNameLabel) {
-          for (let j = i + 1; j <= i + 4 && j < fields.length; j++) {
-            const candidate = fields[j].inferText.trim()
-            if (/^[가-힣]{2,5}$/.test(candidate)) { name = candidate; break }
+아래는 CLOVA OCR이 추출한 텍스트입니다:
+---
+${allText}
+---
+
+위 이미지와 텍스트를 분석하여 다음 JSON을 반환하세요. JSON 외 다른 텍스트는 절대 포함하지 마세요.
+
+{
+  "name": "고인 성함 (한글 2~5자, 없으면 null)",
+  "birthDate": "생년월일 YYYY-MM-DD 형식 (없으면 null)",
+  "deathDate": "사망 연월일 YYYY-MM-DD 형식 (없으면 null)",
+  "hospital": "의료기관명 (없으면 null)",
+  "licenseNumber": "의사 면허번호 (숫자만, 없으면 null)",
+  "hasSignature": true 또는 false,
+  "authentic": true 또는 false,
+  "score": 0~100 사이 진위 신뢰도 점수,
+  "issues": ["문제점1", "문제점2"] 또는 []
+}
+
+진위 판단 기준:
+- 대한민국 공식 사망진단서 양식인지 확인
+- "사망진단서" 또는 "사체검안서" 제목 존재 여부
+- 의사 면허번호 형식 (5~6자리 숫자)
+- 의료기관명 존재 여부
+- 의사 서명 또는 날인 존재 여부
+- 사망 원인 기재 여부
+- 전반적인 문서 형식의 공식성
+- 80점 이상: authentic=true, 미만: false`
           }
-        }
-        if (name) break
-      }
+        ]
+      }]
+    })
+
+    let result: {
+      name: string | null
+      birthDate: string | null
+      deathDate: string | null
+      hospital: string | null
+      licenseNumber: string | null
+      hasSignature: boolean
+      authentic: boolean
+      score: number
+      issues: string[]
     }
 
-    // 3) fallback: 전체 텍스트에서 패턴 매칭
-    if (!name) {
-      const m = allText.match(/(?:성\s*명|사망자|망\s*인)[:\s]*([가-힣]{2,5})/)
-      if (m) name = m[1]
+    try {
+      const raw = claudeRes.content[0].type === 'text' ? claudeRes.content[0].text : ''
+      const jsonMatch = raw.match(/\{[\s\S]*\}/)
+      result = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+    } catch {
+      result = null as unknown as typeof result
     }
 
-    // ── 사망 연월일 추출 ───────────────────────────────────
-    for (let i = 0; i < fields.length; i++) {
-      const text = fields[i].inferText.trim()
-      const isDeathLabel = (text.includes('사망') && (text.includes('일') || text.includes('연월'))) || text === '사망연월일'
-      if (isDeathLabel) {
-        for (let j = i + 1; j <= i + 5 && j < fields.length; j++) {
-          const t = fields[j].inferText.trim()
-          const m1 = t.match(/(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/)
-          if (m1) {
-            deathDate = `${m1[1]}-${m1[2].padStart(2, '0')}-${m1[3].padStart(2, '0')}`
-            break
-          }
-        }
-      }
-      if (deathDate) break
+    if (!result) {
+      return NextResponse.json({ error: 'AI 분석 실패' }, { status: 500 })
     }
 
-      // 연-월-일 숫자 직접 패턴
-      if (!deathDate) {
-        const m2 = text.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/)
-        if (m2) {
-          deathDate = `${m2[1]}-${m2[2].padStart(2, '0')}-${m2[3].padStart(2, '0')}`
-        }
-      }
-    }
+    console.log('[OCR] AI 검증 결과:', result)
+    return NextResponse.json({ ...result, success: true })
 
-    // 생년월일 추출
-    let birthDate = ''
-    for (let i = 0; i < fields.length; i++) {
-      const text = fields[i].inferText.trim()
-      if (text.includes('생년') || text === '생년월일' || text.includes('주민')) {
-        for (let j = i + 1; j <= i + 5 && j < fields.length; j++) {
-          const t = fields[j].inferText.trim()
-          const m = t.match(/(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/)
-          if (m) {
-            birthDate = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
-            break
-          }
-          // 주민번호 앞 6자리 → 19XX 또는 20XX
-          const rrn = t.match(/^(\d{2})(\d{2})(\d{2})/)
-          if (rrn) {
-            const yy = parseInt(rrn[1])
-            const yyyy = yy >= 0 && yy <= 24 ? `20${rrn[1]}` : `19${rrn[1]}`
-            birthDate = `${yyyy}-${rrn[2]}-${rrn[3]}`
-            break
-          }
-        }
-      }
-    }
-
-    // 전체 텍스트 fallback
-    if (!name || !deathDate) {
-      const allText = fields.map(f => f.inferText).join(' ')
-      if (!name) {
-        const nameMatch = allText.match(/성명\s*([가-힣]{2,5})/)
-        if (nameMatch) name = nameMatch[1]
-      }
-      if (!deathDate) {
-        const dates = [...allText.matchAll(/(\d{4})[년.\-]?\s*(\d{1,2})[월.\-]?\s*(\d{1,2})/g)]
-        if (dates.length >= 1) deathDate = `${dates[0][1]}-${dates[0][2].padStart(2,'0')}-${dates[0][3].padStart(2,'0')}`
-        if (!birthDate && dates.length >= 2) birthDate = `${dates[1][1]}-${dates[1][2].padStart(2,'0')}-${dates[1][3].padStart(2,'0')}`
-      }
-    }
-
-    return NextResponse.json({ name, deathDate, birthDate, success: true })
   } catch (e) {
-    console.error('[OCR] error', e)
+    console.error('[OCR] 오류', e)
     return NextResponse.json({ error: '서버 오류' }, { status: 500 })
   }
 }

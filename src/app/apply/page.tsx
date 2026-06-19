@@ -343,6 +343,12 @@ function StepOcr({
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [deathDate, setDeathDate] = useState('')
+  const [hospital, setHospital] = useState('')
+  const [licenseNumber, setLicenseNumber] = useState('')
+  const [hasSignature, setHasSignature] = useState(false)
+  const [authScore, setAuthScore] = useState(0)
+  const [authIssues, setAuthIssues] = useState<string[]>([])
+  const [authentic, setAuthentic] = useState(false)
   const [error, setError] = useState('')
 
   const handleFile = async (file: File) => {
@@ -353,12 +359,19 @@ function StepOcr({
       fd.append('image', file)
       const res = await fetch('/api/ocr/death-certificate', { method: 'POST', body: fd })
       const data = await res.json()
+      if (!res.ok) { setError(data.error || '처리 실패'); setLoading(false); return }
       setName(data.name || '')
       setBirthDate(data.birthDate || '')
       setDeathDate(data.deathDate || '')
+      setHospital(data.hospital || '')
+      setLicenseNumber(data.licenseNumber || '')
+      setHasSignature(!!data.hasSignature)
+      setAuthScore(data.score ?? 0)
+      setAuthIssues(data.issues ?? [])
+      setAuthentic(!!data.authentic)
       setPhase('confirm')
     } catch {
-      setError('OCR 처리 중 오류가 발생했습니다.')
+      setError('분석 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -437,33 +450,64 @@ function StepOcr({
             <StepLabel label="고인 정보 확인" />
             <Question label={'인식된 정보를\n확인해 주세요'} sub="틀린 내용은 바로 수정할 수 있어요" />
 
+            {/* 진위 검증 결과 배너 */}
+            <div style={{
+              padding: '14px 16px', borderRadius: 14, marginBottom: 16,
+              background: authentic ? '#F0FDF4' : authScore >= 60 ? '#FFFBEB' : '#FEF2F2',
+              border: `1.5px solid ${authentic ? '#6EE7B7' : authScore >= 60 ? '#FCD34D' : '#FECACA'}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: authIssues.length ? 8 : 0 }}>
+                <span style={{ fontSize: 20 }}>{authentic ? '✅' : authScore >= 60 ? '⚠️' : '❌'}</span>
+                <div>
+                  <p style={{
+                    fontSize: 13, fontWeight: 800, margin: 0,
+                    color: authentic ? '#065F46' : authScore >= 60 ? '#92400E' : '#991B1B',
+                  }}>
+                    {authentic ? '사망진단서 진위 확인 완료' : authScore >= 60 ? '일부 항목 미확인 — 검토 필요' : '사망진단서 형식 불일치'}
+                  </p>
+                  <p style={{ fontSize: 12, margin: '2px 0 0', color: authentic ? '#059669' : authScore >= 60 ? '#B45309' : '#DC2626' }}>
+                    신뢰도 {authScore}점 {licenseNumber ? `· 면허번호 ${licenseNumber}` : ''} {hasSignature ? '· 서명 확인' : '· 서명 미확인'}
+                  </p>
+                </div>
+              </div>
+              {authIssues.length > 0 && (
+                <ul style={{ margin: '6px 0 0', padding: '0 0 0 18px', fontSize: 12, color: '#92400E', lineHeight: 1.8 }}>
+                  {authIssues.map((issue, i) => <li key={i}>{issue}</li>)}
+                </ul>
+              )}
+            </div>
+
+            {/* 추출 정보 카드 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid #E5E9EF' }}>
-              {/* 성함 */}
               <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>성함</p>
-                <input
-                  type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
+                <input type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
                   placeholder="직접 입력해 주세요"
                   style={{
                     width: '100%', border: 'none', background: 'transparent',
-                    fontSize: 18, fontWeight: 700, color: name ? '#111827' : '#D1D5DB',
+                    fontSize: 18, fontWeight: 700, color: name ? '#111827' : '#9CA3AF',
                     outline: 'none', fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
                   }}
                 />
-                {!name && <p style={{ fontSize: 12, color: '#F59E0B', margin: '4px 0 0', fontWeight: 600 }}>⚠ 인식되지 않았습니다. 입력해 주세요.</p>}
+                {!name && <p style={{ fontSize: 12, color: '#F59E0B', margin: '4px 0 0', fontWeight: 600 }}>인식되지 않았습니다 — 직접 입력해 주세요</p>}
               </div>
 
-              {/* 생년월일 */}
               <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 8px', letterSpacing: '0.05em' }}>생년월일</p>
-                <DateInput label="" value={birthDate} onChange={setBirthDate} />
+                <DateInput value={birthDate} onChange={setBirthDate} />
               </div>
 
-              {/* 사망 연월일 */}
-              <div style={{ padding: '16px 18px' }}>
+              <div style={{ padding: '16px 18px', borderBottom: hospital ? '1px solid #F3F4F6' : undefined }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 8px', letterSpacing: '0.05em' }}>사망 연월일</p>
-                <DateInput label="" value={deathDate} onChange={setDeathDate} />
+                <DateInput value={deathDate} onChange={setDeathDate} />
               </div>
+
+              {hospital && (
+                <div style={{ padding: '16px 18px' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 4px', letterSpacing: '0.05em' }}>의료기관</p>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', margin: 0 }}>{hospital}</p>
+                </div>
+              )}
             </div>
 
             {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
@@ -476,7 +520,16 @@ function StepOcr({
             </button>
           </Body>
           <Dock>
-            <PrimaryBtn onClick={handleConfirm}>확인, 다음 단계로</PrimaryBtn>
+            {!authentic && authScore < 60 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', margin: 0, fontWeight: 600 }}>
+                  정확한 사망진단서를 업로드해 주세요
+                </p>
+                <PrimaryBtn onClick={() => setPhase('upload')}>다시 업로드</PrimaryBtn>
+              </div>
+            ) : (
+              <PrimaryBtn onClick={handleConfirm}>확인, 다음 단계로</PrimaryBtn>
+            )}
           </Dock>
         </>
       )}
