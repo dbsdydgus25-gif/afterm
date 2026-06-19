@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApplyStore } from '@/store/useApplyStore'
 import { getTrackConfig } from '@/lib/services-catalog'
@@ -15,13 +15,16 @@ const AUTO_FILL_KEYS = new Set([
 export default function ServiceInfoPage() {
   const router = useRouter()
   const supabase = createClient()
-  const { selectedServices, deceasedInfo, updateServiceField, setStep } = useApplyStore()
+  const { selectedServices, deceasedInfo, updateServiceField, setStep, setDeceasedInfo } = useApplyStore()
 
   const [svcIdx, setSvcIdx] = useState(0)
   const [fieldIdx, setFieldIdx] = useState(0)
   const [inputValue, setInputValue] = useState('')
   const [error, setError] = useState('')
   const [ready, setReady] = useState(false)
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrDone, setOcrDone] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -103,6 +106,40 @@ export default function ServiceInfoPage() {
     }
   }
 
+  const handleOcr = async (file: File) => {
+    setOcrLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append('image', file)
+      const res = await fetch('/api/ocr/death-certificate', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.name || data.deathDate) {
+        if (data.name) setDeceasedInfo({ name: data.name })
+        if (data.deathDate) setDeceasedInfo({ deathDate: data.deathDate })
+        // 이미 auto-fill된 값 업데이트
+        for (const svc of selectedServices) {
+          const cfg2 = getTrackConfig(svc.id, svc.track)
+          if (!cfg2) continue
+          for (const field of cfg2.fields) {
+            if (field.key === 'deceased_name' || field.key === 'deceased_profile_name') {
+              if (data.name) updateServiceField(svc.id, field.key, data.name)
+            }
+            if (field.key === 'deceased_death_date') {
+              if (data.deathDate) updateServiceField(svc.id, field.key, data.deathDate)
+            }
+          }
+        }
+        setOcrDone(true)
+      } else {
+        alert('사망진단서에서 정보를 찾지 못했습니다. 직접 입력해 주세요.')
+      }
+    } catch {
+      alert('OCR 처리 중 오류가 발생했습니다. 직접 입력해 주세요.')
+    } finally {
+      setOcrLoading(false)
+    }
+  }
+
   const handleNext = () => {
     if (!currentField) { goNext(); return }
     if (currentField.required && !inputValue.trim()) {
@@ -130,6 +167,62 @@ export default function ServiceInfoPage() {
             {svcIdx + 1}/{totalPlatforms}
           </span>
         </div>
+
+        {/* 사망진단서 OCR 자동 입력 */}
+        {svcIdx === 0 && fieldIdx === 0 && (
+          <div style={{
+            marginBottom: 20, borderRadius: 14, overflow: 'hidden',
+            border: ocrDone ? '1.5px solid #10B981' : '1.5px solid #E5E9EF',
+            background: ocrDone ? '#F0FDF4' : '#F8FAFC',
+          }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const f = e.target.files?.[0]
+                if (f) handleOcr(f)
+                e.target.value = ''
+              }}
+            />
+            {ocrDone ? (
+              <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 18 }}>✅</span>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46', margin: 0 }}>사망진단서 인식 완료</p>
+                  <p style={{ fontSize: 12, color: '#059669', margin: '2px 0 0' }}>고인 정보가 자동으로 입력되었습니다</p>
+                </div>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ marginLeft: 'auto', fontSize: 12, color: '#6B7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  다시 업로드
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={ocrLoading}
+                style={{
+                  width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'none', border: 'none', cursor: ocrLoading ? 'default' : 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 24 }}>{ocrLoading ? '⏳' : '📄'}</span>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>
+                    {ocrLoading ? '사망진단서 분석 중...' : '사망진단서로 자동 입력'}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#6B7280', margin: '2px 0 0' }}>
+                    {ocrLoading ? '잠시만 기다려 주세요' : '이미지 업로드 시 고인 정보가 자동으로 채워집니다'}
+                  </p>
+                </div>
+              </button>
+            )}
+          </div>
+        )}
 
         <StepLabel label="계정 정보 입력" />
         <Question
