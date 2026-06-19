@@ -374,7 +374,7 @@ function StepOcr({
   if (phase === 'upload') {
     return (
       <Screen>
-        <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+        <input ref={fileInputRef} type="file" accept="image/*,application/pdf"
           style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; if(f) handleFile(f); e.target.value = '' }}
         />
@@ -407,7 +407,7 @@ function StepOcr({
               <>
                 <span style={{ fontSize: 48 }}>📄</span>
                 <p style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', margin: 0 }}>사진 업로드</p>
-                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>카메라로 찍거나 갤러리에서 선택</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>사진(JPG/PNG) 또는 PDF 파일</p>
               </>
             )}
           </button>
@@ -428,7 +428,7 @@ function StepOcr({
             <BackBtn onClick={onBack} />
             <div style={{ flex: 1 }}>
               <PrimaryBtn disabled={loading} onClick={() => fileInputRef.current?.click()}>
-                {loading ? '분석 중...' : '사망진단서 업로드'}
+                {loading ? '분석 중...' : '사진 / PDF 업로드'}
               </PrimaryBtn>
             </div>
           </div>

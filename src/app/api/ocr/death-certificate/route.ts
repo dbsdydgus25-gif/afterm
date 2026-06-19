@@ -12,7 +12,13 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString('base64')
-    const ext = file.type.includes('png') ? 'png' : 'jpg'
+
+    const mime = file.type || ''
+    let ext: string
+    if (mime.includes('pdf') || file.name?.toLowerCase().endsWith('.pdf')) ext = 'pdf'
+    else if (mime.includes('png')) ext = 'png'
+    else if (mime.includes('tiff') || mime.includes('tif')) ext = 'tiff'
+    else ext = 'jpg'
 
     const ocrBody = {
       version: 'V2',
