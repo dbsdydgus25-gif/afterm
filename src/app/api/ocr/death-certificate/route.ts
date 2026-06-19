@@ -6,9 +6,12 @@ export async function POST(req: NextRequest) {
     const file = formData.get('image') as File | null
     if (!file) return NextResponse.json({ error: '이미지 없음' }, { status: 400 })
 
-    const invokeUrl = process.env.CLOVA_OCR_INVOKE_URL
+    let invokeUrl = process.env.CLOVA_OCR_INVOKE_URL
     const secret = process.env.CLOVA_OCR_SECRET
     if (!invokeUrl || !secret) return NextResponse.json({ error: 'OCR 설정 오류' }, { status: 500 })
+
+    // Vercel은 HTTP 외부 호출 차단 — https로 강제
+    invokeUrl = invokeUrl.replace(/^http:\/\//, 'https://')
 
     const arrayBuffer = await file.arrayBuffer()
     const base64 = Buffer.from(arrayBuffer).toString('base64')
@@ -35,7 +38,8 @@ export async function POST(req: NextRequest) {
 
     if (!ocrRes.ok) {
       const txt = await ocrRes.text()
-      return NextResponse.json({ error: `CLOVA 오류: ${txt}` }, { status: 500 })
+      console.error('[OCR] CLOVA 응답 오류', ocrRes.status, txt)
+      return NextResponse.json({ error: `CLOVA 오류 ${ocrRes.status}: ${txt}` }, { status: 500 })
     }
 
     const ocrData = await ocrRes.json()
