@@ -287,149 +287,199 @@ function StepDeathCertCheck({ onYes, onNo, onBack }: { onYes: () => void; onNo: 
   )
 }
 
-// ─── Step 4: 고인 정보 ─────────────────────────────────
-type DeceasedField = 'name' | 'birth' | 'death' | 'phone'
+// ─── Step 4: 사망진단서 OCR ────────────────────────────
 
-const DECEASED_FIELDS: {
-  key: DeceasedField; question: string; sub: string; placeholder: string; optional?: boolean
-}[] = [
-  { key: 'name',  question: '고인의 성함을\n알려주세요', sub: '실명으로 입력해 주세요 (기업 CS 접수에 사용)', placeholder: '예: 홍길동' },
-  { key: 'birth', question: '고인의 생년월일은\n언제인가요?', sub: '계정 조회 및 서류 작성에 사용됩니다', placeholder: '' },
-  { key: 'death', question: '사망일은\n언제인가요?', sub: '사망진단서의 사망일과 동일해야 합니다', placeholder: '' },
-  { key: 'phone', question: '고인의 휴대폰 번호를\n알고 계신가요?', sub: '모르시면 건너뛰셔도 됩니다', placeholder: '010-0000-0000', optional: true },
-]
-
-function DateFields({ value, onChange, error }: {
-  value: string; onChange: (v: string) => void; error?: boolean
-}) {
+function DateInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const parts = value ? value.split('-') : ['', '', '']
-  const year = parts[0] || ''
-  const month = parts[1] || ''
-  const day = parts[2] || ''
+  const year = parts[0] || '', month = parts[1] || '', day = parts[2] || ''
   const monthRef = useRef<HTMLInputElement>(null)
   const dayRef   = useRef<HTMLInputElement>(null)
   const update = (y: string, m: string, d: string) => onChange(`${y}-${m}-${d}`)
-  const inputStyle = (hasError?: boolean): React.CSSProperties => ({
-    border: 0, borderBottom: `2px solid ${hasError ? '#EF4444' : '#2563EB'}`,
-    background: 'transparent', fontSize: 22, fontWeight: 700,
-    color: '#111827', outline: 'none', fontFamily: 'inherit',
-    textAlign: 'center', width: '100%', padding: '8px 0', boxSizing: 'border-box',
-  })
+  const iStyle: React.CSSProperties = {
+    border: 0, borderBottom: '1.5px solid #D1D5DB', background: 'transparent',
+    fontSize: 16, fontWeight: 700, color: '#111827', outline: 'none',
+    fontFamily: 'inherit', textAlign: 'center', padding: '6px 0', width: '100%',
+  }
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 8 }}>
-      <div style={{ flex: 2 }}>
-        <input type="text" inputMode="numeric" placeholder="1960" maxLength={4} value={year} autoFocus
-          onChange={e => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
-            update(v, month, day)
-            if (v.length === 4) monthRef.current?.focus()
-          }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>년</p>
-      </div>
-      <div style={{ flex: 1 }}>
-        <input ref={monthRef} type="text" inputMode="numeric" placeholder="01" maxLength={2} value={month}
-          onChange={e => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 2)
-            update(year, v, day)
-            if (v.length === 2) dayRef.current?.focus()
-          }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>월</p>
-      </div>
-      <div style={{ flex: 1 }}>
-        <input ref={dayRef} type="text" inputMode="numeric" placeholder="01" maxLength={2} value={day}
-          onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); update(year, month, v) }}
-          style={inputStyle(error)}
-        />
-        <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', margin: '4px 0 0' }}>일</p>
+    <div>
+      <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 6px', fontWeight: 600 }}>{label}</p>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <div style={{ flex: 2 }}>
+          <input type="text" inputMode="numeric" placeholder="YYYY" maxLength={4} value={year}
+            onChange={e => { const v = e.target.value.replace(/\D/g,'').slice(0,4); update(v,month,day); if(v.length===4) monthRef.current?.focus() }}
+            style={iStyle}
+          />
+          <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', margin: '2px 0 0' }}>년</p>
+        </div>
+        <div style={{ flex: 1 }}>
+          <input ref={monthRef} type="text" inputMode="numeric" placeholder="MM" maxLength={2} value={month}
+            onChange={e => { const v = e.target.value.replace(/\D/g,'').slice(0,2); update(year,v,day); if(v.length===2) dayRef.current?.focus() }}
+            style={iStyle}
+          />
+          <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', margin: '2px 0 0' }}>월</p>
+        </div>
+        <div style={{ flex: 1 }}>
+          <input ref={dayRef} type="text" inputMode="numeric" placeholder="DD" maxLength={2} value={day}
+            onChange={e => { const v = e.target.value.replace(/\D/g,'').slice(0,2); update(year,month,v) }}
+            style={iStyle}
+          />
+          <p style={{ fontSize: 10, color: '#9CA3AF', textAlign: 'center', margin: '2px 0 0' }}>일</p>
+        </div>
       </div>
     </div>
   )
 }
 
-function StepDeceased({
-  deceasedInfo, onUpdate, onNext, onBack,
+function StepOcr({
+  onNext, onBack, setDeceasedInfo,
 }: {
-  deceasedInfo: { name: string; birthDate: string; deathDate: string; phone: string }
-  onUpdate: (k: DeceasedField, v: string) => void
   onNext: () => void
   onBack: () => void
+  setDeceasedInfo: (info: { name?: string; birthDate?: string; deathDate?: string }) => void
 }) {
-  const [fieldIdx, setFieldIdx] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [phase, setPhase] = useState<'upload' | 'confirm'>('upload')
+  const [loading, setLoading] = useState(false)
+  const [name, setName] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [deathDate, setDeathDate] = useState('')
   const [error, setError] = useState('')
-  const field = DECEASED_FIELDS[fieldIdx]
-  const isLast = fieldIdx === DECEASED_FIELDS.length - 1
 
-  const getValue = () => {
-    if (field.key === 'name') return deceasedInfo.name
-    if (field.key === 'birth') return deceasedInfo.birthDate
-    if (field.key === 'death') return deceasedInfo.deathDate
-    return deceasedInfo.phone
-  }
-
-  const isDateField = field.key === 'birth' || field.key === 'death'
-
-  const goNext = () => {
+  const handleFile = async (file: File) => {
+    setLoading(true)
     setError('')
-    if (!field.optional) {
-      if (isDateField) {
-        const parts = getValue().split('-')
-        if (!(parts.length === 3 && parts[0].length === 4 && parts[1].length >= 1 && parts[2].length >= 1)) {
-          setError('년, 월, 일을 모두 입력해 주세요'); return
-        }
-      } else if (!getValue().trim()) {
-        setError('성함을 입력해 주세요'); return
-      }
+    try {
+      const fd = new FormData()
+      fd.append('image', file)
+      const res = await fetch('/api/ocr/death-certificate', { method: 'POST', body: fd })
+      const data = await res.json()
+      setName(data.name || '')
+      setBirthDate(data.birthDate || '')
+      setDeathDate(data.deathDate || '')
+      setPhase('confirm')
+    } catch {
+      setError('OCR 처리 중 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
     }
-    if (isLast) onNext()
-    else setFieldIdx(i => i + 1)
   }
 
+  const handleConfirm = () => {
+    if (!name.trim()) { setError('성함을 입력해 주세요'); return }
+    if (!deathDate || deathDate.split('-').length !== 3) { setError('사망일을 입력해 주세요'); return }
+    setDeceasedInfo({ name: name.trim(), birthDate, deathDate })
+    onNext()
+  }
+
+  if (phase === 'upload') {
+    return (
+      <Screen>
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+          style={{ display: 'none' }}
+          onChange={e => { const f = e.target.files?.[0]; if(f) handleFile(f); e.target.value = '' }}
+        />
+        <Body>
+          <StepLabel label="고인 정보 확인" />
+          <Question label={'사망진단서를\n업로드해 주세요'} sub="고인의 이름과 사망일을 자동으로 인식합니다" />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            style={{
+              width: '100%', padding: '32px 20px', borderRadius: 20,
+              border: '2px dashed #BFDBFE', background: '#EFF6FF',
+              cursor: loading ? 'default' : 'pointer', fontFamily: 'inherit',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{
+                  width: 40, height: 40, border: '3px solid #BFDBFE',
+                  borderTop: '3px solid #2563EB', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }} />
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#2563EB', margin: 0 }}>사망진단서 분석 중...</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>잠시만 기다려 주세요</p>
+                <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: 48 }}>📄</span>
+                <p style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', margin: 0 }}>사진 업로드</p>
+                <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>카메라로 찍거나 갤러리에서 선택</p>
+              </>
+            )}
+          </button>
+
+          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 16, fontWeight: 600, textAlign: 'center' }}>{error}</p>}
+
+          <div style={{ marginTop: 24, padding: '16px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E5E9EF' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', margin: '0 0 8px' }}>인식 항목</p>
+            <ul style={{ fontSize: 13, color: '#6B7280', margin: 0, padding: '0 0 0 16px', lineHeight: 2 }}>
+              <li>고인 성함</li>
+              <li>생년월일</li>
+              <li>사망 연월일</li>
+            </ul>
+          </div>
+        </Body>
+        <Dock>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <BackBtn onClick={onBack} />
+            <div style={{ flex: 1 }}>
+              <PrimaryBtn disabled={loading} onClick={() => fileInputRef.current?.click()}>
+                {loading ? '분석 중...' : '사망진단서 업로드'}
+              </PrimaryBtn>
+            </div>
+          </div>
+        </Dock>
+      </Screen>
+    )
+  }
+
+  // confirm phase
   return (
     <Screen>
-      <ProgressBar current={4} />
       <Body>
-        <StepLabel label={`고인 정보 ${fieldIdx + 1}/${DECEASED_FIELDS.length}`} />
-        <div key={field.key}>
-          <Question label={field.question} sub={field.sub} />
-          {isDateField ? (
-            <DateFields value={getValue()} onChange={v => { onUpdate(field.key, v); setError('') }} error={!!error} />
-          ) : (
+        <StepLabel label="고인 정보 확인" />
+        <Question label={'인식된 정보를\n확인해 주세요'} sub="잘못된 정보는 직접 수정할 수 있습니다" />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* 이름 */}
+          <div>
+            <p style={{ fontSize: 12, color: '#6B7280', margin: '0 0 6px', fontWeight: 600 }}>고인 성함</p>
             <input
-              type={field.key === 'phone' ? 'tel' : 'text'}
-              inputMode={field.key === 'phone' ? 'numeric' : undefined}
-              placeholder={field.placeholder} value={getValue()} autoFocus
-              onChange={e => {
-                let v = e.target.value
-                if (field.key === 'phone') {
-                  const d = v.replace(/\D/g, '').slice(0, 11)
-                  if (d.length <= 3) v = d
-                  else if (d.length <= 7) v = `${d.slice(0,3)}-${d.slice(3)}`
-                  else v = `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
-                }
-                onUpdate(field.key, v); setError('')
-              }}
-              onKeyDown={e => e.key === 'Enter' && goNext()}
+              type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
+              placeholder="예: 홍길동"
               style={{
-                width: '100%', height: 52, border: 0,
-                borderBottom: `2px solid ${error ? '#EF4444' : '#2563EB'}`,
+                width: '100%', border: 0, borderBottom: '1.5px solid #D1D5DB',
                 background: 'transparent', fontSize: 20, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+                color: '#111827', outline: 'none', fontFamily: 'inherit',
+                padding: '6px 0', boxSizing: 'border-box',
               }}
             />
-          )}
-          {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
+          </div>
+
+          <DateInput label="생년월일" value={birthDate} onChange={setBirthDate} />
+          <DateInput label="사망 연월일" value={deathDate} onChange={setDeathDate} />
         </div>
+
+        {!name && (
+          <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: '#FFFBEB', border: '1px solid #FCD34D' }}>
+            <p style={{ fontSize: 13, color: '#92400E', margin: 0, fontWeight: 600 }}>
+              ⚠ 성함이 인식되지 않았습니다. 직접 입력해 주세요.
+            </p>
+          </div>
+        )}
+
+        {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 12, fontWeight: 600 }}>{error}</p>}
       </Body>
       <Dock>
         <div style={{ display: 'flex', gap: 10 }}>
-          <BackBtn onClick={() => fieldIdx === 0 ? onBack() : setFieldIdx(i => i - 1)} />
-          <PrimaryBtn onClick={goNext}>
-            {isLast && field.optional && !getValue() ? '건너뛰기' : '계속하기'}
-          </PrimaryBtn>
+          <BackBtn onClick={() => setPhase('upload')} />
+          <div style={{ flex: 1 }}>
+            <PrimaryBtn onClick={handleConfirm}>확인, 다음 단계로</PrimaryBtn>
+          </div>
         </div>
       </Dock>
     </Screen>
@@ -727,10 +777,10 @@ function StepPlatforms({ onNext, onBack, saving }: {
 }
 
 // ─── 메인 플로우 ────────────────────────────────────────
-// 순서: terms(1) → family(2) → deathcert(3) → deceased(4) → applicant(5)
+// 순서: terms(1) → family(2) → deathcert(3) → ocr(4: 업로드+확인) → applicant(5)
 //       → account_notice(6) → track(7) → platforms(8) → /apply/service-info
 type FlowStep =
-  | 'terms' | 'family' | 'deathcert' | 'deceased' | 'applicant'
+  | 'terms' | 'family' | 'deathcert' | 'ocr' | 'applicant'
   | 'account_notice' | 'track' | 'platforms'
 
 function ApplyFlow() {
@@ -853,18 +903,14 @@ function ApplyFlow() {
       )}
       {flowStep === 'deathcert' && (
         <StepDeathCertCheck
-          onYes={() => setFlowStep('deceased')}
+          onYes={() => setFlowStep('ocr')}
           onNo={() => router.push('/home')}
           onBack={() => setFlowStep('family')}
         />
       )}
-      {flowStep === 'deceased' && (
-        <StepDeceased
-          deceasedInfo={deceasedInfo}
-          onUpdate={(k, v) => {
-            const storeKey = k === 'birth' ? 'birthDate' : k === 'death' ? 'deathDate' : k
-            setDeceasedInfo({ [storeKey]: v })
-          }}
+      {flowStep === 'ocr' && (
+        <StepOcr
+          setDeceasedInfo={setDeceasedInfo}
           onNext={() => setFlowStep('applicant')}
           onBack={() => setFlowStep('deathcert')}
         />
@@ -872,7 +918,7 @@ function ApplyFlow() {
       {flowStep === 'applicant' && (
         <StepApplicant
           onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
-          onBack={() => setFlowStep('deceased')}
+          onBack={() => setFlowStep('ocr')}
         />
       )}
       {flowStep === 'account_notice' && (

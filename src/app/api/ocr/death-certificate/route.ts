@@ -71,16 +71,45 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!name && !deathDate) {
-      // 전체 텍스트를 한 번 더 시도 — raw concat
-      const allText = fields.map(f => f.inferText).join(' ')
-      const nameMatch = allText.match(/성명\s*([가-힣]{2,5})/)
-      const dateMatch = allText.match(/(\d{4})[년.\-]?\s*(\d{1,2})[월.\-]?\s*(\d{1,2})/)
-      if (nameMatch) name = nameMatch[1]
-      if (dateMatch) deathDate = `${dateMatch[1]}-${dateMatch[2].padStart(2, '0')}-${dateMatch[3].padStart(2, '0')}`
+    // 생년월일 추출
+    let birthDate = ''
+    for (let i = 0; i < fields.length; i++) {
+      const text = fields[i].inferText.trim()
+      if (text.includes('생년') || text === '생년월일' || text.includes('주민')) {
+        for (let j = i + 1; j <= i + 5 && j < fields.length; j++) {
+          const t = fields[j].inferText.trim()
+          const m = t.match(/(\d{4})[^\d](\d{1,2})[^\d](\d{1,2})/)
+          if (m) {
+            birthDate = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
+            break
+          }
+          // 주민번호 앞 6자리 → 19XX 또는 20XX
+          const rrn = t.match(/^(\d{2})(\d{2})(\d{2})/)
+          if (rrn) {
+            const yy = parseInt(rrn[1])
+            const yyyy = yy >= 0 && yy <= 24 ? `20${rrn[1]}` : `19${rrn[1]}`
+            birthDate = `${yyyy}-${rrn[2]}-${rrn[3]}`
+            break
+          }
+        }
+      }
     }
 
-    return NextResponse.json({ name, deathDate, success: true })
+    // 전체 텍스트 fallback
+    if (!name || !deathDate) {
+      const allText = fields.map(f => f.inferText).join(' ')
+      if (!name) {
+        const nameMatch = allText.match(/성명\s*([가-힣]{2,5})/)
+        if (nameMatch) name = nameMatch[1]
+      }
+      if (!deathDate) {
+        const dates = [...allText.matchAll(/(\d{4})[년.\-]?\s*(\d{1,2})[월.\-]?\s*(\d{1,2})/g)]
+        if (dates.length >= 1) deathDate = `${dates[0][1]}-${dates[0][2].padStart(2,'0')}-${dates[0][3].padStart(2,'0')}`
+        if (!birthDate && dates.length >= 2) birthDate = `${dates[1][1]}-${dates[1][2].padStart(2,'0')}-${dates[1][3].padStart(2,'0')}`
+      }
+    }
+
+    return NextResponse.json({ name, deathDate, birthDate, success: true })
   } catch (e) {
     console.error('[OCR] error', e)
     return NextResponse.json({ error: '서버 오류' }, { status: 500 })
