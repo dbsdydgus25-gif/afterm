@@ -126,7 +126,7 @@ export async function POST(
     // ZIP 생성
     const zipBuffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(zipBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',

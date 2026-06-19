@@ -229,7 +229,7 @@ export async function GET(
 
   const fileName = `delegation_${caseData.deceased_name || 'unknown'}_${caseId.slice(0, 8)}.pdf`
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
