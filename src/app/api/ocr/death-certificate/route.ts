@@ -50,10 +50,18 @@ export async function POST(req: NextRequest) {
     console.log('[OCR] 추출 텍스트:', allText)
 
     // ── 2단계: Claude AI 진위 검증 + 정보 추출 ────────────
-    const mediaType = ext === 'pdf' ? 'application/pdf'
-      : ext === 'png' ? 'image/png'
-      : ext === 'tiff' ? 'image/tiff'
-      : 'image/jpeg'
+    // PDF는 document 블록, 이미지는 image 블록으로 전송
+    const isPdf = ext === 'pdf'
+    const imageMediaType = ext === 'png' ? 'image/png' : 'image/jpeg'
+
+    type ContentBlock =
+      | { type: 'image'; source: { type: 'base64'; media_type: 'image/jpeg' | 'image/png'; data: string } }
+      | { type: 'document'; source: { type: 'base64'; media_type: 'application/pdf'; data: string } }
+      | { type: 'text'; text: string }
+
+    const fileBlock: ContentBlock = isPdf
+      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
+      : { type: 'image', source: { type: 'base64', media_type: imageMediaType, data: base64 } }
 
     const claudeRes = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -61,10 +69,7 @@ export async function POST(req: NextRequest) {
       messages: [{
         role: 'user',
         content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp', data: base64 },
-          },
+          fileBlock,
           {
             type: 'text',
             text: `당신은 대한민국 사망진단서 진위 검증 전문가입니다.
