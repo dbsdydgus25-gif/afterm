@@ -333,7 +333,7 @@ function DateInput({ label, value, onChange }: { label?: string; value: string; 
 function StepOcr({
   onNext, onBack, setDeceasedInfo,
 }: {
-  onNext: () => void
+  onNext: (file: File | null) => void
   onBack: () => void
   setDeceasedInfo: (info: { name?: string; birthDate?: string; deathDate?: string }) => void
 }) {
@@ -349,6 +349,7 @@ function StepOcr({
   const [authScore, setAuthScore] = useState(0)
   const [authIssues, setAuthIssues] = useState<string[]>([])
   const [authentic, setAuthentic] = useState(false)
+  const [certFile, setCertFile] = useState<File | null>(null)
   const [error, setError] = useState('')
 
   const handleFile = async (file: File) => {
@@ -369,6 +370,8 @@ function StepOcr({
       setAuthScore(data.score ?? 0)
       setAuthIssues(data.issues ?? [])
       setAuthentic(!!data.authentic)
+
+      setCertFile(file)
       setPhase('confirm')
     } catch {
       setError('분석 중 오류가 발생했습니다.')
@@ -381,7 +384,7 @@ function StepOcr({
     if (!name.trim()) { setError('성함을 입력해 주세요'); return }
     if (!deathDate || deathDate.split('-').length !== 3) { setError('사망일을 입력해 주세요'); return }
     setDeceasedInfo({ name: name.trim(), birthDate, deathDate })
-    onNext()
+    onNext(certFile)
   }
 
   return (
@@ -850,6 +853,7 @@ function ApplyFlow() {
   const [delegatorPhone, setDelegatorPhone] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [pendingCertFile, setPendingCertFile] = useState<File | null>(null)
 
   useEffect(() => {
     const { caseId: existingId } = useApplyStore.getState()
@@ -909,6 +913,21 @@ function ApplyFlow() {
       setDelegatorName(name)
       setDelegatorRelation(relation)
       setDelegatorPhone(phone)
+
+      // 사망진단서 Supabase 자동 업로드
+      const currentCaseId = useApplyStore.getState().caseId
+      if (pendingCertFile && currentCaseId) {
+        const ext = pendingCertFile.name.split('.').pop() || 'pdf'
+        const path = `cases/${currentCaseId}/death_cert_${Date.now()}.${ext}`
+        const { error: upErr } = await supabase.storage.from('case-documents').upload(path, pendingCertFile, { upsert: true })
+        if (!upErr) {
+          await supabase.from('case_documents').upsert({
+            case_id: currentCaseId, doc_type: 'death_cert', storage_path: path,
+            file_name: pendingCertFile.name, file_size: pendingCertFile.size, mime_type: pendingCertFile.type,
+          }, { onConflict: 'case_id,doc_type' })
+        }
+      }
+
       setFlowStep('account_notice')
     } catch (e) {
       console.error(e)
@@ -962,7 +981,7 @@ function ApplyFlow() {
       {flowStep === 'ocr' && (
         <StepOcr
           setDeceasedInfo={setDeceasedInfo}
-          onNext={() => setFlowStep('applicant')}
+          onNext={(file) => { setPendingCertFile(file); setFlowStep('applicant') }}
           onBack={() => setFlowStep('deathcert')}
         />
       )}

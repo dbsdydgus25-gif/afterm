@@ -112,9 +112,10 @@ export default function DocumentsPage() {
   const supabase = createClient()
   const { caseId, selectedServices, documentsUploaded, setDocumentUploaded, setDelegation, setStep, delegation } = useApplyStore()
 
+  // death_cert는 신청 시작 시 이미 업로드 완료 — 서류 단계에서 제외
   const DOCS = getRequiredDocs(
     selectedServices.map(s => ({ id: s.id, track: (s.track || 'delete') as TrackType }))
-  )
+  ).filter(d => d.type !== 'death_cert')
 
   const [phase, setPhase] = useState<Phase>('docs')
   const [uploading, setUploading] = useState<string | null>(null)
