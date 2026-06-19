@@ -453,8 +453,8 @@ function StepOcr({
             {/* 진위 검증 결과 배너 */}
             <div style={{
               padding: '14px 16px', borderRadius: 14, marginBottom: 16,
-              background: authentic ? '#F0FDF4' : authScore >= 60 ? '#FFFBEB' : '#FEF2F2',
-              border: `1.5px solid ${authentic ? '#6EE7B7' : authScore >= 60 ? '#FCD34D' : '#FECACA'}`,
+              background: authentic ? '#F0FDF4' : authScore >= 50 ? '#FFFBEB' : '#FEF2F2',
+              border: `1.5px solid ${authentic ? '#6EE7B7' : authScore >= 50 ? '#FCD34D' : '#FECACA'}`,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: authIssues.length ? 8 : 0 }}>
                 <span style={{ fontSize: 20 }}>{authentic ? '✅' : authScore >= 60 ? '⚠️' : '❌'}</span>
@@ -463,9 +463,9 @@ function StepOcr({
                     fontSize: 13, fontWeight: 800, margin: 0,
                     color: authentic ? '#065F46' : authScore >= 60 ? '#92400E' : '#991B1B',
                   }}>
-                    {authentic ? '사망진단서 진위 확인 완료' : authScore >= 60 ? '일부 항목 미확인 — 검토 필요' : '사망진단서 형식 불일치'}
+                    {authentic ? '사망진단서 진위 확인 완료' : authScore >= 50 ? '일부 항목 미확인 — 검토 필요' : '사망진단서 형식 불일치'}
                   </p>
-                  <p style={{ fontSize: 12, margin: '2px 0 0', color: authentic ? '#059669' : authScore >= 60 ? '#B45309' : '#DC2626' }}>
+                  <p style={{ fontSize: 12, margin: '2px 0 0', color: authentic ? '#059669' : authScore >= 50 ? '#B45309' : '#DC2626' }}>
                     신뢰도 {authScore}점 {licenseNumber ? `· 면허번호 ${licenseNumber}` : ''} {hasSignature ? '· 서명 확인' : '· 서명 미확인'}
                   </p>
                 </div>
@@ -520,7 +520,7 @@ function StepOcr({
             </button>
           </Body>
           <Dock>
-            {!authentic && authScore < 60 ? (
+            {!authentic && authScore < 50 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', margin: 0, fontWeight: 600 }}>
                   정확한 사망진단서를 업로드해 주세요
