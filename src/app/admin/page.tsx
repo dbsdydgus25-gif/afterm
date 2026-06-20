@@ -32,7 +32,7 @@ export default async function AdminPage() {
     adminClient.from('case_services').select('*', { count: 'exact', head: true }),
     adminClient.from('case_services').select('*', { count: 'exact', head: true }).eq('status', 'done'),
     adminClient.from('cases')
-      .select(`id, deceased_name, deceased_death, status, created_at, case_services(id, status)`)
+      .select(`id, deceased_name, deceased_death, status, created_at, paid_amount, payment_status, delegations(delegator_name, delegator_phone), case_services(id, status)`)
       .neq('status', 'draft')
       .order('created_at', { ascending: false })
       .limit(20),
@@ -151,7 +151,7 @@ export default async function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f9fafb' }}>
-                {['고인 성명', '사망일', '신청일', '서비스', '진행도', '상태', ''].map(h => (
+                {['접수일', '신청인', '고인 성명', '사망일', '서비스', '결제', '상태', ''].map(h => (
                   <th key={h} style={{ padding: '11px 16px', fontSize: 12, fontWeight: 700, color: '#6b7280', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -159,28 +159,29 @@ export default async function AdminPage() {
             <tbody>
               {recentCases && recentCases.length > 0 ? recentCases.map((c: any) => {
                 const si = STATUS_LABEL[c.status] || { label: c.status, color: '#999', bg: '#f3f4f6' }
+                const del = (c.delegations as any[])?.[0]
                 const services = c.case_services || []
-                const done = services.filter((s: any) => s.status === 'done').length
-                const pct = services.length ? Math.round((done / services.length) * 100) : 0
                 return (
                   <tr key={c.id} style={{ borderTop: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '13px 16px', fontSize: 14, fontWeight: 700, color: '#111' }}>{c.deceased_name}</td>
-                    <td style={{ padding: '13px 16px', fontSize: 13, color: '#6b7280' }}>{c.deceased_death}</td>
-                    <td style={{ padding: '13px 16px', fontSize: 13, color: '#6b7280' }}>{new Date(c.created_at).toLocaleDateString('ko-KR')}</td>
-                    <td style={{ padding: '13px 16px', fontSize: 13, color: '#374151' }}>{services.length}건</td>
-                    <td style={{ padding: '13px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 60, height: 5, background: '#f3f4f6', borderRadius: 100, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: '#10b981' }} />
-                        </div>
-                        <span style={{ fontSize: 12, color: '#6b7280' }}>{pct}%</span>
+                    <td style={{ padding: '11px 16px', fontSize: 12, color: '#6b7280' }}>{new Date(c.created_at).toLocaleDateString('ko-KR')}</td>
+                    <td style={{ padding: '11px 16px' }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>{del?.delegator_name || '-'}</div>
+                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{del?.delegator_phone || ''}</div>
+                    </td>
+                    <td style={{ padding: '11px 16px', fontSize: 13, fontWeight: 700, color: '#374151' }}>{c.deceased_name}</td>
+                    <td style={{ padding: '11px 16px', fontSize: 12, color: '#6b7280' }}>{c.deceased_death || '-'}</td>
+                    <td style={{ padding: '11px 16px', fontSize: 13, color: '#374151' }}>{services.length}건</td>
+                    <td style={{ padding: '11px 16px' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: c.payment_status === 'paid' ? '#059669' : '#D97706' }}>
+                        {c.payment_status === 'paid' ? '결제완료' : '미결제'}
                       </div>
+                      {c.paid_amount && <div style={{ fontSize: 11, color: '#9CA3AF' }}>{Number(c.paid_amount).toLocaleString()}원</div>}
                     </td>
-                    <td style={{ padding: '13px 16px' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: si.bg, color: si.color }}>{si.label}</span>
+                    <td style={{ padding: '11px 16px' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 100, background: si.bg, color: si.color }}>{si.label}</span>
                     </td>
-                    <td style={{ padding: '13px 16px' }}>
-                      <Link href={`/admin/cases/${c.id}`} style={{ fontSize: 13, color: '#2563EB', fontWeight: 700, textDecoration: 'none' }}>관리 →</Link>
+                    <td style={{ padding: '11px 16px' }}>
+                      <Link href={`/admin/cases/${c.id}`} style={{ fontSize: 12, color: '#2563EB', fontWeight: 700, textDecoration: 'none' }}>관리 →</Link>
                     </td>
                   </tr>
                 )

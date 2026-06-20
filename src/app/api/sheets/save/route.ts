@@ -30,36 +30,42 @@ export async function POST(req: NextRequest) {
 
     const sheets = google.sheets({ version: 'v4', auth })
 
-    // 각 서비스별로 한 행씩 추가
+    // case_services DB 형식 또는 store 형식 모두 지원
     const rows = (selectedServices || []).map((svc: any) => {
-      const trackLabel = svc.track === 'delete' ? '계정삭제' : '추모계정'
-      const fields = svc.fieldValues || {}
+      // DB 형식: service_name, service_category, account_id, contact_info, dispatch_type
+      // store 형식: name, id, track, fieldValues
+      const isDbFormat = !!svc.service_name
+      const platformName = isDbFormat ? svc.service_name : (svc.name || '')
+      const trackRaw = isDbFormat ? svc.dispatch_type : svc.track
+      const trackLabel = trackRaw === 'memorialize' || trackRaw === 'memorial' ? '추모계정' : '계정삭제'
+      const accountInfo = isDbFormat
+        ? (svc.account_id || svc.contact_info || '')
+        : (() => { const f = svc.fieldValues || {}; return f.account_username || f.account_email || f.deceased_account_email || f.deceased_phone || '' })()
+      const serviceId = isDbFormat ? svc.service_category?.toLowerCase() : svc.id
 
       return [
-        submittedAt || new Date().toISOString(),  // A: 접수일시
-        caseId?.slice(0, 8) || '',                 // B: 케이스ID (앞8자리)
-        deceasedInfo?.name || '',                  // C: 고인 성명
-        deceasedInfo?.birthDate || '',             // D: 고인 생년월일
-        deceasedInfo?.deathDate || '',             // E: 고인 사망일
-        deceasedInfo?.phone || '',                 // F: 고인 전화번호
-        delegation?.delegatorName || '',           // G: 신청인 성명
-        delegation?.delegatorRelation || '',       // H: 고인과의 관계
-        svc.name || '',                            // I: 플랫폼
-        trackLabel,                                // J: 트랙 (삭제/추모)
-        svc.track === 'delete'
-          ? (svc.id === 'instagram' || svc.id === 'kakaotalk' ? '직접신청필요' : '에프텀대행')
-          : '에프텀대행',                           // K: 대행가능여부
-        // 입력 필드값들
-        fields.account_username || fields.account_email || fields.deceased_account_email || fields.deceased_phone || '',  // L: 계정 ID/이메일/전화
-        fields.deceased_profile_url || fields.deceased_profile_name || '',  // M: 프로필 URL
-        fields.requester_name || fields.requester_email || '',              // N: 신청인 연락처
-        fields.deceased_telecom || '',             // O: 통신사 (카카오 전용)
-        fields.refund_account || '',               // P: 환불계좌 (카카오 전용)
-        paidAmount ? paidAmount.toLocaleString() + '원' : '',  // Q: 결제금액
-        paymentId || '',                           // R: PG결제ID
-        '',                                        // S: 처리 상태 (수동 입력)
-        '',                                        // T: 처리 완료일 (수동 입력)
-        '',                                        // U: 메모
+        submittedAt || new Date().toISOString(),   // A: 접수일시
+        caseId?.slice(0, 8) || '',                  // B: 케이스ID
+        deceasedInfo?.name || '',                   // C: 고인 성명
+        deceasedInfo?.birthDate || '',              // D: 고인 생년월일
+        deceasedInfo?.deathDate || '',              // E: 고인 사망일
+        deceasedInfo?.phone || '',                  // F: 고인 전화번호
+        delegation?.delegatorName || delegation?.delegator_name || '',   // G: 신청인 성명
+        delegation?.delegatorRelation || delegation?.delegator_relation || '', // H: 관계
+        platformName,                               // I: 플랫폼
+        trackLabel,                                 // J: 트랙
+        (serviceId === 'instagram' || serviceId === 'kakaotalk') && trackRaw !== 'memorialize'
+          ? '직접신청필요' : '에프텀대행',            // K: 대행가능여부
+        accountInfo,                                // L: 계정ID/연락처
+        '',                                         // M: 프로필URL
+        delegation?.delegatorPhone || delegation?.delegator_phone || '', // N: 신청인 전화
+        '',                                         // O: 통신사
+        '',                                         // P: 환불계좌
+        paidAmount ? Number(paidAmount).toLocaleString() + '원' : '', // Q: 결제금액
+        paymentId || '',                            // R: PG결제ID
+        '',                                         // S: 처리 상태
+        '',                                         // T: 처리 완료일
+        '',                                         // U: 메모
       ]
     })
 

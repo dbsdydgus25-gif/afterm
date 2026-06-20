@@ -1,21 +1,39 @@
+'use server'
+
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
-import AdminFilterBar from './AdminFilterBar'
 import { Suspense } from 'react'
+import AdminFilterBar from './AdminFilterBar'
 
-const STATUS_LABEL: Record<string, { label: string; bg: string; color: string }> = {
-  draft:      { label: '작성 중',   bg: '#F3F4F6', color: '#6B7280' },
-  submitted:  { label: '접수 완료', bg: '#EFF6FF', color: '#2563EB' },
-  reviewing:  { label: '서류 확인', bg: '#F5F3FF', color: '#7C3AED' },
-  processing: { label: '처리 중',   bg: '#FFFBEB', color: '#D97706' },
-  completed:  { label: '완료됨',    bg: '#ECFDF5', color: '#059669' },
-  cancelled:  { label: '취소됨',    bg: '#FEF2F2', color: '#DC2626' },
+const STATUS_TABS = [
+  { value: 'all',        label: '전체' },
+  { value: 'submitted',  label: '접수완료' },
+  { value: 'reviewing',  label: '서류확인' },
+  { value: 'processing', label: '처리중' },
+  { value: 'completed',  label: '완료' },
+  { value: 'cancelled',  label: '취소' },
+]
+
+const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  draft:      { label: '작성중',   bg: '#F3F4F6', color: '#6B7280' },
+  submitted:  { label: '접수완료', bg: '#DBEAFE', color: '#1D4ED8' },
+  reviewing:  { label: '서류확인', bg: '#EDE9FE', color: '#6D28D9' },
+  processing: { label: '처리중',   bg: '#FEF3C7', color: '#B45309' },
+  completed:  { label: '완료',     bg: '#D1FAE5', color: '#065F46' },
+  cancelled:  { label: '취소',     bg: '#FEE2E2', color: '#991B1B' },
+}
+
+const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
+  paid:     { label: '결제완료', color: '#059669' },
+  pending:  { label: '미결제',   color: '#D97706' },
+  refunded: { label: '환불',     color: '#DC2626' },
+  failed:   { label: '실패',     color: '#6B7280' },
 }
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; search?: string }>
+  searchParams: Promise<{ status?: string; q?: string }>
 }
 
 export default async function AdminCasesPage({ searchParams }: PageProps) {
@@ -24,30 +42,31 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
   if (session?.value !== 'authorized') redirect('/admin-login')
 
   const adminClient = createAdminClient()
-  const { status, search } = await searchParams
+  const { status, q } = await searchParams
   const filterStatus = status || 'all'
-  const filterSearch = search || ''
+  const filterSearch = q || ''
 
+  // 케이스 + 서비스 + 위임 + 결제 한 번에 조회
   let query = adminClient
     .from('cases')
     .select(`
-      id, user_id, deceased_name, deceased_birth, deceased_death, deceased_phone,
-      status, created_at,
-      case_services(id, status, service_name, service_category),
-      delegations(delegator_name, delegator_relation),
-      case_documents(id)
+      id, user_id, status, created_at,
+      deceased_name, deceased_birth, deceased_death,
+      payment_status, paid_amount, paid_at,
+      delegator_phone,
+      case_services(id, service_name, service_category, dispatch_type, status),
+      delegations(delegator_name, delegator_relation, delegator_phone),
+      case_documents(id, doc_type)
     `)
     .neq('status', 'draft')
+    .order('created_at', { ascending: false })
 
   if (filterStatus !== 'all') query = query.eq('status', filterStatus)
-  if (filterSearch) query = query.or(`deceased_name.ilike.%${filterSearch}%,deceased_phone.ilike.%${filterSearch}%`)
 
-  const { data: cases, error } = await query.order('created_at', { ascending: false })
-  if (error) console.error('Error fetching cases:', error)
-
+  const { data: cases } = await query
   const allCases = cases || []
 
-  // 유저 ID 목록 수집 후 profiles 한번에 조회
+  // 신청인 이름/이메일 조회 (profiles)
   const userIds = [...new Set(allCases.map((c: any) => c.user_id).filter(Boolean))]
   const { data: profiles } = await adminClient
     .from('profiles')
@@ -55,182 +74,203 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
     .in('id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000'])
 
   const profileMap: Record<string, { name: string; email: string; phone: string }> = {}
-  for (const p of profiles || []) {
-    profileMap[p.id] = { name: p.name || '', email: p.email || '', phone: p.phone || '' }
-  }
+  for (const p of profiles || []) profileMap[p.id as string] = { name: (p as any).name || '', email: (p as any).email || '', phone: (p as any).phone || '' }
 
-  // 요약 통계
+  // 검색 필터 (이름·전화·고인명)
+  const filtered = filterSearch
+    ? allCases.filter((c: any) => {
+        const s = filterSearch.toLowerCase()
+        const del = c.delegations?.[0]
+        const profile: { name: string; email: string; phone: string } = profileMap[c.user_id] || { name: '', email: '', phone: '' }
+        return (
+          c.deceased_name?.toLowerCase().includes(s) ||
+          del?.delegator_name?.toLowerCase().includes(s) ||
+          del?.delegator_phone?.includes(s) ||
+          c.delegator_phone?.includes(s) ||
+          profile.name.toLowerCase().includes(s) ||
+          profile.phone.includes(s) ||
+          profile.email.toLowerCase().includes(s)
+        )
+      })
+    : allCases
+
+  // 통계
   const stats = {
-    total: allCases.length,
-    submitted: allCases.filter(c => c.status === 'submitted').length,
-    processing: allCases.filter(c => c.status === 'processing' || c.status === 'reviewing').length,
-    completed: allCases.filter(c => c.status === 'completed').length,
-  }
-
-  // 유저별 그룹핑
-  type CaseWithExtras = (typeof allCases)[number]
-  const userGroups: Record<string, { userName: string; userEmail: string; userPhone: string; cases: CaseWithExtras[] }> = {}
-  for (const c of allCases) {
-    const uid = (c as any).user_id || 'unknown'
-    const profile = profileMap[uid]
-    if (!userGroups[uid]) {
-      userGroups[uid] = {
-        userName: profile?.name || profile?.email?.split('@')[0] || '이름 미입력',
-        userEmail: profile?.email || '',
-        userPhone: profile?.phone || '',
-        cases: [],
-      }
-    }
-    userGroups[uid].cases.push(c)
+    total:      allCases.length,
+    submitted:  allCases.filter((c: any) => c.status === 'submitted').length,
+    reviewing:  allCases.filter((c: any) => c.status === 'reviewing').length,
+    processing: allCases.filter((c: any) => c.status === 'processing').length,
+    completed:  allCases.filter((c: any) => c.status === 'completed').length,
+    cancelled:  allCases.filter((c: any) => c.status === 'cancelled').length,
+    revenue:    allCases.filter((c: any) => c.payment_status === 'paid').reduce((s: number, c: any) => s + (c.paid_amount || 0), 0),
   }
 
   return (
     <div style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>신청 관리</h1>
-        <p style={{ fontSize: 14, color: '#9ca3af', margin: '6px 0 0' }}>
-          유족 기준으로 신청 건을 확인하고 처리합니다
-        </p>
+
+      {/* 헤더 */}
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>신청 관리</h1>
+        <p style={{ fontSize: 13, color: '#9CA3AF', margin: '4px 0 0' }}>총 {stats.total}건 · 누적 결제 {stats.revenue.toLocaleString()}원</p>
       </div>
 
-      {/* 요약 카드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
+      {/* 스탯 바 */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
-          { label: '전체 신청', value: stats.total, color: '#2563EB', bg: '#EFF6FF', icon: '📋' },
-          { label: '접수 완료', value: stats.submitted, color: '#2563EB', bg: '#DBEAFE', icon: '✅' },
-          { label: '처리 중', value: stats.processing, color: '#D97706', bg: '#FEF3C7', icon: '⚙️' },
-          { label: '처리 완료', value: stats.completed, color: '#059669', bg: '#D1FAE5', icon: '🎉' },
+          { label: '접수완료', value: stats.submitted,  color: '#1D4ED8', bg: '#DBEAFE' },
+          { label: '서류확인', value: stats.reviewing,  color: '#6D28D9', bg: '#EDE9FE' },
+          { label: '처리중',   value: stats.processing, color: '#B45309', bg: '#FEF3C7' },
+          { label: '완료',     value: stats.completed,  color: '#065F46', bg: '#D1FAE5' },
+          { label: '취소',     value: stats.cancelled,  color: '#991B1B', bg: '#FEE2E2' },
         ].map(s => (
-          <div key={s.label} style={{
-            background: '#fff', borderRadius: 16, padding: '18px 20px',
-            border: '1px solid #F0F0F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-          }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: '#6B7280', marginTop: 4, fontWeight: 600 }}>{s.label}</div>
-          </div>
+          <Link key={s.label} href={`/admin/cases?status=${STATUS_TABS.find(t => t.label === s.label)?.value}`}
+            style={{ textDecoration: 'none', background: s.bg, borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 20, fontWeight: 900, color: s.color }}>{s.value}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: s.color, opacity: 0.8 }}>{s.label}</span>
+          </Link>
         ))}
       </div>
 
-      <Suspense fallback={<div style={{ height: 74, background: '#fff', borderRadius: 16 }} />}>
-        <AdminFilterBar />
-      </Suspense>
+      {/* 검색 + 필터 */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Suspense fallback={null}>
+          <AdminFilterBar />
+        </Suspense>
+      </div>
 
-      {/* 유저별 신청 그룹 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 20 }}>
-        {allCases.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#9ca3af', background: '#fff', borderRadius: 16 }}>
+      {/* 상태 탭 */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '1px solid #E5E9EF', paddingBottom: 0 }}>
+        {STATUS_TABS.map(t => (
+          <Link key={t.value} href={`/admin/cases?status=${t.value}${filterSearch ? `&q=${filterSearch}` : ''}`}
+            style={{
+              textDecoration: 'none', padding: '8px 14px', fontSize: 13, fontWeight: 700,
+              color: filterStatus === t.value ? '#2563EB' : '#9CA3AF',
+              borderBottom: filterStatus === t.value ? '2px solid #2563EB' : '2px solid transparent',
+              whiteSpace: 'nowrap',
+            }}>
+            {t.label}
+            {t.value !== 'all' && (
+              <span style={{ marginLeft: 4, fontSize: 11, background: filterStatus === t.value ? '#2563EB' : '#E5E9EF', color: filterStatus === t.value ? '#fff' : '#9CA3AF', padding: '1px 5px', borderRadius: 8 }}>
+                {stats[t.value as keyof typeof stats] ?? 0}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
+
+      {/* 케이스 테이블 */}
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #E5E9EF', overflow: 'hidden' }}>
+        {/* 테이블 헤더 */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '140px 120px 120px 90px 1fr 90px 80px 70px',
+          padding: '10px 16px', background: '#F8FAFC',
+          borderBottom: '1px solid #E5E9EF', gap: 8,
+        }}>
+          {['접수일시', '신청인', '고인명', '사망일', '신청 서비스', '결제', '상태', ''].map(h => (
+            <div key={h} style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', whiteSpace: 'nowrap' }}>{h}</div>
+          ))}
+        </div>
+
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0', color: '#9CA3AF', fontSize: 14 }}>
             신청 건이 없습니다
           </div>
-        )}
-        {Object.entries(userGroups).map(([uid, group]) => (
-          <div key={uid} style={{ background: '#fff', borderRadius: 16, border: '1px solid #F0F0F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
-            {/* 유저 헤더 */}
-            <div style={{ padding: '16px 20px', background: '#F8FAFF', borderBottom: '1px solid #EFF2FF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{
-                  width: 42, height: 42, borderRadius: '50%', background: '#2563EB',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 16, fontWeight: 800, color: '#fff',
-                }}>
-                  {group.userName.charAt(0)}
-                </div>
+        ) : (
+          filtered.map((c: any) => {
+            const del = c.delegations?.[0]
+            const profile: { name: string; email: string; phone: string } = profileMap[c.user_id] || { name: '', email: '', phone: '' }
+            const applicantName = del?.delegator_name || profile.name || '-'
+            const applicantPhone = del?.delegator_phone || c.delegator_phone || profile.phone || '-'
+            const services: any[] = c.case_services || []
+            const docs: any[] = c.case_documents || []
+            const statusBadge = STATUS_BADGE[c.status] || STATUS_BADGE['submitted']
+            const payBadge = PAYMENT_BADGE[c.payment_status || 'pending']
+            const createdAt = new Date(c.created_at)
+            const docTypes = docs.map((d: any) => d.doc_type)
+
+            return (
+              <div key={c.id} style={{
+                display: 'grid',
+                gridTemplateColumns: '140px 120px 120px 90px 1fr 90px 80px 70px',
+                padding: '14px 16px', gap: 8,
+                borderBottom: '1px solid #F3F4F6',
+                alignItems: 'center',
+              }}>
+                {/* 접수일시 */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{group.userName}</span>
-                    {group.userPhone && (
-                      <span style={{ fontSize: 12, color: '#6B7280', background: '#E8EAF0', padding: '2px 8px', borderRadius: 100, fontWeight: 600 }}>
-                        {group.userPhone}
-                      </span>
-                    )}
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>
+                    {createdAt.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })}
                   </div>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', margin: '2px 0 0' }}>
-                    {group.userEmail && <span style={{ marginRight: 8 }}>{group.userEmail}</span>}
-                    신청 {group.cases.length}건
-                  </p>
+                  <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
+                    {createdAt.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
-              </div>
-              <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>
-                {uid.slice(0, 12)}...
-              </span>
-            </div>
 
-            {/* 케이스 목록 */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {group.cases.map((c: any, idx: number) => {
-                const si = STATUS_LABEL[c.status] || { label: c.status, bg: '#F3F4F6', color: '#6B7280' }
-                const services: any[] = c.case_services || []
-                const done = services.filter((s: any) => s.status === 'done').length
-                const pct = services.length ? Math.round((done / services.length) * 100) : 0
-                const docsCount = c.case_documents?.length || 0
-                const createdAt = new Date(c.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+                {/* 신청인 */}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>{applicantName}</div>
+                  <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{applicantPhone}</div>
+                </div>
 
-                return (
-                  <div key={c.id} style={{
-                    borderTop: idx > 0 ? '1px solid #F0F0F0' : undefined,
-                    padding: '14px 20px',
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: '#111', marginBottom: 2 }}>
-                          고인: {c.deceased_name}
-                          {c.deceased_phone && <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 500, marginLeft: 8 }}>{c.deceased_phone}</span>}
-                        </div>
-                        <div style={{ fontSize: 12, color: '#9CA3AF' }}>
-                          {c.deceased_birth && `생년월일 ${c.deceased_birth}`}
-                          {c.deceased_birth && c.deceased_death && ' · '}
-                          {c.deceased_death && `사망일 ${c.deceased_death}`}
-                          <span style={{ marginLeft: 8 }}>· 신청 {createdAt}</span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                        <span style={{ padding: '4px 10px', borderRadius: 100, fontSize: 11, fontWeight: 700, background: si.bg, color: si.color }}>
-                          {si.label}
-                        </span>
-                        <span style={{
-                          padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                          background: docsCount > 0 ? '#D1FAE5' : '#FEF3C7',
-                          color: docsCount > 0 ? '#059669' : '#D97706',
-                        }}>
-                          서류 {docsCount}개
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
-                        {services.map((s: any) => {
-                          const sColor = s.status === 'done' ? '#059669' : '#2563EB'
-                          const sBg = s.status === 'done' ? '#D1FAE5' : '#DBEAFE'
-                          return (
-                            <span key={s.id} style={{ padding: '3px 8px', borderRadius: 100, fontSize: 11, fontWeight: 700, background: sBg, color: sColor }}>
-                              {s.service_name}
-                            </span>
-                          )
-                        })}
-                        {services.length === 0 && <span style={{ fontSize: 11, color: '#D1D5DB' }}>서비스 없음</span>}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <div style={{ width: 50, height: 5, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: `${pct}%`, background: '#10b981' }} />
-                          </div>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{pct}%</span>
-                        </div>
-                        <Link href={`/admin/cases/${c.id}`} style={{
-                          fontSize: 12, color: '#2563EB', fontWeight: 800, textDecoration: 'none',
-                          padding: '6px 14px', borderRadius: 8, background: '#EFF6FF',
-                        }}>
-                          관리 →
-                        </Link>
-                      </div>
-                    </div>
+                {/* 고인명 */}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{c.deceased_name}</div>
+                  <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
+                    {docTypes.includes('death_cert') ? '📋사망진단서' : '서류없음'}
+                    {docTypes.includes('id_card') ? ' · 신분증' : ''}
                   </div>
-                )
-              })}
-            </div>
-          </div>
-        ))}
+                </div>
+
+                {/* 사망일 */}
+                <div style={{ fontSize: 12, color: '#6B7280' }}>{c.deceased_death || '-'}</div>
+
+                {/* 서비스 */}
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {services.map((s: any) => (
+                    <span key={s.id} style={{
+                      fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 6,
+                      background: s.status === 'done' ? '#D1FAE5' : '#EFF6FF',
+                      color: s.status === 'done' ? '#065F46' : '#1D4ED8',
+                    }}>
+                      {s.service_name}
+                    </span>
+                  ))}
+                  {services.length === 0 && <span style={{ fontSize: 11, color: '#D1D5DB' }}>없음</span>}
+                </div>
+
+                {/* 결제 */}
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: payBadge.color }}>{payBadge.label}</div>
+                  {c.paid_amount && (
+                    <div style={{ fontSize: 11, color: '#6B7280', marginTop: 1 }}>{Number(c.paid_amount).toLocaleString()}원</div>
+                  )}
+                </div>
+
+                {/* 상태 */}
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 100,
+                  background: statusBadge.bg, color: statusBadge.color, whiteSpace: 'nowrap',
+                }}>
+                  {statusBadge.label}
+                </span>
+
+                {/* 관리 버튼 */}
+                <Link href={`/admin/cases/${c.id}`} style={{
+                  fontSize: 12, fontWeight: 700, color: '#2563EB', textDecoration: 'none',
+                  padding: '6px 10px', borderRadius: 8, background: '#EFF6FF', whiteSpace: 'nowrap',
+                }}>
+                  상세 →
+                </Link>
+              </div>
+            )
+          })
+        )}
       </div>
+
+      <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
+        {filtered.length}건 표시 중 (전체 {allCases.length}건)
+      </p>
     </div>
   )
 }
