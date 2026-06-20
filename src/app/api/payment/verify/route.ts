@@ -72,6 +72,28 @@ export async function POST(req: NextRequest) {
       ])
     }
 
+    // 구글 시트 저장 (fire-and-forget)
+    if (caseData) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
+      fetch(`${siteUrl}/api/sheets/save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caseId,
+          deceasedInfo: {
+            name: caseData.deceased_name,
+            birthDate: caseData.deceased_birth,
+            deathDate: caseData.deceased_death,
+            phone: caseData.deceased_phone,
+          },
+          selectedServices: caseData.case_services || [],
+          delegation: caseData.delegations?.[0] || {},
+          submittedAt: new Date().toISOString(),
+          paidAmount: payment.amount.total,
+          paymentId: paymentId,
+        }),
+      }).catch((e) => console.error('[sheets] 저장 실패:', e))
+    }
+
     return NextResponse.json({ success: true })
   } catch (e: any) {
     console.error('[payment/verify]', e)

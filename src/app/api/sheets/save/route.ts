@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { caseId, deceasedInfo, selectedServices, delegation, submittedAt } = body
+  const { caseId, deceasedInfo, selectedServices, delegation, submittedAt, paidAmount, paymentId } = body
 
   // 환경변수 확인
   const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
@@ -55,9 +55,11 @@ export async function POST(req: NextRequest) {
         fields.requester_name || fields.requester_email || '',              // N: 신청인 연락처
         fields.deceased_telecom || '',             // O: 통신사 (카카오 전용)
         fields.refund_account || '',               // P: 환불계좌 (카카오 전용)
-        '',                                        // Q: 처리 상태 (수동 입력)
-        '',                                        // R: 처리 완료일 (수동 입력)
-        '',                                        // S: 메모
+        paidAmount ? paidAmount.toLocaleString() + '원' : '',  // Q: 결제금액
+        paymentId || '',                           // R: PG결제ID
+        '',                                        // S: 처리 상태 (수동 입력)
+        '',                                        // T: 처리 완료일 (수동 입력)
+        '',                                        // U: 메모
       ]
     })
 
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
             '접수일시', '케이스ID', '고인성명', '고인생년월일', '고인사망일', '고인전화번호',
             '신청인성명', '고인과의관계', '플랫폼', '트랙(삭제/추모)', '대행가능여부',
             '계정ID/이메일/전화', '프로필URL', '신청인연락처', '통신사', '환불계좌',
-            '처리상태', '처리완료일', '메모'
+            '결제금액', 'PG결제ID', '처리상태', '처리완료일', '메모'
           ]]
         }
       })

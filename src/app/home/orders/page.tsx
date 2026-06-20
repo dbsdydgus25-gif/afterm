@@ -14,7 +14,7 @@ export default async function OrdersPage() {
   const { data: cases, error } = await supabase
     .from('cases')
     .select(`
-      id, deceased_name, status, created_at,
+      id, deceased_name, status, created_at, payment_status, paid_amount,
       case_services (id, service_name, service_category, status, status_note)
     `)
     .eq('user_id', user.id)
@@ -23,7 +23,9 @@ export default async function OrdersPage() {
 
   if (error) console.error('[orders]', error)
 
-  const hasAny = (cases?.length ?? 0) > 0
+  const allCases = (cases || []) as any[]
+  const activeCases = allCases.filter(c => !['completed', 'cancelled'].includes(c.status))
+  const doneCases = allCases.filter(c => ['completed', 'cancelled'].includes(c.status))
 
   return (
     <div style={{
@@ -32,14 +34,12 @@ export default async function OrdersPage() {
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {/* 헤더 */}
-      <div style={{
-        padding: '16px 20px 14px', background: '#2563EB', flexShrink: 0,
-      }}>
+      <div style={{ padding: '16px 20px 14px', background: '#2563EB', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 }}>신청 내역</h1>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: '3px 0 0' }}>
-              {hasAny ? `총 ${cases!.length}건 진행 중` : '신청 내역이 없습니다'}
+              진행 중 {activeCases.length}건 · 완료 {doneCases.length}건
             </p>
           </div>
           <Link href="/apply/new" style={{
@@ -50,7 +50,7 @@ export default async function OrdersPage() {
         </div>
       </div>
 
-      {!hasAny ? (
+      {allCases.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 52, marginBottom: 14 }}>📭</div>
           <p style={{ fontSize: 17, fontWeight: 700, color: '#111827', margin: '0 0 8px' }}>신청 내역이 없어요</p>
@@ -60,7 +60,7 @@ export default async function OrdersPage() {
           </Link>
         </div>
       ) : (
-        <OrdersClient cases={cases as any} userId={user.id} />
+        <OrdersClient activeCases={activeCases} doneCases={doneCases} userId={user.id} />
       )}
     </div>
   )

@@ -24,6 +24,8 @@ type CaseItem = {
   deceased_name: string
   status: string
   created_at: string
+  payment_status: string
+  paid_amount: number | null
   case_services: {
     id: string
     service_name: string
@@ -33,15 +35,47 @@ type CaseItem = {
   }[]
 }
 
-type Props = { cases: CaseItem[]; userId: string }
+type Props = { activeCases: CaseItem[]; doneCases: CaseItem[]; userId: string }
 
-export default function OrdersClient({ cases: initialCases, userId }: Props) {
-  const [cases, setCases] = useState(initialCases)
+export default function OrdersClient({ activeCases: initialActive, doneCases, userId }: Props) {
+  const [tab, setTab] = useState<'active' | 'done'>('active')
+  const [cases, setCases] = useState(initialActive)
+  const [cancelTarget, setCancelTarget] = useState<CaseItem | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState('')
   const supabase = createClient()
+
+  const displayCases = tab === 'active' ? cases : doneCases
+
+  const switchTab = (t: 'active' | 'done') => {
+    setTab(t)
+    setCaseIdx(0)
+    caseScrollRef.current?.scrollTo({ left: 0, behavior: 'instant' })
+  }
+
+  const handleCancel = async () => {
+    if (!cancelTarget) return
+    setCancelling(true)
+    setCancelError('')
+    try {
+      const res = await fetch('/api/payment/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId: cancelTarget.id, reason: '고객 요청 취소' }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setCancelError(data.error || '취소 실패'); setCancelling(false); return }
+      setCases(prev => prev.filter(c => c.id !== cancelTarget.id))
+      setCancelTarget(null)
+    } catch {
+      setCancelError('네트워크 오류가 발생했습니다')
+    }
+    setCancelling(false)
+  }
 
   // case_services 변경 실시간 구독
   useEffect(() => {
-    const caseIds = initialCases.map(c => c.id)
+    const caseIds = initialActive.map(c => c.id)
     if (caseIds.length === 0) return
 
     const channel = supabase
@@ -79,8 +113,8 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
     const el = caseScrollRef.current
     if (!el) return
     const idx = Math.round(el.scrollLeft / el.clientWidth)
-    setCaseIdx(Math.min(idx, cases.length - 1))
-  }, [cases.length])
+    setCaseIdx(Math.min(idx, displayCases.length - 1))
+  }, [displayCases.length])
 
   // 서비스 스크롤 감지
   const handleSvcScroll = useCallback((cIdx: number) => {
@@ -104,13 +138,61 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+
+      {/* 취소 확인 모달 */}
+      {cancelTarget && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+        }} onClick={() => { setCancelTarget(null); setCancelError('') }}>
+          <div style={{ background: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 320 }} onClick={e => e.stopPropagation()}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>신청 취소</h3>
+              <p style={{ fontSize: 14, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+                <b>{cancelTarget.deceased_name}</b>님 신청을 취소하시겠습니까?<br />
+                결제 금액 <b>{cancelTarget.paid_amount?.toLocaleString()}원</b>이<br />
+                3~5 영업일 내 환불됩니다.
+              </p>
+            </div>
+            {cancelError && <p style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', margin: '0 0 12px', fontWeight: 600 }}>⚠️ {cancelError}</p>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setCancelTarget(null); setCancelError('') }} style={{
+                flex: 1, padding: '14px', borderRadius: 14, background: '#F3F4F6',
+                color: '#374151', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer',
+              }}>돌아가기</button>
+              <button onClick={handleCancel} disabled={cancelling} style={{
+                flex: 1, padding: '14px', borderRadius: 14, background: '#DC2626',
+                color: '#fff', fontSize: 15, fontWeight: 700, border: 'none',
+                cursor: cancelling ? 'default' : 'pointer', opacity: cancelling ? 0.7 : 1,
+              }}>{cancelling ? '처리 중...' : '취소하기'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 탭 바 ── */}
+      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #E8EAF0', flexShrink: 0 }}>
+        {([['active', '진행 중', cases.length], ['done', '완료/취소', doneCases.length]] as [string, string, number][]).map(([t, label, cnt]) => (
+          <button key={t} onClick={() => switchTab(t as 'active' | 'done')} style={{
+            flex: 1, padding: '13px 0', fontSize: 14, fontWeight: tab === t ? 800 : 600,
+            color: tab === t ? '#2563EB' : '#9CA3AF',
+            background: 'none', border: 'none', cursor: 'pointer',
+            borderBottom: tab === t ? '2px solid #2563EB' : '2px solid transparent',
+            fontFamily: 'inherit',
+          }}>
+            {label}{cnt > 0 && <span style={{ fontSize: 12, background: tab === t ? '#2563EB' : '#E5E9EF', color: tab === t ? '#fff' : '#9CA3AF', padding: '1px 6px', borderRadius: 10, marginLeft: 4 }}>{cnt}</span>}
+          </button>
+        ))}
+      </div>
+
       {/* ── 케이스 인디케이터 (상단) ── */}
-      {cases.length > 1 && (
+      {displayCases.length > 1 && (
         <div style={{
           display: 'flex', justifyContent: 'center', gap: 6, padding: '10px 0 6px',
           background: '#F4F6F9', flexShrink: 0,
         }}>
-          {cases.map((c, i) => (
+          {displayCases.map((c, i) => (
             <button
               key={c.id}
               onClick={() => goToCase(i)}
@@ -140,7 +222,7 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
           msOverflowStyle: 'none',
         }}
       >
-        {cases.map((c, cIdx) => {
+        {displayCases.map((c, cIdx) => {
           const cMeta = CASE_STATUS[c.status] || CASE_STATUS['submitted']
           const services = c.case_services || []
           const doneCount = services.filter(s => s.status === 'done').length
@@ -232,6 +314,28 @@ export default function OrdersClient({ cases: initialCases, userId }: Props) {
                     )
                   })}
                 </div>
+
+                {/* 취소 버튼 - 결제 완료 + 처리 완료/취소 아닌 경우만 */}
+                {c.payment_status === 'paid' && !['completed', 'cancelled'].includes(c.status) && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #F0F0F0' }}>
+                    <button
+                      onClick={() => setCancelTarget(c)}
+                      style={{
+                        width: '100%', padding: '10px',
+                        background: '#FEF2F2', color: '#DC2626',
+                        border: '1px solid #FECACA', borderRadius: 10,
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      }}
+                    >
+                      신청 취소하기
+                    </button>
+                  </div>
+                )}
+                {c.payment_status === 'refunded' && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #F0F0F0', textAlign: 'center' }}>
+                    <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>✅ 취소 / 환불 완료</span>
+                  </div>
+                )}
               </div>
 
               {/* ── 서비스 캐러셀 ── */}

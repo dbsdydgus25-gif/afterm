@@ -33,7 +33,7 @@ export default async function HomePage() {
       .from('cases')
       .select('id, deceased_name, status, created_at, case_services(id, status, service_name)')
       .eq('user_id', user.id)
-      .neq('status', 'draft')
+      .not('status', 'in', '("draft","completed","cancelled")')
       .order('created_at', { ascending: false })
     activeCases = cases || []
   }

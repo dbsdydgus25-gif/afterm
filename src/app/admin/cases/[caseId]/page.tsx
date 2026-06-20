@@ -52,8 +52,13 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
 
   const documentsWithUrl = await Promise.all((caseData.case_documents || []).map(async (doc: any) => {
     const { data } = await adminClient.storage.from('case-documents').createSignedUrl(doc.storage_path, 60 * 60)
-    return { doc_type: doc.doc_type, file_name: doc.file_name, storage_path: doc.storage_path, public_url: data?.signedUrl || '' }
+    return { doc_type: doc.doc_type, file_name: doc.file_name, storage_path: doc.storage_path, public_url: data?.signedUrl || '',
+      ai_score: doc.ai_score, ai_authentic: doc.ai_authentic, ai_issues: doc.ai_issues,
+      ai_license_number: doc.ai_license_number, ai_has_signature: doc.ai_has_signature, ai_hospital: doc.ai_hospital,
+    }
   }))
+
+  const deathCertDoc = documentsWithUrl.find(d => d.doc_type === 'death_cert')
 
   const delegationInfo = caseData.delegations?.[0] || null
   const statusMeta = STATUS_LABEL[caseData.status] || STATUS_LABEL['submitted']
@@ -139,6 +144,59 @@ export default async function AdminCaseDetailPage({ params }: PageProps) {
               <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', padding: '16px 0' }}>위임 서명 정보가 없습니다.</p>
             )}
           </div>
+          {/* 결제 정보 */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e9ef', padding: '20px' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#374151', margin: '0 0 14px', paddingBottom: 10, borderBottom: '1px solid #f3f4f6' }}>
+              💳 결제 정보
+            </h3>
+            {[
+              ['결제 상태', caseData.payment_status === 'paid' ? '✅ 결제완료'
+                : caseData.payment_status === 'refunded' ? '🔴 환불완료'
+                : caseData.payment_status === 'pending' ? '⏳ 미결제' : '-'],
+              ['결제 금액', caseData.paid_amount ? `${Number(caseData.paid_amount).toLocaleString()}원` : '-'],
+              ['결제 일시', caseData.paid_at ? new Date(caseData.paid_at).toLocaleString('ko-KR') : '-'],
+              ['PG 결제 ID', caseData.payment_id || '-'],
+              ['환불 일시', caseData.refunded_at ? new Date(caseData.refunded_at).toLocaleString('ko-KR') : '-'],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f9fafb' }}>
+                <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>{label}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#111', wordBreak: 'break-all', textAlign: 'right', maxWidth: '60%' }}>{value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 사망진단서 AI 분석 결과 */}
+          {deathCertDoc && deathCertDoc.ai_score != null && (
+            <div style={{
+              background: deathCertDoc.ai_authentic ? '#F0FDF4' : (deathCertDoc.ai_score ?? 0) >= 60 ? '#FFFBEB' : '#FEF2F2',
+              borderRadius: 12,
+              border: `1px solid ${deathCertDoc.ai_authentic ? '#6EE7B7' : (deathCertDoc.ai_score ?? 0) >= 60 ? '#FCD34D' : '#FECACA'}`,
+              padding: '20px',
+            }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: '#374151', margin: '0 0 14px', paddingBottom: 10, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                🔍 사망진단서 AI 분석 결과
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: 24 }}>{deathCertDoc.ai_authentic ? '✅' : (deathCertDoc.ai_score ?? 0) >= 60 ? '⚠️' : '❌'}</span>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 800, margin: 0, color: deathCertDoc.ai_authentic ? '#065F46' : '#92400E' }}>
+                    {deathCertDoc.ai_authentic ? '진위 확인 완료' : '검토 필요'}
+                  </p>
+                  <p style={{ fontSize: 12, margin: '2px 0 0', color: '#6B7280' }}>
+                    신뢰도 {deathCertDoc.ai_score}점
+                    {deathCertDoc.ai_license_number ? ` · 면허번호 ${deathCertDoc.ai_license_number}` : ' · 면허번호 미기재'}
+                    {deathCertDoc.ai_has_signature ? ' · 서명 확인' : ' · 서명 미확인'}
+                    {deathCertDoc.ai_hospital ? ` · ${deathCertDoc.ai_hospital}` : ''}
+                  </p>
+                </div>
+              </div>
+              {Array.isArray(deathCertDoc.ai_issues) && deathCertDoc.ai_issues.length > 0 && (
+                <ul style={{ margin: '6px 0 0', padding: '0 0 0 16px', fontSize: 12, color: '#92400E', lineHeight: 1.8 }}>
+                  {deathCertDoc.ai_issues.map((issue: string, i: number) => <li key={i}>{issue}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 우측: 서비스 관리 */}
