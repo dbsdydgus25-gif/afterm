@@ -54,22 +54,17 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
     setTimeout(() => setToast(null), 2000)
   }
 
-  const MenuItem = ({ icon, title, desc, onClick, bgColor = '#F3F4F6' }: {
-    icon: string; title: string; desc?: string;
+  const MenuItem = ({ icon: _icon, title, desc, onClick, bgColor: _bgColor }: {
+    icon?: string; title: string; desc?: string;
     onClick: () => void; bgColor?: string;
   }) => (
     <div onClick={onClick} style={{
-      padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       borderBottom: '1px solid #F3F4F6', cursor: 'pointer', background: '#fff',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-          {icon}
-        </div>
-        <div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: desc ? '0 0 2px' : 0 }}>{title}</p>
-          {desc && <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{desc}</p>}
-        </div>
+      <div>
+        <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: desc ? '0 0 2px' : 0 }}>{title}</p>
+        {desc && <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>{desc}</p>}
       </div>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2">
         <path d="M9 18l6-6-6-6" />
@@ -93,11 +88,11 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
       {/* 바텀시트 모달 */}
       {activeModal && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200,
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 310,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
         }} onClick={() => setActiveModal(null)}>
           <div style={{
-            background: '#fff', borderRadius: '24px 24px 0 0', padding: '24px 20px 48px',
+            background: '#fff', borderRadius: '24px 24px 0 0', padding: `24px 20px calc(48px + env(safe-area-inset-bottom))`,
             width: '100%', maxWidth: 480, maxHeight: '85vh', overflowY: 'auto',
           }} onClick={e => e.stopPropagation()}>
             <div style={{ width: 40, height: 4, background: '#E5E7EB', borderRadius: 99, margin: '0 auto 20px' }} />
@@ -258,29 +253,15 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
           <MenuItem icon="📄" title="이용약관 및 정책" onClick={() => setActiveModal('terms')} />
           {!isGuest && (
             <div onClick={() => setShowLogoutConfirm(true)} style={{
-              padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
+              padding: '18px 20px', display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#fff',
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-              </div>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#EF4444', margin: 0 }}>로그아웃</p>
             </div>
           )}
           {isGuest && (
             <div onClick={() => setLoginOpen(true)} style={{
-              padding: '20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer', background: '#fff',
+              padding: '18px 20px', display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#fff',
             }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                  <polyline points="10 17 15 12 10 7"></polyline>
-                  <line x1="15" y1="12" x2="3" y2="12"></line>
-                </svg>
-              </div>
               <p style={{ fontSize: 15, fontWeight: 700, color: '#2563EB', margin: 0 }}>로그인하기</p>
             </div>
           )}

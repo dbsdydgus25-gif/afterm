@@ -41,7 +41,7 @@ export function LoginBottomSheet({ open, onClose, onSuccess, redirectTo = '/home
   return (
     <>
       <div onClick={onClose} style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200,
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 310,
         opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
         transition: 'opacity .3s ease',
       }} />
@@ -50,8 +50,8 @@ export function LoginBottomSheet({ open, onClose, onSuccess, redirectTo = '/home
         transform: open ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
         transition: 'transform .35s cubic-bezier(.32,0,.24,1)',
         width: '100%', maxWidth: 480, background: '#fff',
-        borderRadius: '24px 24px 0 0', padding: '0 24px 40px',
-        zIndex: 201, boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+        borderRadius: '24px 24px 0 0', padding: `0 24px calc(40px + env(safe-area-inset-bottom))`,
+        zIndex: 311, boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 20px' }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#e0e0e0' }} />

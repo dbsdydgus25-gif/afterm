@@ -100,11 +100,6 @@ export default function ServiceCard({ svc, caseId, userId }: ServiceCardProps) {
       <div style={{ padding: '14px 16px' }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-            background: '#F4F6F9', border: '1px solid #EAECF0',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-          }}>{icon}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 10, color: '#9CA3AF', margin: 0, fontWeight: 600 }}>{svc.service_category}</p>
             <p style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0, letterSpacing: '-0.02em' }}>{svc.service_name}</p>

@@ -96,10 +96,9 @@ export default async function HomePage() {
             <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
               <div style={{
                 background: '#F9FAFB', borderRadius: 12, padding: '14px 12px',
-                border: '1px solid #F3F4F6',
+                border: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 68,
               }}>
-                <div style={{ fontSize: 22, marginBottom: 6 }}>{item.icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em', marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', letterSpacing: '-0.01em', marginBottom: 3 }}>{item.label}</div>
                 <div style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>{item.sub}</div>
               </div>
             </a>
