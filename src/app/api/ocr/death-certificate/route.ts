@@ -7,6 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
     const file = formData.get('image') as File | null
+    const caseId = formData.get('caseId') as string | null
     if (!file) return NextResponse.json({ error: '파일 없음' }, { status: 400 })
 
     const invokeUrl = process.env.CLOVA_OCR_INVOKE_URL
@@ -155,6 +156,7 @@ ${allText}
     }
 
     console.log('[OCR] AI 검증 결과:', result)
+
     return NextResponse.json({ ...result, success: true })
 
   } catch (e) {
