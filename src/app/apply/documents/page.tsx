@@ -117,7 +117,11 @@ export default function DocumentsPage() {
     selectedServices.map(s => ({ id: s.id, track: (s.track || 'delete') as TrackType }))
   ).filter(d => d.type !== 'death_cert')
 
-  const [phase, setPhase] = useState<Phase>('docs')
+  const [phase, setPhase] = useState<Phase>(() =>
+    getRequiredDocs(
+      (useApplyStore.getState().selectedServices || []).map(s => ({ id: s.id, track: (s.track || 'delete') as TrackType }))
+    ).filter(d => d.type !== 'death_cert').length === 0 ? 'sign' : 'docs'
+  )
   const [uploading, setUploading] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -232,12 +236,6 @@ export default function DocumentsPage() {
           }}
         />
       )}
-      {/* 진행 바: 모든 8단계 완료 상태 */}
-      <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: '#2563EB' }} />
-        ))}
-      </div>
       <Body>
         <StepLabel label="서류 첨부" />
         <Question
@@ -316,11 +314,6 @@ export default function DocumentsPage() {
   // ── 전자서명 단계 ──────────────────────────────────────
   return (
     <Screen>
-      <div style={{ padding: '12px 24px 0', display: 'flex', gap: 4 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: '#2563EB' }} />
-        ))}
-      </div>
       <Body>
         <StepLabel label="전자서명" />
         <Question label={'위임장에\n서명해 주세요'} sub="에프텀에 해지 대행을 위임하는 전자서명입니다" />
