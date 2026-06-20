@@ -71,10 +71,28 @@ export default function ServiceInfoPage() {
     return null
   }
 
+  const saveFieldValuesToDB = async () => {
+    const caseId = useApplyStore.getState().caseId
+    if (!caseId) return
+    const { data: rows } = await supabase.from('case_services').select('id, service_id').eq('case_id', caseId)
+    if (!rows) return
+    const store = useApplyStore.getState()
+    for (const svc of store.selectedServices) {
+      const row = rows.find(r => r.service_id === svc.id)
+      if (!row) continue
+      const f = svc.fieldValues || {}
+      const accountId = f.account_username || f.account_email || f.deceased_account_email || f.deceased_phone || ''
+      const contactInfo = Object.entries(f).map(([k, v]) => `${k}:${v}`).join('|')
+      await supabase.from('case_services').update({ account_id: accountId, contact_info: contactInfo }).eq('id', row.id)
+    }
+  }
+
   const goNext = () => {
     if (isLastField) {
-      if (isLastService) { setStep(2); router.push('/apply/documents') }
-      else {
+      if (isLastService) {
+        saveFieldValuesToDB().catch(console.error)
+        setStep(2); router.push('/apply/documents')
+      } else {
         const nextSvc = selectedServices[svcIdx + 1]
         const nextCfg = getTrackConfig(nextSvc.id, nextSvc.track)
         const nextFields = (nextCfg?.fields || []).filter(f => !AUTO_FILL_KEYS.has(f.key))

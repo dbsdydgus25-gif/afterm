@@ -133,7 +133,8 @@ export default function DocViewer({ documents, signatureData, delegatorName, del
               onClick={() => setLightboxImg(activeDoc.public_url)}
               style={{
                 maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', cursor: 'zoom-in',
-                transition: 'transform 0.2s'
+                transition: 'transform 0.2s',
+                filter: activeTab === 'death_cert' ? 'grayscale(100%) contrast(1.4) brightness(1.05)' : 'none',
               }}
             />
           ) : (
@@ -157,7 +158,9 @@ export default function DocViewer({ documents, signatureData, delegatorName, del
           <img
             src={lightboxImg}
             alt="원본 서류 확대"
-            style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain', borderRadius: '8px' }}
+            style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain', borderRadius: '8px',
+              filter: activeTab === 'death_cert' ? 'grayscale(100%) contrast(1.4) brightness(1.05)' : 'none',
+            }}
           />
           <button
             onClick={() => setLightboxImg(null)}
