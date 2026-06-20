@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function AboutPage() {
   return (
@@ -17,7 +18,9 @@ export default function AboutPage() {
       <div style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* 서비스 소개 */}
         <div style={{ background: '#fff', borderRadius: 20, padding: '24px', border: '1px solid #E8EAF0' }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>🌿</div>
+          <div style={{ marginBottom: 12 }}>
+            <Image src="/logo-blue.png" alt="AFTERM" width={100} height={28} style={{ objectFit: 'contain', objectPosition: 'left' }} />
+          </div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 10px' }}>에프텀이란?</h2>
           <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.8, margin: 0 }}>
             에프텀(Afterm)은 가족을 잃은 후 처리해야 하는 복잡한 행정 업무를 전문적으로 대행해 드리는 서비스입니다.<br /><br />
