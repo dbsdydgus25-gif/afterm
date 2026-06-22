@@ -829,6 +829,7 @@ export default function LandingPage() {
           <div style={{ color:'#555', fontSize:11, lineHeight:2.1 }}>
             <p style={{ margin:0 }}>상호명: 에프텀</p>
             <p style={{ margin:0 }}>대표자: 윤용현</p>
+            <p style={{ margin:0 }}>대표전화: 010-6381-6440</p>
             <p style={{ margin:0 }}>사업자번호: 221-20-19292</p>
             <p style={{ margin:0 }}>소재지: 경기도 평택시 지산로 128 9층</p>
             <p style={{ margin:0 }}>이메일: afterm001@gmail.com</p>

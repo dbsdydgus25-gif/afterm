@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getRequiredDocs } from '@/lib/services-catalog'
 import type { TrackType } from '@/lib/services-catalog'
 import { Screen, Body, Dock, PrimaryBtn, BackBtn, StepLabel, Question } from '../_components'
+import DocScanner from '@/components/ui/DocScanner'
 
 // ─── 서류 메타데이터 ────────────────────────────────────
 const DOC_META: Record<string, { icon: string; tip: string }> = {
@@ -47,8 +48,8 @@ const DOC_GUIDE: Record<string, { title: string; notices: string[]; maskingNote?
 }
 
 // ─── 서류 안내 Bottom Sheet ─────────────────────────────
-function DocGuideSheet({ docType, onConfirm, onClose }: {
-  docType: string; onConfirm: () => void; onClose: () => void
+function DocGuideSheet({ docType, onConfirm, onScan, onClose }: {
+  docType: string; onConfirm: () => void; onScan: () => void; onClose: () => void
 }) {
   const guide = DOC_GUIDE[docType] || { title: '서류 첨부 유의사항', notices: ['서류의 모든 내용이 명확히 보여야 합니다'] }
   return (
@@ -92,14 +93,25 @@ function DocGuideSheet({ docType, onConfirm, onClose }: {
         }}>
           📎 jpg, jpeg, png, pdf · 10MB 이하
         </div>
-        <button onClick={onConfirm} style={{
-          width: '100%', padding: '17px', borderRadius: 14,
-          background: '#2563EB', color: '#fff', fontSize: 16, fontWeight: 800,
-          border: 'none', cursor: 'pointer',
-          fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-        }}>
-          파일 선택하기
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button onClick={onScan} style={{
+            width: '100%', padding: '17px', borderRadius: 14,
+            background: '#111827', color: '#fff', fontSize: 16, fontWeight: 800,
+            border: 'none', cursor: 'pointer',
+            fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <span>📷</span> 카메라로 스캔
+          </button>
+          <button onClick={onConfirm} style={{
+            width: '100%', padding: '17px', borderRadius: 14,
+            background: '#fff', color: '#2563EB', fontSize: 16, fontWeight: 800,
+            border: '1.5px solid #2563EB', cursor: 'pointer',
+            fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+          }}>
+            파일 선택하기
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -126,6 +138,7 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [guideModal, setGuideModal] = useState<string | null>(null)
+  const [scannerDoc, setScannerDoc] = useState<string | null>(null)
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const delegatorName = delegation?.delegatorName || ''
@@ -225,10 +238,26 @@ export default function DocumentsPage() {
   // ── 서류 업로드 단계 ──────────────────────────────────
   if (phase === 'docs') return (
     <Screen>
+      {scannerDoc && (
+        <DocScanner
+          label={DOC_META[scannerDoc]?.icon ? (scannerDoc === 'death_cert' ? '사망진단서' : scannerDoc === 'id_card' ? '신분증' : '가족관계증명서') : '문서'}
+          onCapture={file => {
+            const type = scannerDoc
+            setScannerDoc(null)
+            handleFileUpload(type, file)
+          }}
+          onClose={() => setScannerDoc(null)}
+        />
+      )}
       {guideModal && (
         <DocGuideSheet
           docType={guideModal}
           onClose={() => setGuideModal(null)}
+          onScan={() => {
+            const type = guideModal!
+            setGuideModal(null)
+            setScannerDoc(type)
+          }}
           onConfirm={() => {
             const type = guideModal
             setGuideModal(null)
