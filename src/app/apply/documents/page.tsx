@@ -47,6 +47,81 @@ const DOC_GUIDE: Record<string, { title: string; notices: string[]; maskingNote?
   },
 }
 
+// ─── 위임장 내용 보기 컴포넌트 ──────────────────────────
+function DelegationContentView({ delegatorName }: { delegatorName: string }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', borderRadius: 10,
+          background: open ? '#EBF3FF' : '#F3F4F6',
+          border: `1px solid ${open ? '#BFDBFE' : '#E5E9EF'}`,
+          cursor: 'pointer', fontFamily: 'inherit',
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 700, color: open ? '#2563EB' : '#374151' }}>
+          📄 위임장 내용 보기
+        </span>
+        <span style={{ fontSize: 11, color: '#9CA3AF' }}>{open ? '닫기 ▲' : '펼치기 ▼'}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          border: '1px solid #BFDBFE', borderTop: 'none',
+          borderRadius: '0 0 12px 12px', overflow: 'hidden',
+        }}>
+          <div style={{ background: '#1E3A8A', padding: '12px 16px' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>디지털 유산 사후 행정 대행 위임장</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>에프텀 (개인사업자)</div>
+          </div>
+          <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12, background: '#fff' }}>
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 5 }}>제1조  당사자 및 목적</div>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                본 위임장은 위임인({delegatorName || '본인'})의 사망 이후 발생하는 디지털 유산 정리 및 행정 대행 업무를 에프텀(수임인)에게 위탁하기 위한 문서입니다.
+              </p>
+            </div>
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#DC2626', marginBottom: 5 }}>제2조  사후 위임의 존속 특약 [핵심 법적 조항]</div>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                민법 제127조에도 불구하고, 본 위임 계약 및 대리권은 위임인의 사망으로 인하여 종료되지 아니하며 그 효력이 지속됩니다. 본 위임장의 효력은 위임인의 사망 시점(사망진단서 상의 일시)부터 발생합니다.
+              </p>
+            </div>
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 5 }}>제3조  위임 업무의 범위</div>
+              <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                <p style={{ margin: '0 0 4px', fontWeight: 700 }}>① 디지털 플랫폼 계정 처리</p>
+                <p style={{ margin: '0 0 8px', paddingLeft: 10, color: '#6B7280' }}>카카오·구글·메타 등 계정 해지·삭제·추모계정 전환 신청 및 서류 제출</p>
+                <p style={{ margin: '0 0 4px', fontWeight: 700 }}>② 정기 결제·구독 해지</p>
+                <p style={{ margin: '0 0 8px', paddingLeft: 10, color: '#6B7280' }}>이동통신사·OTT·클라우드 등 유료 구독 서비스 해지 신청</p>
+                <p style={{ margin: '0 0 4px', fontWeight: 700 }}>③ 금융 계좌 사망 통보 (제한적)</p>
+                <p style={{ margin: 0, paddingLeft: 10, color: '#6B7280' }}>사망 사실 통보 및 계정 동결 요청 — 자산 인출·처분 권한 제외, 자산 귀속은 상속법 적용</p>
+              </div>
+            </div>
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 5 }}>제4조  상속인 권리 제한 및 면책</div>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                수임인이 위임 범위 내에서 수행한 행위는 위임인의 확고한 생전 의사에 따른 것입니다. 법정 상속인은 수임인의 정당한 업무 수행에 민·형사상 이의를 제기할 수 없습니다. 플랫폼 방침이나 불가항력으로 인한 처리 지연·거절에 대해 수임인은 법적 책임을 지지 않습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── 서류 안내 Bottom Sheet ─────────────────────────────
 function DocGuideSheet({ docType, onConfirm, onScan, onClose }: {
   docType: string; onConfirm: () => void; onScan: () => void; onClose: () => void
@@ -394,8 +469,11 @@ export default function DocumentsPage() {
           </button>
         )}
 
+        {/* 위임장 내용 보기 */}
+        <DelegationContentView delegatorName={delegatorName} />
+
         <div style={{
-          marginTop: 20, padding: '14px 16px', background: '#F8FAFC',
+          marginTop: 16, padding: '14px 16px', background: '#F8FAFC',
           borderRadius: 12, border: '1px solid #E5E9EF',
           fontSize: 12, color: '#9CA3AF', lineHeight: 1.7,
         }}>

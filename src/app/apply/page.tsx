@@ -997,8 +997,11 @@ function StepPlatforms({ onNext, onBack, saving }: {
   )
 }
 
-// ─── Step: 위임 동의 ────────────────────────────────────
-function StepDelegationAgreement({ onNext, onBack, delegatorName }: {
+// ─── 메인 플로우 (아래 참조) ──────────────────────────────
+// StepDelegationAgreement, StepSignature는 apply/documents/page.tsx로 이동됨
+
+// ─── Step: 위임 동의 (미사용 — documents 페이지에서 처리) ────
+function _UnusedStepDelegationAgreement({ onNext, onBack, delegatorName }: {
   onNext: () => void
   onBack: () => void
   delegatorName: string
@@ -1093,8 +1096,8 @@ function StepDelegationAgreement({ onNext, onBack, delegatorName }: {
   )
 }
 
-// ─── Step: 서명 ─────────────────────────────────────────
-function StepSignature({ onNext, onBack, delegatorName }: {
+// ─── Step: 서명 (미사용 — documents 페이지에서 처리) ─────
+function _UnusedStepSignature({ onNext, onBack, delegatorName }: {
   onNext: (signatureData: string) => void
   onBack: () => void
   delegatorName: string
@@ -1219,11 +1222,11 @@ function StepSignature({ onNext, onBack, delegatorName }: {
 }
 
 // ─── 메인 플로우 ────────────────────────────────────────
-// 순서: terms(1) → family(2) → deathcert(3) → ocr(4) → applicant(5)
-//       → delegation_agree(6) → signature(7) → account_notice(8) → track(9) → platforms(10)
+// 순서: terms(1) → family(2) → deathcert(3) → ocr(4) → applicant(5+OTP)
+//       → account_notice(6) → track(7) → platforms(8)
+//       → /apply/service-info → /apply/documents (서명 + 결제)
 type FlowStep =
   | 'terms' | 'family' | 'deathcert' | 'ocr' | 'applicant'
-  | 'delegation_agree' | 'signature'
   | 'account_notice' | 'track' | 'platforms'
 
 function ApplyFlow() {
@@ -1327,33 +1330,10 @@ function ApplyFlow() {
         }
       }
 
-      setFlowStep('delegation_agree')
-    } catch (e) {
-      console.error(e)
-      setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  // 서명 데이터 저장
-  const saveSignature = async (signatureData: string) => {
-    setSaving(true)
-    try {
-      const currentCaseId = useApplyStore.getState().caseId
-      if (currentCaseId) {
-        await supabase.from('delegations').update({
-          signature_data: signatureData,
-          signed_at: new Date().toISOString(),
-          verified_at: new Date().toISOString(),
-          verified_phone: delegatorPhone,
-        }).eq('case_id', currentCaseId)
-      }
-      setDelegation({ delegatorName, delegatorRelation, signatureData })
       setFlowStep('account_notice')
     } catch (e) {
       console.error(e)
-      setSaveError('서명 저장 중 오류가 발생했습니다')
+      setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
     } finally {
       setSaving(false)
     }
@@ -1411,20 +1391,6 @@ function ApplyFlow() {
         <StepApplicant
           onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
           onBack={() => setFlowStep('ocr')}
-        />
-      )}
-      {flowStep === 'delegation_agree' && (
-        <StepDelegationAgreement
-          onNext={() => setFlowStep('signature')}
-          onBack={() => setFlowStep('applicant')}
-          delegatorName={delegatorName}
-        />
-      )}
-      {flowStep === 'signature' && (
-        <StepSignature
-          onNext={(signatureData) => saveSignature(signatureData)}
-          onBack={() => setFlowStep('delegation_agree')}
-          delegatorName={delegatorName}
         />
       )}
       {flowStep === 'account_notice' && (
