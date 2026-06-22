@@ -133,13 +133,58 @@ function SelectCard({ label, selected, onClick }: { label: string; selected: boo
 
 // ─── Step 1: 약관 동의 ─────────────────────────────────
 const TERMS = [
-  { key: 'privacy',  label: '개인정보 수집·이용 동의', href: '/privacy' },
-  { key: 'delegate', label: '디지털 계정 대행 위임 동의', href: null },
-  { key: 'esign',    label: '전자서명 법적 효력 동의', href: null },
+  {
+    key: 'privacy',
+    label: '개인정보 수집·이용 동의',
+    href: '/privacy',
+    content: `[수집 항목] 성명, 생년월일, 연락처, 고인 정보(성명·사망일·사망진단서), 가족관계, 서명 데이터
+
+[수집 목적] 디지털 계정 해지·삭제·추모계정 전환 행정 대행 서비스 제공
+
+[보유 기간] 업무 완료 후 30일 이내 파기 (단, 관련 법령에 따라 일정 기간 보관될 수 있음)
+
+[제3자 제공] 플랫폼사(구글·메타·카카오 등)에 서비스 처리 목적으로만 제공하며, 그 외 제3자에게 제공하지 않습니다.
+
+동의를 거부하실 수 있으며, 거부 시 서비스 이용이 제한됩니다.`,
+  },
+  {
+    key: 'delegate',
+    label: '디지털 계정 대행 위임 동의',
+    href: null,
+    content: `본인은 에프텀(이하 "수임인")에게 고인의 디지털 유산 처리에 관한 다음의 행정 행위를 위임합니다.
+
+【제1항 위임 범위】
+① 소셜미디어·포털·OTT·클라우드 등 디지털 계정의 해지, 삭제, 추모계정 전환 신청
+② 관련 서류(사망진단서·가족관계증명서 등)의 각 기관 제출
+③ 이동통신·구독 서비스 해지 신청
+④ 금융 계좌의 사망 통보 및 지급 정지 요청 (자산 처분 권한 제외)
+
+【제2항 사후 위임 존속】
+민법 제127조에도 불구하고, 본 위임의 효력은 위임인의 사망으로 종료되지 아니하며 사망 시점부터 발생합니다.
+
+【제3항 면책】
+수임인이 본 위임 범위 내에서 수행한 행위에 대하여 법정 상속인은 민·형사상 이의를 제기할 수 없습니다. 플랫폼의 내부 방침 또는 불가항력적 사유로 인한 처리 지연·거절에 대해 수임인은 책임을 지지 않습니다.`,
+  },
+  {
+    key: 'esign',
+    label: '전자서명 법적 효력 동의',
+    href: null,
+    content: `본 서비스에서 수집하는 전자서명(캔버스 서명)은 전자서명법 제3조에 따라 자필 서명과 동일한 법적 효력을 가집니다.
+
+【전자서명의 법적 근거】
+• 전자서명법 제3조: 전자서명은 법령상 서명·날인·기명날인으로서의 효력을 가집니다.
+• 본인인증(핸드폰 인증) 로그와 서명 시각 타임스탬프가 위임장에 함께 기록되어 증명력을 높입니다.
+
+【서명의 용도】
+수집된 서명 이미지는 에프텀이 발행하는 위임장 PDF에만 사용되며, 이외의 목적으로 사용되지 않습니다.
+
+동의 시 본인이 직접 서명한 것으로 간주되며, 서명 후 위임장이 법적 효력을 갖습니다.`,
+  },
 ]
 
 function StepTerms({ onNext }: { onNext: () => void }) {
   const [agreed, setAgreed] = useState<Record<string, boolean>>({})
+  const [expanded, setExpanded] = useState<string | null>(null)
   const allAgreed = TERMS.every(t => agreed[t.key])
 
   const toggleAll = () => {
@@ -172,20 +217,60 @@ function StepTerms({ onNext }: { onNext: () => void }) {
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {TERMS.map(term => (
-            <div key={term.key} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '14px 4px', borderBottom: '1px solid #F3F4F6',
-            }}>
-              <CheckCircle
-                checked={!!agreed[term.key]}
-                onClick={() => setAgreed(prev => ({ ...prev, [term.key]: !prev[term.key] }))}
-              />
-              <span style={{ flex: 1, fontSize: 14, color: '#374151' }}>
-                <span style={{ color: '#2563EB', fontWeight: 700, fontSize: 12 }}>(필수) </span>
-                {term.label}
-              </span>
-              {term.href && (
-                <a href={term.href} target="_blank" style={{ fontSize: 12, color: '#C4C4CC', textDecoration: 'none' }}>보기</a>
+            <div key={term.key}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 4px', borderBottom: expanded === term.key ? 'none' : '1px solid #F3F4F6',
+              }}>
+                <CheckCircle
+                  checked={!!agreed[term.key]}
+                  onClick={() => setAgreed(prev => ({ ...prev, [term.key]: !prev[term.key] }))}
+                />
+                <span style={{ flex: 1, fontSize: 14, color: '#374151' }}>
+                  <span style={{ color: '#2563EB', fontWeight: 700, fontSize: 12 }}>(필수) </span>
+                  {term.label}
+                </span>
+                <button
+                  onClick={() => setExpanded(expanded === term.key ? null : term.key)}
+                  style={{
+                    fontSize: 12, color: '#6B7280', fontWeight: 600,
+                    background: '#F3F4F6', border: 'none', borderRadius: 6,
+                    padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+                  }}
+                >
+                  {expanded === term.key ? '닫기' : '보기'}
+                </button>
+                {term.href && (
+                  <a href={term.href} target="_blank" style={{ fontSize: 12, color: '#C4C4CC', textDecoration: 'none' }}>↗</a>
+                )}
+              </div>
+              {expanded === term.key && (
+                <div style={{
+                  background: '#F9FAFB', border: '1px solid #E5E9EF',
+                  borderTop: 'none', borderRadius: '0 0 12px 12px',
+                  padding: '14px 16px', marginBottom: 4,
+                }}>
+                  <pre style={{
+                    fontSize: 12, color: '#374151', lineHeight: 1.8,
+                    margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit',
+                  }}>
+                    {term.content}
+                  </pre>
+                  <button
+                    onClick={() => {
+                      setAgreed(prev => ({ ...prev, [term.key]: true }))
+                      setExpanded(null)
+                    }}
+                    style={{
+                      marginTop: 12, width: '100%', padding: '10px',
+                      background: '#EBF3FF', border: '1.5px solid #2563EB',
+                      borderRadius: 10, color: '#2563EB', fontSize: 13,
+                      fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    이 항목에 동의합니다
+                  </button>
+                </div>
               )}
             </div>
           ))}
@@ -516,7 +601,7 @@ function StepOcr({
   )
 }
 
-// ─── Step 5: 신청인 정보 ───────────────────────────────
+// ─── Step 5: 신청인 정보 + 본인인증 ──────────────────────
 const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
 
 function StepApplicant({ onNext, onBack }: {
@@ -526,7 +611,13 @@ function StepApplicant({ onNext, onBack }: {
   const [name, setName] = useState('')
   const [relation, setRelation] = useState('')
   const [phone, setPhone] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone'>('name')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone' | 'verify'>('name')
+  const [otpToken, setOtpToken] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [otpSending, setOtpSending] = useState(false)
+  const [devCode, setDevCode] = useState('')  // 개발용 코드 표시
   const supabase = createClient()
 
   useEffect(() => {
@@ -543,7 +634,56 @@ function StepApplicant({ onNext, onBack }: {
     return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
   }
 
-  const innerLabels = { name: '신청인 정보 1/3', relation: '신청인 정보 2/3', phone: '신청인 정보 3/3' }
+  const sendOtp = async () => {
+    setOtpSending(true)
+    setOtpError('')
+    setOtpCode('')
+    try {
+      const res = await fetch('/api/verify/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setOtpToken(data.token)
+        setOtpSent(true)
+        if (data.code) setDevCode(data.code)  // SMS 미연동 시 화면에 표시
+      } else {
+        setOtpError('인증번호 발송에 실패했습니다')
+      }
+    } catch {
+      setOtpError('네트워크 오류가 발생했습니다')
+    } finally {
+      setOtpSending(false)
+    }
+  }
+
+  const verifyOtp = async () => {
+    setOtpError('')
+    try {
+      const res = await fetch('/api/verify/check-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code: otpCode, token: otpToken }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        onNext(name, relation, phone)
+      } else {
+        setOtpError(data.error || '인증번호가 올바르지 않습니다')
+      }
+    } catch {
+      setOtpError('인증 오류가 발생했습니다')
+    }
+  }
+
+  const innerLabels = {
+    name: '신청인 정보 1/4',
+    relation: '신청인 정보 2/4',
+    phone: '신청인 정보 3/4',
+    verify: '신청인 정보 4/4',
+  }
 
   return (
     <Screen>
@@ -588,11 +728,13 @@ function StepApplicant({ onNext, onBack }: {
         )}
         {innerStep === 'phone' && (
           <div key="phone">
-            <Question label={'신청인 전화번호를\n입력해 주세요'} sub="결제 인증에 사용됩니다" />
+            <Question label={'핸드폰\n본인인증을 해주세요'} sub="신청인 본인 명의 번호로 인증해 주세요. 위임장에 인증 기록이 남습니다." />
             <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
               onChange={e => setPhone(phoneFormat(e.target.value))}
               onKeyDown={e => {
-                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) onNext(name, relation, phone)
+                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) {
+                  sendOtp().then(() => setInnerStep('verify'))
+                }
               }}
               style={{
                 width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
@@ -601,8 +743,49 @@ function StepApplicant({ onNext, onBack }: {
               }}
             />
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
-              결제 시 본인인증에 사용되며, 외부에 공유되지 않습니다
+              인증번호 6자리가 발송됩니다. 위임장에 본인인증 완료 기록이 삽입됩니다.
             </p>
+          </div>
+        )}
+        {innerStep === 'verify' && (
+          <div key="verify">
+            <Question
+              label={'인증번호를\n입력해 주세요'}
+              sub={`${phone}로 발송된 6자리 숫자를 입력해 주세요`}
+            />
+            {devCode && (
+              <div style={{
+                padding: '12px 16px', background: '#FFFBEB', borderRadius: 10,
+                border: '1px solid #FDE68A', marginBottom: 16,
+                fontSize: 13, color: '#92400E', fontWeight: 600,
+              }}>
+                인증번호: <span style={{ fontSize: 20, letterSpacing: '0.15em', color: '#D97706' }}>{devCode}</span>
+                <br /><span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>SMS 연동 전 테스트 코드 (실제 배포 시 SMS로 발송됩니다)</span>
+              </div>
+            )}
+            <input
+              type="tel" inputMode="numeric" placeholder="000000" value={otpCode} autoFocus maxLength={6}
+              onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onKeyDown={e => { if (e.key === 'Enter' && otpCode.length === 6) verifyOtp() }}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 28, fontWeight: 900, letterSpacing: '0.2em',
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
+            {otpError && (
+              <p style={{ fontSize: 13, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>⚠ {otpError}</p>
+            )}
+            <button
+              onClick={() => { sendOtp() }}
+              style={{
+                marginTop: 14, fontSize: 13, color: '#2563EB', fontWeight: 600,
+                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                padding: 0, textDecoration: 'underline',
+              }}
+            >
+              {otpSending ? '발송 중...' : '인증번호 재발송'}
+            </button>
           </div>
         )}
       </Body>
@@ -611,21 +794,29 @@ function StepApplicant({ onNext, onBack }: {
           <BackBtn onClick={() => {
             if (innerStep === 'name') onBack()
             else if (innerStep === 'relation') setInnerStep('name')
-            else setInnerStep('relation')
+            else if (innerStep === 'phone') setInnerStep('relation')
+            else { setInnerStep('phone'); setOtpSent(false); setOtpCode(''); setDevCode('') }
           }} />
           <PrimaryBtn
             disabled={
               innerStep === 'name' ? !name.trim() :
               innerStep === 'relation' ? !relation :
-              phone.replace(/\D/g, '').length < 10
+              innerStep === 'phone' ? (phone.replace(/\D/g, '').length < 10 || otpSending) :
+              otpCode.length !== 6
             }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
               else if (innerStep === 'relation') setInnerStep('phone')
-              else onNext(name, relation, phone)
+              else if (innerStep === 'phone') {
+                sendOtp().then(() => setInnerStep('verify'))
+              } else {
+                verifyOtp()
+              }
             }}
           >
-            {innerStep === 'phone' ? '다음 단계' : '계속하기'}
+            {innerStep === 'phone' ? (otpSending ? '발송 중...' : '인증번호 받기') :
+             innerStep === 'verify' ? '인증 확인' :
+             '계속하기'}
           </PrimaryBtn>
         </div>
       </Dock>
@@ -806,11 +997,233 @@ function StepPlatforms({ onNext, onBack, saving }: {
   )
 }
 
+// ─── Step: 위임 동의 ────────────────────────────────────
+function StepDelegationAgreement({ onNext, onBack, delegatorName }: {
+  onNext: () => void
+  onBack: () => void
+  delegatorName: string
+}) {
+  const [agreed, setAgreed] = useState(false)
+
+  return (
+    <Screen>
+      <ProgressBar current={6} />
+      <Body>
+        <StepLabel label="위임장 내용 확인" />
+        <Question
+          label={'위임 내용을\n확인해 주세요'}
+          sub="아래 내용을 읽고, 동의하시면 서명 단계로 진행합니다"
+        />
+
+        <div style={{
+          border: '1px solid #E5E9EF', borderRadius: 14,
+          overflow: 'hidden', marginBottom: 20,
+        }}>
+          <div style={{ background: '#1E3A8A', padding: '14px 18px' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>디지털 유산 사후 행정 대행 위임장</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>에프텀 (개인사업자)</div>
+          </div>
+
+          <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: 380, overflowY: 'auto' }}>
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', marginBottom: 6 }}>제1조  당사자 및 목적</div>
+              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                본 위임장은 위임인({delegatorName || '본인'})의 사망 이후 발생하는 디지털 유산 정리 및 행정 대행 업무를 에프텀(수임인)에게 위탁하기 위한 문서입니다.
+              </p>
+            </div>
+
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 6 }}>제2조  사후 위임의 존속 특약 [핵심 법적 조항]</div>
+              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                민법 제127조에도 불구하고, 본 위임 계약 및 대리권은 위임인의 사망으로 종료되지 아니하며 그 효력이 지속됩니다. 본 위임장의 효력은 위임인의 사망 시점(사망진단서 상의 일시)부터 발생합니다.
+              </p>
+            </div>
+
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', marginBottom: 6 }}>제3조  위임 업무의 범위</div>
+              <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.8 }}>
+                <p style={{ margin: '0 0 6px', fontWeight: 600 }}>① 디지털 플랫폼 계정 처리</p>
+                <p style={{ margin: '0 0 10px', paddingLeft: 12, color: '#6B7280', fontSize: 12 }}>카카오·구글·메타(페이스북/인스타그램) 등 계정 해지·삭제·추모계정 전환 신청 및 서류 제출</p>
+                <p style={{ margin: '0 0 6px', fontWeight: 600 }}>② 정기 결제·구독 해지</p>
+                <p style={{ margin: '0 0 10px', paddingLeft: 12, color: '#6B7280', fontSize: 12 }}>이동통신사·OTT·클라우드 등 유료 구독 서비스 해지 신청</p>
+                <p style={{ margin: '0 0 6px', fontWeight: 600 }}>③ 금융 계좌 사망 통보 (제한적)</p>
+                <p style={{ margin: 0, paddingLeft: 12, color: '#6B7280', fontSize: 12 }}>사망 사실 통보 및 계정 동결 요청 — 자산 인출·처분 권한은 포함되지 않으며, 자산 귀속은 상속법에 따릅니다</p>
+              </div>
+            </div>
+
+            <div style={{ height: 1, background: '#F3F4F6' }} />
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', marginBottom: 6 }}>제4조  상속인 권리 제한 및 면책</div>
+              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, margin: 0 }}>
+                수임인이 위임 범위 내에서 수행한 행위(계정 삭제·해지·동결 등)는 위임인의 확고한 생전 의사에 따른 것입니다. 법정 상속인은 수임인의 정당한 업무 수행에 이의를 제기하거나 손해배상을 청구할 수 없습니다. 플랫폼 내부 방침이나 불가항력으로 인한 처리 지연·거절에 대해 수임인은 법적 책임을 지지 않습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setAgreed(v => !v)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+            background: agreed ? '#EBF3FF' : '#F8FAFC',
+            border: `1.5px solid ${agreed ? '#2563EB' : '#E5E9EF'}`,
+            borderRadius: 14, padding: '16px 18px', cursor: 'pointer',
+            fontFamily: 'inherit', textAlign: 'left',
+          }}
+        >
+          <CheckCircle checked={agreed} onClick={() => {}} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: agreed ? '#2563EB' : '#111827' }}>
+            위 위임장 내용을 충분히 이해하였으며, 이에 동의하여 에프텀에 위임합니다
+          </span>
+        </button>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={onBack} />
+          <PrimaryBtn disabled={!agreed} onClick={onNext}>서명하러 가기</PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
+// ─── Step: 서명 ─────────────────────────────────────────
+function StepSignature({ onNext, onBack, delegatorName }: {
+  onNext: (signatureData: string) => void
+  onBack: () => void
+  delegatorName: string
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [hasSignature, setHasSignature] = useState(false)
+  const [drawing, setDrawing] = useState(false)
+
+  const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current!
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    }
+  }
+
+  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current!
+    const ctx = canvas.getContext('2d')!
+    const pos = getPos(e)
+    ctx.beginPath()
+    ctx.moveTo(pos.x, pos.y)
+    setDrawing(true)
+    setHasSignature(true)
+    canvas.setPointerCapture(e.pointerId)
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing) return
+    const canvas = canvasRef.current!
+    const ctx = canvas.getContext('2d')!
+    ctx.lineWidth = 2.5
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = '#111827'
+    const pos = getPos(e)
+    ctx.lineTo(pos.x, pos.y)
+    ctx.stroke()
+  }
+
+  const onPointerUp = () => setDrawing(false)
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current!
+    const ctx = canvas.getContext('2d')!
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    setHasSignature(false)
+  }
+
+  const confirm = () => {
+    const canvas = canvasRef.current!
+    const dataUrl = canvas.toDataURL('image/png')
+    onNext(dataUrl)
+  }
+
+  return (
+    <Screen>
+      <ProgressBar current={7} />
+      <Body>
+        <StepLabel label="서명" />
+        <Question
+          label={'위임장에\n서명해 주세요'}
+          sub={`${delegatorName || '신청인'}님의 서명이 위임장 PDF에 직접 삽입됩니다`}
+        />
+
+        <div style={{
+          border: '2px solid #E5E9EF', borderRadius: 14,
+          overflow: 'hidden', background: '#FAFBFC', position: 'relative',
+        }}>
+          <div style={{
+            padding: '10px 14px', background: '#F3F4F6',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            borderBottom: '1px solid #E5E9EF',
+          }}>
+            <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>손가락 또는 펜으로 서명해 주세요</span>
+            <button onClick={clearCanvas} style={{
+              fontSize: 12, color: '#EF4444', fontWeight: 600, background: 'none',
+              border: 'none', cursor: 'pointer', padding: '4px 10px', fontFamily: 'inherit',
+            }}>지우기</button>
+          </div>
+          <canvas
+            ref={canvasRef}
+            width={600}
+            height={200}
+            style={{ width: '100%', height: 200, touchAction: 'none', display: 'block', cursor: 'crosshair' }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+          />
+          {!hasSignature && (
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, top: 40,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              pointerEvents: 'none',
+            }}>
+              <span style={{ fontSize: 13, color: '#D1D5DB', fontWeight: 600 }}>이곳에 서명해 주세요</span>
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          marginTop: 16, padding: '14px 16px', background: '#EBF3FF',
+          borderRadius: 12, border: '1px solid #BFDBFE',
+        }}>
+          <p style={{ fontSize: 12, color: '#1D4ED8', lineHeight: 1.7, margin: 0 }}>
+            📌 본 서명은 전자서명법 제3조에 따른 전자서명으로, 자필 서명과 동일한 법적 효력을 가집니다.
+            본인인증 정보 및 서명 시각이 위임장에 함께 기록됩니다.
+          </p>
+        </div>
+      </Body>
+      <Dock>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <BackBtn onClick={onBack} />
+          <PrimaryBtn disabled={!hasSignature} onClick={confirm}>서명 완료 · 다음</PrimaryBtn>
+        </div>
+      </Dock>
+    </Screen>
+  )
+}
+
 // ─── 메인 플로우 ────────────────────────────────────────
-// 순서: terms(1) → family(2) → deathcert(3) → ocr(4: 업로드+확인) → applicant(5)
-//       → account_notice(6) → track(7) → platforms(8) → /apply/service-info
+// 순서: terms(1) → family(2) → deathcert(3) → ocr(4) → applicant(5)
+//       → delegation_agree(6) → signature(7) → account_notice(8) → track(9) → platforms(10)
 type FlowStep =
   | 'terms' | 'family' | 'deathcert' | 'ocr' | 'applicant'
+  | 'delegation_agree' | 'signature'
   | 'account_notice' | 'track' | 'platforms'
 
 function ApplyFlow() {
@@ -914,10 +1327,33 @@ function ApplyFlow() {
         }
       }
 
-      setFlowStep('account_notice')
+      setFlowStep('delegation_agree')
     } catch (e) {
       console.error(e)
       setSaveError('저장 중 오류가 발생했습니다. 다시 시도해 주세요.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // 서명 데이터 저장
+  const saveSignature = async (signatureData: string) => {
+    setSaving(true)
+    try {
+      const currentCaseId = useApplyStore.getState().caseId
+      if (currentCaseId) {
+        await supabase.from('delegations').update({
+          signature_data: signatureData,
+          signed_at: new Date().toISOString(),
+          verified_at: new Date().toISOString(),
+          verified_phone: delegatorPhone,
+        }).eq('case_id', currentCaseId)
+      }
+      setDelegation({ delegatorName, delegatorRelation, signatureData })
+      setFlowStep('account_notice')
+    } catch (e) {
+      console.error(e)
+      setSaveError('서명 저장 중 오류가 발생했습니다')
     } finally {
       setSaving(false)
     }
@@ -975,6 +1411,20 @@ function ApplyFlow() {
         <StepApplicant
           onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
           onBack={() => setFlowStep('ocr')}
+        />
+      )}
+      {flowStep === 'delegation_agree' && (
+        <StepDelegationAgreement
+          onNext={() => setFlowStep('signature')}
+          onBack={() => setFlowStep('applicant')}
+          delegatorName={delegatorName}
+        />
+      )}
+      {flowStep === 'signature' && (
+        <StepSignature
+          onNext={(signatureData) => saveSignature(signatureData)}
+          onBack={() => setFlowStep('delegation_agree')}
+          delegatorName={delegatorName}
         />
       )}
       {flowStep === 'account_notice' && (
