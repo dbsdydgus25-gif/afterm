@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const dynamic = 'force-dynamic'
+
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
   draft:      { label: '작성 중',   color: '#6B7280', bg: '#F3F4F6' },
   submitted:  { label: '접수 완료', color: '#2563EB', bg: '#EFF6FF' },
