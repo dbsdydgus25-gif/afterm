@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: '/admin/cases', icon: '📋', label: '신청 관리' },
   { href: '/admin/payments', icon: '💳', label: '결제 관리' },
   { href: '/admin/chat', icon: '💬', label: '채팅 내역' },
+  { href: '/admin/analytics', icon: '📈', label: '데이터 분석' },
 ]
 
 export default function AdminNav() {

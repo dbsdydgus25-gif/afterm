@@ -29,9 +29,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <head>
+        {/* Pretendard — preload로 빠르게, display=swap으로 블로킹 방지 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net/gh" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+          media="print"
+          onLoad="this.media='all'"
+        />
+        {/* Nanum Pen Script — 서명 폰트, 비차단 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap"
+          rel="stylesheet"
+          media="print"
+          onLoad="this.media='all'"
+        />
+        {/* 폰트 로드 전 fallback: 시스템 폰트 즉시 표시 */}
+        <style>{`body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; }`}</style>
       </head>
       <body>
         <div className="mobile-container">
