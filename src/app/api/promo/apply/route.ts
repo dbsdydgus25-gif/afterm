@@ -62,10 +62,13 @@ export async function POST(req: NextRequest) {
 
   // 알림 발송 (fire-and-forget)
   try {
-    const { data: { user } } = await admin.auth.admin.getUserById(caseData.user_id)
-    const { data: profile } = await admin.from('profiles').select('name, phone').eq('id', caseData.user_id).single()
-    const userPhone = caseData.delegations?.[0]?.delegator_phone || profile?.phone || user?.phone || ''
-    const userName = caseData.delegations?.[0]?.delegator_name || profile?.name || '고객'
+    const [{ data: delegationFresh }, { data: profile }, { data: { user } }] = await Promise.all([
+      admin.from('delegations').select('*').eq('case_id', caseId).single(),
+      admin.from('profiles').select('name, phone').eq('id', caseData.user_id).single(),
+      admin.auth.admin.getUserById(caseData.user_id),
+    ])
+    const userPhone = delegationFresh?.delegator_phone || profile?.phone || user?.phone || ''
+    const userName = delegationFresh?.delegator_name || profile?.name || '고객'
     const services = (caseData.case_services || []).map((s: any) => s.service_name).join(', ')
 
     if (userPhone) {
@@ -84,7 +87,7 @@ export async function POST(req: NextRequest) {
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       })
       const sheets = google.sheets({ version: 'v4', auth })
-      const delegation = caseData.delegations?.[0] || {}
+      const delegation = delegationFresh || {}
       const submittedAt = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
       const rows = (caseData.case_services || []).map((svc: any) => {
@@ -93,11 +96,11 @@ export async function POST(req: NextRequest) {
         return [
           submittedAt, caseId.slice(0, 8), caseData.deceased_name || '',
           caseData.deceased_birth || '', caseData.deceased_death || '', caseData.deceased_phone || '',
-          delegation.delegator_name || profile?.name || '',
-          delegation.delegator_relation || '',
+          (delegation as any).delegator_name || profile?.name || '',
+          (delegation as any).delegator_relation || '',
           svc.service_name || '', trackLabel, '에프텀대행',
           svc.account_id || svc.contact_info || '',
-          '', delegation.delegator_phone || profile?.phone || '',
+          '', (delegation as any).delegator_phone || profile?.phone || '',
           '', '', `무료(${code})`, promoPaymentId, '', '', '',
         ]
       })

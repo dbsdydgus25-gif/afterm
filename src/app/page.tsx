@@ -247,6 +247,21 @@ export default function LandingPage() {
   const applicants = useApplicants()
   const router = useRouter()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const sb = createClient()
+      sb.auth.getSession().then(({ data }) => {
+        setIsLoggedIn(!!data.session)
+      })
+    })
+  }, [])
+
+  const handleCTA = useCallback(() => {
+    if (isLoggedIn) router.push('/apply')
+    else setSheetOpen(true)
+  }, [isLoggedIn, router])
 
   const openSheet = useCallback(() => setSheetOpen(true), [])
   const closeSheet = useCallback(() => setSheetOpen(false), [])
@@ -312,13 +327,23 @@ export default function LandingPage() {
           }}>
             <Image src="/logo-dark.png" alt="AFTERM" width={110} height={32}
               style={{ objectFit:'contain', objectPosition:'left', filter:'brightness(0) invert(1)' }} />
-            <button onClick={openSheet} style={{
-              fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
-              background: 'none', padding: '7px 16px',
-              border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
-            }}>
-              로그인
-            </button>
+            {isLoggedIn ? (
+              <button onClick={() => router.push('/home')} style={{
+                fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
+                background: 'none', padding: '7px 16px',
+                border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
+              }}>
+                내 신청
+              </button>
+            ) : (
+              <button onClick={handleCTA} style={{
+                fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 600,
+                background: 'none', padding: '7px 16px',
+                border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 8, cursor: 'pointer',
+              }}>
+                로그인
+              </button>
+            )}
           </header>
 
           {/* 히어로 텍스트 */}
@@ -369,7 +394,7 @@ export default function LandingPage() {
               </p>
 
               <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-                <button onClick={openSheet} style={{
+                <button onClick={handleCTA} style={{
                   display:'inline-flex', alignItems:'center', gap:8,
                   background:'#fff', color:'#0b1d47',
                   borderRadius:14, padding:'15px 32px',
@@ -742,30 +767,6 @@ export default function LandingPage() {
             </div>
           </Fade>
 
-          {/* 무료 이벤트 */}
-          <Fade delay={160}>
-            <div style={{ padding:'12px 24px 0' }}>
-              <div style={{
-                borderRadius:16, padding:'18px 20px',
-                background:'#FFFBEB',
-                border:'1px solid #FDE68A',
-                display:'flex', alignItems:'center', justifyContent:'space-between',
-              }}>
-                <div>
-                  <p style={{ fontSize:11, fontWeight:700, color:'#D97706', margin:'0 0 4px', letterSpacing:'0.06em' }}>LIMITED OFFER</p>
-                  <p style={{ fontSize:15, fontWeight:800, color:'#92400E', margin:'0 0 2px', letterSpacing:'-0.01em' }}>선착순 50명 무료 이벤트 진행 중</p>
-                  <p style={{ fontSize:12, color:'#B45309', margin:0, lineHeight:1.6 }}>자리가 얼마 남지 않았습니다</p>
-                </div>
-                <div style={{
-                  background:'#F59E0B', borderRadius:12, padding:'10px 16px',
-                  flexShrink:0, textAlign:'center', cursor:'pointer',
-                }}>
-                  <p style={{ fontSize:12, fontWeight:800, color:'#fff', margin:0, letterSpacing:'-0.01em' }}>무료 신청</p>
-                  <p style={{ fontSize:10, color:'rgba(255,255,255,0.75)', margin:'2px 0 0' }}>→</p>
-                </div>
-              </div>
-            </div>
-          </Fade>
         </section>
 
         {/* ════════════════════════════════
@@ -800,7 +801,7 @@ export default function LandingPage() {
                 선착순 한정 혜택입니다
               </p>
 
-              <button onClick={openSheet} style={{
+              <button onClick={handleCTA} style={{
                 display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                 background:'#fff', color:'#0b1d47',
                 borderRadius:14, padding:'18px 0', width:'100%',
