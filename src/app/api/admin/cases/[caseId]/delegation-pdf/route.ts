@@ -34,8 +34,7 @@ export async function GET(
 
   if (!caseData) return NextResponse.json({ error: '케이스 없음' }, { status: 404 })
 
-  const delegation = caseData.delegations?.[0]
-  if (!delegation) return NextResponse.json({ error: '위임 정보 없음' }, { status: 404 })
+  const delegation = caseData.delegations?.[0] || {}
 
   // Noto Sans KR 폰트 로컬 파일에서 로드 (public/fonts에 번들)
   const fontsDir = path.join(process.cwd(), 'public', 'fonts')

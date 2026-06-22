@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/admin/cases/[caseId]/delegation-pdf': ['./public/fonts/**'],
+    },
+  },
 };
 
 export default nextConfig;
