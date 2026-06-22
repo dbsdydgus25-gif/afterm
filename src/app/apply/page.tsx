@@ -602,14 +602,15 @@ function StepOcr({
 const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
 
 function StepApplicant({ onNext, onBack, deceasedName }: {
-  onNext: (name: string, relation: string, phone: string) => void
+  onNext: (name: string, relation: string, phone: string, address: string) => void
   onBack: () => void
   deceasedName?: string
 }) {
   const [name, setName] = useState('')
   const [relation, setRelation] = useState('')
   const [phone, setPhone] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'phone' | 'verify'>('name')
+  const [address, setAddress] = useState('')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'verify'>('name')
   const [otpToken, setOtpToken] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [otpSent, setOtpSent] = useState(false)
@@ -667,7 +668,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
       })
       const data = await res.json()
       if (data.ok) {
-        onNext(name, relation, phone)
+        onNext(name, relation, phone, address)
       } else {
         setOtpError(data.error || '인증번호가 올바르지 않습니다')
       }
@@ -677,10 +678,11 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   }
 
   const innerLabels = {
-    name: '신청인 정보 1/4',
-    relation: '신청인 정보 2/4',
-    phone: '신청인 정보 3/4',
-    verify: '신청인 정보 4/4',
+    name: '신청인 정보 1/5',
+    relation: '신청인 정보 2/5',
+    address: '신청인 정보 3/5',
+    phone: '신청인 정보 4/5',
+    verify: '신청인 정보 5/5',
   }
 
   return (
@@ -722,6 +724,20 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+        {innerStep === 'address' && (
+          <div key="address">
+            <Question label={'신청인 주소를\n입력해 주세요'} sub="위임장에 기재되는 신청인의 실거주지 주소입니다" />
+            <input type="text" placeholder="예: 경기도 수원시 영통구 ..." value={address} autoFocus
+              onChange={e => setAddress(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && address.trim() && setInnerStep('phone')}
+              style={{
+                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
+                background: 'transparent', fontSize: 17, fontWeight: 700,
+                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+              }}
+            />
           </div>
         )}
         {innerStep === 'phone' && (
@@ -791,19 +807,22 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
           <BackBtn onClick={() => {
             if (innerStep === 'name') onBack()
             else if (innerStep === 'relation') setInnerStep('name')
-            else if (innerStep === 'phone') setInnerStep('relation')
+            else if (innerStep === 'address') setInnerStep('relation')
+            else if (innerStep === 'phone') setInnerStep('address')
             else { setInnerStep('phone'); setOtpSent(false); setOtpCode(''); setDevCode('') }
           }} />
           <PrimaryBtn
             disabled={
               innerStep === 'name' ? !name.trim() :
               innerStep === 'relation' ? !relation :
+              innerStep === 'address' ? !address.trim() :
               innerStep === 'phone' ? (phone.replace(/\D/g, '').length < 10 || otpSending) :
               otpCode.length !== 6
             }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
-              else if (innerStep === 'relation') setInnerStep('phone')
+              else if (innerStep === 'relation') setInnerStep('address')
+              else if (innerStep === 'address') setInnerStep('phone')
               else if (innerStep === 'phone') {
                 sendOtp().then(() => setInnerStep('verify'))
               } else {
@@ -1258,7 +1277,7 @@ function ApplyFlow() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Step 5 완료 시: cases + delegations 저장, 그 다음 account_notice로 이동
-  const saveCaseInfo = async (name: string, relation: string, phone: string) => {
+  const saveCaseInfo = async (name: string, relation: string, phone: string, address: string) => {
     setSaving(true)
     setSaveError('')
     try {
@@ -1281,6 +1300,7 @@ function ApplyFlow() {
           delegator_name: name,
           delegator_relation: relation,
           delegator_phone: phone || null,
+          delegator_address: address || null,
         }, { onConflict: 'case_id' })
       } else {
         const { data, error } = await supabase.from('cases').insert({
@@ -1299,6 +1319,7 @@ function ApplyFlow() {
           delegator_name: name,
           delegator_relation: relation,
           delegator_phone: phone || null,
+          delegator_address: address || null,
         }, { onConflict: 'case_id' })
       }
 
@@ -1386,7 +1407,7 @@ function ApplyFlow() {
       )}
       {flowStep === 'applicant' && (
         <StepApplicant
-          onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
+          onNext={(name, relation, phone, address) => saveCaseInfo(name, relation, phone, address)}
           onBack={() => setFlowStep('ocr')}
           deceasedName={deceasedInfo?.name}
         />
