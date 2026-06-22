@@ -47,26 +47,45 @@ export default function DocScanner({ onCapture, onClose, label = '문서' }: Doc
     const canvas = canvasRef.current
     if (!video || !canvas) return
 
+    // 원본 영상 해상도
     const vw = video.videoWidth
     const vh = video.videoHeight
 
-    // 화면에서 스캔 프레임 비율 계산 (세로 화면 기준 A4 비율)
-    const frameW = Math.round(vw * 0.88)
-    const frameH = Math.round(frameW * 1.414)
-    const frameX = Math.round((vw - frameW) / 2)
-    const frameY = Math.round((vh - frameH) / 2)
+    // 화면에서 video 요소가 실제 차지하는 크기 (objectFit: cover)
+    const rect = video.getBoundingClientRect()
+    const dispW = rect.width   // 화면 표시 너비
+    const dispH = rect.height  // 화면 표시 높이
 
-    canvas.width = frameW
-    canvas.height = frameH
+    // objectFit: cover 스케일 — 가로/세로 중 더 큰 쪽으로 맞춤
+    const scale = Math.max(dispW / vw, dispH / vh)
+
+    // cover 후 영상이 화면 밖으로 넘치는 양 (잘리는 픽셀)
+    const overflowX = (vw * scale - dispW) / 2  // 좌우 각각 잘리는 화면 픽셀
+    const overflowY = (vh * scale - dispH) / 2  // 상하 각각 잘리는 화면 픽셀
+
+    // 화면 기준 프레임 크기 (CSS와 동일: 88% 너비, A4 비율)
+    const frameDispW = dispW * 0.88
+    const frameDispH = frameDispW * 1.414
+    const frameDispX = (dispW - frameDispW) / 2  // 화면 내 좌측 시작점
+    const frameDispY = (dispH - frameDispH) / 2  // 화면 내 상단 시작점
+
+    // 화면 좌표 → 원본 영상 픽셀 좌표 역변환
+    const srcX = Math.round((frameDispX + overflowX) / scale)
+    const srcY = Math.round((frameDispY + overflowY) / scale)
+    const srcW = Math.round(frameDispW / scale)
+    const srcH = Math.round(frameDispH / scale)
+
+    // 출력 캔버스: 원본 해상도 유지 (고화질)
+    canvas.width = srcW
+    canvas.height = srcH
     const ctx = canvas.getContext('2d')!
-    ctx.drawImage(video, frameX, frameY, frameW, frameH, 0, 0, frameW, frameH)
+    ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
 
     // 스캔 효과: 그레이스케일 + 대비 강화
-    const imageData = ctx.getImageData(0, 0, frameW, frameH)
+    const imageData = ctx.getImageData(0, 0, srcW, srcH)
     const d = imageData.data
     for (let i = 0; i < d.length; i += 4) {
       const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114
-      // 대비 강화 (대비 1.4 × 밝기 1.05)
       const v = Math.min(255, Math.max(0, (gray - 128) * 1.4 + 128 + 13))
       d[i] = v; d[i + 1] = v; d[i + 2] = v
     }
