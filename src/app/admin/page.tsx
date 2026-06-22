@@ -34,7 +34,7 @@ export default async function AdminPage() {
     adminClient.from('case_services').select('*', { count: 'exact', head: true }),
     adminClient.from('case_services').select('*', { count: 'exact', head: true }).eq('status', 'done'),
     adminClient.from('cases')
-      .select(`id, user_id, deceased_name, deceased_death, status, created_at, paid_amount, payment_status, delegations(delegator_name, delegator_phone), case_services(id, status)`)
+      .select(`id, user_id, deceased_name, deceased_death, status, created_at, paid_amount, payment_status, case_services(id, status)`)
       .neq('status', 'draft')
       .order('created_at', { ascending: false })
       .limit(20),
@@ -43,11 +43,23 @@ export default async function AdminPage() {
       .order('created_at', { ascending: false }),
   ])
 
-  // 최근 케이스 신청인 profiles 조회 (delegations 없을 때 폴백)
+  // delegation + profiles 별도 조회 (RLS join 이슈 우회)
+  const recentCaseIds = (recentCases || []).map((c: any) => c.id).filter(Boolean)
   const recentUserIds = [...new Set((recentCases || []).map((c: any) => c.user_id).filter(Boolean))]
-  const { data: recentProfiles } = recentUserIds.length > 0
-    ? await adminClient.from('profiles').select('id, name, phone').in('id', recentUserIds)
-    : { data: [] }
+
+  const [{ data: recentDelegations }, { data: recentProfiles }] = await Promise.all([
+    recentCaseIds.length > 0
+      ? adminClient.from('delegations').select('case_id, delegator_name, delegator_phone').in('case_id', recentCaseIds)
+      : { data: [] },
+    recentUserIds.length > 0
+      ? adminClient.from('profiles').select('id, name, phone').in('id', recentUserIds)
+      : { data: [] },
+  ])
+
+  const delegationMap: Record<string, { name: string; phone: string }> = {}
+  for (const d of recentDelegations || []) {
+    delegationMap[(d as any).case_id] = { name: (d as any).delegator_name || '', phone: (d as any).delegator_phone || '' }
+  }
   const profileMap: Record<string, { name: string; phone: string }> = {}
   for (const p of recentProfiles || []) profileMap[(p as any).id] = { name: (p as any).name || '', phone: (p as any).phone || '' }
 
@@ -169,15 +181,15 @@ export default async function AdminPage() {
             <tbody>
               {recentCases && recentCases.length > 0 ? recentCases.map((c: any) => {
                 const si = STATUS_LABEL[c.status] || { label: c.status, color: '#999', bg: '#f3f4f6' }
-                const del = (c.delegations as any[])?.[0]
+                const del = delegationMap[c.id] || null
                 const profile = profileMap[(c as any).user_id] || { name: '', phone: '' }
                 const services = c.case_services || []
                 return (
                   <tr key={c.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '11px 16px', fontSize: 12, color: '#6b7280' }}>{new Date(c.created_at).toLocaleDateString('ko-KR')}</td>
                     <td style={{ padding: '11px 16px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>{del?.delegator_name || profile.name || '-'}</div>
-                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{del?.delegator_phone || profile.phone || ''}</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#111' }}>{del?.name || profile.name || '-'}</div>
+                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{del?.phone || profile.phone || ''}</div>
                     </td>
                     <td style={{ padding: '11px 16px', fontSize: 13, fontWeight: 700, color: '#374151' }}>{c.deceased_name}</td>
                     <td style={{ padding: '11px 16px', fontSize: 12, color: '#6b7280' }}>{c.deceased_death || '-'}</td>
