@@ -25,6 +25,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '이미 환불된 건입니다' }, { status: 400 })
   }
 
+  if (caseData.status === 'completed') {
+    return NextResponse.json({ error: '처리 완료된 건은 환불이 불가합니다' }, { status: 400 })
+  }
+
+  // 상태별 환불 금액 계산
+  const totalAmount = Number(caseData.paid_amount) || 0
+  const services = caseData.case_services || []
+  const totalSvc = services.length
+  const doneSvc = services.filter((s: any) => s.status === 'done').length
+
+  let refundAmount = totalAmount
+  let refundNote = '전액 환불'
+
+  if (caseData.status === 'processing' && totalSvc > 0 && doneSvc > 0) {
+    // 처리 중: 완료된 서비스 비율만큼 공제
+    const refundRatio = (totalSvc - doneSvc) / totalSvc
+    refundAmount = Math.floor(totalAmount * refundRatio / 100) * 100 // 100원 단위 절사
+    refundNote = `부분 환불 (완료 ${doneSvc}/${totalSvc}건 공제)`
+  }
+
   try {
     const refundRes = await fetch(`https://api.portone.io/payments/${encodeURIComponent(caseData.payment_id)}/cancel`, {
       method: 'POST',
@@ -32,7 +52,7 @@ export async function POST(req: NextRequest) {
         Authorization: `PortOne ${process.env.PORTONE_API_SECRET}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ reason, amount: caseData.paid_amount }),
+      body: JSON.stringify({ reason: `${reason} (${refundNote})`, amount: refundAmount }),
     })
 
     const refundData = await refundRes.json()
@@ -44,7 +64,9 @@ export async function POST(req: NextRequest) {
 
     await adminClient.from('cases').update({
       payment_status: 'refunded',
+      status: 'cancelled',
       refunded_at: new Date().toISOString(),
+      refunded_amount: refundAmount,
     }).eq('id', caseId)
 
     // 환불 완료 알림톡 발송

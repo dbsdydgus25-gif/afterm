@@ -12,6 +12,7 @@ const CASE_STATUS: Record<string, { label: string; color: string; bg: string }> 
   reviewing:  { label: '서류 확인', color: '#7C3AED', bg: '#F5F3FF' },
   processing: { label: '처리 중',   color: '#D97706', bg: '#FFFBEB' },
   completed:  { label: '처리 완료', color: '#059669', bg: '#ECFDF5' },
+  cancelled:  { label: '취소됨',    color: '#6B7280', bg: '#F3F4F6' },
 }
 const STATUS_ORDER = ['submitted', 'reviewing', 'processing', 'completed']
 
@@ -40,12 +41,26 @@ type Props = { activeCases: CaseItem[]; doneCases: CaseItem[]; userId: string }
 export default function OrdersClient({ activeCases: initialActive, doneCases, userId }: Props) {
   const [tab, setTab] = useState<'active' | 'done'>('active')
   const [cases, setCases] = useState(initialActive)
+  const [doneList, setDoneList] = useState(doneCases)
   const [cancelTarget, setCancelTarget] = useState<CaseItem | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState('')
   const supabase = createClient()
 
-  const displayCases = tab === 'active' ? cases : doneCases
+  // 상태별 환불 금액 계산
+  const calcRefundAmount = (c: CaseItem) => {
+    const total = c.paid_amount || 0
+    const services = c.case_services || []
+    const totalSvc = services.length
+    const doneSvc = services.filter(s => s.status === 'done').length
+    if (c.status === 'processing' && totalSvc > 0 && doneSvc > 0) {
+      const ratio = (totalSvc - doneSvc) / totalSvc
+      return Math.floor(total * ratio / 100) * 100
+    }
+    return total
+  }
+
+  const displayCases = tab === 'active' ? cases : doneList
 
   const switchTab = (t: 'active' | 'done') => {
     setTab(t)
@@ -65,8 +80,13 @@ export default function OrdersClient({ activeCases: initialActive, doneCases, us
       })
       const data = await res.json()
       if (!res.ok) { setCancelError(data.error || '취소 실패'); setCancelling(false); return }
+      // 취소된 케이스를 완료/취소 탭으로 이동
+      const cancelled = { ...cancelTarget, status: 'cancelled', payment_status: 'refunded' }
       setCases(prev => prev.filter(c => c.id !== cancelTarget.id))
+      setDoneList(prev => [cancelled, ...prev])
       setCancelTarget(null)
+      // 완료/취소 탭으로 전환
+      setTab('done')
     } catch {
       setCancelError('네트워크 오류가 발생했습니다')
     }
@@ -146,15 +166,46 @@ export default function OrdersClient({ activeCases: initialActive, doneCases, us
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
         }} onClick={() => { setCancelTarget(null); setCancelError('') }}>
           <div style={{ background: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 320 }} onClick={e => e.stopPropagation()}>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>신청 취소</h3>
-              <p style={{ fontSize: 14, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
-                <b>{cancelTarget.deceased_name}</b>님 신청을 취소하시겠습니까?<br />
-                결제 금액 <b>{cancelTarget.paid_amount?.toLocaleString()}원</b>이<br />
-                3~5 영업일 내 환불됩니다.
-              </p>
-            </div>
+            {(() => {
+              const refundAmt = calcRefundAmount(cancelTarget)
+              const total = cancelTarget.paid_amount || 0
+              const isPartial = refundAmt < total
+              const services = cancelTarget.case_services || []
+              const doneSvc = services.filter(s => s.status === 'done').length
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                    <div style={{ fontSize: 40, marginBottom: 8 }}>⚠️</div>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>신청 취소</h3>
+                    <p style={{ fontSize: 14, color: '#6B7280', margin: 0 }}>
+                      <b>{cancelTarget.deceased_name}</b>님 신청을 취소할까요?
+                    </p>
+                  </div>
+                  {/* 환불 금액 박스 */}
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E5E9EF', borderRadius: 12, padding: '14px 16px', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, color: '#6B7280' }}>결제 금액</span>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{total.toLocaleString()}원</span>
+                    </div>
+                    {isPartial && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: '#DC2626' }}>완료 서비스 공제 ({doneSvc}건)</span>
+                        <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 700 }}>-{(total - refundAmt).toLocaleString()}원</span>
+                      </div>
+                    )}
+                    <div style={{ borderTop: '1px solid #E5E9EF', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>환불 금액</span>
+                      <span style={{ fontSize: 16, fontWeight: 900, color: '#2563EB' }}>{refundAmt.toLocaleString()}원</span>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, textAlign: 'center', lineHeight: 1.6 }}>
+                    {isPartial
+                      ? '이미 처리 완료된 서비스는 환불에서 제외됩니다.'
+                      : '취소 시 전액 환불되며 3~5 영업일 내 처리됩니다.'}
+                  </p>
+                </div>
+              )
+            })()}
             {cancelError && <p style={{ fontSize: 12, color: '#DC2626', textAlign: 'center', margin: '0 0 12px', fontWeight: 600 }}>⚠️ {cancelError}</p>}
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setCancelTarget(null); setCancelError('') }} style={{
@@ -173,7 +224,7 @@ export default function OrdersClient({ activeCases: initialActive, doneCases, us
 
       {/* ── 탭 바 ── */}
       <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #E8EAF0', flexShrink: 0 }}>
-        {([['active', '진행 중', cases.length], ['done', '완료/취소', doneCases.length]] as [string, string, number][]).map(([t, label, cnt]) => (
+        {([['active', '진행 중', cases.length], ['done', '완료/취소', doneList.length]] as [string, string, number][]).map(([t, label, cnt]) => (
           <button key={t} onClick={() => switchTab(t as 'active' | 'done')} style={{
             flex: 1, padding: '13px 0', fontSize: 14, fontWeight: tab === t ? 800 : 600,
             color: tab === t ? '#2563EB' : '#9CA3AF',
