@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { SERVICE_CATALOG } from '@/lib/services-catalog'
 import type { TrackType } from '@/lib/services-catalog'
 import { Suspense } from 'react'
+import DocScanner from '@/components/ui/DocScanner'
 
 // ─── 공통 컴포넌트 ─────────────────────────────────────
 function Screen({ children }: { children: React.ReactNode }) {
@@ -341,6 +342,7 @@ function StepOcr({
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<'upload' | 'confirm'>('upload')
+  const [showScanner, setShowScanner] = useState(false)
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
@@ -390,6 +392,14 @@ function StepOcr({
         onChange={e => { const f = e.target.files?.[0]; if(f) handleFile(f); e.target.value = '' }}
       />
 
+      {showScanner && (
+        <DocScanner
+          label="사망진단서"
+          onCapture={file => { setShowScanner(false); handleFile(file) }}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
       {/* 전체화면 로딩 오버레이 */}
       {loading && (
         <div style={{
@@ -414,16 +424,27 @@ function StepOcr({
             <StepLabel label="고인 정보 확인" />
             <Question label={'사망진단서를\n업로드해 주세요'} sub="이름과 날짜를 자동으로 인식합니다" />
 
-            <button onClick={() => fileInputRef.current?.click()} style={{
-              width: '100%', padding: '36px 20px', borderRadius: 20,
-              border: '2px dashed #BFDBFE', background: '#EFF6FF',
-              cursor: 'pointer', fontFamily: 'inherit',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-            }}>
-              <span style={{ fontSize: 44 }}>📄</span>
-              <p style={{ fontSize: 16, fontWeight: 800, color: '#2563EB', margin: 0 }}>파일 선택</p>
-              <p style={{ fontSize: 13, color: '#6B7280', margin: 0 }}>사진(JPG·PNG) 또는 PDF</p>
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <button onClick={() => setShowScanner(true)} style={{
+                width: '100%', padding: '28px 20px', borderRadius: 20,
+                border: '2px solid #111827', background: '#111827',
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              }}>
+                <span style={{ fontSize: 36 }}>📷</span>
+                <p style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>카메라로 스캔</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: 0 }}>프레임에 맞춰 찍으면 자동 처리</p>
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} style={{
+                width: '100%', padding: '20px', borderRadius: 20,
+                border: '2px dashed #BFDBFE', background: '#EFF6FF',
+                cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              }}>
+                <span style={{ fontSize: 24 }}>📄</span>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#2563EB', margin: 0 }}>파일 선택 (JPG·PNG·PDF)</p>
+              </button>
+            </div>
 
             {error && <p style={{ fontSize: 13, color: '#EF4444', marginTop: 16, fontWeight: 600, textAlign: 'center' }}>{error}</p>}
 
@@ -435,12 +456,7 @@ function StepOcr({
             </div>
           </Body>
           <Dock>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <BackBtn onClick={onBack} />
-              <div style={{ flex: 1 }}>
-                <PrimaryBtn onClick={() => fileInputRef.current?.click()}>사망진단서 업로드</PrimaryBtn>
-              </div>
-            </div>
+            <BackBtn onClick={onBack} />
           </Dock>
         </>
       ) : (

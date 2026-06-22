@@ -8,6 +8,8 @@ import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PDFDocument, rgb } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
+import fs from 'fs'
+import path from 'path'
 
 export const runtime = 'nodejs'
 
@@ -35,13 +37,12 @@ export async function GET(
   const delegation = caseData.delegations?.[0]
   if (!delegation) return NextResponse.json({ error: '위임 정보 없음' }, { status: 404 })
 
-  // Noto Sans KR 폰트 런타임 fetch
-  const fontRes = await fetch('https://fonts.gstatic.com/ea/notosanskr/v2/NotoSansKR-Regular.otf')
-  if (!fontRes.ok) return NextResponse.json({ error: '폰트 로드 실패' }, { status: 500 })
-  const fontBytes = await fontRes.arrayBuffer()
-
-  const fontBoldRes = await fetch('https://fonts.gstatic.com/ea/notosanskr/v2/NotoSansKR-Bold.otf')
-  const fontBoldBytes = fontBoldRes.ok ? await fontBoldRes.arrayBuffer() : fontBytes
+  // Noto Sans KR 폰트 로컬 파일에서 로드 (public/fonts에 번들)
+  const fontsDir = path.join(process.cwd(), 'public', 'fonts')
+  const fontBytes = fs.readFileSync(path.join(fontsDir, 'NotoSansKR-Regular.ttf'))
+  const fontBoldBytes = fs.existsSync(path.join(fontsDir, 'NotoSansKR-Bold.ttf'))
+    ? fs.readFileSync(path.join(fontsDir, 'NotoSansKR-Bold.ttf'))
+    : fontBytes
 
   // PDF 생성
   const pdfDoc = await PDFDocument.create()

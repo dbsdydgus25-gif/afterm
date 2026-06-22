@@ -51,7 +51,6 @@ export default function DocScanner({ onCapture, onClose, label = '문서' }: Doc
     const vh = video.videoHeight
 
     // 화면에서 스캔 프레임 비율 계산 (세로 화면 기준 A4 비율)
-    // 가로: 화면의 88%, 세로: 가로의 1.414(A4비율)
     const frameW = Math.round(vw * 0.88)
     const frameH = Math.round(frameW * 1.414)
     const frameX = Math.round((vw - frameW) / 2)
@@ -62,12 +61,20 @@ export default function DocScanner({ onCapture, onClose, label = '문서' }: Doc
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, frameX, frameY, frameW, frameH, 0, 0, frameW, frameH)
 
-    canvas.toBlob(blob => {
-      if (!blob) return
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
-      setCaptured(dataUrl)
-      streamRef.current?.getTracks().forEach(t => t.stop())
-    }, 'image/jpeg', 0.92)
+    // 스캔 효과: 그레이스케일 + 대비 강화
+    const imageData = ctx.getImageData(0, 0, frameW, frameH)
+    const d = imageData.data
+    for (let i = 0; i < d.length; i += 4) {
+      const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114
+      // 대비 강화 (대비 1.4 × 밝기 1.05)
+      const v = Math.min(255, Math.max(0, (gray - 128) * 1.4 + 128 + 13))
+      d[i] = v; d[i + 1] = v; d[i + 2] = v
+    }
+    ctx.putImageData(imageData, 0, 0)
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+    setCaptured(dataUrl)
+    streamRef.current?.getTracks().forEach(t => t.stop())
   }
 
   const retake = () => {
