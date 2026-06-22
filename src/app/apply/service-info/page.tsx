@@ -87,10 +87,10 @@ export default function ServiceInfoPage() {
     }
   }
 
-  const goNext = () => {
+  const goNext = async () => {
     if (isLastField) {
       if (isLastService) {
-        saveFieldValuesToDB().catch(console.error)
+        await saveFieldValuesToDB().catch(console.error)
         setStep(2); router.push('/apply/documents')
       } else {
         const nextSvc = selectedServices[svcIdx + 1]
@@ -121,8 +121,8 @@ export default function ServiceInfoPage() {
     }
   }
 
-  const handleNext = () => {
-    if (!currentField) { goNext(); return }
+  const handleNext = async () => {
+    if (!currentField) { await goNext(); return }
     if (currentField.required && !inputValue.trim()) {
       setError('필수 항목이에요'); return
     }
@@ -130,7 +130,7 @@ export default function ServiceInfoPage() {
       ? currentField.prefix + inputValue.trim()
       : inputValue.trim()
     updateServiceField(service.id, currentField.key, saveValue)
-    goNext()
+    await goNext()
   }
 
   return (

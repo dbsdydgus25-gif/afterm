@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendKakao } from '@/lib/kakao/sendKakao'
+import { google } from 'googleapis'
 
 export async function POST(req: NextRequest) {
   const { paymentId, caseId } = await req.json()
@@ -72,26 +73,65 @@ export async function POST(req: NextRequest) {
       ])
     }
 
-    // 구글 시트 저장 (fire-and-forget)
+    // 구글 시트 저장 (직접 인라인 — self-fetch 금지)
     if (caseData) {
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://afterm.co.kr'
-      fetch(`${siteUrl}/api/sheets/save`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          caseId,
-          deceasedInfo: {
-            name: caseData.deceased_name,
-            birthDate: caseData.deceased_birth,
-            deathDate: caseData.deceased_death,
-            phone: caseData.deceased_phone,
-          },
-          selectedServices: caseData.case_services || [],
-          delegation: caseData.delegations?.[0] || {},
-          submittedAt: new Date().toISOString(),
-          paidAmount: payment.amount.total,
-          paymentId: paymentId,
-        }),
-      }).catch((e) => console.error('[sheets] 저장 실패:', e))
+      try {
+        const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+        const sheetId = process.env.GOOGLE_SHEET_ID
+        if (credentialsJson && sheetId) {
+          const auth = new google.auth.GoogleAuth({
+            credentials: JSON.parse(credentialsJson),
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+          })
+          const sheets = google.sheets({ version: 'v4', auth })
+          const delegation = caseData.delegations?.[0] || {}
+          const submittedAt = new Date().toISOString()
+
+          const rows = (caseData.case_services || []).map((svc: any) => {
+            const accountInfo = svc.account_id || svc.contact_info || ''
+            const trackRaw = svc.dispatch_type || svc.service_category
+            const trackLabel = trackRaw === 'memorialize' || trackRaw === '추모계정' ? '추모계정' : '계정삭제'
+            const serviceId = (svc.service_name || '').toLowerCase()
+            return [
+              submittedAt,
+              caseId.slice(0, 8),
+              caseData.deceased_name || '',
+              caseData.deceased_birth || '',
+              caseData.deceased_death || '',
+              caseData.deceased_phone || '',
+              delegation.delegator_name || '',
+              delegation.delegator_relation || '',
+              svc.service_name || '',
+              trackLabel,
+              (serviceId.includes('instagram') || serviceId.includes('kakao')) && trackRaw !== 'memorialize' ? '직접신청필요' : '에프텀대행',
+              accountInfo,
+              '',
+              delegation.delegator_phone || '',
+              '',
+              '',
+              payment.amount.total ? Number(payment.amount.total).toLocaleString() + '원' : '',
+              paymentId || '',
+              '', '', '',
+            ]
+          })
+
+          const existing = await sheets.spreadsheets.values.get({ spreadsheetId: sheetId, range: 'A1:A1' })
+          if (!existing.data.values?.length) {
+            await sheets.spreadsheets.values.update({
+              spreadsheetId: sheetId, range: 'A1:U1', valueInputOption: 'RAW',
+              requestBody: { values: [['접수일시','케이스ID','고인성명','고인생년월일','고인사망일','고인전화번호','신청인성명','고인과의관계','플랫폼','트랙(삭제/추모)','대행가능여부','계정ID/이메일/전화','프로필URL','신청인연락처','통신사','환불계좌','결제금액','PG결제ID','처리상태','처리완료일','메모']] },
+            })
+          }
+          await sheets.spreadsheets.values.append({
+            spreadsheetId: sheetId, range: 'A:U',
+            valueInputOption: 'USER_ENTERED', insertDataOption: 'INSERT_ROWS',
+            requestBody: { values: rows },
+          })
+          console.log(`[sheets] ${rows.length}개 행 저장 완료 — ${caseId.slice(0, 8)}`)
+        }
+      } catch (e) {
+        console.error('[sheets] 저장 실패:', e)
+      }
     }
 
     return NextResponse.json({ success: true })
