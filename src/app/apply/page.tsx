@@ -511,23 +511,20 @@ function StepOcr({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button onClick={() => setShowScanner(true)} style={{
-                width: '100%', padding: '28px 20px', borderRadius: 20,
-                border: '2px solid #111827', background: '#111827',
+                width: '100%', padding: '24px 20px', borderRadius: 16,
+                border: '1.5px solid #111827', background: '#111827',
                 cursor: 'pointer', fontFamily: 'inherit',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
               }}>
-                <span style={{ fontSize: 36 }}>📷</span>
-                <p style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>카메라로 스캔</p>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: 0 }}>프레임에 맞춰 찍으면 자동 처리</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#fff', margin: 0 }}>사진 촬영</p>
               </button>
               <button onClick={() => fileInputRef.current?.click()} style={{
-                width: '100%', padding: '20px', borderRadius: 20,
-                border: '2px dashed #BFDBFE', background: '#EFF6FF',
+                width: '100%', padding: '24px 20px', borderRadius: 16,
+                border: '1.5px solid #E5E9EF', background: '#fff',
                 cursor: 'pointer', fontFamily: 'inherit',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
               }}>
-                <span style={{ fontSize: 24 }}>📄</span>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#2563EB', margin: 0 }}>파일 선택 (JPG·PNG·PDF)</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', margin: 0 }}>파일 업로드 (JPG·PNG·PDF)</p>
               </button>
             </div>
 
@@ -553,7 +550,7 @@ function StepOcr({
             {/* 추출 정보 카드 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid #E5E9EF' }}>
               <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>성함</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>고인 성함</p>
                 <input type="text" value={name} onChange={e => { setName(e.target.value); setError('') }}
                   placeholder="직접 입력해 주세요"
                   style={{
@@ -604,9 +601,10 @@ function StepOcr({
 // ─── Step 5: 신청인 정보 + 본인인증 ──────────────────────
 const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
 
-function StepApplicant({ onNext, onBack }: {
+function StepApplicant({ onNext, onBack, deceasedName }: {
   onNext: (name: string, relation: string, phone: string) => void
   onBack: () => void
+  deceasedName?: string
 }) {
   const [name, setName] = useState('')
   const [relation, setRelation] = useState('')
@@ -709,7 +707,7 @@ function StepApplicant({ onNext, onBack }: {
         )}
         {innerStep === 'relation' && (
           <div key="relation">
-            <Question label={`${name}님과\n고인의 관계는요?`} sub="해당 관계를 선택해 주세요" />
+            <Question label={deceasedName ? `고인 ${deceasedName}님과\n신청인의 관계는요?` : '고인과\n신청인의 관계는요?'} sub="해당 관계를 선택해 주세요" />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {RELATIONS.map(r => (
                 <button key={r} onClick={() => setRelation(r)} style={{
@@ -1391,6 +1389,7 @@ function ApplyFlow() {
         <StepApplicant
           onNext={(name, relation, phone) => saveCaseInfo(name, relation, phone)}
           onBack={() => setFlowStep('ocr')}
+          deceasedName={deceasedInfo?.name}
         />
       )}
       {flowStep === 'account_notice' && (

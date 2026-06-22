@@ -86,12 +86,15 @@ export async function POST(req: NextRequest) {
             scopes: ['https://www.googleapis.com/auth/spreadsheets'],
           })
           const sheets = google.sheets({ version: 'v4', auth })
-          const delegation = caseData.delegations?.[0] || {}
-          // delegation 없을 때 profiles 폴백
-          const { data: profileFallback } = await adminClient.from('profiles').select('name, phone').eq('id', caseData.user_id).single().catch(() => ({ data: null }))
-          const delegatorName = delegation.delegator_name || profileFallback?.name || ''
-          const delegatorPhone = delegation.delegator_phone || profileFallback?.phone || ''
-          const delegatorRelation = delegation.delegator_relation || ''
+          // delegation 최신 데이터 별도 조회 (join 타이밍 이슈 방지)
+          const [{ data: delegationFresh }, { data: profileFallback }] = await Promise.all([
+            adminClient.from('delegations').select('*').eq('case_id', caseId).single(),
+            adminClient.from('profiles').select('name, phone').eq('id', caseData.user_id).single(),
+          ])
+          const delegation = delegationFresh || caseData.delegations?.[0] || {}
+          const delegatorName = (delegation as any).delegator_name || profileFallback?.name || ''
+          const delegatorPhone = (delegation as any).delegator_phone || profileFallback?.phone || ''
+          const delegatorRelation = (delegation as any).delegator_relation || ''
           const submittedAt = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
           const rows = (caseData.case_services || []).map((svc: any) => {
