@@ -81,17 +81,7 @@ export default function DocScanner({ onCapture, onClose, label = '문서' }: Doc
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH)
 
-    // 스캔 효과: 그레이스케일 + 대비 강화
-    const imageData = ctx.getImageData(0, 0, srcW, srcH)
-    const d = imageData.data
-    for (let i = 0; i < d.length; i += 4) {
-      const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114
-      const v = Math.min(255, Math.max(0, (gray - 128) * 1.4 + 128 + 13))
-      d[i] = v; d[i + 1] = v; d[i + 2] = v
-    }
-    ctx.putImageData(imageData, 0, 0)
-
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95)
     setCaptured(dataUrl)
     streamRef.current?.getTracks().forEach(t => t.stop())
   }

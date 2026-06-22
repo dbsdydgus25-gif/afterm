@@ -44,8 +44,10 @@ export async function POST(req: NextRequest) {
     // 결제 완료 알림톡 발송 (fire-and-forget)
     if (caseData) {
       const { data: { user } } = await adminClient.auth.admin.getUserById(caseData.user_id)
-      const userPhone = caseData.delegator_phone || caseData.delegations?.[0]?.delegator_phone || user?.phone || user?.user_metadata?.phone || ''
-      const userName = caseData.delegations?.[0]?.delegator_name || user?.user_metadata?.full_name || '고객'
+      // profiles 폴백 (delegation 미작성 시)
+      const { data: profile } = await adminClient.from('profiles').select('name, phone').eq('id', caseData.user_id).single()
+      const userPhone = caseData.delegations?.[0]?.delegator_phone || profile?.phone || user?.phone || user?.user_metadata?.phone || ''
+      const userName = caseData.delegations?.[0]?.delegator_name || profile?.name || user?.user_metadata?.full_name || '고객'
       const services = (caseData.case_services || []).map((s: any) => s.service_name).join(', ')
 
       const notifyPayload = {
@@ -85,7 +87,12 @@ export async function POST(req: NextRequest) {
           })
           const sheets = google.sheets({ version: 'v4', auth })
           const delegation = caseData.delegations?.[0] || {}
-          const submittedAt = new Date().toISOString()
+          // delegation 없을 때 profiles 폴백
+          const { data: profileFallback } = await adminClient.from('profiles').select('name, phone').eq('id', caseData.user_id).single().catch(() => ({ data: null }))
+          const delegatorName = delegation.delegator_name || profileFallback?.name || ''
+          const delegatorPhone = delegation.delegator_phone || profileFallback?.phone || ''
+          const delegatorRelation = delegation.delegator_relation || ''
+          const submittedAt = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
           const rows = (caseData.case_services || []).map((svc: any) => {
             const accountInfo = svc.account_id || svc.contact_info || ''
@@ -99,14 +106,14 @@ export async function POST(req: NextRequest) {
               caseData.deceased_birth || '',
               caseData.deceased_death || '',
               caseData.deceased_phone || '',
-              delegation.delegator_name || '',
-              delegation.delegator_relation || '',
+              delegatorName,
+              delegatorRelation,
               svc.service_name || '',
               trackLabel,
               (serviceId.includes('instagram') || serviceId.includes('kakao')) && trackRaw !== 'memorialize' ? '직접신청필요' : '에프텀대행',
               accountInfo,
               '',
-              delegation.delegator_phone || '',
+              delegatorPhone,
               '',
               '',
               payment.amount.total ? Number(payment.amount.total).toLocaleString() + '원' : '',
