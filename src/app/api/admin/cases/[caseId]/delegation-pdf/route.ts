@@ -72,24 +72,49 @@ export async function GET(
   const CW = MR - ML // 콘텐츠 너비
 
   // ── 헬퍼 ──────────────────────────────────────────────
+  // pdf-lib 한글 glyph폭 버그 우회: 글자마다 고정 폭으로 수동 배치
+  function charW(ch: string, size: number): number {
+    const code = ch.charCodeAt(0)
+    if (code >= 0xAC00 && code <= 0xD7A3) return size * 0.63   // 한글
+    if (code >= 0x3000 && code <= 0x303F) return size * 0.63   // CJK 부호
+    if (code >= 0xFF00 && code <= 0xFFEF) return size * 0.63   // 전각
+    if (ch === ' ') return size * 0.28
+    if (ch >= '0' && ch <= '9') return size * 0.38
+    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) return size * 0.33
+    return size * 0.36
+  }
+
+  function drawStr(text: string, x: number, y: number, size: number, f: typeof font, color: typeof black): number {
+    let cx = x
+    for (const ch of text) {
+      page.drawText(ch, { x: cx, y, size, font: f, color })
+      cx += charW(ch, size)
+    }
+    return cx
+  }
+
   function t(text: string, x: number, y: number, size = 10, bold = false, color = black) {
     if (!text) return
-    page.drawText(text, { x, y, size, font: bold ? fontBold : font, color })
+    drawStr(text, x, y, size, bold ? fontBold : font, color)
+  }
+
+  function textWidth(text: string, size: number): number {
+    return Array.from(text).reduce((w, ch) => w + charW(ch, size), 0)
   }
 
   function line(x1: number, y1: number, x2: number, y2: number, thick = 0.6, color = lgray) {
     page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: thick, color })
   }
 
-  // 한글 자동 줄바꿈 (폭 기준 글자 수)
+  // 한글 자동 줄바꿈
   function wrap(text: string, x: number, y: number, maxW: number, size = 9.5, bold = false, color = black, gap = 1.6): number {
     const f = bold ? fontBold : font
-    const cw = size * 0.58
+    const cw = size * 0.63
     const perLine = Math.max(1, Math.floor(maxW / cw))
     let remaining = text
     while (remaining) {
       const chunk = remaining.slice(0, perLine)
-      page.drawText(chunk, { x, y, size, font: f, color })
+      drawStr(chunk, x, y, size, f, color)
       remaining = remaining.slice(perLine)
       if (remaining) y -= size * gap
     }
@@ -102,8 +127,10 @@ export async function GET(
   // 상단 얇은 선
   line(ML, height - 36, MR, height - 36, 2, navy)
 
-  // 제목
-  t('위  임  장', width / 2 - 52, height - 68, 26, true, navy)
+  // 제목 (수동 가운데 정렬)
+  const titleText = '위  임  장'
+  const titleW = textWidth(titleText, 26)
+  t(titleText, (width - titleW) / 2, height - 68, 26, true, navy)
 
   // 제목 아래 설명
   t('디지털 유산 사후 행정 대행에 관한 위임장', ML, height - 90, 9, false, gray)
