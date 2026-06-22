@@ -21,6 +21,12 @@ function PaymentInner() {
   const [error, setError] = useState(searchParams.get('error') || '')
   const [delegatorPhone, setDelegatorPhone] = useState('')
 
+  // 프로모 코드
+  const [promoCode, setPromoCode] = useState('')
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle')
+  const [promoMsg, setPromoMsg] = useState('')
+  const [promoApplied, setPromoApplied] = useState(false)
+
   useEffect(() => {
     if (!caseId) { router.push('/apply'); return }
     supabase.from('case_services').select('service_name, service_category').eq('case_id', caseId)
@@ -34,14 +40,61 @@ function PaymentInner() {
   const count = services.length || 1
   const totalAmount = count * PRICE_PER_SERVICE
   const vat = Math.floor(totalAmount * 0.1)
-  const grandTotal = totalAmount + vat
+  const grandTotal = promoApplied ? 0 : totalAmount + vat
 
-  const requestPay = async (method: 'CARD' | 'EASY_PAY') => {
+  const checkPromo = async () => {
+    if (!promoCode.trim()) return
+    setPromoStatus('checking')
+    setPromoMsg('')
+    const res = await fetch('/api/promo/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: promoCode.trim(), caseId }),
+    })
+    const data = await res.json()
+    if (data.valid) {
+      setPromoStatus('valid')
+      setPromoMsg(data.description || '베타 무료 이용권 적용됨')
+      setPromoApplied(true)
+    } else {
+      setPromoStatus('invalid')
+      setPromoMsg(data.reason || '유효하지 않은 코드')
+      setPromoApplied(false)
+    }
+  }
+
+  const removePromo = () => {
+    setPromoCode('')
+    setPromoStatus('idle')
+    setPromoMsg('')
+    setPromoApplied(false)
+  }
+
+  const requestPromoFree = async () => {
     if (!caseId) return
     setLoading(true)
     setError('')
+    const res = await fetch('/api/promo/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: promoCode.trim(), caseId }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      setError(err.error || '처리 중 오류가 발생했습니다')
+      setLoading(false)
+      return
+    }
+    setSubmitting(true)
+    setTimeout(() => router.push(`/apply/confirm?done=true&caseId=${caseId}`), 1500)
+  }
 
-    // 30초 타임아웃
+  const requestPay = async (method: 'CARD' | 'EASY_PAY') => {
+    if (!caseId) return
+    if (promoApplied) { requestPromoFree(); return }
+    setLoading(true)
+    setError('')
+
     const timeout = setTimeout(() => {
       setLoading(false)
       setError('결제 시간이 초과되었습니다. 다시 시도해 주세요.')
@@ -152,7 +205,7 @@ function PaymentInner() {
                     {svc.action === '추모계정' ? '추모전환' : '해지·삭제'}
                   </span>
                 </span>
-                <span style={{ fontSize: 14, color: '#374151', fontWeight: 700 }}>
+                <span style={{ fontSize: 14, color: promoApplied ? '#9CA3AF' : '#374151', fontWeight: 700, textDecoration: promoApplied ? 'line-through' : 'none' }}>
                   {PRICE_PER_SERVICE.toLocaleString()}원
                 </span>
               </div>
@@ -162,26 +215,87 @@ function PaymentInner() {
           </div>
         </div>
 
+        {/* 프로모 코드 */}
+        <div style={{ marginBottom: 12 }}>
+          {!promoApplied ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoStatus('idle'); setPromoMsg('') }}
+                onKeyDown={e => e.key === 'Enter' && checkPromo()}
+                placeholder="베타 초대 코드 입력 (예: AFTERM001)"
+                style={{
+                  flex: 1, padding: '12px 14px', borderRadius: 10,
+                  border: `1.5px solid ${promoStatus === 'invalid' ? '#FCA5A5' : '#E5E9EF'}`,
+                  fontSize: 14, fontFamily: 'inherit', outline: 'none',
+                  background: '#F8FAFC',
+                }}
+              />
+              <button
+                onClick={checkPromo}
+                disabled={!promoCode.trim() || promoStatus === 'checking'}
+                style={{
+                  padding: '12px 16px', borderRadius: 10, border: 'none',
+                  background: promoCode.trim() ? '#2563EB' : '#E5E9EF',
+                  color: promoCode.trim() ? '#fff' : '#9CA3AF',
+                  fontWeight: 700, fontSize: 13, cursor: promoCode.trim() ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit', whiteSpace: 'nowrap',
+                }}
+              >
+                {promoStatus === 'checking' ? '확인 중' : '적용'}
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '12px 14px', borderRadius: 10,
+              background: '#ECFDF5', border: '1.5px solid #6EE7B7',
+            }}>
+              <div>
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#059669' }}>🎉 {promoCode} 적용됨</span>
+                <span style={{ fontSize: 12, color: '#6B7280', marginLeft: 8 }}>{promoMsg}</span>
+              </div>
+              <button onClick={removePromo} style={{
+                background: 'none', border: 'none', color: '#9CA3AF',
+                fontSize: 18, cursor: 'pointer', padding: '0 4px',
+              }}>×</button>
+            </div>
+          )}
+          {promoStatus === 'invalid' && (
+            <p style={{ fontSize: 12, color: '#DC2626', margin: '6px 0 0 4px' }}>{promoMsg}</p>
+          )}
+        </div>
+
         {/* 금액 합계 */}
         <div style={{
           background: '#fff', borderRadius: 14, border: '1px solid #E5E9EF',
           padding: '18px 20px', marginBottom: 20,
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, color: '#6B7280' }}>서비스 {count}건</span>
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{totalAmount.toLocaleString()}원</span>
-          </div>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F3F4F6',
-          }}>
-            <span style={{ fontSize: 13, color: '#6B7280' }}>부가세 (10%)</span>
-            <span style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{vat.toLocaleString()}원</span>
-          </div>
+          {!promoApplied ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: '#6B7280' }}>서비스 {count}건</span>
+                <span style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{totalAmount.toLocaleString()}원</span>
+              </div>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between',
+                marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F3F4F6',
+              }}>
+                <span style={{ fontSize: 13, color: '#6B7280' }}>부가세 (10%)</span>
+                <span style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{vat.toLocaleString()}원</span>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F3F4F6' }}>
+              <span style={{ fontSize: 13, color: '#6B7280' }}>베타 초대 할인</span>
+              <span style={{ fontSize: 13, color: '#059669', fontWeight: 700 }}>-{(totalAmount + vat).toLocaleString()}원</span>
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 16, fontWeight: 800, color: '#111827' }}>최종 결제금액</span>
-            <span style={{ fontSize: 24, fontWeight: 900, color: '#2563EB', letterSpacing: '-0.02em' }}>
-              {grandTotal.toLocaleString()}원
+            <span style={{ fontSize: 24, fontWeight: 900, color: promoApplied ? '#059669' : '#2563EB', letterSpacing: '-0.02em' }}>
+              {grandTotal === 0 ? '무료' : `${grandTotal.toLocaleString()}원`}
             </span>
           </div>
         </div>
@@ -203,15 +317,14 @@ function PaymentInner() {
           ))}
         </div>
 
-        <div style={{
-          padding: '12px 14px', borderRadius: 10,
-          background: '#F8FAFC', border: '1px solid #E5E9EF',
-        }}>
-          <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, lineHeight: 1.7 }}>
-            결제는 KG이니시스를 통해 안전하게 처리됩니다.<br />
-            신용카드, 체크카드, 카카오페이, 네이버페이 등 이용 가능합니다.
-          </p>
-        </div>
+        {!promoApplied && (
+          <div style={{ padding: '12px 14px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E5E9EF' }}>
+            <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0, lineHeight: 1.7 }}>
+              결제는 KG이니시스를 통해 안전하게 처리됩니다.<br />
+              신용카드, 체크카드, 카카오페이, 네이버페이 등 이용 가능합니다.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div style={{
@@ -225,29 +338,43 @@ function PaymentInner() {
 
       <Dock>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* 카카오페이 */}
-          <button onClick={() => requestPay('EASY_PAY')} disabled={loading} style={{
-            width: '100%', padding: '16px', borderRadius: 14,
-            background: loading ? '#E5E9EF' : '#FEE500',
-            color: loading ? '#9CA3AF' : '#3C1E1E',
-            border: 'none', fontSize: 15, fontWeight: 800,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: 'inherit', letterSpacing: '-0.02em',
-          }}>
-            {loading ? '처리 중...' : '카카오페이로 결제하기'}
-          </button>
-          {/* 카드 결제 */}
-          <button onClick={() => requestPay('CARD')} disabled={loading} style={{
-            width: '100%', padding: '16px', borderRadius: 14,
-            background: loading ? '#E5E9EF' : '#2563EB',
-            color: loading ? '#9CA3AF' : '#fff',
-            border: 'none', fontSize: 15, fontWeight: 800,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: 'inherit', letterSpacing: '-0.02em',
-            boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,0.3)',
-          }}>
-            {loading ? '결제 처리 중...' : `${grandTotal.toLocaleString()}원 카드로 결제하기`}
-          </button>
+          {promoApplied ? (
+            <button onClick={requestPromoFree} disabled={loading} style={{
+              width: '100%', padding: '16px', borderRadius: 14,
+              background: loading ? '#E5E9EF' : '#059669',
+              color: loading ? '#9CA3AF' : '#fff',
+              border: 'none', fontSize: 15, fontWeight: 800,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', letterSpacing: '-0.02em',
+              boxShadow: loading ? 'none' : '0 4px 16px rgba(5,150,105,0.3)',
+            }}>
+              {loading ? '처리 중...' : '무료로 신청 완료하기'}
+            </button>
+          ) : (
+            <>
+              <button onClick={() => requestPay('EASY_PAY')} disabled={loading} style={{
+                width: '100%', padding: '16px', borderRadius: 14,
+                background: loading ? '#E5E9EF' : '#FEE500',
+                color: loading ? '#9CA3AF' : '#3C1E1E',
+                border: 'none', fontSize: 15, fontWeight: 800,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', letterSpacing: '-0.02em',
+              }}>
+                {loading ? '처리 중...' : '카카오페이로 결제하기'}
+              </button>
+              <button onClick={() => requestPay('CARD')} disabled={loading} style={{
+                width: '100%', padding: '16px', borderRadius: 14,
+                background: loading ? '#E5E9EF' : '#2563EB',
+                color: loading ? '#9CA3AF' : '#fff',
+                border: 'none', fontSize: 15, fontWeight: 800,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', letterSpacing: '-0.02em',
+                boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,0.3)',
+              }}>
+                {loading ? '결제 처리 중...' : `${grandTotal.toLocaleString()}원 카드로 결제하기`}
+              </button>
+            </>
+          )}
         </div>
       </Dock>
     </Screen>
