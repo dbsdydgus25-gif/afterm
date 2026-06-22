@@ -646,7 +646,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
       if (data.ok) {
         setOtpToken(data.token)
         setOtpSent(true)
-        if (data.code) setDevCode(data.code)  // SMS 미연동 시 화면에 표시
+        if (data.devCode) setDevCode(data.devCode)  // 개발환경에서만 표시
       } else {
         setOtpError('인증번호 발송에 실패했습니다')
       }
@@ -757,8 +757,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
                 border: '1px solid #FDE68A', marginBottom: 16,
                 fontSize: 13, color: '#92400E', fontWeight: 600,
               }}>
-                인증번호: <span style={{ fontSize: 20, letterSpacing: '0.15em', color: '#D97706' }}>{devCode}</span>
-                <br /><span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>SMS 연동 전 테스트 코드 (실제 배포 시 SMS로 발송됩니다)</span>
+                [개발 환경] 인증번호: <span style={{ fontSize: 20, letterSpacing: '0.15em', color: '#D97706' }}>{devCode}</span>
               </div>
             )}
             <input
