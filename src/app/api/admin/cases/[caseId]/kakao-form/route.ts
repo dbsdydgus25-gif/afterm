@@ -117,15 +117,20 @@ export async function GET(
   // "◼ 동의합니다  [    ]" 의 [ ] 위치: y=192~236 block → y≈212, x≈387
   checkOn(p2, 387, 212)
 
-  // 날짜: "년         월         일" at y=159~171 → y=163
-  // 텍스트 블록 x=436~550. 년(x=443), 월(x=492), 일(x=537) 앞에 숫자 기입
-  drawOn(p2, yyyy, 436, 163)
-  drawOn(p2, mm,   488, 163)
-  drawOn(p2, dd,   532, 163)
+  // 날짜: 템플릿에 "년 월 일" 텍스트가 x=436~550에 이미 인쇄됨
+  // 숫자를 각 한자 '년'/'월'/'일' 바로 앞에 기입
+  // 년(x=436), 월(x=488), 일(x=532) → 각 숫자 텍스트 너비만큼 왼쪽에 배치
+  const yyyyW = Array.from(yyyy).reduce((w, ch) => w + (ch >= '0' && ch <= '9' ? SIZE * 0.38 : SIZE * 0.33), 0)
+  const mmW   = Array.from(mm).reduce((w, ch) => w + (ch >= '0' && ch <= '9' ? SIZE * 0.38 : SIZE * 0.33), 0)
+  const ddW   = Array.from(dd).reduce((w, ch) => w + (ch >= '0' && ch <= '9' ? SIZE * 0.38 : SIZE * 0.33), 0)
+  drawOn(p2, yyyy, 436 - yyyyW - 2, 163)
+  drawOn(p2, mm,   488 - mmW - 2,   163)
+  drawOn(p2, dd,   532 - ddW - 2,   163)
 
-  // 신청인 이름: "신청인  :     이   름     (서명 또는 인)" at y=127~154 → y=135
-  // "이   름" 위치 x≈403, 그 앞에 이름 기입
-  drawOn(p2, delegatorName, 403, 135)
+  // 신청인 이름: "신청인  :     이   름     (서명 또는 인)" at y=127~154
+  // "이   름"(이름 라벨) 위에 흰 사각형으로 덮고 이름 기입
+  p2.drawRectangle({ x: 390, y: 127, width: 120, height: 27, color: rgb(1, 1, 1) })
+  drawOn(p2, delegatorName, 395, 136)
 
   const pdfBytes = await pdfDoc.save()
   const fileName = `카카오탈퇴요청서_${deceasedName || 'unknown'}_${caseId.slice(0, 8)}.pdf`

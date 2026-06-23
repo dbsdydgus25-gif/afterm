@@ -46,7 +46,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
   const filterStatus = status || 'all'
   const filterSearch = q || ''
 
-  // 케이스 + 서비스 + 위임 + 결제 한 번에 조회
+  // 케이스 + 서비스 + 결제 한 번에 조회 (delegations는 RLS join 오류로 별도 쿼리)
   let query = adminClient
     .from('cases')
     .select(`
@@ -55,7 +55,6 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
       payment_status, paid_amount, paid_at,
       delegator_phone,
       case_services(id, service_name, service_category, dispatch_type, status),
-      delegations(delegator_name, delegator_relation, delegator_phone),
       case_documents(id, doc_type)
     `)
     .neq('status', 'draft')
@@ -65,6 +64,14 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
 
   const { data: cases } = await query
   const allCases = cases || []
+
+  // delegations 별도 조회
+  const caseIds = allCases.map((c: any) => c.id)
+  const { data: delegationsData } = caseIds.length > 0
+    ? await adminClient.from('delegations').select('case_id, delegator_name, delegator_relation, delegator_phone').in('case_id', caseIds)
+    : { data: [] }
+  const delegationsMap: Record<string, any> = {}
+  for (const d of delegationsData || []) delegationsMap[d.case_id] = d
 
   // 신청인 이름/이메일 조회 (profiles)
   const userIds = [...new Set(allCases.map((c: any) => c.user_id).filter(Boolean))]
@@ -80,7 +87,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
   const filtered = filterSearch
     ? allCases.filter((c: any) => {
         const s = filterSearch.toLowerCase()
-        const del = c.delegations?.[0]
+        const del = delegationsMap[c.id]
         const profile: { name: string; email: string; phone: string } = profileMap[c.user_id] || { name: '', email: '', phone: '' }
         return (
           c.deceased_name?.toLowerCase().includes(s) ||
@@ -178,7 +185,7 @@ export default async function AdminCasesPage({ searchParams }: PageProps) {
           </div>
         ) : (
           filtered.map((c: any) => {
-            const del = c.delegations?.[0]
+            const del = delegationsMap[c.id]
             const profile: { name: string; email: string; phone: string } = profileMap[c.user_id] || { name: '', email: '', phone: '' }
             const applicantName = del?.delegator_name || profile.name || '-'
             const applicantPhone = del?.delegator_phone || c.delegator_phone || profile.phone || '-'
