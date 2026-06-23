@@ -601,8 +601,19 @@ function StepOcr({
 // ─── Step 5: 신청인 정보 + 본인인증 ──────────────────────
 const RELATIONS = ['자녀', '배우자', '부모', '형제/자매', '손자/손녀', '기타']
 
+const REFERRAL_OPTIONS = [
+  '지인 추천',
+  '네이버 검색',
+  '구글 검색',
+  '인스타그램',
+  '유튜브',
+  '블로그/카페',
+  '장례식장 안내',
+  '기타',
+]
+
 function StepApplicant({ onNext, onBack, deceasedName }: {
-  onNext: (name: string, relation: string, phone: string, address: string) => void
+  onNext: (name: string, relation: string, phone: string, address: string, referralSource: string) => void
   onBack: () => void
   deceasedName?: string
 }) {
@@ -610,7 +621,9 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   const [relation, setRelation] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'verify'>('name')
+  const [addressDetail, setAddressDetail] = useState('')
+  const [referralSource, setReferralSource] = useState('')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'verify' | 'referral'>('name')
   const [otpToken, setOtpToken] = useState('')
   const [otpCode, setOtpCode] = useState('')
   const [otpSent, setOtpSent] = useState(false)
@@ -668,7 +681,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
       })
       const data = await res.json()
       if (data.ok) {
-        onNext(name, relation, phone, address)
+        setInnerStep('referral')
       } else {
         setOtpError(data.error || '인증번호가 올바르지 않습니다')
       }
@@ -678,11 +691,12 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   }
 
   const innerLabels = {
-    name: '신청인 정보 1/5',
-    relation: '신청인 정보 2/5',
-    address: '신청인 정보 3/5',
-    phone: '신청인 정보 4/5',
-    verify: '신청인 정보 5/5',
+    name: '신청인 정보 1/6',
+    relation: '신청인 정보 2/6',
+    address: '신청인 정보 3/6',
+    phone: '신청인 정보 4/6',
+    verify: '신청인 정보 5/6',
+    referral: '신청인 정보 6/6',
   }
 
   return (
@@ -729,15 +743,51 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
         {innerStep === 'address' && (
           <div key="address">
             <Question label={'신청인 주소를\n입력해 주세요'} sub="위임장에 기재되는 신청인의 실거주지 주소입니다" />
-            <input type="text" placeholder="예: 경기도 수원시 영통구 ..." value={address} autoFocus
-              onChange={e => setAddress(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && address.trim() && setInnerStep('phone')}
-              style={{
-                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
-                background: 'transparent', fontSize: 17, fontWeight: 700,
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+            {/* 카카오 주소 검색 버튼 */}
+            <button
+              onClick={() => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                new (window as any).daum.Postcode({
+                  oncomplete: (data: { roadAddress: string; jibunAddress: string }) => {
+                    setAddress(data.roadAddress || data.jibunAddress)
+                  },
+                }).open()
               }}
-            />
+              style={{
+                width: '100%', padding: '16px', borderRadius: 12,
+                border: '1.5px solid #2563EB', background: '#EBF3FF',
+                color: '#2563EB', fontSize: 16, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit', marginBottom: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              주소 검색
+            </button>
+            {address && (
+              <div style={{
+                padding: '14px 16px', background: '#F9FAFB', borderRadius: 10,
+                border: '1.5px solid #E5E9EF', fontSize: 15, fontWeight: 600, color: '#111827',
+                marginBottom: 8,
+              }}>
+                {address}
+              </div>
+            )}
+            {/* 상세주소 직접 입력 */}
+            {address && (
+              <input
+                type="text"
+                placeholder="상세주소 입력 (예: 101동 202호)"
+                value={addressDetail}
+                onChange={e => setAddressDetail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && address.trim() && setInnerStep('phone')}
+                autoFocus
+                style={{
+                  width: '100%', height: 48, border: 0, borderBottom: '1.5px solid #E5E9EF',
+                  background: 'transparent', fontSize: 15, fontWeight: 500,
+                  color: '#374151', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+                }}
+              />
+            )}
           </div>
         )}
         {innerStep === 'phone' && (
@@ -801,6 +851,25 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             </button>
           </div>
         )}
+        {innerStep === 'referral' && (
+          <div key="referral">
+            <Question label={'에프텀을\n어떻게 알게 되셨나요?'} sub="서비스 개선을 위해 활용됩니다 (선택)" />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {REFERRAL_OPTIONS.map(r => (
+                <button key={r} onClick={() => setReferralSource(r)} style={{
+                  padding: '11px 20px', borderRadius: 50,
+                  border: `1.5px solid ${referralSource === r ? '#2563EB' : '#E5E9EF'}`,
+                  background: referralSource === r ? '#EBF3FF' : '#fff',
+                  color: referralSource === r ? '#2563EB' : '#374151',
+                  fontSize: 15, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit', transition: 'all 0.15s',
+                }}>
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Body>
       <Dock>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -809,7 +878,8 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             else if (innerStep === 'relation') setInnerStep('name')
             else if (innerStep === 'address') setInnerStep('relation')
             else if (innerStep === 'phone') setInnerStep('address')
-            else { setInnerStep('phone'); setOtpSent(false); setOtpCode(''); setDevCode('') }
+            else if (innerStep === 'verify') { setInnerStep('phone'); setOtpSent(false); setOtpCode(''); setDevCode('') }
+            else setInnerStep('verify')
           }} />
           <PrimaryBtn
             disabled={
@@ -817,7 +887,8 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
               innerStep === 'relation' ? !relation :
               innerStep === 'address' ? !address.trim() :
               innerStep === 'phone' ? (phone.replace(/\D/g, '').length < 10 || otpSending) :
-              otpCode.length !== 6
+              innerStep === 'verify' ? otpCode.length !== 6 :
+              false
             }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
@@ -825,13 +896,17 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
               else if (innerStep === 'address') setInnerStep('phone')
               else if (innerStep === 'phone') {
                 sendOtp().then(() => setInnerStep('verify'))
-              } else {
+              } else if (innerStep === 'verify') {
                 verifyOtp()
+              } else {
+                const fullAddress = addressDetail ? `${address} ${addressDetail}` : address
+                onNext(name, relation, phone, fullAddress, referralSource)
               }
             }}
           >
             {innerStep === 'phone' ? (otpSending ? '발송 중...' : '인증번호 받기') :
              innerStep === 'verify' ? '인증 확인' :
+             innerStep === 'referral' ? '완료' :
              '계속하기'}
           </PrimaryBtn>
         </div>
@@ -1277,7 +1352,7 @@ function ApplyFlow() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Step 5 완료 시: cases + delegations 저장, 그 다음 account_notice로 이동
-  const saveCaseInfo = async (name: string, relation: string, phone: string, address: string) => {
+  const saveCaseInfo = async (name: string, relation: string, phone: string, address: string, referralSource: string) => {
     setSaving(true)
     setSaveError('')
     try {
@@ -1301,6 +1376,7 @@ function ApplyFlow() {
           delegator_relation: relation,
           delegator_phone: phone || null,
           delegator_address: address || null,
+          referral_source: referralSource || null,
         }, { onConflict: 'case_id' })
       } else {
         const { data, error } = await supabase.from('cases').insert({
@@ -1320,6 +1396,7 @@ function ApplyFlow() {
           delegator_relation: relation,
           delegator_phone: phone || null,
           delegator_address: address || null,
+          referral_source: referralSource || null,
         }, { onConflict: 'case_id' })
       }
 
@@ -1407,7 +1484,7 @@ function ApplyFlow() {
       )}
       {flowStep === 'applicant' && (
         <StepApplicant
-          onNext={(name, relation, phone, address) => saveCaseInfo(name, relation, phone, address)}
+          onNext={(name, relation, phone, address, referralSource) => saveCaseInfo(name, relation, phone, address, referralSource)}
           onBack={() => setFlowStep('ocr')}
           deceasedName={deceasedInfo?.name}
         />

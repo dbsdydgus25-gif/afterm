@@ -53,6 +53,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         {/* 폰트 로드 전 fallback: 시스템 폰트 즉시 표시 */}
         <style>{`body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; }`}</style>
+        {/* 카카오 주소 검색 */}
+        <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js" async />
       </head>
       <body>
         <div className="mobile-container">

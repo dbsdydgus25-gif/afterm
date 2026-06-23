@@ -164,15 +164,27 @@ export async function GET(
   const tableRows: [string, string][] = [
     ['성   명', delegation.delegator_name || ''],
     ['고인과의 관계', delegation.delegator_relation || ''],
+    ['주   소', (delegation as any).delegator_address || ''],
     ['연   락   처', delegation.delegator_phone || ''],
   ]
 
   for (const [label, val] of tableRows) {
-    page.drawRectangle({ x: ML, y: y - 3, width: CW, height: 16, color: rgb(0.97, 0.97, 0.97) })
+    const isAddr = label.startsWith('주')
+    const rowH = isAddr && val && val.length > 20 ? 28 : 16
+    page.drawRectangle({ x: ML, y: y - 3, width: CW, height: rowH, color: rgb(0.97, 0.97, 0.97) })
     line(ML, y - 3, MR, y - 3, 0.4)
     t(label, ML + 8, y + 3, 9, false, gray)
-    t(val || '_______________', ML + 110, y + 3, 9.5, true, val ? black : lgray)
-    y -= 18
+    if (isAddr && val && val.length > 20) {
+      // 긴 주소는 두 줄로 분할
+      const mid = Math.ceil(val.length / 2)
+      const line1 = val.slice(0, mid)
+      const line2 = val.slice(mid)
+      t(line1, ML + 110, y + 9, 9, false, black)
+      t(line2, ML + 110, y - 2, 9, false, black)
+    } else {
+      t(val || '_______________', ML + 110, y + 3, 9.5, true, val ? black : lgray)
+    }
+    y -= rowH + 2
   }
   line(ML, y + 14, MR, y + 14, 0.4)
   y -= 10
