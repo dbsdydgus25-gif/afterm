@@ -49,6 +49,24 @@ export default function PackageActions({
     a.click()
   }
 
+  // 카카오 탈퇴 요청서 다운로드
+  const handleKakaoForm = async () => {
+    setDownloading('kakao')
+    try {
+      const res = await fetch(`/api/admin/cases/${caseId}/kakao-form`)
+      if (!res.ok) { showToast('❌ 카카오 요청서 생성 실패'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `카카오탈퇴요청서_${deceasedName}_${caseId.slice(0,8).toUpperCase()}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast('✅ 카카오 탈퇴 요청서 다운로드 완료!')
+    } catch { showToast('❌ 카카오 요청서 다운로드 실패') }
+    finally { setDownloading(null) }
+  }
+
   // 위임장 PDF 다운로드
   const handleDelegationPdf = async () => {
     setDownloading('delegation')
@@ -160,6 +178,24 @@ export default function PackageActions({
             <span>✍️ 위임장 (자동 생성 PDF)</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB' }}>
               {downloading === 'delegation' ? '생성 중...' : '↓ 다운로드'}
+            </span>
+          </button>
+
+          {/* 카카오 탈퇴 요청서 (공식 폼 자동 작성) */}
+          <button
+            onClick={handleKakaoForm}
+            disabled={downloading === 'kakao'}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 14px', borderRadius: 9,
+              border: '1.5px solid #F9A825', background: '#FFFDE7',
+              cursor: 'pointer', fontSize: 13, fontWeight: 700, color: '#B45309',
+              transition: 'background 0.15s',
+            }}
+          >
+            <span>💛 카카오 탈퇴 요청서 (자동 작성)</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#B45309' }}>
+              {downloading === 'kakao' ? '생성 중...' : '↓ 다운로드'}
             </span>
           </button>
         </div>
