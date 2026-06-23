@@ -51,16 +51,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* 처리 가능 서비스 */}
-        <div style={{ background: '#fff', borderRadius: 20, padding: '24px', border: '1px solid #E8EAF0' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 14px' }}>처리 가능한 행정 서비스</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {['은행 계좌 해지', '보험금 청구', '유족연금 신청', '휴대폰 해지', '인터넷 해지', '공과금 정리', '안심상속 신청', '부동산 상속', '자동차 이전', '카드 해지'].map(tag => (
-              <span key={tag} style={{ fontSize: 12, fontWeight: 600, color: '#2563EB', background: '#EBF3FF', padding: '6px 12px', borderRadius: 100 }}>{tag}</span>
-            ))}
-          </div>
-        </div>
-
         {/* 문의 */}
         <div style={{ background: '#FEE500', borderRadius: 20, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ fontSize: 28 }}>💬</div>
