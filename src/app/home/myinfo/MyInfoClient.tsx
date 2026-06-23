@@ -245,7 +245,7 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
                   {paymentCases.map(c => (
                     <a
                       key={c.id}
-                      href={`/api/admin/cases/${c.id}/delegation-pdf`}
+                      href={`/api/cases/${c.id}/delegation-pdf`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ textDecoration: 'none' }}
