@@ -27,8 +27,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
           홈으로
         </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 28 }}>{guide.emoji}</span>
+        <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: 100 }}>{guide.category}</span>
         </div>
         <h1 style={{ color: '#fff', fontSize: 24, fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.03em' }}>{guide.title}</h1>
@@ -43,23 +42,23 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
         {/* 주의사항 */}
         {guide.warning && (
-          <div style={{ background: '#FFF7ED', borderRadius: 16, padding: '16px 18px', border: '1px solid #FED7AA', display: 'flex', gap: 10 }}>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-            <p style={{ fontSize: 13, color: '#92400E', lineHeight: 1.7, margin: 0 }}>{guide.warning}</p>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #E8EAF0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', letterSpacing: '0.05em', margin: '0 0 6px' }}>주의</p>
+            <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, margin: 0 }}>{guide.warning}</p>
           </div>
         )}
 
         {/* 팁 */}
         {guide.tip && (
-          <div style={{ background: '#F0FDF4', borderRadius: 16, padding: '16px 18px', border: '1px solid #BBF7D0', display: 'flex', gap: 10 }}>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
-            <p style={{ fontSize: 13, color: '#14532D', lineHeight: 1.7, margin: 0 }}>{guide.tip}</p>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', border: '1px solid #E8EAF0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', letterSpacing: '0.05em', margin: '0 0 6px' }}>TIP</p>
+            <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, margin: 0 }}>{guide.tip}</p>
           </div>
         )}
 
         {/* 단계별 절차 */}
         <div style={{ background: '#fff', borderRadius: 20, padding: '20px', border: '1px solid #E8EAF0' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>📋 단계별 절차</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>단계별 절차</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {guide.steps.map((step, i) => (
               <div key={i} style={{ display: 'flex', gap: 14, paddingBottom: i < guide.steps.length - 1 ? 16 : 0 }}>
@@ -87,7 +86,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {section.items.map((item, ii) => (
                 <li key={ii} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: guide.accent, flexShrink: 0, marginTop: 6 }} />
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#D1D5DB', flexShrink: 0, marginTop: 7 }} />
                   <span style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{item}</span>
                 </li>
               ))}
@@ -98,7 +97,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         {/* 관련 링크 */}
         {guide.links.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 20, padding: '20px', border: '1px solid #E8EAF0' }}>
-            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>🔗 관련 공식 사이트</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>관련 공식 사이트</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {guide.links.map((link, li) => (
                 <a
@@ -116,10 +115,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           </div>
         )}
 
-        {/* 에프텀 대행 CTA */}
+        {/* 에프텀 CTA */}
         <div style={{ background: 'linear-gradient(135deg, #1E40AF 0%, #2563EB 100%)', borderRadius: 20, padding: '22px', textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '0 0 4px' }}>이 모든 과정을 직접 하기 어려우신가요?</p>
-          <p style={{ color: '#fff', fontSize: 17, fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}>에프텀이 대신 처리해 드립니다</p>
+          <p style={{ color: '#fff', fontSize: 16, fontWeight: 800, margin: '0 0 16px', letterSpacing: '-0.02em' }}>디지털 유산 행정 대행<br />지금 신청해보세요</p>
           <Link
             href="/apply"
             style={{ display: 'inline-block', background: '#fff', color: '#1E40AF', fontSize: 14, fontWeight: 800, padding: '12px 28px', borderRadius: 100, textDecoration: 'none' }}

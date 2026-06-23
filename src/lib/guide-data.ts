@@ -136,30 +136,26 @@ export const GUIDES: Guide[] = [
     category: '계정',
     accent: '#1877F2',
     emoji: '🔵',
-    summary: '고인의 페이스북 계정을 찾으면 추모 계정 전환 또는 계정 삭제를 신청할 수 있습니다. 이름 검색, 공유된 링크, 공통 친구 등 여러 방법으로 찾을 수 있습니다.',
-    tip: '페이스북 프로필 URL은 facebook.com/사용자이름 또는 facebook.com/profile.php?id=숫자 두 가지 형태가 있습니다. 추모 계정 전환 신청 시 숫자 ID가 필요할 수 있습니다.',
+    summary: '고인의 페이스북 아이디를 찾는 방법입니다. 이름 검색, 공유된 링크, 공통 친구 팔로잉 목록 등을 활용할 수 있습니다.',
+    tip: '페이스북 프로필 URL은 facebook.com/사용자이름 또는 facebook.com/profile.php?id=숫자 두 가지 형태가 있습니다. 숫자 ID가 실제 고유 계정 식별자입니다.',
     steps: [
-      { title: '페이스북 이름 검색', desc: 'www.facebook.com 접속 후 로그인 → 상단 검색창에 고인의 실명 입력 → [사람] 탭 클릭 → 프로필 사진·지역으로 확인합니다.' },
+      { title: '페이스북 이름 검색', desc: 'www.facebook.com 접속 후 로그인 → 상단 검색창에 고인의 실명 입력 → [사람] 탭 클릭 → 프로필 사진·지역으로 동일인 확인합니다.' },
       { title: '카카오톡·문자에서 공유된 링크 확인', desc: '고인이 공유한 페이스북 링크가 카카오톡·문자에 남아 있다면 그 링크를 브라우저에서 열면 바로 해당 프로필로 이동합니다.' },
       { title: '공통 친구를 통해 찾기', desc: '고인과 친했던 지인의 페이스북 → [친구 목록]에서 고인 이름 검색 → 클릭하면 프로필 URL 확인 가능합니다.' },
       { title: '모바일 앱에서 프로필 링크 복사', desc: '페이스북 앱 → 고인 프로필 화면 → 우측 상단 점 3개(···) → [프로필 링크 복사]를 선택하면 URL을 얻을 수 있습니다.' },
-      { title: '숫자 ID 확인 (추모 신청 시 필요)', desc: '프로필 URL이 facebook.com/이름 형태인 경우, miniwebtool.com/facebook-user-id-lookup에서 숫자 ID를 조회할 수 있습니다.' },
+      { title: '숫자 ID 확인', desc: '프로필 URL이 facebook.com/이름 형태인 경우, miniwebtool.com/facebook-user-id-lookup에서 실제 숫자 ID를 조회할 수 있습니다.' },
     ],
     sections: [
       {
-        heading: '계정 삭제·추모 전환 신청 절차',
+        heading: 'ID 확인 후 에프텀에 대행 맡기기',
         items: [
-          '페이스북 추모 계정 전환 신청: facebook.com/help/contact/228813257197480',
-          '필요 서류: 사망진단서 + 신청인 신분증',
-          '처리 기간: 수일~수주 소요',
-          '추모 계정이 되면 프로필 이름 앞에 "추모하며"가 표시되고, 기존 게시물은 그대로 보존됩니다',
+          '계정 아이디(프로필 URL 또는 숫자 ID)를 확인한 후 에프텀에 신청하면 나머지 절차를 대행해 드립니다',
+          '에프텀 신청 시 필요 정보: 고인 성명, 프로필 URL 또는 아이디',
         ],
       },
     ],
     links: [
-      { label: '페이스북 추모 계정 전환 신청', url: 'https://www.facebook.com/help/contact/228813257197480' },
       { label: '페이스북 숫자 ID 조회 도구', url: 'https://miniwebtool.com/facebook-user-id-lookup/' },
-      { label: '페이스북 계정 찾기 가이드', url: 'https://funissu.com/facebook-account-find/' },
     ],
   },
 
@@ -170,7 +166,7 @@ export const GUIDES: Guide[] = [
     category: '계정',
     accent: '#E1306C',
     emoji: '📷',
-    summary: '인스타그램 @아이디(사용자명)를 찾으면 계정 삭제를 공식 신청할 수 있습니다. 이름 검색, 팔로워 목록, 태그된 게시물 등을 활용하세요.',
+    summary: '고인의 인스타그램 @아이디(사용자명)를 찾는 방법입니다. 이름 검색, 팔로잉 목록, 태그된 게시물, 스마트폰 앱 등을 활용할 수 있습니다.',
     steps: [
       { title: '인스타그램 이름으로 검색', desc: '인스타그램 앱 실행 → 하단 돋보기(탐색) 탭 → 고인의 실명 또는 닉네임 입력 → 프로필 사진으로 동일인 확인 → 프로필 URL에서 @아이디 확인합니다.' },
       { title: '지인 팔로잉 목록에서 찾기', desc: '고인과 친했던 지인의 인스타그램 → [팔로잉] 목록 → 검색창에 고인 이름 입력 → 해당 계정을 탭하면 @아이디를 확인할 수 있습니다.' },
@@ -180,19 +176,14 @@ export const GUIDES: Guide[] = [
     ],
     sections: [
       {
-        heading: '계정 삭제 신청 방법',
+        heading: 'ID 확인 후 에프텀에 대행 맡기기',
         items: [
-          '공식 삭제 신청: instagram.com/accounts/contact/deceased',
-          '필요 서류: 사망진단서 또는 사망 증명 서류 + 신청인 신분증',
-          '비공개 계정은 팔로우 승인 없이 게시물 열람 불가',
-          '처리 기간: 수일~수주 소요',
+          '@아이디를 확인한 후 에프텀에 신청하면 나머지 절차를 대행해 드립니다',
+          '에프텀 신청 시 필요 정보: 고인 성명, @아이디',
         ],
       },
     ],
-    links: [
-      { label: '인스타그램 사망자 계정 삭제 신청', url: 'https://help.instagram.com/264154560391256' },
-      { label: '인스타그램 아이디 찾기 공식 도움말', url: 'https://www.facebook.com/help/instagram/110994885723352?locale=ko_KR' },
-    ],
+    links: [],
   },
 
   {
@@ -202,7 +193,7 @@ export const GUIDES: Guide[] = [
     category: '계정',
     accent: '#000000',
     emoji: '✖️',
-    summary: 'X(구 트위터)의 @username을 찾으면 공식 계정 비활성화를 신청할 수 있습니다. 이름 검색, 스마트폰 앱, 공유된 링크를 활용하세요.',
+    summary: '고인의 X(구 트위터) @username을 찾는 방법입니다. 이름 검색, 스마트폰 앱, 공유된 링크에서 확인할 수 있습니다.',
     steps: [
       { title: 'X에서 이름으로 검색', desc: 'x.com 접속 후 로그인 → 검색창에 고인의 실명 또는 닉네임 입력 → [사람] 필터 선택 → 프로필로 이동하면 주소창에 x.com/@아이디 형태로 표시됩니다.' },
       { title: '고인 스마트폰 X 앱에서 직접 확인', desc: '고인의 스마트폰에서 X 앱 실행 → 좌측 상단 프로필 사진 탭 → 상단에 @아이디가 표시됩니다. [설정 및 지원] → [계정] → [사용자 아이디]에서도 확인 가능합니다.' },
@@ -211,19 +202,14 @@ export const GUIDES: Guide[] = [
     ],
     sections: [
       {
-        heading: '계정 비활성화 신청 방법',
+        heading: 'ID 확인 후 에프텀에 대행 맡기기',
         items: [
-          '공식 신청 페이지: help.x.com/forms/privacy',
-          '필요 서류: 사망진단서 + 신청인 신분증 + 고인과의 관계 증명',
-          '비공개 계정은 팔로우 없이 트윗 열람 불가',
-          '처리 기간: 수일~수주 소요',
+          '@username을 확인한 후 에프텀에 신청하면 나머지 절차를 대행해 드립니다',
+          '에프텀 신청 시 필요 정보: 고인 성명, @username',
         ],
       },
     ],
-    links: [
-      { label: 'X 계정 비활성화 공식 신청', url: 'https://help.x.com/en/forms/account-access/deactivate-or-close-account' },
-      { label: 'X 공식 사람 찾기 도움말', url: 'https://help.x.com/en/using-x/x-search-people' },
-    ],
+    links: [],
   },
 
   {
@@ -233,8 +219,8 @@ export const GUIDES: Guide[] = [
     category: '계정',
     accent: '#4285F4',
     emoji: '🔍',
-    summary: '고인의 Gmail 주소를 찾으면 계정 삭제를 공식 신청하거나, 구글 비밀번호 관리자에서 다른 서비스의 아이디·비밀번호도 확인할 수 있습니다.',
-    tip: '구글 비밀번호 관리자(passwords.google.com)에 접근하면 고인이 가입한 다른 서비스(페이스북, 인스타 등)의 아이디와 비밀번호도 한 번에 확인할 수 있습니다.',
+    summary: '고인의 Gmail 주소(구글 계정 아이디)를 찾는 방법입니다. 스마트폰 설정, Gmail 앱, 크롬 브라우저에서 확인할 수 있습니다.',
+    tip: '구글 비밀번호 관리자(passwords.google.com)에 접근하면 고인이 가입한 다른 서비스(페이스북, 인스타 등)의 아이디도 한 번에 확인할 수 있습니다.',
     steps: [
       { title: '안드로이드 폰 설정에서 확인', desc: '고인의 안드로이드 스마트폰 → [설정] 앱 → [계정] 또는 [구글] → 상단에 Gmail 주소(@gmail.com)가 표시됩니다. 여러 계정 등록 시 목록에 모두 나열됩니다.' },
       { title: 'Gmail 앱에서 확인', desc: 'Gmail 앱 실행 → 우측 상단 프로필 사진(원형 아이콘) 탭 → 팝업 상단에 이름과 Gmail 주소가 표시됩니다.' },
@@ -244,19 +230,16 @@ export const GUIDES: Guide[] = [
     ],
     sections: [
       {
-        heading: '계정 삭제 신청 방법',
+        heading: 'ID 확인 후 에프텀에 대행 맡기기',
         items: [
-          '공식 삭제 신청: support.google.com/accounts/troubleshooter/6357590',
-          '필요 서류: 사망진단서 + 신청인 신분증 + 고인과의 관계 증명',
+          'Gmail 주소(아이디)를 확인한 후 에프텀에 신청하면 나머지 절차를 대행해 드립니다',
+          '에프텀 신청 시 필요 정보: 고인 성명, Gmail 주소',
           '고인 스마트폰 잠금 해제가 선행되어야 직접 확인 가능',
-          '처리 기간: 수일~수주 소요',
         ],
       },
     ],
     links: [
       { label: '구글 비밀번호 관리자', url: 'https://passwords.google.com/intro?hl=ko' },
-      { label: '구글 계정 삭제 공식 안내', url: 'https://support.google.com/accounts/troubleshooter/6357590' },
-      { label: '크롬 저장 비밀번호 관리 (공식)', url: 'https://support.google.com/chrome/answer/95606?hl=ko' },
     ],
   },
 
