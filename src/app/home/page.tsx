@@ -10,11 +10,11 @@ import ChatOpenButton from './ChatOpenButton'
 import CaseCarousel from './CaseCarousel'
 
 const GUIDES = [
-  { tag: '안심상속', title: '안심상속 원스톱 서비스', desc: '금융·부동산·세금 정보를 한 번에 조회하는 방법', color: '#EBF3FF', accent: '#2563EB', icon: '🏛️', href: 'https://www.gov.kr/portal/service/serviceInfo/PTR000051077' },
-  { tag: '연금',    title: '유족연금 신청 방법',     desc: '국민연금·공무원연금 유족급여 청구 절차',        color: '#F0FDF4', accent: '#15803D', icon: '💰', href: 'https://www.nps.or.kr/jsppage/business/bnn/bnn_03_01.jsp' },
-  { tag: '금융',    title: '은행 계좌 사망 신고',    desc: '계좌 동결·해지·상속 이전 처리 안내',           color: '#FFF7ED', accent: '#C2410C', icon: '🏦', href: 'https://www.fss.or.kr/fss/main/contents.do?menuNo=200463' },
-  { tag: '통신',    title: '휴대폰·인터넷 해지',     desc: '사망자 명의 이동통신·인터넷 해지 방법',         color: '#F5F3FF', accent: '#7C3AED', icon: '📱', href: 'https://www.msit.go.kr/bbs/view.do?sCode=user&mId=99&mPid=74&bbsSeqNo=94&nttSeqNo=3173329' },
-  { tag: '보험',    title: '생명보험 사망 보험금',   desc: '사망 보험금 청구 서류와 처리 기간 안내',         color: '#FFF1F2', accent: '#BE123C', icon: '📄', href: 'https://www.insure.or.kr/main.do' },
+  { tag: '안심상속', title: '안심상속 원스톱 서비스', desc: '금융·부동산·세금 정보를 한 번에 조회하는 방법', color: '#EBF3FF', accent: '#2563EB', icon: '🏛️', href: '/guide/safe-inheritance' },
+  { tag: '연금',    title: '유족연금 신청 방법',     desc: '국민연금·공무원연금 유족급여 청구 절차',        color: '#F0FDF4', accent: '#15803D', icon: '💰', href: '/guide/survivor-pension' },
+  { tag: '금융',    title: '은행 계좌 사망 신고',    desc: '계좌 동결·해지·상속 이전 처리 안내',           color: '#FFF7ED', accent: '#C2410C', icon: '🏦', href: '/guide/bank-notification' },
+  { tag: '통신',    title: '휴대폰·인터넷 해지',     desc: '사망자 명의 이동통신·인터넷 해지 방법',         color: '#F5F3FF', accent: '#7C3AED', icon: '📱', href: '/guide/mobile-cancellation' },
+  { tag: '보험',    title: '생명보험 사망 보험금',   desc: '사망 보험금 청구 서류와 처리 기간 안내',         color: '#FFF1F2', accent: '#BE123C', icon: '📄', href: '/guide/life-insurance' },
 ]
 
 export default async function HomePage() {
@@ -86,14 +86,14 @@ export default async function HomePage() {
         <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 12px' }}>서류 발급 및 계정 정보 확인 방법</p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>, label: '사망진단서 발급', sub: '정부24에서 온라인 발급', href: 'https://www.gov.kr/portal/service/serviceInfo/PTR000051250' },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, label: '가족관계증명서', sub: '정부24에서 온라인 발급', href: 'https://efamily.scourt.go.kr' },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, label: '페이스북 계정 찾기', sub: '프로필 URL 확인 방법', href: 'https://www.facebook.com/help/211813265517027' },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E1306C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>, label: '인스타그램 아이디', sub: '프로필에서 @아이디 확인', href: 'https://help.instagram.com/181103882360146' },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16H20L8.267 4z"/><path d="M4 20l6.768-6.768M15.232 8.768L20 4"/></svg>, label: 'X 아이디 확인', sub: '프로필에서 @username 확인', href: 'https://help.twitter.com/ko/managing-your-account' },
-            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" stroke="none"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" stroke="none"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" stroke="none"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" stroke="none"/></svg>, label: '구글 계정 확인', sub: '고인의 Gmail 주소 확인', href: 'https://support.google.com/accounts/troubleshooter/6357590' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>, label: '사망진단서 발급', sub: '병원 원무과 발급 안내', href: '/guide/death-certificate' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, label: '가족관계증명서', sub: '정부24 온라인 무료 발급', href: '/guide/family-register' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, label: '페이스북 계정 찾기', sub: '프로필 URL 확인 방법', href: '/guide/facebook' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E1306C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>, label: '인스타그램 아이디', sub: '프로필에서 @아이디 확인', href: '/guide/instagram' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16H20L8.267 4z"/><path d="M4 20l6.768-6.768M15.232 8.768L20 4"/></svg>, label: 'X 아이디 확인', sub: '프로필에서 @username 확인', href: '/guide/twitter' },
+            { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" stroke="none"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" stroke="none"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" stroke="none"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" stroke="none"/></svg>, label: '구글 계정 확인', sub: '고인의 Gmail 주소 확인', href: '/guide/google' },
           ].map(item => (
-            <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+            <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
               <div style={{
                 background: '#F9FAFB', borderRadius: 12, padding: '14px 12px',
                 border: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 80,
@@ -104,7 +104,7 @@ export default async function HomePage() {
                   <div style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>{item.sub}</div>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -116,7 +116,7 @@ export default async function HomePage() {
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {GUIDES.map(g => (
-            <a key={g.tag} href={g.href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+            <Link key={g.tag} href={g.href} style={{ textDecoration: 'none' }}>
               <div style={{
                 background: '#fff', borderRadius: 14, padding: '14px 16px',
                 display: 'flex', gap: 12, alignItems: 'center',
@@ -134,7 +134,7 @@ export default async function HomePage() {
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
