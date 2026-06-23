@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { LoginBottomSheet } from '@/components/ui/LoginBottomSheet'
 
-type ModalType = 'notification' | 'privacy' | 'terms' | 'faq' | 'delegation' | null
+type ModalType = 'notification' | 'privacy' | 'terms' | 'faq' | 'delegation' | 'payments' | null
 
 type PaymentCase = {
   id: string
@@ -35,21 +35,18 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
   const [paymentCases, setPaymentCases] = useState<PaymentCase[]>([])
   const [paymentLoading, setPaymentLoading] = useState(false)
 
-  // 결제 내역 페이지 진입 시 자동 로드
-  useEffect(() => {
-    if (isGuest) return
-    const load = async () => {
-      setPaymentLoading(true)
-      const { data } = await supabase
-        .from('cases')
-        .select('id, deceased_name, status, payment_status, paid_amount, paid_at, refunded_at, case_services(service_name)')
-        .in('payment_status', ['paid', 'refunded'])
-        .order('paid_at', { ascending: false })
-      setPaymentCases((data as PaymentCase[]) || [])
-      setPaymentLoading(false)
-    }
-    load()
-  }, [isGuest])
+  const openPayments = async () => {
+    if (isGuest) { setLoginOpen(true); return }
+    setActiveModal('payments')
+    setPaymentLoading(true)
+    const { data } = await supabase
+      .from('cases')
+      .select('id, deceased_name, status, payment_status, paid_amount, paid_at, refunded_at, case_services(service_name)')
+      .in('payment_status', ['paid', 'refunded'])
+      .order('paid_at', { ascending: false })
+    setPaymentCases((data as PaymentCase[]) || [])
+    setPaymentLoading(false)
+  }
 
   const requireLogin = (fn: () => void) => {
     if (isGuest) { setLoginOpen(true); return }
@@ -175,6 +172,65 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
               </div>
             </>)}
 
+            {activeModal === 'payments' && (<>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>결제 내역</h3>
+              {paymentLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#9CA3AF' }}>불러오는 중...</div>
+              ) : paymentCases.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                  <p style={{ fontSize: 15, color: '#9CA3AF' }}>결제 내역이 없습니다</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {paymentCases.map(c => {
+                    const isRefunded = c.payment_status === 'refunded'
+                    const services = c.case_services?.map(s => s.service_name).join(', ') || '-'
+                    const paidDate = c.paid_at ? new Date(c.paid_at).toLocaleDateString('ko-KR') : '-'
+                    const refundDate = c.refunded_at ? new Date(c.refunded_at).toLocaleDateString('ko-KR') : null
+                    return (
+                      <div key={c.id} style={{ borderRadius: 16, border: '1px solid #E8EAF0', background: '#fff', overflow: 'hidden' }}>
+                        <div style={{
+                          padding: '10px 16px', background: isRefunded ? '#FEF2F2' : '#EFF6FF',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: isRefunded ? '#DC2626' : '#1D4ED8' }}>
+                            {isRefunded ? '환불 완료' : '결제 완료'}
+                          </span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: isRefunded ? '#EF4444' : '#2563EB' }}>
+                            {c.paid_amount?.toLocaleString()}원
+                          </span>
+                        </div>
+                        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 12, color: '#6B7280' }}>고인</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>{c.deceased_name}님</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 12, color: '#6B7280' }}>신청 서비스</span>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', textAlign: 'right', maxWidth: '60%' }}>{services}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 12, color: '#6B7280' }}>결제일</span>
+                            <span style={{ fontSize: 12, color: '#374151' }}>{paidDate}</span>
+                          </div>
+                          {isRefunded && refundDate && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: 12, color: '#6B7280' }}>환불일</span>
+                              <span style={{ fontSize: 12, color: '#DC2626', fontWeight: 600 }}>{refundDate}</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: 12, color: '#6B7280' }}>접수번호</span>
+                            <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>#{c.id.slice(0,8).toUpperCase()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>)}
+
             {activeModal === 'delegation' && (<>
               <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>위임장 확인</h3>
               <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 20px' }}>신청 시 작성된 위임장을 PDF로 다운로드할 수 있습니다.</p>
@@ -223,12 +279,11 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
         </div>
       )}
 
-      {/* 결제 — 인라인 표시 */}
+      {/* 결제 */}
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>결제</h2>
-
-        {/* 위임장 확인 + 결제 내역 메뉴 */}
-        <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
+          <MenuItem title="결제 내역" desc="결제 및 환불 내역 확인" onClick={openPayments} />
           <MenuItem title="위임장 확인" desc="내가 작성한 위임장 PDF 다운로드"
             onClick={() => requireLogin(() => setActiveModal('delegation'))} />
           <div style={{ borderBottom: 'none' }}>
@@ -236,70 +291,6 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
               onClick={() => window.open('/refund', '_blank')} />
           </div>
         </div>
-
-        {/* 결제 내역 인라인 */}
-        {!isGuest && (
-          <>
-            <p style={{ fontSize: 14, fontWeight: 700, color: '#374151', margin: '0 0 10px' }}>결제 내역</p>
-            {paymentLoading ? (
-              <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', padding: '24px', textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-                불러오는 중...
-              </div>
-            ) : paymentCases.length === 0 ? (
-              <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', padding: '28px', textAlign: 'center', color: '#9CA3AF', fontSize: 14 }}>
-                결제 내역이 없습니다
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {paymentCases.map(c => {
-                  const isRefunded = c.payment_status === 'refunded'
-                  const services = c.case_services?.map(s => s.service_name).join(', ') || '-'
-                  const paidDate = c.paid_at ? new Date(c.paid_at).toLocaleDateString('ko-KR') : '-'
-                  const refundDate = c.refunded_at ? new Date(c.refunded_at).toLocaleDateString('ko-KR') : null
-                  return (
-                    <div key={c.id} style={{ borderRadius: 16, border: '1px solid #E8EAF0', background: '#fff', overflow: 'hidden' }}>
-                      <div style={{
-                        padding: '10px 16px', background: isRefunded ? '#FEF2F2' : '#EFF6FF',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: isRefunded ? '#DC2626' : '#1D4ED8' }}>
-                          {isRefunded ? '환불 완료' : '결제 완료'}
-                        </span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: isRefunded ? '#EF4444' : '#2563EB' }}>
-                          {c.paid_amount?.toLocaleString()}원
-                        </span>
-                      </div>
-                      <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: 12, color: '#6B7280' }}>고인</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>{c.deceased_name}님</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: 12, color: '#6B7280' }}>신청 서비스</span>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', textAlign: 'right', maxWidth: '60%' }}>{services}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: 12, color: '#6B7280' }}>결제일</span>
-                          <span style={{ fontSize: 12, color: '#374151' }}>{paidDate}</span>
-                        </div>
-                        {isRefunded && refundDate && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: 12, color: '#6B7280' }}>환불일</span>
-                            <span style={{ fontSize: 12, color: '#DC2626', fontWeight: 600 }}>{refundDate}</span>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: 12, color: '#6B7280' }}>접수번호</span>
-                          <span style={{ fontSize: 11, color: '#9CA3AF', fontFamily: 'monospace' }}>#{c.id.slice(0,8).toUpperCase()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </>
-        )}
       </div>
 
       {/* 도움 받기 */}
