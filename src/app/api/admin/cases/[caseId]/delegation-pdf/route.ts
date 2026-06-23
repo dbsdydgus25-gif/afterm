@@ -56,8 +56,8 @@ export async function GET(
   const pdfDoc = await PDFDocument.create()
   pdfDoc.registerFontkit(fontkit)
 
-  const font     = await pdfDoc.embedFont(fontBytes)
-  const fontBold = await pdfDoc.embedFont(fontBoldBytes)
+  const font     = await pdfDoc.embedFont(Buffer.from(fontBytes))
+  const fontBold = await pdfDoc.embedFont(Buffer.from(fontBoldBytes))
 
   const page = pdfDoc.addPage([595, 842])
   const { width, height } = page.getSize()

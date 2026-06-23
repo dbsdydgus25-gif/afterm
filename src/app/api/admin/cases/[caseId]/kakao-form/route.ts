@@ -46,7 +46,7 @@ export async function GET(
   const fontBytes = fs.readFileSync(path.join(process.cwd(), 'public', 'fonts', 'NotoSansKR-Regular.ttf'))
   const pdfDoc = await PDFDocument.load(fs.readFileSync(templatePath))
   pdfDoc.registerFontkit(fontkit)
-  const font = await pdfDoc.embedFont(fontBytes)
+  const font = await pdfDoc.embedFont(Buffer.from(fontBytes))
 
   const pages = pdfDoc.getPages()
   const p1 = pages[0]  // 고인 정보 / 신청인 정보 / 체크박스
