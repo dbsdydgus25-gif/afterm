@@ -175,12 +175,11 @@ export async function GET(
     line(ML, y - 3, MR, y - 3, 0.4)
     t(label, ML + 8, y + 3, 9, false, gray)
     if (isAddr && val && val.length > 20) {
-      // 긴 주소는 두 줄로 분할
-      const mid = Math.ceil(val.length / 2)
-      const line1 = val.slice(0, mid)
-      const line2 = val.slice(mid)
-      t(line1, ML + 110, y + 9, 9, false, black)
-      t(line2, ML + 110, y - 2, 9, false, black)
+      // 긴 주소는 공백 기준으로 앞/뒤 분할
+      const spaceIdx = val.indexOf(' ', Math.floor(val.length * 0.4))
+      const splitAt = spaceIdx > 0 ? spaceIdx : Math.ceil(val.length / 2)
+      t(val.slice(0, splitAt).trim(), ML + 110, y + 9, 9, false, black)
+      t(val.slice(splitAt).trim(), ML + 110, y - 2, 9, false, black)
     } else {
       t(val || '_______________', ML + 110, y + 3, 9.5, true, val ? black : lgray)
     }
@@ -205,6 +204,27 @@ export async function GET(
     line(ML, y - 3, MR, y - 3, 0.4)
     t(label, ML + 8, y + 3, 9, false, gray)
     t(val, ML + 110, y + 3, 9.5, false, black)
+    y -= 18
+  }
+  line(ML, y + 14, MR, y + 14, 0.4)
+  y -= 18
+
+  // 고인 정보 테이블
+  t('▪ 고인 (피위임인)', ML, y, 9.5, true, navy)
+  y -= 12
+
+  const deceasedRows: [string, string][] = [
+    ['성   명', caseData.deceased_name || ''],
+    ['생   년   월   일', caseData.deceased_birth || ''],
+    ['사   망   일', caseData.deceased_death || ''],
+    ['전   화   번   호', caseData.deceased_phone || ''],
+  ]
+
+  for (const [label, val] of deceasedRows) {
+    page.drawRectangle({ x: ML, y: y - 3, width: CW, height: 16, color: rgb(0.97, 0.97, 0.97) })
+    line(ML, y - 3, MR, y - 3, 0.4)
+    t(label, ML + 8, y + 3, 9, false, gray)
+    t(val || '_______________', ML + 110, y + 3, 9.5, false, val ? black : lgray)
     y -= 18
   }
   line(ML, y + 14, MR, y + 14, 0.4)

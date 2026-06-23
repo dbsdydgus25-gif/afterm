@@ -623,13 +623,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   const [address, setAddress] = useState('')
   const [addressDetail, setAddressDetail] = useState('')
   const [referralSource, setReferralSource] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'verify' | 'referral'>('name')
-  const [otpToken, setOtpToken] = useState('')
-  const [otpCode, setOtpCode] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [otpError, setOtpError] = useState('')
-  const [otpSending, setOtpSending] = useState(false)
-  const [devCode, setDevCode] = useState('')  // 개발용 코드 표시
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'referral'>('name')
   const supabase = createClient()
 
   useEffect(() => {
@@ -646,57 +640,12 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
     return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`
   }
 
-  const sendOtp = async () => {
-    setOtpSending(true)
-    setOtpError('')
-    setOtpCode('')
-    try {
-      const res = await fetch('/api/verify/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      })
-      const data = await res.json()
-      if (data.ok) {
-        setOtpToken(data.token)
-        setOtpSent(true)
-        if (data.devCode) setDevCode(data.devCode)  // 개발환경에서만 표시
-      } else {
-        setOtpError('인증번호 발송에 실패했습니다')
-      }
-    } catch {
-      setOtpError('네트워크 오류가 발생했습니다')
-    } finally {
-      setOtpSending(false)
-    }
-  }
-
-  const verifyOtp = async () => {
-    setOtpError('')
-    try {
-      const res = await fetch('/api/verify/check-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code: otpCode, token: otpToken }),
-      })
-      const data = await res.json()
-      if (data.ok) {
-        setInnerStep('referral')
-      } else {
-        setOtpError(data.error || '인증번호가 올바르지 않습니다')
-      }
-    } catch {
-      setOtpError('인증 오류가 발생했습니다')
-    }
-  }
-
   const innerLabels = {
-    name: '신청인 정보 1/6',
-    relation: '신청인 정보 2/6',
-    address: '신청인 정보 3/6',
-    phone: '신청인 정보 4/6',
-    verify: '신청인 정보 5/6',
-    referral: '신청인 정보 6/6',
+    name: '신청인 정보 1/5',
+    relation: '신청인 정보 2/5',
+    address: '신청인 정보 3/5',
+    phone: '신청인 정보 4/5',
+    referral: '신청인 정보 5/5',
   }
 
   return (
@@ -792,13 +741,11 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
         )}
         {innerStep === 'phone' && (
           <div key="phone">
-            <Question label={'핸드폰\n본인인증을 해주세요'} sub="신청인 본인 명의 번호로 인증해 주세요. 위임장에 인증 기록이 남습니다." />
+            <Question label={'연락처를\n입력해 주세요'} sub="위임장에 기재되는 신청인 연락처입니다" />
             <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
               onChange={e => setPhone(phoneFormat(e.target.value))}
               onKeyDown={e => {
-                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) {
-                  sendOtp().then(() => setInnerStep('verify'))
-                }
+                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) setInnerStep('referral')
               }}
               style={{
                 width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
@@ -806,49 +753,6 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
                 color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
               }}
             />
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>
-              인증번호 6자리가 발송됩니다. 위임장에 본인인증 완료 기록이 삽입됩니다.
-            </p>
-          </div>
-        )}
-        {innerStep === 'verify' && (
-          <div key="verify">
-            <Question
-              label={'인증번호를\n입력해 주세요'}
-              sub={`${phone}로 발송된 6자리 숫자를 입력해 주세요`}
-            />
-            {devCode && (
-              <div style={{
-                padding: '12px 16px', background: '#FFFBEB', borderRadius: 10,
-                border: '1px solid #FDE68A', marginBottom: 16,
-                fontSize: 13, color: '#92400E', fontWeight: 600,
-              }}>
-                [개발 환경] 인증번호: <span style={{ fontSize: 20, letterSpacing: '0.15em', color: '#D97706' }}>{devCode}</span>
-              </div>
-            )}
-            <input
-              type="tel" inputMode="numeric" placeholder="000000" value={otpCode} autoFocus maxLength={6}
-              onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              onKeyDown={e => { if (e.key === 'Enter' && otpCode.length === 6) verifyOtp() }}
-              style={{
-                width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
-                background: 'transparent', fontSize: 28, fontWeight: 900, letterSpacing: '0.2em',
-                color: '#111827', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
-            {otpError && (
-              <p style={{ fontSize: 13, color: '#EF4444', marginTop: 8, fontWeight: 600 }}>⚠ {otpError}</p>
-            )}
-            <button
-              onClick={() => { sendOtp() }}
-              style={{
-                marginTop: 14, fontSize: 13, color: '#2563EB', fontWeight: 600,
-                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                padding: 0, textDecoration: 'underline',
-              }}
-            >
-              {otpSending ? '발송 중...' : '인증번호 재발송'}
-            </button>
           </div>
         )}
         {innerStep === 'referral' && (
@@ -878,36 +782,28 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             else if (innerStep === 'relation') setInnerStep('name')
             else if (innerStep === 'address') setInnerStep('relation')
             else if (innerStep === 'phone') setInnerStep('address')
-            else if (innerStep === 'verify') { setInnerStep('phone'); setOtpSent(false); setOtpCode(''); setDevCode('') }
-            else setInnerStep('verify')
+            else setInnerStep('phone')
           }} />
           <PrimaryBtn
             disabled={
               innerStep === 'name' ? !name.trim() :
               innerStep === 'relation' ? !relation :
               innerStep === 'address' ? !address.trim() :
-              innerStep === 'phone' ? (phone.replace(/\D/g, '').length < 10 || otpSending) :
-              innerStep === 'verify' ? otpCode.length !== 6 :
+              innerStep === 'phone' ? phone.replace(/\D/g, '').length < 10 :
               false
             }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
               else if (innerStep === 'relation') setInnerStep('address')
               else if (innerStep === 'address') setInnerStep('phone')
-              else if (innerStep === 'phone') {
-                sendOtp().then(() => setInnerStep('verify'))
-              } else if (innerStep === 'verify') {
-                verifyOtp()
-              } else {
+              else if (innerStep === 'phone') setInnerStep('referral')
+              else {
                 const fullAddress = addressDetail ? `${address} ${addressDetail}` : address
                 onNext(name, relation, phone, fullAddress, referralSource)
               }
             }}
           >
-            {innerStep === 'phone' ? (otpSending ? '발송 중...' : '인증번호 받기') :
-             innerStep === 'verify' ? '인증 확인' :
-             innerStep === 'referral' ? '완료' :
-             '계속하기'}
+            {innerStep === 'referral' ? '완료' : '계속하기'}
           </PrimaryBtn>
         </div>
       </Dock>

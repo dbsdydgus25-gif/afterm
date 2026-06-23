@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
           (delegation as any).delegator_name || profile?.name || '',
           (delegation as any).delegator_relation || '',
           svc.service_name || '', trackLabel, '에프텀대행',
-          svc.account_id || svc.contact_info || '',
+          svc.account_id || '',
           '', (delegation as any).delegator_phone || profile?.phone || '',
           '', '', `무료(${code})`, promoPaymentId, '', '', '',
         ]

@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
           const submittedAt = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 
           const rows = (caseData.case_services || []).map((svc: any) => {
-            const accountInfo = svc.account_id || svc.contact_info || ''
+            const accountInfo = svc.account_id || ''
             const trackRaw = svc.dispatch_type || svc.service_category
             const trackLabel = trackRaw === 'memorialize' || trackRaw === '추모계정' ? '추모계정' : '계정삭제'
             const serviceId = (svc.service_name || '').toLowerCase()
