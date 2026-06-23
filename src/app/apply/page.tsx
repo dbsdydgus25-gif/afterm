@@ -423,7 +423,7 @@ function StepOcr({
 }: {
   onNext: (file: File | null, aiResult: AiResult) => void
   onBack: () => void
-  setDeceasedInfo: (info: { name?: string; birthDate?: string; deathDate?: string }) => void
+  setDeceasedInfo: (info: { name?: string; birthDate?: string; deathDate?: string; phone?: string }) => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [phase, setPhase] = useState<'upload' | 'confirm'>('upload')
@@ -433,6 +433,7 @@ function StepOcr({
   const [birthDate, setBirthDate] = useState('')
   const [deathDate, setDeathDate] = useState('')
   const [hospital, setHospital] = useState('')
+  const [deceasedPhone, setDeceasedPhone] = useState('')
   const [certFile, setCertFile] = useState<File | null>(null)
   const [aiResult, setAiResult] = useState<AiResult>({})
   const [error, setError] = useState('')
@@ -466,7 +467,7 @@ function StepOcr({
   const handleConfirm = () => {
     if (!name.trim()) { setError('성함을 입력해 주세요'); return }
     if (!deathDate || deathDate.split('-').length !== 3) { setError('사망일을 입력해 주세요'); return }
-    setDeceasedInfo({ name: name.trim(), birthDate, deathDate })
+    setDeceasedInfo({ name: name.trim(), birthDate, deathDate, phone: deceasedPhone })
     onNext(certFile, aiResult)
   }
 
@@ -567,9 +568,27 @@ function StepOcr({
                 <DateInput value={birthDate} onChange={setBirthDate} />
               </div>
 
-              <div style={{ padding: '16px 18px', borderBottom: hospital ? '1px solid #F3F4F6' : undefined }}>
+              <div style={{ padding: '16px 18px', borderBottom: '1px solid #F3F4F6' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 8px', letterSpacing: '0.05em' }}>사망 연월일</p>
                 <DateInput value={deathDate} onChange={setDeathDate} />
+              </div>
+
+              <div style={{ padding: '16px 18px', borderBottom: hospital ? '1px solid #F3F4F6' : undefined }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>고인 전화번호 <span style={{ fontWeight: 400 }}>(선택)</span></p>
+                <input
+                  type="tel" inputMode="numeric"
+                  placeholder="예: 010-0000-0000"
+                  value={deceasedPhone}
+                  onChange={e => {
+                    const d = e.target.value.replace(/\D/g, '').slice(0, 11)
+                    setDeceasedPhone(d.length <= 3 ? d : d.length <= 7 ? `${d.slice(0,3)}-${d.slice(3)}` : `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`)
+                  }}
+                  style={{
+                    width: '100%', border: 'none', background: 'transparent',
+                    fontSize: 16, fontWeight: 600, color: '#111827',
+                    outline: 'none', fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
+                  }}
+                />
               </div>
 
               {hospital && (
