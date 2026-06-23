@@ -574,7 +574,7 @@ function StepOcr({
               </div>
 
               <div style={{ padding: '16px 18px', borderBottom: hospital ? '1px solid #F3F4F6' : undefined }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', letterSpacing: '0.05em' }}>고인 전화번호 <span style={{ fontWeight: 400 }}>(선택)</span></p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#EF4444', margin: '0 0 4px', letterSpacing: '0.05em' }}>고인 전화번호 ★ 필수 입력</p>
                 <input
                   type="tel" inputMode="numeric"
                   placeholder="예: 010-0000-0000"
@@ -589,6 +589,9 @@ function StepOcr({
                     outline: 'none', fontFamily: 'inherit', padding: 0, boxSizing: 'border-box',
                   }}
                 />
+                <p style={{ fontSize: 11, color: '#EF4444', margin: '6px 0 0', lineHeight: 1.5 }}>
+                  카카오·구글 등 계정 처리 시 반드시 필요합니다. 수기로 입력해 주세요.
+                </p>
               </div>
 
               {hospital && (
@@ -642,7 +645,7 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   const [address, setAddress] = useState('')
   const [addressDetail, setAddressDetail] = useState('')
   const [referralSource, setReferralSource] = useState('')
-  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone' | 'referral'>('name')
+  const [innerStep, setInnerStep] = useState<'name' | 'relation' | 'address' | 'phone'>('name')
   const supabase = createClient()
 
   useEffect(() => {
@@ -660,11 +663,10 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
   }
 
   const innerLabels = {
-    name: '신청인 정보 1/5',
-    relation: '신청인 정보 2/5',
-    address: '신청인 정보 3/5',
-    phone: '신청인 정보 4/5',
-    referral: '신청인 정보 5/5',
+    name: '신청인 정보 1/4',
+    relation: '신청인 정보 2/4',
+    address: '신청인 정보 3/4',
+    phone: '신청인 정보 4/4',
   }
 
   return (
@@ -764,7 +766,10 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             <input type="tel" inputMode="numeric" placeholder="010-0000-0000" value={phone} autoFocus
               onChange={e => setPhone(phoneFormat(e.target.value))}
               onKeyDown={e => {
-                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) setInnerStep('referral')
+                if (e.key === 'Enter' && phone.replace(/\D/g, '').length >= 10) {
+                  const fullAddress = addressDetail ? `${address} ${addressDetail}` : address
+                  onNext(name, relation, phone, fullAddress, referralSource)
+                }
               }}
               style={{
                 width: '100%', height: 52, border: 0, borderBottom: '2px solid #2563EB',
@@ -774,25 +779,6 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             />
           </div>
         )}
-        {innerStep === 'referral' && (
-          <div key="referral">
-            <Question label={'에프텀을\n어떻게 알게 되셨나요?'} sub="서비스 개선을 위해 활용됩니다 (선택)" />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {REFERRAL_OPTIONS.map(r => (
-                <button key={r} onClick={() => setReferralSource(r)} style={{
-                  padding: '11px 20px', borderRadius: 50,
-                  border: `1.5px solid ${referralSource === r ? '#2563EB' : '#E5E9EF'}`,
-                  background: referralSource === r ? '#EBF3FF' : '#fff',
-                  color: referralSource === r ? '#2563EB' : '#374151',
-                  fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'inherit', transition: 'all 0.15s',
-                }}>
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </Body>
       <Dock>
         <div style={{ display: 'flex', gap: 10 }}>
@@ -800,29 +786,26 @@ function StepApplicant({ onNext, onBack, deceasedName }: {
             if (innerStep === 'name') onBack()
             else if (innerStep === 'relation') setInnerStep('name')
             else if (innerStep === 'address') setInnerStep('relation')
-            else if (innerStep === 'phone') setInnerStep('address')
-            else setInnerStep('phone')
+            else setInnerStep('address')
           }} />
           <PrimaryBtn
             disabled={
               innerStep === 'name' ? !name.trim() :
               innerStep === 'relation' ? !relation :
               innerStep === 'address' ? !address.trim() :
-              innerStep === 'phone' ? phone.replace(/\D/g, '').length < 10 :
-              false
+              phone.replace(/\D/g, '').length < 10
             }
             onClick={() => {
               if (innerStep === 'name') setInnerStep('relation')
               else if (innerStep === 'relation') setInnerStep('address')
               else if (innerStep === 'address') setInnerStep('phone')
-              else if (innerStep === 'phone') setInnerStep('referral')
               else {
                 const fullAddress = addressDetail ? `${address} ${addressDetail}` : address
                 onNext(name, relation, phone, fullAddress, referralSource)
               }
             }}
           >
-            {innerStep === 'referral' ? '완료' : '계속하기'}
+            {innerStep === 'phone' ? '완료' : '계속하기'}
           </PrimaryBtn>
         </div>
       </Dock>
@@ -841,18 +824,27 @@ function StepAccountNotice({ onNext, onBack }: { onNext: () => void; onBack: () 
           label={'계정 아이디를\n알고 계셔야 합니다'}
           sub="서비스 처리를 위해 고인의 계정 아이디(이메일/전화번호)가 필요합니다"
         />
-        <div style={{
-          padding: '18px 20px', borderRadius: 14,
-          background: '#EBF3FF', border: '1.5px solid #BFDBFE',
-        }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#1D4ED8', margin: '0 0 10px' }}>아이디를 모르는 경우</p>
-          <ul style={{ fontSize: 13, color: '#374151', margin: 0, padding: '0 0 0 16px', lineHeight: 2.2 }}>
-            <li>고인의 휴대폰에서 앱 로그인 확인</li>
-            <li>이메일 받은 메일함에서 가입 메일 검색</li>
-            <li>가족이나 지인에게 확인</li>
-          </ul>
-          <p style={{ fontSize: 12, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
-            아이디를 모르시면 처리 지연이 발생할 수 있습니다
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            padding: '16px 18px', borderRadius: 14,
+            background: '#F0FDF4', border: '1.5px solid #BBF7D0',
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#15803D', margin: '0 0 8px' }}>🍎 아이폰 (iPhone)</p>
+            <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.8 }}>
+              설정 앱 열기 → 하단 <strong>암호</strong> 탭 → 서비스별 저장된 계정·비밀번호 확인
+            </p>
+          </div>
+          <div style={{
+            padding: '16px 18px', borderRadius: 14,
+            background: '#EFF6FF', border: '1.5px solid #BFDBFE',
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', margin: '0 0 8px' }}>📱 갤럭시 (Galaxy)</p>
+            <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.8 }}>
+              설정 앱 열기 → <strong>생체인식 및 보안</strong> → <strong>비밀번호 관리자</strong> → 서비스별 계정 확인
+            </p>
+          </div>
+          <p style={{ fontSize: 12, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+            고인의 휴대폰 암호를 해제할 수 있어야 확인 가능합니다. 모르는 경우 이메일 받은 메일함에서 가입 메일을 검색해 보세요.
           </p>
         </div>
       </Body>
@@ -905,7 +897,7 @@ function StepTrack({ onSelect, onBack }: {
             <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>
               계정과 모든 데이터를 영구 삭제해요
             </div>
-            <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>구글 · 페이스북 · 트위터X</div>
+            <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 8 }}>구글 · 페이스북 · 트위터X · 카카오톡</div>
           </button>
         </div>
       </Body>
@@ -919,7 +911,7 @@ function StepTrack({ onSelect, onBack }: {
 // ─── Step 8: 플랫폼 선택 ───────────────────────────────
 const TRACK_PLATFORMS: Record<TrackType, string[]> = {
   memorial: ['facebook', 'instagram', 'kakaotalk'],
-  delete:   ['google', 'facebook', 'twitter'],
+  delete:   ['google', 'facebook', 'twitter', 'kakaotalk'],
 }
 
 function StepPlatforms({ onNext, onBack, saving }: {
