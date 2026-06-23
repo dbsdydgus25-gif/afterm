@@ -6,14 +6,16 @@ export function generateStaticParams() {
   return GUIDES.map(g => ({ slug: g.slug }))
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const guide = getGuide(params.slug)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const guide = getGuide(slug)
   if (!guide) return {}
   return { title: `${guide.title} | 에프텀 가이드`, description: guide.summary }
 }
 
-export default function GuidePage({ params }: { params: { slug: string } }) {
-  const guide = getGuide(params.slug)
+export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const guide = getGuide(slug)
   if (!guide) notFound()
 
   return (
