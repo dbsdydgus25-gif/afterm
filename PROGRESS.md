@@ -1,6 +1,6 @@
 # Afterm MVP — 작업 내역 정리
 
-> 브랜치: `main` | 마지막 업데이트: 2026-06-20
+> 브랜치: `main` | 마지막 업데이트: 2026-06-23
 
 ---
 
@@ -12,7 +12,7 @@
 | 인증 | Supabase Auth (카카오 OAuth) |
 | DB | Supabase (PostgreSQL + RLS) |
 | 결제 | PortOne V2 (KG이니시스 + 카카오페이) |
-| 알림 | Solapi 카카오 알림톡 |
+| 알림 | Solapi 카카오 알림톡 + SMS OTP |
 | 배포 | Vercel (`git push origin main` 으로만 배포) |
 | 어드민 인증 | 쿠키 기반 (`admin_session`) |
 
@@ -25,41 +25,25 @@ src/
 ├── proxy.ts                              # Next.js 미들웨어 (인증 라우팅)
 ├── store/useApplyStore.ts                # Zustand persist — 신청 플로우 상태
 ├── lib/
-│   ├── kakao/sendKakao.ts               # 카카오 알림톡 공용 함수 (모든 route에서 직접 import)
+│   ├── kakao/sendKakao.ts               # 카카오 알림톡 공용 함수
 │   └── supabase/admin.ts                # Supabase Admin Client
 ├── app/
-│   ├── (landing)/page.tsx               # 랜딩 페이지
-│   ├── login/page.tsx                   # 카카오 로그인
-│   ├── onboarding/page.tsx              # 신규 유저 온보딩
-│   ├── home/
-│   │   ├── page.tsx                     # 홈 대시보드 (revalidate 30)
-│   │   ├── HomeTabBar.tsx               # 하단 탭바 (Link prefetch 적용)
-│   │   ├── orders/
-│   │   │   ├── page.tsx                 # 신청 내역 (revalidate 0)
-│   │   │   └── OrdersClient.tsx         # 취소하기 버튼, 환불 모달
-│   │   └── myinfo/
-│   │       ├── page.tsx                 # 내 정보 (revalidate 30)
-│   │       └── MyInfoClient.tsx         # 결제내역 모달, 알림/약관 모달
-│   ├── apply/
-│   │   ├── page.tsx                     # Step 0: 약관 동의
-│   │   ├── service-info/page.tsx        # Step 1: 고인 정보 + 서비스 선택
-│   │   ├── documents/page.tsx           # Step 2: 서류 업로드
-│   │   ├── payment/page.tsx             # Step 3: 결제 (카드/카카오페이)
-│   │   ├── payment/complete/page.tsx    # 카카오페이 리다이렉트 완료
-│   │   └── confirm/page.tsx             # Step 4: 신청 완료 확인
+│   ├── page.tsx                         # 랜딩 페이지 (로그인 상태 분기)
+│   ├── apply/page.tsx                   # 신청 플로우 (약관→사망진단서→신청인→서비스→결제)
 │   ├── admin/
-│   │   ├── layout.tsx
 │   │   ├── page.tsx                     # 어드민 대시보드
-│   │   ├── cases/[caseId]/page.tsx      # 케이스 상세 (위임장 다운로드, 환불, 상태변경)
-│   │   └── payments/page.tsx            # 결제 관리
+│   │   ├── cases/page.tsx               # 신청 목록
+│   │   ├── cases/[caseId]/page.tsx      # 케이스 상세 + 위임장 다운로드
+│   │   ├── payments/page.tsx            # 결제 관리
+│   │   └── promo/page.tsx               # 베타 코드 관리
 │   └── api/
-│       ├── notify/kakao/route.ts        # 카카오 알림톡 발송 엔드포인트
-│       ├── notify/email/route.ts        # 이메일 발송 (Gmail SMTP)
-│       ├── payment/verify/route.ts      # 결제 검증 + 알림톡 발송
-│       ├── payment/refund/route.ts      # 환불 처리 + 알림톡 발송
-│       ├── case-summary/route.ts        # 케이스 요약 (admin client, RLS 우회)
+│       ├── verify/send-otp/route.ts     # Solapi SMS OTP 발송
+│       ├── verify/check-otp/route.ts    # HMAC OTP 검증
+│       ├── payment/verify/route.ts      # 결제 검증 + 구글시트 + 알림톡
+│       ├── promo/validate/route.ts      # 프로모 코드 검증
+│       ├── promo/apply/route.ts         # 0원 결제 처리 + 구글시트 + 알림톡
 │       └── admin/cases/[caseId]/
-│           └── status/route.ts          # 케이스 상태 변경 + 알림톡 + 구글시트
+│           └── delegation-pdf/route.ts  # 위임장 PDF 생성
 ```
 
 ---
@@ -72,23 +56,28 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Solapi 카카오 알림톡
+# Solapi
 SOLAPI_API_KEY=
 SOLAPI_API_SECRET=
 SOLAPI_SENDER_NUMBER=
-SOLAPI_KAKAO_PFID=KA01PF260615084445678bWiHWK5ED9x      ✅ 2026-06-18 추가
-SOLAPI_KAKAO_SUBMIT_TEMPLATE_ID=KA01TP260615084732913xaw3HWNjJPk    ✅
-SOLAPI_KAKAO_PROCESSING_TEMPLATE_ID=KA01TP260615122342986eh9S82hu0Jo ✅
-SOLAPI_KAKAO_COMPLETE_TEMPLATE_ID=KA01TP260615123354909J5sCGxAq8O3  ✅
-SOLAPI_KAKAO_PAYMENT_TEMPLATE_ID=KA01TP260617073154295DjvzhK7wAPJ   ✅
-SOLAPI_KAKAO_REFUND_TEMPLATE_ID=KA01TP260617073227184l5mWCWMsdIn    ✅
-SOLAPI_KAKAO_OTP_TEMPLATE_ID=KA01TP260617073822823nnIbC4taeKs       ✅
+SOLAPI_KAKAO_PFID=KA01PF260615084445678bWiHWK5ED9x
+SOLAPI_KAKAO_SUBMIT_TEMPLATE_ID=KA01TP260615084732913xaw3HWNjJPk
+SOLAPI_KAKAO_PROCESSING_TEMPLATE_ID=KA01TP260615122342986eh9S82hu0Jo
+SOLAPI_KAKAO_COMPLETE_TEMPLATE_ID=KA01TP260615123354909J5sCGxAq8O3
+SOLAPI_KAKAO_PAYMENT_TEMPLATE_ID=KA01TP260617073154295DjvzhK7wAPJ
+SOLAPI_KAKAO_REFUND_TEMPLATE_ID=KA01TP260617073227184l5mWCWMsdIn
+SOLAPI_KAKAO_OTP_TEMPLATE_ID=KA01TP260617073822823nnIbC4taeKs
 
 # PortOne V2
 NEXT_PUBLIC_PORTONE_STORE_ID=
-NEXT_PUBLIC_PORTONE_CHANNEL_KEY=        # KG이니시스
-NEXT_PUBLIC_PORTONE_KAKAO_CHANNEL_KEY=  # 카카오페이
+NEXT_PUBLIC_PORTONE_CHANNEL_KEY=
+NEXT_PUBLIC_PORTONE_KAKAO_CHANNEL_KEY=
 PORTONE_API_SECRET=
+
+# 사업자 정보 (위임장 PDF용)
+AFTERM_BUSINESS_REG=221-20-19292
+AFTERM_CEO_NAME=윤용현
+AFTERM_ADDR=경기도 평택시 지산로 128, 107동 9층 901호
 
 # Gmail SMTP
 GMAIL_USER=afterm001@gmail.com
@@ -98,9 +87,13 @@ GMAIL_APP_PASSWORD=
 GOOGLE_SERVICE_ACCOUNT_JSON=
 GOOGLE_SHEET_ID=
 
+# OTP
+OTP_SECRET=
+
 # 어드민
 ADMIN_PASSWORD=
 ADMIN_PHONE=
+CRON_SECRET=
 ```
 
 ---
@@ -109,201 +102,136 @@ ADMIN_PHONE=
 
 ```
 submitted(접수완료) → reviewing(서류확인) → processing(처리중) → completed(처리완료)
-                      ↑ 어드민 수동 변경만 (AI 에이전트 자동변경 제거됨)
 ```
 
 ### 결제 상태 흐름
 ```
 pending → paid(결제완료) → refunded(환불완료)
-```
-
-### 카카오 알림톡 발송 흐름
-```
-결제 완료  → payment 템플릿 + submitted 템플릿 동시 발송
-처리 시작  → processing 템플릿 (어드민 상태변경 시)
-처리 완료  → completed 템플릿 (어드민 상태변경 시)
-환불 완료  → refund 템플릿 (고객 취소 or 어드민 환불 시)
-회원가입   → otp 템플릿 (인증번호)
+프로모 코드 → paid(0원, payment_id: promo-CODE-caseId[:8])
 ```
 
 ---
 
-## 🚀 2026-06-18 작업 내역
+## 🚀 2026-06-22 작업 내역
 
-### 1. 하단 탭바 렉 개선
-- `button + router.push` → `<Link prefetch>` 교체로 탭 이동 시 prefetch 자동 실행
-- framer-motion 제거, CSS transition으로 채팅 패널 애니메이션 교체
-- `router.prefetch()` on mount 추가 (보조)
+### 1. 위임장 PDF 전면 재설계
+- 한국 법무 문서 형식 (제1~5조 구성, 당사자 표, 서명란)
+- 한글 글자 깨짐 수정: `charW()` + `drawStr()` 함수로 글자별 수동 위치 지정
+- Supabase RLS join 우회: `delegations` 별도 쿼리로 조회
+- 사업자 정보 env var에서 자동 기입
 
-### 2. 신청내역 UI 개선 (`OrdersClient.tsx`)
-- 하단 고인이름 탭 삭제 (UX 해침)
-- **취소하기 버튼** 추가 — `payment_status === 'paid'` + 미완료 케이스에만 노출
-- 취소 확인 모달: 고인명, 환불금액 표시 후 확인 시 `/api/payment/refund` 호출
-- 환불 완료 건 "✅ 취소 / 환불 완료" 텍스트 표시
+### 2. 베타 테스트 프로모 코드 시스템
+- `promo_codes` + `promo_code_uses` Supabase 테이블 생성
+- AFTERM001~050 코드 50개 생성 (90일 유효, AFTERM001은 max_uses=9999로 무제한)
+- `/api/promo/validate` — 코드 유효성 검증
+- `/api/promo/apply` — 0원 결제 처리 + 구글시트 + 카카오 알림톡
+- 결제 페이지에 프로모 코드 입력 UI 추가
+- 어드민 `/admin/promo` 베타 코드 관리 페이지 추가
 
-### 3. 마이 페이지 개선 (`MyInfoClient.tsx`)
-- "결제 정보" 메뉴 삭제
-- "결제 내역" → 실제 결제 데이터 모달로 연결
-  - `payment_status IN ('paid', 'refunded')` 케이스 목록 조회
-  - 각 케이스: 고인명, 신청 서비스 목록, 결제일, 결제금액, 접수번호 표시
-  - 환불 건: 빨간 배경 + 환불일 표시
+### 3. SMS OTP 실발송 연동 (Solapi)
+- HMAC-SHA256 인증 헤더 구현
+- 프로덕션: devCode 미노출 / 개발: devCode 화면 표시
+- 10분 유효 시간 윈도우 검증
 
-### 4. 카카오 알림톡 아키텍처 전면 개선
+### 4. 사망진단서 업로드 UX 개선
+- 이모지 제거 → "사진 촬영" / "파일 업로드" 텍스트 버튼
+- OCR 확인 화면 "성함" → "고인 성함"
+- 관계 질문: 신청인 이름 → 고인 이름으로 표시
 
-#### 문제 1: self-referential fetch (핵심 원인)
-- `refund/route.ts`, `verify/route.ts`에서 자기 자신의 `/api/notify/kakao`를 HTTP fetch로 호출
-- Vercel 서버리스 환경에서 self-fetch는 불안정 (콜드스타트, 타임아웃)
-- **수정**: `src/lib/kakao/sendKakao.ts` 공용 함수 추출 → 모든 route에서 직접 import
+### 5. 구글 시트 / 어드민 신청인 정보 수정
+- Supabase RLS join 이슈로 `delegations` 별도 쿼리 패턴 전면 적용
+- 어드민 대시보드: delegationMap 방식으로 신청인 정보 정상 표시
+- payment/verify, promo/apply: delegationFresh로 구글시트 G/H/N 컬럼 정상 저장
 
-#### 문제 2: 환경변수 전부 누락
-- `SOLAPI_KAKAO_PFID`, 템플릿 ID 7개가 Vercel에 미설정 상태였음
-- Solapi API 직접 쿼리로 PF ID 확인 후 Vercel env add로 전부 추가
+### 6. 홈 페이지 개선
+- 로그인 상태 분기: 로그인 시 CTA → `/apply` 직행 / 미로그인 → 로그인 시트
+- 헤더 버튼: 로그인 시 "내 신청" → `/home`, 미로그인 시 "로그인"
+- "선착순 50명 무료 이벤트" 배너 삭제
 
-#### 카카오 알림 발송 흐름 변경
-- 결제 완료 시: `payment` + `submitted` 알림 동시 발송 (신청접수 자동화)
-- 어드민 상태 변경: `sendKakao()` 직접 호출 (HTTP fetch 제거)
+### 7. 신청 플로우 — 신청인 주소 수집 추가
+- StepApplicant에 주소 입력 단계 추가 (총 5단계로 확장)
+- `delegations.delegator_address` 컬럼 DB 생성 + 저장
+- 내일: 네이버 주소 API 연동 예정
 
-### 5. loading.tsx 추가
-- `src/app/home/loading.tsx`: 홈 탭 전환 시 스켈레톤 UI
-- `src/app/home/orders/loading.tsx`: 신청내역 스켈레톤 UI
-
-### 6. 진행바 삭제
-- `/apply/_components.tsx`, `/apply/page.tsx`, `/apply/service-info/page.tsx`의 ProgressBar 제거
-
----
-
-## 🚀 이전 주요 작업 내역 (요약)
-
-| 날짜 | 주요 내용 |
-|------|-----------|
-| 06-05 | 홈/마이/탭바 UI 개편, 자체 1:1 채팅, 어드민 서류 뷰어 |
-| 06-09 | 채팅 시스템 재구축, 어드민 케이스 그룹핑, 온보딩 이름확인 |
-| 06-15 | 모바일 터치 개선, 포트원 V2 결제 연동, 환불 기능, 카카오 알림톡 |
-| 06-17 | 약관 동의 화면, 서류 업로드 모바일 개선, 어드민 결제관리 페이지 |
+### 8. 위임장 워드(.docx) 양식 제작
+- 실제 한국 법문서 형식 (흑백, 테이블 기반)
+- 제1조 위임인 / 제2조 수임인 / 제3조 고인 정보 / 제4조 위임 내용 / 제5조 특기사항
+- 위임인·수임인 양쪽 서명란 및 (인) 도장칸 포함
+- 바탕화면 `위임장_에프텀.docx` 저장
 
 ---
 
-## 🚀 2026-06-19 작업 내역
+## 🚀 2026-06-23 작업 내역
 
-### 1. 김비서 AI 에이전트 구축
-- **`/api/secretary/morning`** — 매일 아침 08:00 KST 모닝 브리핑 이메일 자동 발송
-  - 오늘 할일 체크리스트, 어제 신규 신청 현황, 현재 진행 중 케이스, 미결제 경고
-- **`/api/secretary/night`** — 매일 밤 23:00 KST 야간 보고 이메일 자동 발송
-  - 오늘 신규 신청 상세(신청인/서비스/결제여부), 당일 총 결제/환불/순매출 요약
-- **`/api/secretary/save-todo`** — 내일 할일을 DB에 저장, 다음 날 모닝 브리핑에 반영
-- **Vercel Cron** — `vercel.json`에 08:00 / 23:00 KST 스케줄 등록
-- **Supabase `secretary_notes` 테이블** 신규 생성
-- **`CRON_SECRET`** 환경변수 생성 및 Vercel 등록 (보안 인증)
-- **`/퇴근` 슬래시 커맨드** — `.claude/commands/퇴근.md` 등록
-- **UserPromptSubmit 훅** — "하루 일과 끝내자", "퇴근", "오늘 마감" 자동 감지
+### 1. 위임장 PDF 401 에러 버그 수정 (개발팀)
+- 일반 유저가 마이페이지에서 "위임장 확인" 클릭 시 401 에러 발생 → 수정 완료
+- 유저용 API 엔드포인트 `/api/cases/[caseId]/delegation-pdf` 신규 생성 (어드민 전용이었던 것을 분리)
+- git push origin main 완료 (배포됨)
+- 추가 발견: `delegations.delegator_address` 컬럼 누락으로 위임장 PDF 주소 항상 빈칸 출력
+  - 마이그레이션 SQL 파일 생성됨 → **대표님이 Supabase에서 직접 실행 필요**
 
-### 2. 카카오 알림톡 아키텍처 개선 (전날 이어서)
-- **SOLAPI_KAKAO_PFID 발급** — Solapi API 직접 쿼리로 PF ID 확인 (`KA01PF260615084445678bWiHWK5ED9x`)
-- **Vercel 환경변수 7개 추가** — PFID + 템플릿 ID 6개 (submit/processing/complete/payment/refund/otp) 전부 등록
+### 2. 플랫폼 문의처 조사 (전략기획팀)
+- 카카오/구글/인스타/페북/트위터(X) 5개 플랫폼 고인 계정 처리 정책 파악 완료
+- 결론: 이메일 문의 불가, 모두 공식 온라인 폼으로만 접수
+- 구글, 인스타, 페북, 트위터(X): 위임장 기반 제3자 대행 정책적으로 허용 (명문화 확인)
+- 카카오: 정책 불명확 → 고객센터 먼저 문의 후 서면 회신 필요
+- 카카오 공식 PDF 폼 발견: `고인 계정 탈퇴 처리 요청서.pdf` → 자동 생성 기능 개발 예정
 
----
-
-## 🚀 2026-06-20 작업 내역
-
-### 1. 사망진단서 OCR UX 단순화
-- 고객에게 AI 점수(45점 등) 노출 제거 → 업로드만 하면 다음 단계 진행
-- AI 분석 결과(점수·진위·병원명 등)는 백엔드 DB(`case_documents`)에만 저장
-- 어드민 케이스 상세에 "🔍 사망진단서 AI 분석 결과" 카드 추가
-- Claude 프롬프트에 오늘 날짜 주입 → 미래 날짜 오판 버그 수정
-
-### 2. 서류 첨부 페이지 개편 (`/apply/documents`)
-- 상단 8칸 파란 진행바 제거
-- 사망진단서만 필요한 플로우 → DOCS 비어있으면 자동으로 서명 단계 시작
-
-### 3. 어드민 신청목록 전면 개편 (`/admin/cases`)
-- 고인별 그룹핑 → 신청인 기준 플랫 리스트로 전환
-- 컬럼: 접수일시 / 신청인+연락처 / 고인명+서류 / 사망일 / 서비스 / 결제 / 상태 / 상세버튼
-- 상태 탭바 + 검색 + 누적 결제액 헤더 추가
-
-### 4. 어드민 대시보드 업데이트
-- 최근 신청 테이블에 신청인명·결제금액 컬럼 추가
-
-### 5. 어드민 케이스 상세 개선
-- 💳 결제 정보 카드 추가 (결제상태, 금액, 결제ID, 환불일)
-- 🔍 사망진단서 AI 분석 카드 추가
-
-### 6. 구글 시트 연동 수정
-- `payment/verify` 결제 완료 후 Google Sheets 자동 저장 트리거
-- DB 형식(case_services)과 Zustand 스토어 형식 둘 다 지원
-- 결제금액·PG결제ID 컬럼(Q·R) 추가
-
-### 7. 홈화면 완료/취소 케이스 숨김
-- `.not('status', 'in', '("draft","completed","cancelled")')` 처리
-
-### 8. 신청내역 탭 분리 (`/home/orders`)
-- 진행중 / 완료 탭 분리 + 카운트 뱃지
-- 완료·취소 케이스 별도 탭으로 이동
-
-### 9. UI 아이콘 정리
-- 마이페이지 MenuItem 아이콘 박스 제거 (텍스트만)
-- 홈 "서비스 신청 전 준비" 섹션: 실제 브랜드 SVG 아이콘 적용 (페이스북·인스타·X·구글)
-- "이런 것도 도와드려요" 카드 이모지 아이콘 제거
-- 신청내역 ServiceCard 헤더 아이콘 제거
-- About 페이지 나뭇잎 → 에프텀 로고
-
-### 10. 바텀시트 safe-area 수정
-- LoginBottomSheet / MyInfoClient 모달 zIndex 310+ 올림 (탭바 zIndex 300 위로)
-- `paddingBottom: calc(...px + env(safe-area-inset-bottom))` 적용
-
-### 11. 사망진단서 스캔 효과 (어드민)
-- DocViewer 사망진단서 탭: `grayscale(100%) contrast(1.4)` CSS 필터 → 스캔본처럼 표시
-- 라이트박스(전체화면)에도 동일 필터 적용
-
-### 12. 서비스 정보 DB 저장 수정
-- `service-info` 마지막 서비스 완료 시 `fieldValues` → `case_services.account_id / contact_info` DB 저장
-- 결제 후 구글 시트에 계정ID 정보 정상 반영되도록 수정
+### 3. 온라인 마케팅 채널 전략 수립 (마케팅팀)
+- 채널 구축 순서 확정: 네이버 블로그 → 인스타그램 → 카카오 오픈채널 → 유튜브
+- 1주 내 시작: 네이버 블로그 개설 + 첫 글 ("카카오 계정, 가족이 해지 신청할 수 있나요?")
+- 인스타그램 계정명 확정: @afterm.kr
+- 30일 콘텐츠 계획 수립 완료
 
 ---
 
-## ✅ 일요일 할일 체크리스트 (2026-06-22)
+## 📋 2026-06-24 내일 할일 체크리스트
 
-### 🔴 최우선 — 테스트 & 검증
+### 🔴 최우선 — 서비스 동작 직결 (대표님 직접)
 
-- [ ] **전체 플로우 end-to-end 테스트** (처음부터 결제까지)
-  - 약관동의 → 사망진단서 업로드 → 고인정보 확인 → 서비스선택 → 계정정보 입력 → 서류업로드 → 결제
-  - 구글 시트에 계정ID(계정 아이디/이메일/전화) 정상 반영 확인
-  - 카카오 알림톡 수신 확인 (결제완료·접수완료 동시 발송)
+- [ ] **[Supabase] delegator_address 컬럼 마이그레이션 SQL 실행** — 위임장 주소 빈칸 문제 해결 (개발팀 SQL 파일 수령 후 실행)
+- [ ] **[Supabase] delegator_address 컬럼 정상 저장 확인** — 마이그레이션 후 테스트 신청으로 주소 저장 여부 확인
 
-- [ ] **구글 시트 전체 컬럼 확인**
-  - A: 접수일시 / G: 신청인 성명 / I: 플랫폼 / L: 계정ID / Q: 결제금액 모두 채워지는지
+### 🔴 최우선 — 핵심 기능 (개발팀)
 
-- [ ] **환불 플로우 테스트**
-  - 신청내역 → 취소하기 → 환불 확인 → 카톡 수신 → 결제내역 환불 표시
+- [ ] **네이버 주소 API 연동** — 신청인 주소 입력에 주소 검색 팝업 추가
+- [ ] **위임장 PDF 주소 반영** — delegator_address → PDF 위임인 주소 칸 자동 기입
+- [ ] **카카오 공식 폼 PDF 자동 생성** — `고인 계정 탈퇴 처리 요청서.pdf` 케이스별 자동 생성
+- [ ] **AFTERM001 무제한 코드로 전체 플로우 end-to-end 테스트**
 
-### 🟠 바텀시트 safe-area 최종 확인
+### 🟠 외부 기관 대응 (대표님 직접) — [외부기관]
 
-- [ ] 로그인 바텀시트 하단 버튼 안 잘리는지 실기기 확인
-- [ ] 마이페이지 결제내역·알림·이용약관 모달 확인 버튼 확인
-- [ ] Chat 패널 입력창 안 잘리는지 확인
+- [ ] **[카카오] 고인 계정 처리 대행 가능 여부 고객센터 문의** — 서면 회신 요청, 정책 확정 전 서비스 안내 문구 보수적으로 유지
+- [ ] **[포트원] KG이니시스 실결제 MID 심사 현황 확인**
+- [ ] **[포트원] 카카오페이 가맹점 심사 현황 확인**
 
-### 🟡 어드민 점검
+### 🟠 마케팅 실행 (대표님 직접)
 
-- [ ] 어드민 케이스 상세 → 사망진단서 스캔 효과 (흑백) 확인
-- [ ] 어드민 AI 분석 결과 카드 데이터 정상 표시 확인
-- [ ] 어드민 결제 정보 카드 정상 표시 확인
-- [ ] 개별 서비스 상태 변경 저장 → 카카오 알림 수신 확인
+- [ ] **네이버 블로그 계정 개설** — 비용 없음
+- [ ] **첫 글 발행**: "카카오 계정, 가족이 해지 신청할 수 있나요?" — SEO 핵심 키워드 글
+- [ ] **인스타그램 @afterm.kr 계정 개설** — 비용 없음
 
-### 🟢 마무리 & 법적 검토 (대표님 직접)
+### 🟡 법적/운영 (대표님 직접)
 
-- [ ] **포트원 실결제 MID 심사 현황 확인** (KG이니시스 / 카카오페이)
-- [ ] **위임장 법적 내용 검토** — 위임 범위 항목 명시 필요
-- [ ] 개인정보처리방침 / 이용약관 실제 내용 채우기
-- [ ] 카카오페이 가맹점 심사 현황 확인
+- [ ] **위임장 워드 파일 법적 검토** — 변호사 또는 법무사 검토 의뢰 권장 (비용 발생)
+- [ ] **개인정보처리방침 / 이용약관 실제 내용 작성** — 법무 전문가 검토 권장 (비용 발생)
+
+### 🟢 중장기 기획 (결정 필요)
+
+- [ ] **고인 아이디 찾기 기능 방향 결정** — 1안(영상 업로드+Vision API), 2안(e프라이버시 PDF), 3안(mbox 파일) 중 채택
+- [ ] **사업기획 에이전트 & 마케팅 에이전트** 정식 구축 및 운영 체계 수립
 
 ---
 
 ## 🚨 알려진 버그 / 미완료
 
-- [ ] 위임장 PDF 어드민 다운로드 안 됨 (법적 내용 구체화도 필요)
+- [ ] **위임장 PDF 주소 빈칸** — delegator_address 컬럼 마이그레이션 필요 (대표님 Supabase 실행 대기 중)
+- [ ] 네이버 주소 API 미연동 (개발 예정)
+- [ ] 카카오 고인 계정 대행 정책 불명확 (고객센터 문의 필요)
 - [ ] KG이니시스 실결제 MID 심사 대기 중
 - [ ] 카카오페이 가맹점 심사 대기 중
-- [ ] 사망진단서 실제 제출용 스캔본 PDF 변환 서버 처리 (현재는 CSS 필터로만 표시)
 - [ ] 개인정보처리방침 / 이용약관 실제 내용 미작성
+- [ ] 고인 아이디 찾기 기능 미구현 (기획 단계)
 
 ---
 
