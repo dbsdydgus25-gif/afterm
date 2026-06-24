@@ -65,7 +65,7 @@ export async function GET(
   //            고인성명, 고인생년월일, 고인사망일, 고인연락처
   const values = [
     delegatorName,
-    '',            // 위임인 생년월일 (미수집)
+    '-',           // 위임인 생년월일 (미수집)
     delegatorAddr,
     delegatorPhone,
     delegatorRel,
