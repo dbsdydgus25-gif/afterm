@@ -22,19 +22,13 @@ export async function GET(
   const { caseId } = await params
   const adminClient = createAdminClient()
 
-  const { data: caseData } = await adminClient
-    .from('cases')
-    .select('*')
-    .eq('id', caseId)
-    .single()
+  const [{ data: caseData }, { data: delegation }, { data: kakaoService }] = await Promise.all([
+    adminClient.from('cases').select('*').eq('id', caseId).single(),
+    adminClient.from('delegations').select('*').eq('case_id', caseId).single(),
+    adminClient.from('case_services').select('account_id, contact_info').eq('case_id', caseId).ilike('service_name', '%카카오%').maybeSingle(),
+  ])
 
   if (!caseData) return NextResponse.json({ error: '케이스 없음' }, { status: 404 })
-
-  const { data: delegation } = await adminClient
-    .from('delegations')
-    .select('*')
-    .eq('case_id', caseId)
-    .single()
 
   const d = delegation || {}
 
@@ -80,7 +74,8 @@ export async function GET(
   // ── 데이터 ──
   const deceasedName     = caseData.deceased_name || ''
   const deceasedPhone    = caseData.deceased_phone || ''
-  const deceasedKakao    = (caseData as any).deceased_kakao || ''
+  // 카카오 계정: case_services.account_id (카카오 서비스) 우선, 없으면 고인 전화번호
+  const deceasedKakao    = kakaoService?.account_id || caseData.deceased_phone || ''
   const delegatorName    = (d as any).delegator_name || ''
   const delegatorRelation = (d as any).delegator_relation || ''
   const delegatorPhone   = (d as any).delegator_phone || ''
