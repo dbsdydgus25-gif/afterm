@@ -231,45 +231,6 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
               )}
             </>)}
 
-            {activeModal === 'delegation' && (<>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 8px' }}>위임장 확인</h3>
-              <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 20px' }}>신청 시 작성된 위임장을 PDF로 다운로드할 수 있습니다.</p>
-              {paymentLoading ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: '#9CA3AF' }}>불러오는 중...</div>
-              ) : paymentCases.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                  <p style={{ fontSize: 14, color: '#9CA3AF' }}>결제 완료된 신청 건이 없습니다.</p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {paymentCases.map(c => (
-                    <a
-                      key={c.id}
-                      href={`/api/cases/${c.id}/delegation-pdf`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '16px 18px', borderRadius: 14, border: '1px solid #E8EAF0', background: '#F9FAFB',
-                      }}>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>{c.deceased_name} 님</p>
-                          <p style={{ fontSize: 12, color: '#9CA3AF', margin: 0 }}>
-                            {c.paid_at ? new Date(c.paid_at).toLocaleDateString('ko-KR') : ''} 신청
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB' }}>PDF 다운로드</span>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </div>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </>)}
 
             <button onClick={() => setActiveModal(null)} style={{
               width: '100%', marginTop: 24, padding: '14px', borderRadius: 14,
@@ -284,8 +245,6 @@ export default function MyInfoClient({ isGuest = false }: { isGuest?: boolean })
         <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: '0 0 12px' }}>결제</h2>
         <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #E8EAF0', overflow: 'hidden' }}>
           <MenuItem title="결제 내역" desc="결제 및 환불 내역 확인" onClick={openPayments} />
-          <MenuItem title="위임장 확인" desc="내가 작성한 위임장 PDF 다운로드"
-            onClick={() => requireLogin(() => setActiveModal('delegation'))} />
           <div style={{ borderBottom: 'none' }}>
             <MenuItem title="환불 정책" desc="환불 규정 및 처리 기간 안내"
               onClick={() => window.open('/refund', '_blank')} />
