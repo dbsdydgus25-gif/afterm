@@ -191,6 +191,7 @@ export const SERVICE_CATALOG: ServiceItem[] = [
         fields: [
           { key: 'requester_name', label: '신청인 성명', placeholder: '홍길순', type: 'text', required: true },
           { key: 'deceased_name', label: '고인 성명', placeholder: '홍길동', type: 'text', required: true },
+          { key: 'account_username', label: '고인 카카오 계정 (휴대폰 번호)', placeholder: '010-1234-5678', type: 'text', required: true },
           { key: 'deceased_telecom', label: '고인의 통신사', placeholder: '', type: 'select', required: true, options: ['SKT', 'KT', 'LG U+', '알뜰폰(MVNO)'] },
           { key: 'refund_account', label: '환불 계좌 (카카오페이 잔액 있을 경우)', placeholder: '은행명 계좌번호', type: 'text', required: false },
         ],
