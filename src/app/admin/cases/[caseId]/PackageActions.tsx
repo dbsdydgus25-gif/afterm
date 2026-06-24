@@ -67,20 +67,20 @@ export default function PackageActions({
     finally { setDownloading(null) }
   }
 
-  // 위임장 Word (docx) 다운로드
+  // 위임장 PDF (서명 포함) 다운로드
   const handleDelegationDocx = async () => {
     setDownloading('delegation')
     try {
-      const res = await fetch(`/api/admin/cases/${caseId}/delegation-docx`)
+      const res = await fetch(`/api/admin/cases/${caseId}/delegation-pdf`)
       if (!res.ok) { showToast('❌ 위임장 생성 실패'); return }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `위임장_${deceasedName}_${caseId.slice(0,8).toUpperCase()}.docx`
+      a.download = `위임장_${deceasedName}_${caseId.slice(0,8).toUpperCase()}.pdf`
       a.click()
       URL.revokeObjectURL(url)
-      showToast('✅ 위임장 Word 다운로드 완료!')
+      showToast('✅ 위임장 PDF 다운로드 완료!')
     } catch { showToast('❌ 위임장 다운로드 실패') }
     finally { setDownloading(null) }
   }
@@ -175,7 +175,7 @@ export default function PackageActions({
               transition: 'background 0.15s',
             }}
           >
-            <span>✍️ 위임장 (Word 자동 작성)</span>
+            <span>✍️ 위임장 PDF (서명 포함)</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB' }}>
               {downloading === 'delegation' ? '생성 중...' : '↓ 다운로드'}
             </span>
