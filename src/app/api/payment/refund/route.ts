@@ -17,10 +17,6 @@ export async function POST(req: NextRequest) {
     .eq('id', caseId)
     .single()
 
-  if (!caseData?.payment_id) {
-    return NextResponse.json({ error: '결제 정보 없음' }, { status: 400 })
-  }
-
   if (caseData.payment_status === 'refunded') {
     return NextResponse.json({ error: '이미 환불된 건입니다' }, { status: 400 })
   }
@@ -31,6 +27,17 @@ export async function POST(req: NextRequest) {
 
   // 상태별 환불 금액 계산
   const totalAmount = Number(caseData.paid_amount) || 0
+
+  // 0원 결제(테스트/무료)는 포트원 호출 없이 바로 취소
+  if (totalAmount === 0 || !caseData.payment_id) {
+    await adminClient.from('cases').update({
+      payment_status: 'refunded',
+      status: 'cancelled',
+      refunded_at: new Date().toISOString(),
+      refunded_amount: 0,
+    }).eq('id', caseId)
+    return NextResponse.json({ success: true, refund: { message: '0원 취소 처리 완료' } })
+  }
   const services = caseData.case_services || []
   const totalSvc = services.length
   const doneSvc = services.filter((s: any) => s.status === 'done').length
