@@ -2,6 +2,24 @@
 
 import { useState } from 'react'
 
+const SUBMISSION_LINKS: Record<string, { url: string; label: string }> = {
+  '카카오톡':    { url: 'https://cs.kakao.com/requests?service=8',                                               label: '카카오 고객센터 신청' },
+  '카카오계정':  { url: 'https://cs.kakao.com/requests?service=8',                                               label: '카카오 고객센터 신청' },
+  '인스타그램':  { url: 'https://help.instagram.com/contact/1474899482730688',                                   label: '인스타그램 추모계정 신청' },
+  '페이스북':    { url: 'https://www.facebook.com/help/contact/228813257197480',                                 label: '페이스북 추모계정 신청' },
+  '구글':        { url: 'https://support.google.com/accounts/troubleshooter/6357590',                           label: '구글 계정 신청' },
+  '트위터':      { url: 'https://help.twitter.com/forms/account-access/deactivate-or-close-account/deactivate-account-for-deceased', label: 'X(트위터) 계정 신청' },
+  'X':           { url: 'https://help.twitter.com/forms/account-access/deactivate-or-close-account/deactivate-account-for-deceased', label: 'X(트위터) 계정 신청' },
+  '네이버':      { url: 'https://help.naver.com/alias/member/member7.nhn',                                       label: '네이버 계정 신청' },
+}
+
+function getSubmissionLink(serviceName: string) {
+  for (const [key, val] of Object.entries(SUBMISSION_LINKS)) {
+    if (serviceName.includes(key)) return val
+  }
+  return null
+}
+
 const STATUS_OPTIONS = [
   { value: 'pending',    label: '대기 중',   color: '#9AA3B2', bg: '#F1F3F5', emoji: '⏳' },
   { value: 'dispatched', label: '발송 완료', color: '#3B6FE8', bg: '#EEF3FD', emoji: '📨' },
@@ -65,13 +83,35 @@ export default function AdminServiceRow({ service, caseId }: { service: any; cas
         </span>
       </div>
 
-      {/* 계정 정보 */}
-      {service.account_id && (
-        <div style={{ background: '#F8FAFF', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: '#374151' }}>
-          <span style={{ color: '#9CA3AF', marginRight: 6 }}>계정</span>
-          <strong>{service.account_id}</strong>
-        </div>
-      )}
+      {/* 계정 정보 + 신청 링크 */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        {service.account_id && (
+          <div style={{ background: '#F8FAFF', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: '#374151', flex: 1 }}>
+            <span style={{ color: '#9CA3AF', marginRight: 6 }}>계정</span>
+            <strong>{service.account_id}</strong>
+          </div>
+        )}
+        {(() => {
+          const link = getSubmissionLink(service.service_name)
+          if (!link) return null
+          return (
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                background: '#EFF6FF', color: '#2563EB',
+                border: '1.5px solid #BFDBFE', textDecoration: 'none',
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}
+            >
+              🔗 {link.label}
+            </a>
+          )
+        })()}
+      </div>
 
       {/* 상태 변경 */}
       <div>
