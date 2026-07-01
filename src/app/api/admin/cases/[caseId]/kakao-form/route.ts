@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { PDFDocument, rgb } from 'pdf-lib'
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import fs from 'fs'
 import path from 'path'
@@ -41,6 +41,7 @@ export async function GET(
   const pdfDoc = await PDFDocument.load(fs.readFileSync(templatePath))
   pdfDoc.registerFontkit(fontkit)
   const font = await pdfDoc.embedFont(Buffer.from(fontBytes))
+  const dingbats = await pdfDoc.embedFont(StandardFonts.ZapfDingbats)
 
   const pages = pdfDoc.getPages()
   const p1 = pages[0]  // 고인 정보 / 신청인 정보 / 체크박스
@@ -68,7 +69,8 @@ export async function GET(
   }
 
   function checkOn(page: typeof p1, x: number, y: number) {
-    page.drawText('✔', { x, y, size: 10, font, color: black })
+    // ZapfDingbats '4' = ✔ heavy checkmark
+    page.drawText('4', { x, y, size: 10, font: dingbats, color: black })
   }
 
   // ── 데이터 ──
