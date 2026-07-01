@@ -47,19 +47,11 @@ export async function GET(
   const lgray = rgb(0.8, 0.8, 0.8)
   const ML = 50, MR = 545, CW = MR - ML
 
-  function charW(ch: string, size: number) {
-    const code = ch.charCodeAt(0)
-    if (code >= 0xAC00 && code <= 0xD7A3) return size * 0.63
-    if (ch === ' ') return size * 0.28
-    if (ch >= '0' && ch <= '9') return size * 0.38
-    return size * 0.33
-  }
-
   function drawStr(text: string, x: number, y: number, size: number, f: typeof font, color = black) {
     let cx = x
     for (const ch of text) {
       page.drawText(ch, { x: cx, y, size, font: f, color })
-      cx += charW(ch, size)
+      cx += f.widthOfTextAtSize(ch, size)
     }
     return cx
   }
@@ -69,8 +61,8 @@ export async function GET(
     drawStr(text, x, y, size, bold ? fontBold : font, color)
   }
 
-  function strW(text: string, size: number) {
-    return Array.from(text).reduce((w, ch) => w + charW(ch, size), 0)
+  function strW(text: string, size: number, f = font) {
+    return f.widthOfTextAtSize(text, size)
   }
 
   function line(x1: number, y1: number, x2: number, y2: number, thick = 0.5, color = black) {
