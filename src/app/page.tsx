@@ -248,6 +248,7 @@ export default function LandingPage() {
   const router = useRouter()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [comingSoonOpen, setComingSoonOpen] = useState(false)
 
   useEffect(() => {
     import('@/lib/supabase/client').then(({ createClient }) => {
@@ -259,11 +260,10 @@ export default function LandingPage() {
   }, [])
 
   const handleCTA = useCallback(() => {
-    if (isLoggedIn) router.push('/apply')
-    else setSheetOpen(true)
-  }, [isLoggedIn, router])
+    setComingSoonOpen(true)
+  }, [])
 
-  const openSheet = useCallback(() => setSheetOpen(true), [])
+  const openSheet = useCallback(() => setComingSoonOpen(true), [])
   const closeSheet = useCallback(() => setSheetOpen(false), [])
   const handleAuthSuccess = useCallback(() => {
     setSheetOpen(false)
@@ -283,6 +283,40 @@ export default function LandingPage() {
   return (
     <>
       <LoginBottomSheet open={sheetOpen} onClose={closeSheet} onSuccess={handleAuthSuccess} />
+
+      {/* 서비스 준비중 모달 */}
+      {comingSoonOpen && (
+        <div
+          onClick={() => setComingSoonOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: 20, padding: '36px 28px', maxWidth: 320, width: '90%',
+              textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🛠️</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 8 }}>서비스 준비 중입니다</div>
+            <div style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, marginBottom: 24 }}>
+              현재 서비스를 준비하고 있습니다.<br />조금만 기다려 주세요.
+            </div>
+            <button
+              onClick={() => setComingSoonOpen(false)}
+              style={{
+                width: '100%', padding: '13px 0', borderRadius: 12, border: 'none',
+                background: '#1B2B4B', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── 글로벌 keyframes ── */}
       <style>{`
